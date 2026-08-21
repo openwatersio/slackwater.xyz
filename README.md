@@ -91,6 +91,13 @@ pnpm deploy     # build, then wrangler deploy with nitro's generated config
 
 Two things that will otherwise cost you an hour:
 
+- **Don't add `devtools()` from `@tanstack/devtools-vite` back to `vite.config.ts`.** It
+  breaks `vite dev` with `Vite environment "ssr" is unavailable` and a 60s
+  `getBuiltins` transport timeout — every request 500s, while `pnpm build` stays perfectly
+  green, because the plugin only runs in dev. It is not the nitro beta, the Vite version, or
+  the presence of wrangler; all three were ruled out one at a time. A landing page has no use
+  for router devtools.
+
 - **`ERROR [nitro] Preview server exited with code 143` at the end of a build is normal.**
   Nitro spins up a preview server to prerender against and SIGTERMs it when done. The build
   exits 0; check that, not the log.
