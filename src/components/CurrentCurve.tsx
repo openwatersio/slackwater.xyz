@@ -79,8 +79,12 @@ export function CurrentCurve({
   }, [start, hours])
 
   const next = nextEvent(events, now)
-  const slacks = events.filter((e) => e.kind === 'slack')
-  const turns = events.filter((e) => e.kind !== 'slack')
+  // The fill fades out over the outer 6% at each end, so a label landing there
+  // annotates a curve the reader can barely see and looks clipped. Drop it —
+  // the window edge is arbitrary anyway.
+  const inFrame = (e: CurrentEvent) => x(e.time) > W * 0.07 && x(e.time) < W * 0.93
+  const slacks = events.filter((e) => e.kind === 'slack' && inFrame(e))
+  const turns = events.filter((e) => e.kind !== 'slack' && inFrame(e))
 
   return (
     <figure className="m-0">

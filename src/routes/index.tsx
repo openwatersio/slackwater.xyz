@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { CurrentCurve } from '#/components/CurrentCurve'
+import { Shot } from '#/components/Shot'
 import { HERO_STATION } from '#/lib/currents'
 
 export const Route = createFileRoute('/')({ component: Home })
@@ -146,7 +147,118 @@ function Home() {
         <WebClientLink />
       </p>
 
-      <footer className="mt-16 border-t border-white/10 pt-6 text-sm text-sw-steel">
+      {/* ── Correctness first, per gtm.md's ordering ───────────────────── */}
+      <section className="mt-20 sm:mt-28">
+        <div className="grid gap-8 sm:grid-cols-[1fr_auto] sm:items-start sm:gap-12">
+          <div className="max-w-xl leading-relaxed text-sw-foam">
+            <Eyebrow>Currents, not just tides</Eyebrow>
+            <h2 className="mt-3 text-2xl font-semibold leading-tight text-sw-paper sm:text-3xl">
+              Heights are the easy half.
+            </h2>
+            <p className="mt-5">
+              The harder question is the current. When does the pass go slack? How hard is it
+              running at max? Can you get through before it turns?
+            </p>
+            <p className="mt-4 text-sw-steel">
+              Most tide apps skip it, or bury a number with no direction and no window. Slackwater
+              gives you the slack time, how long it lasts, the speed and set at max flood and max
+              ebb, and a curve you can scrub through the week.
+            </p>
+          </div>
+          <div className="max-w-[260px] sm:w-[260px]">
+            <Shot
+              src="/shots/m2-current-scrubbed.webp"
+              alt="Deception Pass Narrows in the app: slack under 0.1 knots, next slack in 6 hours 8 minutes, and a scrubable current curve showing 4.9 and 5.3 knot floods against 6.9 and 6.0 knot ebbs."
+              caption="Deception Pass (Narrows). Slack now, next slack in 6h 8m, and what it does in between."
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-20 sm:mt-28">
+        <Eyebrow>Where the numbers come from</Eyebrow>
+        <h2 className="mt-3 max-w-2xl text-2xl font-semibold leading-tight text-sw-paper sm:text-3xl">
+          Checked against the agencies&rsquo; own predictions.
+        </h2>
+        <div className="mt-5 max-w-2xl space-y-4 leading-relaxed text-sw-foam">
+          <p>
+            Harmonic constituents published by NOAA and the Canadian Hydrographic Service, computed
+            on your phone rather than fetched from anyone&rsquo;s server. The engine is validated
+            against those agencies&rsquo; own published predictions, and the deviations are
+            written down:
+          </p>
+          <dl className="grid gap-px overflow-hidden rounded-lg border border-white/10 bg-white/10 sm:grid-cols-2">
+            <div className="bg-sw-page p-4">
+              <dt className="font-mono text-[0.65rem] uppercase tracking-[0.14em] text-sw-leaf">
+                Tides · Friday Harbor
+              </dt>
+              <dd className="mt-2 text-lg [font-variant-numeric:tabular-nums] text-sw-paper">
+                7.9 min · 3.5 cm
+              </dd>
+              <dd className="mt-1 text-sm text-sw-steel">maximum deviation vs NOAA</dd>
+            </div>
+            <div className="bg-sw-page p-4">
+              <dt className="font-mono text-[0.65rem] uppercase tracking-[0.14em] text-sw-leaf">
+                Currents · Bellingham Channel
+              </dt>
+              <dd className="mt-2 text-lg [font-variant-numeric:tabular-nums] text-sw-paper">
+                9.7 min · 0.055 kn
+              </dd>
+              <dd className="mt-1 text-sm text-sw-steel">maximum deviation vs NOAA</dd>
+            </div>
+          </dl>
+          {/* The live "yesterday's max deviation" receipt goes here once the
+              nightly verification job exists — slackwater-engine#4. Until then
+              this section shows point-in-time validation, which is true, rather
+              than a live number, which would not be. */}
+          <p className="text-sw-steel">
+            Canadian gates come from CHS. Where a source is online-only or lower confidence, the app
+            says so rather than presenting it as settled.
+          </p>
+        </div>
+      </section>
+
+      <section className="mt-20 sm:mt-28">
+        <div className="grid gap-8 sm:grid-cols-[1fr_auto] sm:items-start sm:gap-12">
+          <div className="max-w-xl leading-relaxed text-sw-foam">
+            <Eyebrow>Works where there is no signal</Eyebrow>
+            <h2 className="mt-3 text-2xl font-semibold leading-tight text-sw-paper sm:text-3xl">
+              No spinner. No &ldquo;no internet connection.&rdquo;
+            </h2>
+            <p className="mt-5">
+              Thousands of US and Canadian stations ship inside the app. Predictions are
+              deterministic astronomy, not a live feed — so the answer is already on the phone
+              before you leave the dock.
+            </p>
+            <p className="mt-4 text-sw-steel">
+              The chart works offline too. Depths, seamarks and the shoreline are downloaded once
+              and drawn on the device, so the map still means something in an anchorage with no
+              bars.
+            </p>
+          </div>
+          <div className="max-w-[260px] sm:w-[260px]">
+            <Shot
+              src="/shots/m41-map-zoom.webp"
+              alt="The app's offline chart of the Salish Sea on a cream paper-chart basemap, densely covered with tide stations as blue squares and current stations as orange circles, with place names from Squamish to Nisqually Reach."
+              caption="The Salish Sea: blue squares are tide stations, orange circles are currents. The chart renders without a connection."
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-20 rounded-lg border border-sw-leaf/20 bg-white/[0.04] p-6 sm:mt-28 sm:p-8">
+        <Eyebrow>The deal</Eyebrow>
+        <h2 className="mt-3 text-2xl font-semibold leading-tight text-sw-paper sm:text-3xl">
+          Free, no account, no ads.
+        </h2>
+        <p className="mt-4 max-w-2xl leading-relaxed text-sw-foam">
+          The core is free and stays free: every station, every date, the curves, the slack times,
+          offline. No account to create, no ads, nothing tracked, nothing sold. It does not need a
+          server, so it does not need to earn one.
+        </p>
+      </section>
+
+      <footer className="mt-20 border-t border-white/10 pt-6 text-sm text-sw-steel">
         <p>
           Predictions are not observations — conditions vary with weather and river flow.{' '}
           <strong className="font-semibold text-sw-foam">Not for navigation.</strong>
