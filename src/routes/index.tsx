@@ -8,11 +8,16 @@ export const Route = createFileRoute('/')({ component: Home })
 function Home() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-2xl flex-col justify-center px-6">
-      <h1 className="text-4xl font-semibold tracking-tight">Slackwater</h1>
-      <p className="mt-4 text-lg text-sw-water">
-        Slack and max-current timing you can trust — offline, US and Canadian waters.
+      {/* The wordmark is one word and never breaks. In the app exactly one
+          view may shrink rather than wrap, and it is this one — enforced there
+          by SlackwaterTests/TypeScaleTests testOnlyTheWordmarkShrinks. */}
+      <h1 className="whitespace-nowrap text-4xl font-semibold tracking-tight text-sw-paper">
+        Slackwater
+      </h1>
+      <p className="mt-4 text-lg">
+        Every tide and current prediction, already on your phone.
       </p>
-      <p className="mt-8 text-sm text-sw-deep/60">Scaffold. Design pending.</p>
+      <p className="mt-8 text-sm text-sw-steel">Scaffold. Design pending.</p>
     </main>
   )
 }

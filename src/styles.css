@@ -1,23 +1,64 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────
-   Slackwater — brand tokens.
-   ponytail: placeholders. Replace with the values pulled from the iOS
-   app's asset catalog so the page and the app read as one product
-   (see README § Design). Nothing here is a design decision yet.
+   Slackwater brand tokens — lifted from the iOS app's Theme.swift
+   (`enum SN`), which is the single source of truth. If a value here
+   disagrees with that file, that file wins.
+
+   The governing rule, from slackwater-ios
+   docs/superpowers/specs/2026-08-02-colour-and-form-design.md:
+   COLOUR IS STATE, FORM IS KIND. Never colour something by what it
+   is; colour it by what it's doing. Green means slack and nothing
+   else. Direction is one signed colourblind-safe axis, blue↔amber.
    ───────────────────────────────────────────────────────────── */
 @theme {
-  --color-sw-ink: #0b1f2a;
-  --color-sw-deep: #123243;
-  --color-sw-water: #1d5f7a;
-  --color-sw-slack: #43a0a8;
-  --color-sw-foam: #e8f1f4;
-  --color-sw-paper: #fbfdfd;
+  /* grounds — the app is dark-only, and so is this page */
+  --color-sw-navy-deep: #00183c;
+  --color-sw-canvas: #05122a;
+  --color-sw-canvas-glow: #0a2140;
+  --color-sw-page: #00121f;
+  --color-sw-night: #00101f;
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* ink */
+  --color-sw-paper: #fcfcfc;   /* the wordmark, and only the wordmark */
+  --color-sw-foam: #e4f0e4;    /* body and secondary text */
+
+  /* state — not decoration. Do not reuse these for UI chrome. */
+  --color-sw-flood: #4a9fd8;   /* flood / rising */
+  --color-sw-ebb: #e8a33d;     /* ebb / falling */
+  --color-sw-go: #88b868;      /* slack. only slack. */
+  --color-sw-leaf: #88b868;    /* accents, eyebrows, section labels */
+  --color-sw-steel: #5888a8;   /* state unknown — never a "kind" */
+  --color-sw-amber: #ef6f4a;   /* warning. red-leaning so it can't read as ebb. */
+
+  /* sun / moon chrome */
+  --color-sw-sun: #f0c860;
+  --color-sw-sunrise: #f0d890;
+  --color-sw-sunset: #c8a86a;
+
+  /* the current speed ramp — inferno family, six stops, anchored to
+     capability not quantiles: 0.5 / 3 / 6 / 16 kn. Never a rainbow;
+     a rainbow passes through green, and green means slack. */
+  --color-sw-ramp-0: #0d2033;
+  --color-sw-ramp-1: #3b2c63;
+  --color-sw-ramp-2: #7b2e62;
+  --color-sw-ramp-3: #b8434f;
+  --color-sw-ramp-4: #e8763c;
+  --color-sw-ramp-5: #f5c96b;
+
+  /* the map inverts to a paper chart — cream, not dark */
+  --color-sw-chart-land: #f5ecd7;
+  --color-sw-chart-water: #e9f7ff;
+  --color-sw-chart-ink: #0b1a2b;
+
+  /* Type is the system font. Fraunces/Geist were retired from the app
+     and are banned there by test — don't reintroduce them here, and
+     don't load a webfont for a page that sells "no waiting". */
+  --font-sans: ui-sans-serif, -apple-system, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", monospace;
 }
 
+/* Dark-only, matching the app (.preferredColorScheme(.dark)). */
 html {
-  color-scheme: light dark;
+  color-scheme: dark;
 }

@@ -6,11 +6,12 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'Slackwater — offline tide and current predictions' },
+      { title: 'Slackwater — Tides & Currents' },
+      { name: 'theme-color', content: '#00121f' },
       {
         name: 'description',
         content:
-          'Slack and max-current timing you can trust — offline, US and Canadian waters.',
+          'Every tide and current prediction, already on your phone. Works on the water, on the beach, in the anchorage — with no bars and nothing to load.',
       },
     ],
     links: [{ rel: 'stylesheet', href: appCss }],
@@ -24,7 +25,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="bg-sw-paper text-sw-ink font-sans antialiased">
+      <body className="bg-sw-page text-sw-foam font-sans antialiased">
         {children}
         <Scripts />
       </body>
