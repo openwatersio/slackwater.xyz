@@ -87,11 +87,10 @@ function Home() {
         {/* Short on phones, the full App Store line on desktop: the phone has
             to fit a headline, a claim, the CTA and the curve above the fold. */}
         <p className="mt-3 max-w-xl text-lg leading-snug text-sw-foam sm:mt-5 sm:text-xl">
-          Every tide and current prediction, already on your phone.
+          All tide and current predictions, offline on your phone.
           <span className="hidden sm:inline">
             {' '}
-            Works on the water, on the beach, in the anchorage — with no bars and nothing to
-            load.
+            Works on the water, on the beach, in the anchorage — no bars and nothing to load.
           </span>
         </p>
       </header>

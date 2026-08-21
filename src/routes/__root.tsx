@@ -11,7 +11,7 @@ export const Route = createRootRoute({
       {
         name: 'description',
         content:
-          'Every tide and current prediction, already on your phone. Works on the water, on the beach, in the anchorage — with no bars and nothing to load.',
+          'All tide and current predictions, offline on your phone. Works on the water, on the beach, in the anchorage — no bars and nothing to load.',
       },
     ],
     links: [{ rel: 'stylesheet', href: appCss }],
