@@ -14,11 +14,30 @@ export const Route = createFileRoute('/')({ component: Home })
  */
 const TESTFLIGHT: string | null = 'https://testflight.apple.com/join/FCSS4w8s'
 
+/**
+ * The web client, today. `web.slackwater.xyz` is the decided home but has no DNS
+ * record yet — it waits on the move-or-rebuild call (infrastructure/dns.md
+ * § slackwater.xyz). Point at the live PWA until then; a dead link on the page
+ * that sells "it just works" is worse than an off-brand hostname.
+ */
+const WEB_CLIENT = 'https://slackwater.sailingnaturali.com'
+
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
     <span className="font-mono text-[0.65rem] font-medium uppercase tracking-[0.14em] text-sw-leaf sm:text-[0.7rem] sm:tracking-[0.16em]">
       {children}
     </span>
+  )
+}
+
+function WebClientLink({ className = '' }: { className?: string }) {
+  return (
+    <a
+      href={WEB_CLIENT}
+      className={`text-sw-foam underline decoration-sw-steel underline-offset-4 hover:decoration-sw-foam ${className}`}
+    >
+      Or just look at the water now
+    </a>
   )
 }
 
@@ -37,12 +56,9 @@ function Cta() {
           iPhone beta — opening soon
         </span>
       )}
-      <a
-        href="https://web.slackwater.xyz"
-        className="text-sw-foam underline decoration-sw-steel underline-offset-4 hover:decoration-sw-foam"
-      >
-        Or just look at the water now
-      </a>
+      {/* Desktop only. On a phone the fold is scarce and belongs to the
+          primary action; the alternative reads fine after the chart. */}
+      <WebClientLink className="hidden sm:inline" />
     </div>
   )
 }
@@ -119,6 +135,10 @@ function Home() {
           </span>
         </p>
       </section>
+
+      <p className="mt-6 sm:hidden">
+        <WebClientLink />
+      </p>
 
       <footer className="mt-16 border-t border-white/10 pt-6 text-sm text-sw-steel">
         <p>
