@@ -110,10 +110,16 @@ home page is a placeholder, not a first draft — design pending.
 The hero's predictions run for real: `src/lib/currents.ts` computes signed velocity for
 Deception Pass (Narrows) from bundled NOAA constituents, with `pnpm test` covering it.
 
-**Deployed to <https://slackwater-xyz.clarkbw.workers.dev> only.** The `slackwater.xyz` apex
-and `www` are **not attached yet** — the custom-domain routes exist in `wrangler.jsonc` but
-the first deploy stripped them deliberately, so a placeholder isn't sitting on the real
-domain. Attaching them is just a normal `pnpm deploy` once there's a page worth serving.
+**Live at <https://slackwater.xyz>** (and `www`, and
+<https://slackwater-xyz.clarkbw.workers.dev>). Attached 2026-08-21; Cloudflare created both
+DNS records itself as proxied `AAAA -> 100::`, which is what a Worker custom domain does —
+nothing was hand-added, and nothing should be.
+
+GOTCHA, cost ten minutes: a fresh custom domain can look dead from *this* machine while being
+perfectly live. Tailscale MagicDNS (`100.100.100.100`) caches the NXDOMAIN from before the
+registry published, so `curl` reports "Could not resolve host" long after the site is up.
+Check with `curl --resolve slackwater.xyz:443:<edge-ip>` or `dig @1.1.1.1` before believing a
+deploy failed; fix with `sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder`.
 
 **`/r/<CODE>` is not built yet, on purpose.** The referral program is gated behind the premium
 tier shipping and the seller-entity agreement, and the route needs a KV binding that doesn't
