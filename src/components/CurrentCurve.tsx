@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useId, useMemo } from 'react'
 import { rampColor, speedInk } from '#/lib/ramp'
 import { findEvents, nextEvent, predictSeries, type CurrentEvent } from '#/lib/currents'
 
@@ -11,19 +11,42 @@ import { findEvents, nextEvent, predictSeries, type CurrentEvent } from '#/lib/c
  * the slack window, and it is drawn UNDER the fill: slack is ground, not figure.
  */
 
-const W = 1000
-const H = 320
-const PAD_TOP = 34
-const PAD_BOTTOM = 44
-
 interface Props {
   start: Date
   hours: number
   now: Date
+  /**
+   * viewBox width. SVG text scales with the viewBox, so a 1000-wide box shrunk
+   * into a 390px phone renders 15px labels at about 6px — unreadable. Narrow
+   * the box on small screens instead of shrinking the type.
+   */
+  width?: number
+  height?: number
+  /** Drop the in-chart slack times, keeping only the peaks. */
+  sparse?: boolean
 }
 
-export function CurrentCurve({ start, hours, now }: Props) {
-  const { path, area, zeroY, x, events, peak, stops } = useMemo(() => {
+export function CurrentCurve({
+  start,
+  hours,
+  now,
+  width: W = 1000,
+  height: H = 320,
+  sparse = false,
+}: Props) {
+  // Unique per instance. The page renders this twice — a phone version and a
+  // desktop one, one of them display:none — and shared element ids make the
+  // second SVG reference the first's gradient, which sits in a hidden subtree
+  // and paints nothing. The stroke survives, the fill silently vanishes.
+  const uid = useId().replace(/:/g, '')
+  const rampId = `ramp-${uid}`
+  const maskId = `edges-${uid}`
+  const fadeId = `fade-${uid}`
+  const clipId = `plot-${uid}`
+
+  const PAD_TOP = 34
+  const PAD_BOTTOM = 44
+  const { path, area, zeroY, x, yOf, events, stops } = useMemo(() => {
     const samples = predictSeries(start, hours)
     const events = findEvents(start, hours)
     const peak = Math.max(...samples.map((s) => Math.abs(s.knots)), 1)
@@ -46,12 +69,12 @@ export function CurrentCurve({ start, hours, now }: Props) {
 
     return {
       stops,
+      yOf: y,
       path: `M${pts.join('L')}`,
       area: `M${x(samples[0].time).toFixed(2)},${y(0)}L${pts.join('L')}L${x(samples[samples.length - 1].time).toFixed(2)},${y(0)}Z`,
       zeroY: y(0),
       x,
       events,
-      peak,
     }
   }, [start, hours])
 
@@ -68,30 +91,30 @@ export function CurrentCurve({ start, hours, now }: Props) {
         aria-label={describe(events, now)}
       >
         <defs>
-          <linearGradient id="speed-ramp" x1="0" x2="1" y1="0" y2="0">
+          <linearGradient id={rampId} x1="0" x2="1" y1="0" y2="0">
             {stops.map((s, i) => (
               <stop key={i} offset={s.offset} stopColor={s.color} />
             ))}
           </linearGradient>
-          <clipPath id="plot">
+          <clipPath id={clipId}>
             <rect x="0" y="0" width={W} height={H} />
           </clipPath>
           {/* The window has to end somewhere; a hard vertical cut reads as a
               rendering fault, so let the fill fade out instead. */}
           {/* WHITE, not black: an SVG mask is luminance-based, so black hides
               and white reveals. Black stops here erase the entire curve. */}
-          <linearGradient id="edge-fade" x1="0" x2="1" y1="0" y2="0">
+          <linearGradient id={fadeId} x1="0" x2="1" y1="0" y2="0">
             <stop offset="0" stopColor="#fff" stopOpacity="0" />
             <stop offset="0.06" stopColor="#fff" stopOpacity="1" />
             <stop offset="0.94" stopColor="#fff" stopOpacity="1" />
             <stop offset="1" stopColor="#fff" stopOpacity="0" />
           </linearGradient>
-          <mask id="edges">
-            <rect x="0" y="0" width={W} height={H} fill="url(#edge-fade)" />
+          <mask id={maskId}>
+            <rect x="0" y="0" width={W} height={H} fill={`url(#${fadeId})`} />
           </mask>
         </defs>
 
-        <g clipPath="url(#plot)">
+        <g clipPath={`url(#${clipId})`}>
           {/* Slack windows: ground, not figure. Under everything. */}
           {slacks.map((s) => (
             <rect
@@ -105,8 +128,8 @@ export function CurrentCurve({ start, hours, now }: Props) {
             />
           ))}
 
-          <g mask="url(#edges)">
-            <path d={area} fill="url(#speed-ramp)" opacity={0.9} />
+          <g mask={`url(#${maskId})`}>
+            <path d={area} fill={`url(#${rampId})`} opacity={0.9} />
             <path d={path} fill="none" stroke="#DFEEE0" strokeWidth={2.2} strokeLinejoin="round" />
           </g>
           <line x1={0} x2={W} y1={zeroY} y2={zeroY} stroke="#FFFFFF" strokeOpacity={0.4} />
@@ -114,10 +137,10 @@ export function CurrentCurve({ start, hours, now }: Props) {
           {/* Max flood / max ebb — a dot and a number, ink picked by luminance. */}
           {turns.map((e) => (
             <g key={`t${e.time.getTime()}`}>
-              <circle cx={x(e.time)} cy={yOf(e.knots, peak)} r={4} fill="#E4F0E4" />
+              <circle cx={x(e.time)} cy={yOf(e.knots)} r={4} fill="#E4F0E4" />
               <text
                 x={x(e.time)}
-                y={yOf(e.knots, peak) + (e.knots > 0 ? -14 : 22)}
+                y={yOf(e.knots) + (e.knots > 0 ? -14 : 22)}
                 textAnchor="middle"
                 fill={speedInk(e.knots)}
                 className="font-mono text-[15px] font-semibold [font-variant-numeric:tabular-nums]"
@@ -133,6 +156,7 @@ export function CurrentCurve({ start, hours, now }: Props) {
           {slacks.map((s) => (
             <g key={`s${s.time.getTime()}`}>
               <circle cx={x(s.time)} cy={zeroY} r={4} fill="#E4F0E4" />
+              {!sparse && (
               <text
                 x={x(s.time)}
                 y={zeroY - 14}
@@ -143,6 +167,7 @@ export function CurrentCurve({ start, hours, now }: Props) {
               >
                 {hhmm(s.time)}
               </text>
+              )}
             </g>
           ))}
 
@@ -150,9 +175,11 @@ export function CurrentCurve({ start, hours, now }: Props) {
           <g>
             <line x1={x(now)} x2={x(now)} y1={0} y2={H} stroke="#88B868" strokeOpacity={0.9} strokeWidth={1.5} />
             <circle cx={x(now)} cy={zeroY} r={3} fill="#88B868" />
+            {/* Top, not bottom: the bottom is where a max-ebb label lands, and
+                on a phone the two collide. */}
             <text
               x={x(now)}
-              y={H - 12}
+              y={12}
               textAnchor="middle"
               fill="#88B868"
               className="font-mono text-[11px] font-medium uppercase tracking-[0.16em]"
@@ -180,11 +207,6 @@ export function CurrentCurve({ start, hours, now }: Props) {
       )}
     </figure>
   )
-}
-
-function yOf(knots: number, peak: number) {
-  const plot = H - PAD_TOP - PAD_BOTTOM
-  return PAD_TOP + plot / 2 - (knots / peak) * (plot / 2)
 }
 
 const hhmm = (d: Date) =>
