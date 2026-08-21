@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "slackwater-xyz",
+  // No "main"/"assets" here: nitro's cloudflare preset reads this file and emits
+  // the deployable config at .output/server/wrangler.json with paths rewritten.
+  // Deploy with that one — `pnpm deploy` does.
+  "compatibility_date": "2026-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // Custom domains create and manage their own DNS records — do not hand-add
+  // the apex or www in Cloudflare. See infrastructure/dns.md § slackwater.xyz.
+  "routes": [
+    { "pattern": "slackwater.xyz", "custom_domain": true },
+    { "pattern": "www.slackwater.xyz", "custom_domain": true },
+  ],
+  "workers_dev": true,
+  "preview_urls": true,
+  "observability": { "enabled": true },
+}

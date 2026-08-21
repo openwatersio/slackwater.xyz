@@ -54,6 +54,33 @@ API-tokens page or use `wrangler login`. See `infrastructure/dns.md` § slackwat
 Do **not** hand-add the apex or `www` DNS records: a Worker custom domain declared in
 `wrangler.jsonc` creates and manages them.
 
+## Local development
+
+```bash
+pnpm install
+pnpm dev        # http://localhost:5174
+pnpm build      # prerender + Worker bundle in .output/
+pnpm deploy     # build, then wrangler deploy with nitro's generated config
+```
+
+Two things that will otherwise cost you an hour:
+
+- **`ERROR [nitro] Preview server exited with code 143` at the end of a build is normal.**
+  Nitro spins up a preview server to prerender against and SIGTERMs it when done. The build
+  exits 0; check that, not the log.
+- **`wrangler.jsonc` at the root is the *source*, not the deployable config.** Nitro reads it
+  and emits `.output/server/wrangler.json` with `main` and `assets` rewritten to the right
+  relative paths. Deploy with that file — `pnpm deploy` already does.
+
+`unstorage@2` alpha (via nitro) imports `destr` without declaring it, which breaks the vite
+config under pnpm's strict `node_modules`. Declared on its behalf via `packageExtensions` in
+`pnpm-workspace.yaml` rather than hoisting everything.
+
 ## Status
 
-Repo created 2026-08-21. Not scaffolded yet.
+Scaffolded 2026-08-21: TanStack Start builds, prerenders, and produces a Worker bundle. The
+home page is a placeholder, not a first draft — design pending, see § Design in the docs.
+
+**`/r/<CODE>` is not built yet, on purpose.** The referral program is gated behind the premium
+tier shipping and the seller-entity agreement, and the route needs a KV binding that doesn't
+exist. Building it now would be a guess with no way to test it.

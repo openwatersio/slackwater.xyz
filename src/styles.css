@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────
+   Slackwater — brand tokens.
+   ponytail: placeholders. Replace with the values pulled from the iOS
+   app's asset catalog so the page and the app read as one product
+   (see README § Design). Nothing here is a design decision yet.
+   ───────────────────────────────────────────────────────────── */
+@theme {
+  --color-sw-ink: #0b1f2a;
+  --color-sw-deep: #123243;
+  --color-sw-water: #1d5f7a;
+  --color-sw-slack: #43a0a8;
+  --color-sw-foam: #e8f1f4;
+  --color-sw-paper: #fbfdfd;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", monospace;
+}
+
+html {
+  color-scheme: light dark;
+}
