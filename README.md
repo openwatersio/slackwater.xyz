@@ -26,6 +26,32 @@ requires accounts, and Slackwater is account-free from the entitlement down — 
 is a device flag, the referral gate is a Keychain item, no server holds a user. It matches iOS
 in look and data, not in depth.
 
+## Design decisions
+
+Settled 2026-08-21. The page **matches the app in look and data, not in depth** — the same
+rule the web client runs under, and the reason both exist.
+
+- **Dark only**, because the app is (`.preferredColorScheme(.dark)`). A light theme is wanted
+  eventually, so keep colour use going through the tokens in `src/styles.css` rather than
+  literal hexes in components.
+- **System font.** Fraunces and Geist were retired from the app and are banned there by test.
+  A page selling "no spinner, nothing to load" should not block on a webfont.
+- **Colour is state, form is kind.** Green is slack and only slack; direction is one signed
+  blue/amber axis; steel means unknown. Never colour anything by what it *is*.
+- **The speed ramp is the hero visual.** It ships today, and it is anchored to capability
+  rather than quantiles — 0.5 kn slack, 3 kn a paddler can't make way, 6 kn a small
+  displacement craft can't stem it, 16 kn Sechelt Rapids. That the colour means something
+  specific about whether you can go is a claim almost nobody else can make.
+- **The particle field is coming but is not shipped** (`MapHeader.swift`: "no particle
+  field"). It must not appear here until it exists in the app.
+- **The hero is live**, computed in the browser — show, don't tell. One station.
+- **Primary CTA is TestFlight for now**, until there is a public App Store listing.
+- **Pitch order**, from `slackwater/docs/gtm.md`: correctness · offline · from sailors.
+- **The open-source pillar is held.** `gtm.md` flags the line as unconfirmed and
+  `slackwater-ios` is private; claiming GPL on the page before the repo is public is a
+  credibility risk, not a marketing win. Revisit when it opens.
+- **The wordmark never breaks.** One word, capital S, lowercase w, `whitespace-nowrap`.
+
 ## Stack
 
 **TanStack Start** (React + Vite, nitro), deployed as a **Cloudflare Worker** via nitro's
@@ -80,6 +106,9 @@ config under pnpm's strict `node_modules`. Declared on its behalf via `packageEx
 
 Scaffolded 2026-08-21: TanStack Start builds, prerenders, and produces a Worker bundle. The
 home page is a placeholder, not a first draft — design pending.
+
+The hero's predictions run for real: `src/lib/currents.ts` computes signed velocity for
+Deception Pass (Narrows) from bundled NOAA constituents, with `pnpm test` covering it.
 
 **Deployed to <https://slackwater-xyz.clarkbw.workers.dev> only.** The `slackwater.xyz` apex
 and `www` are **not attached yet** — the custom-domain routes exist in `wrangler.jsonc` but

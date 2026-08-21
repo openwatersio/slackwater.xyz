@@ -2,7 +2,9 @@
   "name": "slackwater-xyz",
   "private": true,
   "type": "module",
-  "imports": { "#/*": "./src/*" },
+  "imports": {
+    "#/*": "./src/*"
+  },
   "scripts": {
     "dev": "vite dev --port 5174",
     "build": "NITRO_PRESET=cloudflare_module vite build",
@@ -11,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@neaps/tide-predictor": "^0.11.0",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "latest",
     "@tanstack/react-router": "latest",

@@ -10,6 +10,9 @@ importers:
 
   .:
     dependencies:
+      '@neaps/tide-predictor':
+        specifier: ^0.11.0
+        version: 0.11.0
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.3.3(vite@8.2.2(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0))
@@ -544,6 +547,9 @@ packages:
     peerDependencies:
       '@emnapi/core': ^1.7.1 || ^2.0.0-alpha.4
       '@emnapi/runtime': ^1.7.1 || ^2.0.0-alpha.4
+
+  '@neaps/tide-predictor@0.11.0':
+    resolution: {integrity: sha512-aBjaTMthLvkAmTURoGsdfjobd2PwNm1FJ6laoAmi3ZlM9IMrAjcAerdUtGJ39de0mXl6wTZRH+CAXY4AmCi6Xg==}
 
   '@neodrag/core@3.0.0-next.11':
     resolution: {integrity: sha512-3WQWxyrbxiaK9zS5JU2wJsW2gpoQlZBXVghduBh61JpqaeE0T0cte8R0qYK2RuJo3J2TYQYqxO19CpG/C1i5eg==}
@@ -2415,6 +2421,8 @@ snapshots:
       '@emnapi/runtime': 1.11.3
       '@tybys/wasm-util': 0.10.3
     optional: true
+
+  '@neaps/tide-predictor@0.11.0': {}
 
   '@neodrag/core@3.0.0-next.11': {}
 
