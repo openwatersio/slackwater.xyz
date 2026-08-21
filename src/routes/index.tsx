@@ -15,12 +15,18 @@ export const Route = createFileRoute('/')({ component: Home })
 const TESTFLIGHT: string | null = 'https://testflight.apple.com/join/FCSS4w8s'
 
 /**
- * The web client, today. `web.slackwater.xyz` is the decided home but has no DNS
- * record yet — it waits on the move-or-rebuild call (infrastructure/dns.md
- * § slackwater.xyz). Point at the live PWA until then; a dead link on the page
- * that sells "it just works" is worse than an off-brand hostname.
+ * No web-client link right now.
+ *
+ * Two reasons, either sufficient: `web.slackwater.xyz` is the decided home but
+ * has no DNS record yet, and the existing PWA at slackwater.sailingnaturali.com
+ * has a broken "use my location". Sending someone to a demo whose first action
+ * fails is worse than not offering the demo — this page's whole argument is that
+ * the thing works when you need it.
+ *
+ * Restore when the web client is fixed or rebuilt (move-or-rebuild is still
+ * open: slackwater/docs/superpowers/specs/2026-07-20-web-client-design.md).
  */
-const WEB_CLIENT = 'https://slackwater.sailingnaturali.com'
+const WEB_CLIENT: string | null = null
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
@@ -31,6 +37,7 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 }
 
 function WebClientLink({ className = '' }: { className?: string }) {
+  if (!WEB_CLIENT) return null
   return (
     <a
       href={WEB_CLIENT}
