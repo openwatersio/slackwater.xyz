@@ -79,7 +79,12 @@ config under pnpm's strict `node_modules`. Declared on its behalf via `packageEx
 ## Status
 
 Scaffolded 2026-08-21: TanStack Start builds, prerenders, and produces a Worker bundle. The
-home page is a placeholder, not a first draft — design pending, see § Design in the docs.
+home page is a placeholder, not a first draft — design pending.
+
+**Deployed to <https://slackwater-xyz.clarkbw.workers.dev> only.** The `slackwater.xyz` apex
+and `www` are **not attached yet** — the custom-domain routes exist in `wrangler.jsonc` but
+the first deploy stripped them deliberately, so a placeholder isn't sitting on the real
+domain. Attaching them is just a normal `pnpm deploy` once there's a page worth serving.
 
 **`/r/<CODE>` is not built yet, on purpose.** The referral program is gated behind the premium
 tier shipping and the seller-entity agreement, and the route needs a KV binding that doesn't
