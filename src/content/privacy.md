@@ -6,7 +6,7 @@ This policy covers the Slackwater iOS app and slackwater.xyz. Slackwater is oper
 
 ## The short version
 
-- Slackwater has no user accounts, advertising, or third-party analytics.
+- Slackwater has no user accounts or advertising.
 - Your precise location stays on your device.
 - Slackwater does not send us crash reports or usage data.
 - We do not sell personal information or track you across apps or websites.
@@ -34,7 +34,9 @@ Most predictions and map data are bundled with Slackwater. When online data is n
 
 ## The website
 
-slackwater.xyz has no accounts, forms, advertising, analytics, or cookies. Cloudflare hosts the site and processes technical request information such as IP address, request URL, browser information, timestamps, and errors to deliver, secure, and diagnose the site. Worker logs are retained for no more than seven days. We do not use them to build profiles or track people across services.
+slackwater.xyz does not currently set cookies or use analytics. Before enabling either, we will update this section to identify the provider, information collected, cookies or similar storage, purpose, retention period, and available choices. We will request consent where required.
+
+Cloudflare hosts the site and processes technical request information such as IP address, request URL, browser information, timestamps, and errors to deliver, secure, and diagnose the site. Worker logs are retained for no more than seven days. We do not use them to build profiles or track people across services.
 
 Links to TestFlight and other websites take you to services governed by their own privacy policies.
 
