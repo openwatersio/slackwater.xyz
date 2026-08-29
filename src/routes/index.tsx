@@ -319,8 +319,8 @@ function Home() {
         </p>
         <p className="mt-3">
           Built by{' '}
-          <a href="https://sailingnaturali.com" className="underline underline-offset-4">
-            Sailing Naturali
+          <a href="https://openwaters.io" className="underline underline-offset-4">
+            Open Waters
           </a>
           .{' '}
           <a href="/privacy" className="underline underline-offset-4">
