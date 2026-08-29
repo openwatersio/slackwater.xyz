@@ -281,20 +281,20 @@ function Home() {
               Tides and currents, nearest first.
             </h2>
             <p className="mt-5">
-              Near Me holds both kinds at once — a harbour&rsquo;s height beside a pass&rsquo;s
-              speed and set, each with the next thing it does and how far away it is. No mode to
-              switch, no separate tab for currents.
+              One list holds both kinds — a harbour&rsquo;s height and a pass&rsquo;s speed and
+              set, each with the next thing it does and how far away it is. No mode to switch, no
+              separate tab for currents.
             </p>
             <p className="mt-4 text-sw-steel">
-              Favourites and recents sit below it, so the passes you actually run are the first
-              thing you see when you open the app.
+              Where you are sits on top, favourites above the rest, recents at the bottom. The
+              passes you actually run are never more than a scroll away.
             </p>
           </div>
           <div className="max-w-[260px] sm:w-[260px]">
             <Shot
-              src="/shots/m1-list.webp"
-              alt="The app's Near Me list: Friday Harbor at 1.6 feet and falling with a low at 12:06 PM, then Point George, Wasp Passage narrows, Pear Point and Upright Channel narrows in knots with their ebb and flood directions and slack times, each row showing the distance in nautical miles."
-              caption="Near Me: one harbour&rsquo;s height and four nearby passes&rsquo; speeds, in the order you would reach them."
+              src="/shots/list-located.webp"
+              alt="The app's list located at Friday Harbor: a My Location card reading 1.1 feet and falling with a low of 0.8 feet at 12:06 PM, then Near Me — Point George, Wasp Passage narrows, Pear Point and Upright Channel narrows — each in knots with its set, whether it is ebbing or flooding, its next slack or max, and how many nautical miles away it is."
+              caption="Located at Friday Harbor: the harbour&rsquo;s height on top, four nearby passes under it, nearest first."
             />
           </div>
         </div>
