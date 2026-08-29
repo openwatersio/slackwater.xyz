@@ -268,6 +268,10 @@ function Home() {
           <a href="https://sailingnaturali.com" className="underline underline-offset-4">
             Sailing Naturali
           </a>
+          .{' '}
+          <a href="/privacy" className="underline underline-offset-4">
+            Privacy
+          </a>
           .
         </p>
       </footer>
