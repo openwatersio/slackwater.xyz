@@ -50,7 +50,10 @@ git push -u origin HEAD
 gh pr create --fill
 ```
 
-Nothing on GitHub's side enforces this, so it holds by agreement.
+A repository ruleset on `main` enforces this: direct pushes are rejected, and so are
+force-pushes and branch deletion. No approval is required, so you can merge your own PR —
+the rule is that the change travels through one, not that someone else signs it off.
+Unresolved review comments block the merge.
 
 A PR that changes anything visible should show it — a screenshot, or before and after side by
 side:
