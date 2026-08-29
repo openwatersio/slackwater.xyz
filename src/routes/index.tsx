@@ -176,6 +176,33 @@ function Home() {
       </section>
 
       <section className="mt-20 sm:mt-28">
+        <div className="grid gap-8 sm:grid-cols-[1fr_auto] sm:items-start sm:gap-12">
+          <div className="max-w-xl leading-relaxed text-sw-foam">
+            <Eyebrow>Any moment, not just now</Eyebrow>
+            <h2 className="mt-3 text-2xl font-semibold leading-tight text-sw-paper sm:text-3xl">
+              Scrub to the hour you care about.
+            </h2>
+            <p className="mt-5">
+              Drag the timeline and the whole readout follows it — the height at that minute, how
+              fast it is moving, the sun and moon overhead, the range for the day. Let go and it
+              stays where you left it; one tap comes back to now.
+            </p>
+            <p className="mt-4 text-sw-steel">
+              A week of highs and lows sits underneath, so working out tomorrow&rsquo;s departure
+              does not mean doing arithmetic on a printed table.
+            </p>
+          </div>
+          <div className="max-w-[260px] sm:w-[260px]">
+            <Shot
+              src="/shots/m1-detail-scrubbed.webp"
+              alt="Friday Harbor tide detail in the app: high tide moving at 0.0 feet per hour, next low of 1.7 feet in 5 hours 58 minutes, and the curve scrubbed to 6:41 AM reading 6.1 feet, with sunrise, sunset and a waning gibbous moon along the top and a 4.4 foot range below."
+              caption="Friday Harbor, scrubbed to 6:41 AM: 6.1 ft, and a 4.4 ft range across the day."
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-20 sm:mt-28">
         <Eyebrow>Where the numbers come from</Eyebrow>
         <h2 className="mt-3 max-w-2xl text-2xl font-semibold leading-tight text-sw-paper sm:text-3xl">
           Checked against the agencies&rsquo; own predictions.
@@ -239,8 +266,35 @@ function Home() {
           <div className="max-w-[260px] sm:w-[260px]">
             <Shot
               src="/shots/m41-map-zoom.webp"
-              alt="The app's offline chart of the Salish Sea on a cream paper-chart basemap, densely covered with tide stations as blue squares and current stations as orange circles, with place names from Squamish to Nisqually Reach."
-              caption="The Salish Sea: blue squares are tide stations, orange circles are currents. The chart renders without a connection."
+              alt="The app's chart of the Salish Sea, densely covered with tide stations as blue squares and current stations as orange circles, with place names from Sechelt Rapids and Squamish down past Seattle to Budd Inlet."
+              caption="The Salish Sea: blue squares are tide stations, orange circles are currents. Every one of them predicts without a connection."
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-20 sm:mt-28">
+        <div className="grid gap-8 sm:grid-cols-[1fr_auto] sm:items-start sm:gap-12">
+          <div className="max-w-xl leading-relaxed text-sw-foam">
+            <Eyebrow>One list</Eyebrow>
+            <h2 className="mt-3 text-2xl font-semibold leading-tight text-sw-paper sm:text-3xl">
+              Tides and currents, nearest first.
+            </h2>
+            <p className="mt-5">
+              Near Me holds both kinds at once — a harbour&rsquo;s height beside a pass&rsquo;s
+              speed and set, each with the next thing it does and how far away it is. No mode to
+              switch, no separate tab for currents.
+            </p>
+            <p className="mt-4 text-sw-steel">
+              Favourites and recents sit below it, so the passes you actually run are the first
+              thing you see when you open the app.
+            </p>
+          </div>
+          <div className="max-w-[260px] sm:w-[260px]">
+            <Shot
+              src="/shots/m1-list.webp"
+              alt="The app's Near Me list: Friday Harbor at 1.6 feet and falling with a low at 12:06 PM, then Point George, Wasp Passage narrows, Pear Point and Upright Channel narrows in knots with their ebb and flood directions and slack times, each row showing the distance in nautical miles."
+              caption="Near Me: one harbour&rsquo;s height and four nearby passes&rsquo; speeds, in the order you would reach them."
             />
           </div>
         </div>
