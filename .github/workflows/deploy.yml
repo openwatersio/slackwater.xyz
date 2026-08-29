@@ -1,0 +1,55 @@
+# Publish slackwater.xyz on merge.
+#
+# Until this existed the site was deployed by hand, and it showed: /privacy and
+# the Plausible script were both merged to main while the apex still served a
+# build from before either one.
+#
+# Needs a CLOUDFLARE_API_TOKEN repo secret with Workers Scripts -> Edit and
+# Workers KV -> Edit. A Zone Read + DNS Edit token will NOT do — see
+# CONTRIBUTING.md "Deploying".
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  # Manual re-publish, for a rollback or after rotating the token.
+  workflow_dispatch:
+
+# A queued deploy for an older commit has nothing useful to say once a newer
+# one is running, but let the in-flight one finish rather than leaving the
+# Worker half-published.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run test
+
+      - run: pnpm run build
+
+      # "ERROR [nitro] Preview server exited with code 143" in the build log
+      # above is normal — nitro SIGTERMs the server it prerendered against.
+      # The step's exit code is what matters (CONTRIBUTING.md, "Gotchas").
+      #
+      # Nitro rewrites the root wrangler.jsonc into the deployable config; the
+      # root file is the source and is not deployable on its own.
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: deploy -c .output/server/wrangler.json
