@@ -1,6 +1,6 @@
 # Privacy policy
 
-Effective August 28, 2026
+Effective August 29, 2026
 
 This policy covers the Slackwater iOS app and slackwater.xyz. Slackwater is operated by Open Water Software, LLC, doing business as Open Waters (“Open Waters,” “we,” or “us”).
 
@@ -8,7 +8,7 @@ This policy covers the Slackwater iOS app and slackwater.xyz. Slackwater is oper
 
 - Slackwater has no user accounts or advertising.
 - Your precise location stays on your device.
-- Slackwater does not send us crash reports or usage data.
+- The Slackwater app does not send us crash reports or usage data. The website counts visits without cookies.
 - We do not sell personal information or track you across apps or websites.
 - Our hosting provider keeps short-lived technical request logs for security and reliability.
 
@@ -34,7 +34,13 @@ Most predictions and map data are bundled with Slackwater. When online data is n
 
 ## The website
 
-slackwater.xyz does not currently set cookies or use analytics. Before enabling either, we will update this section to identify the provider, information collected, cookies or similar storage, purpose, retention period, and available choices. We will request consent where required.
+slackwater.xyz counts visits using Plausible Analytics, a privacy-focused analytics service operated by Plausible Insights OÜ on servers in the European Union. Plausible acts as our processor and does not use the data for its own purposes.
+
+- **No cookies or similar storage.** Plausible stores nothing on your device and assigns you no persistent identifier, so there is no profile of you across visits, sites, or apps.
+- **What is collected**: the page address, the site that referred you, the outbound links you click, and your browser, operating system, device type, and country. Your IP address and browser user-agent are used only to derive a rotating, non-reversible hash that keeps a repeat view within the same day from being counted twice, and are discarded rather than stored.
+- **Purpose**: aggregate measurement of how many people read which pages and follow which links, so we can tell whether the site is doing its job.
+- **Retention**: the aggregate counts are kept indefinitely. No personal information is retained.
+- **Choices**: the analytics script is served from slackwater.xyz itself rather than a third-party domain, so blocking `slackwater.xyz/js/script.js` in your browser or content blocker stops it. Because it sets no cookies or similar storage and retains no personal information, we do not present a consent banner.
 
 Cloudflare hosts the site and processes technical request information such as IP address, request URL, browser information, timestamps, and errors to deliver, secure, and diagnose the site. Worker logs are retained for no more than seven days. We do not use them to build profiles or track people across services.
 
