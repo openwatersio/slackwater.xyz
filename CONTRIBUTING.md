@@ -1,4 +1,8 @@
-# Contributing to slackwater.xyz
+# Working on slackwater.xyz
+
+How this site gets built and shipped. It is the working doc for whoever maintains it, not an
+invitation — the repo is public because a one-page marketing site has nothing to hide, and
+outside contributions aren't being sought. Bug reports about the live site are welcome.
 
 Short, because it is meant to be followed rather than consulted. What the site is and why it
 looks the way it does is in [README.md](README.md).

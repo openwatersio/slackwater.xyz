@@ -67,3 +67,7 @@ pnpm dev        # http://localhost:5174
 Layout, testing, deploys, and the handful of gotchas that will otherwise cost you an hour are
 in [CONTRIBUTING.md](CONTRIBUTING.md). If you are an AI agent working in this repo, read
 [AGENTS.md](AGENTS.md) first.
+
+This repo is public because a one-page marketing site has nothing to hide, not because it is
+looking for contributors. Read it, borrow from it; there is no licence, so all rights are
+reserved.
