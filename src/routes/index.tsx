@@ -3,8 +3,39 @@ import { useEffect, useState } from 'react'
 import { CurrentCurve } from '#/components/CurrentCurve'
 import { Shot } from '#/components/Shot'
 import { HERO_STATION } from '#/lib/currents'
+import { SITE_DESCRIPTION } from '#/routes/__root'
 
-export const Route = createFileRoute('/')({ component: Home })
+const CANONICAL = 'https://slackwater.xyz/'
+
+export const Route = createFileRoute('/')({
+  head: () => ({
+    links: [{ rel: 'canonical', href: CANONICAL }],
+    meta: [
+      { property: 'og:url', content: CANONICAL },
+      {
+        // Claims only what the page already claims: a free iOS app, no ratings
+        // invented, no features the app doesn't ship.
+        'script:ld+json': {
+          '@context': 'https://schema.org',
+          '@type': 'MobileApplication',
+          name: 'Slackwater',
+          description: SITE_DESCRIPTION,
+          url: CANONICAL,
+          image: 'https://slackwater.xyz/og.png',
+          applicationCategory: 'UtilitiesApplication',
+          operatingSystem: 'iOS',
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+          publisher: {
+            '@type': 'Organization',
+            name: 'Open Waters',
+            url: 'https://openwaters.io',
+          },
+        },
+      },
+    ],
+  }),
+  component: Home,
+})
 
 /**
  * The public beta link — TestFlight group "OSS and Externals", minted for this.
@@ -321,11 +352,11 @@ function Home() {
             Open Waters
           </a>
           .{' '}
-          <a href="/privacy" className="underline underline-offset-4">
+          <a href="/privacy/" className="underline underline-offset-4">
             Privacy
           </a>
           .{' '}
-          <a href="/support" className="underline underline-offset-4">
+          <a href="/support/" className="underline underline-offset-4">
             Support
           </a>
           .
