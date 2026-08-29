@@ -66,9 +66,17 @@ side:
 
 ## Deploying
 
-`pnpm deploy` builds and publishes. It is the whole release process — there is no staging
-environment, no version number, and no changelog: the site is one page and the deploy is the
-release.
+**Merging to `main` publishes the site.** `.github/workflows/deploy.yml` runs the tests, builds,
+and publishes with the `CLOUDFLARE_API_TOKEN` repo secret. It is the whole release process —
+there is no staging environment, no version number, and no changelog: the site is one page and
+the merge is the release.
+
+That workflow exists because the manual step got skipped. `/privacy` and the Plausible script
+were both merged and neither reached the apex, which went on serving an older build; nothing
+failed and nothing said so.
+
+`pnpm deploy` still publishes from a laptop, for a rollback or when the token is being
+rotated. `workflow_dispatch` on the Deploy workflow does the same thing from Actions.
 
 Publishing needs a Cloudflare API token with **Workers Scripts → Edit** and **Workers KV →
 Edit**, or `wrangler login`.
