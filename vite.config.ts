@@ -19,7 +19,20 @@ export default defineConfig({
         concurrency: 14,
       },
     }),
-    nitro(),
+    // Plausible served first-party: ad blockers list plausible.io by domain, so a
+    // third-party snippet loses a chunk of visitors. These two rules make the script
+    // and the event endpoint same-origin. Cookies are stripped on the way out (per
+    // Plausible's proxy guide); every other header — including the CF-set
+    // X-Forwarded-For that Plausible reads for unique-visitor counting — passes through.
+    // Only resolves in a real Worker: vite dev claims `.js` URLs before these rules run.
+    nitro({
+      routeRules: {
+        '/js/script.js': { proxy: 'https://plausible.io/js/script.outbound-links.js' },
+        '/api/event': {
+          proxy: { to: 'https://plausible.io/api/event', filterHeaders: ['cookie'] },
+        },
+      },
+    }),
     viteReact(),
   ],
 })
