@@ -163,7 +163,7 @@ function Home() {
               ebb, and a curve you can scrub through the week.
             </p>
           </div>
-          <div className="max-w-[260px] sm:w-[260px]">
+          <div className="sm:w-[260px]">
             <Shot
               src="/shots/m2-current-scrubbed.webp"
               alt="Deception Pass Narrows in the app: ebbing at 3.1 knots to the west-north-west, next slack in 5 hours 26 minutes and lasting only 19 minutes, above a scrubbable current curve showing 5.2 knot floods against a 6.3 knot ebb with the slack band drawn across it."
@@ -190,7 +190,7 @@ function Home() {
               does not mean doing arithmetic on a printed table.
             </p>
           </div>
-          <div className="max-w-[260px] sm:w-[260px]">
+          <div className="sm:w-[260px]">
             <Shot
               src="/shots/m1-detail-scrubbed.webp"
               alt="Friday Harbor tide detail in the app: high tide moving at 0.0 feet per hour, next low of 1.7 feet in 5 hours 58 minutes, and the curve scrubbed to 6:41 AM reading 6.1 feet, with sunrise, sunset and a waning gibbous moon along the top and a 4.4 foot range below."
@@ -261,7 +261,7 @@ function Home() {
               bars.
             </p>
           </div>
-          <div className="max-w-[260px] sm:w-[260px]">
+          <div className="sm:w-[260px]">
             <Shot
               src="/shots/m41-map-zoom.webp"
               alt="The app's chart of the Salish Sea, densely covered with tide stations as blue squares and current stations as orange circles, with place names from Sechelt Rapids and Squamish down past Seattle to Budd Inlet."
@@ -288,7 +288,7 @@ function Home() {
               passes you actually run are never more than a scroll away.
             </p>
           </div>
-          <div className="max-w-[260px] sm:w-[260px]">
+          <div className="sm:w-[260px]">
             <Shot
               src="/shots/list-located.webp"
               alt="The app's list located at Friday Harbor: a My Location card reading 1.1 feet and falling with a low of 0.8 feet at 12:06 PM, then Near Me — Point George, Wasp Passage narrows, Pear Point and Upright Channel narrows — each in knots with its set, whether it is ebbing or flooding, its next slack or max, and how many nautical miles away it is."
