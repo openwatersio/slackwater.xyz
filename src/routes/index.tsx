@@ -168,8 +168,8 @@ function Home() {
           <div className="max-w-[260px] sm:w-[260px]">
             <Shot
               src="/shots/m2-current-scrubbed.webp"
-              alt="Deception Pass Narrows in the app: slack under 0.1 knots, next slack in 6 hours 8 minutes, and a scrubable current curve showing 4.9 and 5.3 knot floods against 6.9 and 6.0 knot ebbs."
-              caption="Deception Pass (Narrows). Slack now, next slack in 6h 8m, and what it does in between."
+              alt="Deception Pass Narrows in the app: ebbing at 3.1 knots to the west-north-west, next slack in 5 hours 26 minutes and lasting only 19 minutes, above a scrubbable current curve showing 5.2 knot floods against a 6.3 knot ebb with the slack band drawn across it."
+              caption="Deception Pass (Narrows), ebbing at 3.1 kn. Next slack is in 5h 26m and lasts 19 minutes — which is the number that decides whether you go."
             />
           </div>
         </div>
