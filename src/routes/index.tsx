@@ -272,6 +272,10 @@ function Home() {
           <a href="/privacy" className="underline underline-offset-4">
             Privacy
           </a>
+          .{' '}
+          <a href="/support" className="underline underline-offset-4">
+            Support
+          </a>
           .
         </p>
       </footer>
