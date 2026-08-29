@@ -1,5 +1,5 @@
 import { useId, useMemo } from 'react'
-import { rampColor, speedInk } from '#/lib/ramp'
+import { rampColor } from '#/lib/ramp'
 import { findEvents, nextEvent, predictSeries, type CurrentEvent } from '#/lib/currents'
 
 /**
@@ -146,7 +146,10 @@ export function CurrentCurve({
                 x={x(e.time)}
                 y={yOf(e.knots) + (e.knots > 0 ? -14 : 22)}
                 textAnchor="middle"
-                fill={speedInk(e.knots)}
+                // Foam, not speedInk: the label sits on the page, not on the
+                // fill, so fill-contrast ink turns dark navy above ~6.6 kn and
+                // vanishes. The curve already carries the speed as colour.
+                fill="#E4F0E4"
                 className="font-mono text-[15px] font-semibold [font-variant-numeric:tabular-nums]"
                 style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
               >
