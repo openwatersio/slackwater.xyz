@@ -18,14 +18,12 @@ const TESTFLIGHT: string | null = 'https://testflight.apple.com/join/FCSS4w8s'
 /**
  * No web-client link right now.
  *
- * Two reasons, either sufficient: `web.slackwater.xyz` is the decided home but
- * has no DNS record yet, and the existing PWA at slackwater.sailingnaturali.com
- * has a broken "use my location". Sending someone to a demo whose first action
- * fails is worse than not offering the demo — this page's whole argument is that
- * the thing works when you need it.
+ * `web.slackwater.xyz` is the decided home and has no DNS record yet, and the
+ * PWA that used to stand in for it is deprecated. Sending someone to a demo
+ * whose first action fails is worse than not offering the demo — this page's
+ * whole argument is that the thing works when you need it.
  *
- * Restore when the web client is fixed or rebuilt (move-or-rebuild is still
- * open: slackwater/docs/superpowers/specs/2026-07-20-web-client-design.md).
+ * Restore when there is a web client to point at.
  */
 const WEB_CLIENT: string | null = null
 
