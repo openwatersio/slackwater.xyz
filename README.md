@@ -71,6 +71,23 @@ Link opens are **display only** — they are one `curl` away from being farmed, 
 unlock a reward. The authoritative count is redemptions reported by the iOS app. Design:
 `slackwater-ios/docs/superpowers/specs/2026-08-21-referral-program-design.md` §7 (private).
 
+## Analytics
+
+Plausible, served first-party. Two nitro route rules in `vite.config.ts` proxy
+`/js/script.js` → `plausible.io/js/script.outbound-links.js` and `/api/event` →
+`plausible.io/api/event`, and the snippet in `src/routes/__root.tsx` points at those paths
+with `data-api`. Blockers list `plausible.io` by domain, so a third-party snippet quietly
+loses a share of visitors; a same-origin one does not.
+
+Cookies are stripped on the way out. Everything else passes through, including the
+`X-Forwarded-For` Cloudflare sets — that header is what Plausible counts unique visitors
+from, so don't filter it.
+
+Outbound clicks on both CTAs arrive as the `Outbound Link: Click` goal with no extra code.
+
+Dashboard is `plausible.io/slackwater.xyz`; `PLAUSIBLE_KEY` in `~/.poseidon/.env` is a Stats
+API key for querying it from a script.
+
 ## Deploying
 
 Publishing needs a Cloudflare token with **Workers Scripts → Edit** and **Workers KV → Edit**.
@@ -101,6 +118,10 @@ Two things that will otherwise cost you an hour:
 - **`ERROR [nitro] Preview server exited with code 143` at the end of a build is normal.**
   Nitro spins up a preview server to prerender against and SIGTERMs it when done. The build
   exits 0; check that, not the log.
+- **`/js/script.js` 404s under `pnpm dev`.** Vite's dev middleware claims `.js` URLs before
+  nitro's route rules see them, so the analytics proxy only resolves in a real Worker:
+  `pnpm build && npx wrangler dev -c .output/server/wrangler.json`. Nothing is lost in dev —
+  the Plausible script ignores localhost regardless.
 - **`wrangler.jsonc` at the root is the *source*, not the deployable config.** Nitro reads it
   and emits `.output/server/wrangler.json` with `main` and `assets` rewritten to the right
   relative paths. Deploy with that file — `pnpm deploy` already does.

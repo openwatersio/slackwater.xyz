@@ -15,6 +15,10 @@ export const Route = createRootRoute({
       },
     ],
     links: [{ rel: 'stylesheet', href: appCss }],
+    // Both paths are the first-party proxy rules in vite.config.ts, not plausible.io.
+    scripts: [
+      { src: '/js/script.js', defer: true, 'data-domain': 'slackwater.xyz', 'data-api': '/api/event' },
+    ],
   }),
   shellComponent: RootDocument,
 })
