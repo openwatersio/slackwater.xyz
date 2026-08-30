@@ -1,12 +1,17 @@
-# Crawl rules do not live here.
+# Slackwater is open to search engines, AI crawlers and AI training. That is a
+# deliberate choice, not an oversight: a tide app is only useful to someone who
+# can find it, and we would rather be cited than withheld.
 #
-# Cloudflare's AI Crawl Control serves its managed block — the Content-Signal
-# header and the AI-crawler Disallows — ahead of this file, so the two are
-# concatenated at the edge. Verified against production after the deploy that
-# added this file. Change the crawl rules in the Cloudflare dashboard, not here.
+# Cloudflare's AI Crawl Control managed robots.txt is turned OFF for this zone,
+# so this file is the whole of https://slackwater.xyz/robots.txt. If a block of
+# Content-Signal boilerplate and per-crawler Disallows reappears above these
+# lines, someone has switched that feature back on in the Cloudflare dashboard.
 #
-# This file exists only to point at the sitemap. Sitemap: is a non-group
-# directive, so it needs no User-agent: * of its own — and adding one would
-# duplicate the group Cloudflare already supplies.
+# Content-Signal is an emerging convention rather than a settled standard.
+# Omitting it would neither grant nor restrict; saying yes states the intent.
+
+User-agent: *
+Content-Signal: search=yes,ai-input=yes,ai-train=yes
+Allow: /
 
 Sitemap: https://slackwater.xyz/sitemap.xml
