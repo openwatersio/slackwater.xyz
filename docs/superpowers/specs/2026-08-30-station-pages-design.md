@@ -196,6 +196,30 @@ Required before any of this is called done: station data becomes an input to bot
 the prediction lib and the component, the accessibility text derives from the
 station, and tide and current get separate renderers.
 
+## The corpus is global, and lopsided
+
+Counted from the bundled resources by timezone:
+
+| kind | stations | where |
+|---|---|---|
+| tide | 2,765 | America 1,573 · Europe 559 · Asia 288 · Pacific 128 · Australia 106 · Africa 34 · Atlantic 23 · Indian 19 · Antarctica 10 · Arctic 2 |
+| current | 842 | America 828 · Pacific 14 |
+
+**Tides are worldwide. Currents are North American.** The two route families
+therefore sit in very different positions, from one template:
+
+- `/tides/<slug>` is a global corpus. A page for a station in Aceh or Agder
+  competes against very little, and the product's coverage there is a genuine
+  differentiator rather than a regional claim.
+- `/currents/<slug>` is regional and contested. Puget Sound current predictions
+  have established competitors, and these are the pages where being correct and
+  offline has to carry the argument.
+
+This does not change the design — one template, one build, both prerendered. It
+changes how the corpus is described and where effort goes if it ever has to be
+rationed. It also means the site's own copy should not describe coverage
+regionally; that is being fixed separately.
+
 ## Indexation
 
 The risk worth naming: `/<kind>/<slug>/<instant>` is an infinite URL space, and
@@ -322,9 +346,19 @@ The repo's rule is that the site claims correctness and a claim comes with a tes
   difference, but it is not automatic immunity, and it should not be assumed.
 
   Mitigations, in order of honesty:
-  - Per-station geographic context from `station-metadata`'s `places.json` and
-    `gazetteer.json`, so a page says something true about *where* it is rather
-    than only what the water does.
+  - **Computed tidal character**, not looked-up context. Form factor (diurnal,
+    semidiurnal or mixed), mean and spring range, and how hard the station runs
+    are all derivable from the constituents the page already carries. This is
+    genuinely per-station, differs everywhere, needs no data the page does not
+    already have, and is the same argument the homepage makes: compute it rather
+    than assert it.
+
+    `station-metadata`'s `places.json` and `gazetteer.json` are **not** the
+    answer, despite being the obvious candidates. Measured: `places.json` holds
+    9,660 entries across 51 regions, every one a two-letter US or Canadian code,
+    and `gazetteer.json` holds 19 entries in BC and WA. They cover none of the
+    ~1,192 international tide stations — precisely the pages with the least
+    supporting data and the most to gain.
   - **Do not publish a page that cannot be made useful.** A subordinate station
     with almost nothing to say is a candidate for exclusion rather than a thin
     page.
