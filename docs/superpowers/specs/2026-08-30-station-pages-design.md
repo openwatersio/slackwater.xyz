@@ -47,7 +47,7 @@ introduces a user, a session, or a server that holds one.
 | Decision | Choice |
 |---|---|
 | What the not-installed page renders | The real curve, live and scrubbable |
-| Corpus | Every bundled station (~2,300), not a curated subset |
+| Corpus | Every bundled station (4,687), not a curated subset |
 | URL | `/tides/<slug>` and `/currents/<slug>`, instant appended |
 | Rendering | Canonical pages prerendered; instant URLs served from the same asset |
 | OG image | One per station, generated at build |
@@ -113,6 +113,10 @@ Canonical pages are prerendered at build, as the site's three pages already are.
 Each page inlines its own station's harmonic constituents — roughly 2-3KB, the
 size of the existing `hero-station.json` — so there are no per-station JSON
 assets to fetch and no second round trip.
+
+**The catalogue is 4,687 stations** — 2,765 NOAA tide, 842 NOAA current, 1,058
+CHS and 22 CHS current gates, counted from the bundled resources. An earlier
+draft said ~2,300, taken from an issue comment and never checked.
 
 **The station routes must be listed explicitly.** TanStack Start excludes
 parameterised routes from `autoStaticPathsDiscovery`; it reaches them only by
@@ -260,7 +264,7 @@ Three documents become false and are rewritten in the same change:
 |---|---|---|
 | CPU per invocation | 10 ms | ~1ms; asset lookup only, no SSR, no rasterising |
 | Script size | 3 MB | Unchanged; no WASM in the Worker |
-| Asset files | 20,000 | ~4,600 (~2,300 pages + ~2,300 PNGs) |
+| Asset files | 20,000 | ~9,400 (4,687 pages + 4,687 PNGs) |
 | Requests/day | 100,000 | Only instant URLs invoke the Worker |
 
 Static assets are served without invoking the Worker, but whether those requests
@@ -296,15 +300,19 @@ The repo's rule is that the site claims correctness and a claim comes with a tes
   PNGs will be minutes. Acceptable, but it changes the deploy feel and the CI
   budget.
 - **Total asset size.** Cloudflare documents per-file size and file count but no
-  total. ~2,300 pages at ~30KB plus ~2,300 PNGs is on the order of 150MB. Verify
+  total. 4,687 pages at ~30KB plus 4,687 PNGs is on the order of 300MB. Verify
   empirically on first deploy. Indexed-colour PNGs of a flat-ground chart should
   compress hard and are the first lever if it bites.
+- **File-count headroom is half what an earlier draft claimed.** ~9,400 of 20,000
+  rather than ~4,600. Still fits, with no room for a third per-station artifact —
+  adding one (a per-station JSON, a second image size) would reach ~14,000 and
+  should be weighed against the cap rather than assumed free.
 - **Blocked on the slug vocabulary.** See Dependencies.
 - **Thin content at scale.** Raised by the openwaters.io audit running in
   parallel, which cedes its own ~6,000 station pages partly on these grounds:
   Google's helpful-content assessment is site-wide, so a large set of
   near-identical pages can drag down the pages that are genuinely strong. That
-  argument does not stop at their domain, and this design publishes ~2,300 pages
+  argument does not stop at their domain, and this design publishes 4,687 pages
   from one template.
 
   What separates these from theirs is that the content is *computed*, not
