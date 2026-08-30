@@ -47,11 +47,11 @@ introduces a user, a session, or a server that holds one.
 | Decision | Choice |
 |---|---|
 | What the not-installed page renders | The real curve, live and scrubbable |
-| Corpus | Every bundled station (4,687), not a curated subset |
+| Corpus | Every bundled station (4,690), not a curated subset |
 | URL | `/tides/<slug>` and `/currents/<slug>`, instant appended |
-| Rendering | Canonical pages prerendered; instant URLs served from the same asset |
-| OG image | One per station, generated at build |
-| Plan | Cloudflare Workers Free |
+| Rendering | Canonical pages prerendered; instant URLs server-rendered |
+| OG image | Rendered per request, showing the shared moment |
+| Plan | Cloudflare Workers Paid |
 
 ## URL design
 
@@ -114,9 +114,16 @@ Each page inlines its own station's harmonic constituents — roughly 2-3KB, the
 size of the existing `hero-station.json` — so there are no per-station JSON
 assets to fetch and no second round trip.
 
-**The catalogue is 4,687 stations** — 2,765 NOAA tide, 842 NOAA current, 1,058
-CHS and 22 CHS current gates, counted from the bundled resources. An earlier
-draft said ~2,300, taken from an issue comment and never checked.
+**The catalogue is 4,690 stations** — 2,765 NOAA tide, 842 NOAA current, 1,058
+CHS and 22 CHS current gates from the bundled resources, plus 3 stations that live
+only in `station-metadata`'s registry and no provider bundle. An earlier draft
+said ~2,300, taken from an issue comment and never checked; a later one said 4,687,
+before the registry-only stations were found.
+
+Subordinate stations are **not** in this count. `slackwater-ios#229` adds 2,244
+tide subordinates and a sibling issue 1,705 current ones, which would take the
+corpus to 6,934 and then 8,639. They allocate slugs when those land; nothing here
+changes.
 
 **The station routes must be listed explicitly.** TanStack Start excludes
 parameterised routes from `autoStaticPathsDiscovery`; it reaches them only by
@@ -130,21 +137,25 @@ station catalogue, and the build asserts **exactly one output page per canonical
 station**, failing the build on any mismatch. A generated sitemap is not a
 substitute: it is an output, not a build-time route list.
 
-Instant URLs cannot be prerendered: the space is unbounded. They are also not
-server-rendered, because the free plan gives 10ms of CPU per invocation and React
-SSR plus a prediction does not reliably fit. Instead the Worker maps
-`/<kind>/<slug>/<instant>` to the canonical page's asset and returns it — roughly
-1ms of CPU, an asset fetch and a response — and client JS reads the instant from
-`location` and scrubs to it.
+Instant URLs cannot be prerendered: the space is unbounded. They are
+**server-rendered per request** — React SSR plus a prediction, well inside the
+paid plan's 30s CPU budget — and cached immutably, because a given instant at a
+given station is deterministic and can never change.
 
-The moment survives the tap. It does not survive into the unfurl, because
-scrapers do not run JS. That is the one accepted loss, and it is revisited under
-Deferred below.
+An earlier draft served them as the canonical page's static asset with client-side
+scrubbing, to fit inside the free plan's 10ms. That workaround is gone, and with
+it the wildcard asset route and the client-side scrub path.
 
 ## OG images
 
-One PNG per station, generated at build, referenced by both the canonical page
-and its instant URLs.
+**Rendered per request**, at `/og/<kind>/<slug>[/<instant>].png`, and cached
+immutably. An instant card shows the water at the moment that was shared; a bare
+station card shows the station's character.
+
+This is the point of the paid plan. A link dropped in a group chat unfurls into a
+picture of the actual hour someone meant, rather than a generic station card — in
+Messages or Slack the image *is* the message. Unfurlers fetch each URL once, so
+per-request rendering costs almost nothing in practice.
 
 The pipeline reuses what exists rather than adding a layout engine:
 `CurrentCurve` already server-renders a complete SVG — `path`, `text`, `line`,
@@ -165,14 +176,16 @@ deliberately rather than by luck:
 The OG chart is a separate variant of the component at 1200x630, not the 460x210
 viewBox — a chart legible at one size is not legible at the other.
 
-**The engine is `@resvg/resvg-js`, a build-only dependency.** Nothing portable is
-being hand-built: TypeScript and the Workers runtime do not rasterise arbitrary
-SVG, fonts, gradients and text, and writing something that does is far outside
-this scope.
+**The engine is `@resvg/resvg-wasm`**, running inside the Worker. Nothing
+portable is being hand-built: neither TypeScript nor the Workers runtime
+rasterises arbitrary SVG with fonts and gradients, and writing something that does
+is far outside this scope. The WASM build is 1-2 MB against the paid plan's 10 MB
+script limit.
 
-Runtime moment cards, if ever funded, are a **separate implementation** that
-picks its own engine — `@resvg/resvg-wasm` is the obvious candidate since it runs
-in both places. Nothing in today's pipeline is shaped around that possibility.
+An earlier draft used the native `@resvg/resvg-js` at build time, because a free
+plan's 10ms of CPU cannot rasterise a PNG. That is why the engine choice changed
+with the plan choice: same library, the build that runs where the work now
+happens.
 
 ## Rendering work this actually requires
 
@@ -185,7 +198,7 @@ around it. Verified against the current code:
 - **`CurrentCurve` takes no station input.** Its props are `start`, `hours`,
   `now`, `width`, `height`, `sparse`; it reaches into the module for data.
 - **`CurrentCurve.tsx:231` and `:236` hardcode the string "Deception Pass
-  Narrows"** in the accessibility description. Shipped as is across 4,687 pages,
+  Narrows"** in the accessibility description. Shipped as is across 4,690 pages,
   every station would announce the wrong name to screen readers. This is a
   correctness bug that the current single-station page hides.
 - **There is no tide-height renderer at all.** Heights are unsigned, have no set
@@ -230,7 +243,7 @@ trap built on purpose.
   Unfurls are unaffected: OG tags are read from the fetched URL regardless of
   canonical.
 - Sitemaps split by kind, referenced from the existing index. `public/sitemap.xml`
-  goes from 3 hand-written URLs to 4,687 generated ones — its own comment
+  goes from 3 hand-written URLs to 4,690 generated ones — its own comment
   predicted this.
 - Canonical URLs must be the ones that return 200. Workers Assets 307s
   `/support` to `/support/`; whichever way trailing slashes resolve for these
@@ -282,20 +295,26 @@ Three documents become false and are rewritten in the same change:
   as the decided home. That subdomain is not being built and the comment should
   say so, or be removed with the dead constant.
 
-## Free-plan budget
+## Paid-plan budget
 
-| Limit | Free | This design |
+| Limit | Paid | This design |
 |---|---|---|
-| CPU per invocation | 10 ms | ~1ms; asset lookup only, no SSR, no rasterising |
-| Script size | 3 MB | Unchanged; no WASM in the Worker |
-| Asset files | 20,000 | ~9,400 (4,687 pages + 4,687 PNGs) |
-| Requests/day | 100,000 | Only instant URLs invoke the Worker |
+| CPU per invocation | 5 min (30s default) | SSR plus a rasterise, order of 100ms |
+| Script size | 10 MB | resvg-wasm, roughly 1-2 MB |
+| Asset files | 100,000 | 4,690 prerendered pages |
+| Requests | unmetered | every instant URL and OG card invokes the Worker |
 
-Static assets are served without invoking the Worker, but whether those requests
-count toward the 100,000/day limit is **not documented**. Worth confirming before
-launch: a 4,687-page corpus crawled by search engines and AI crawlers is a very
-different traffic profile from a three-page site, and the ceiling is a hard stop
-rather than a bill.
+The plan choice is what makes the design above possible rather than an
+optimisation of it. Three free-tier limits each forced a workaround, and all three
+are gone: 10ms of CPU (no SSR, no rasterising), 20,000 asset files, and
+100,000 requests/day against a corpus about to be crawled by every search and AI
+crawler.
+
+The file cap mattered more than it first appeared. At 4,690 stations the earlier
+design needed ~9,400 files of 20,000; the subordinate stations in
+`slackwater-ios#229` would take the catalogue to 6,934 and then 8,639, which is
+17,278 files — 86% of the free cap, with no room for a second image size or a
+per-station JSON. On paid, 100,000 makes that a non-question.
 
 ## Testing
 
@@ -320,23 +339,24 @@ The repo's rule is that the site claims correctness and a claim comes with a tes
 
 ## Risks
 
-- **Build time.** 43s today. Prerendering 4,687 pages and rasterising 4,687
-  PNGs will be minutes. Acceptable, but it changes the deploy feel and the CI
-  budget.
+- **Build time.** 43s today. Prerendering 4,690 pages will be minutes. Less than
+  an earlier draft feared, because the build no longer rasterises anything — the
+  OG cards moved to the request path.
 - **Total asset size.** Cloudflare documents per-file size and file count but no
-  total. 4,687 pages at ~30KB plus 4,687 PNGs is on the order of 300MB. Verify
-  empirically on first deploy. Indexed-colour PNGs of a flat-ground chart should
-  compress hard and are the first lever if it bites.
-- **File-count headroom is half what an earlier draft claimed.** ~9,400 of 20,000
-  rather than ~4,600. Still fits, with no room for a third per-station artifact —
-  adding one (a per-station JSON, a second image size) would reach ~14,000 and
-  should be weighed against the cap rather than assumed free.
-- **Blocked on the slug vocabulary.** See Dependencies.
+  total. 4,690 prerendered pages at ~30KB is on the order of 140MB. Verify
+  empirically on first deploy. OG images are rendered per request rather than
+  stored, so they no longer count toward this at all.
+- **Rasterising on the request path.** Each uncached OG card costs a Worker
+  invocation of order 100ms. Unfurlers fetch once and the responses cache
+  immutably, so the steady state is cheap — but a crawler discovering the corpus
+  fetches thousands of cards in a burst. Watch the first crawl.
+- **Blocked on the slug vocabulary.** Now unblocked: `@openwaters/station-metadata`
+  4.0.0 is published, carrying `data/slugs.json` for all 4,690.
 - **Thin content at scale.** Raised by the openwaters.io audit running in
   parallel, which cedes its own ~6,000 station pages partly on these grounds:
   Google's helpful-content assessment is site-wide, so a large set of
   near-identical pages can drag down the pages that are genuinely strong. That
-  argument does not stop at their domain, and this design publishes 4,687 pages
+  argument does not stop at their domain, and this design publishes 4,690 pages
   from one template.
 
   What separates these from theirs is that the content is *computed*, not
@@ -384,11 +404,6 @@ The machinery exists; the coverage does not.
 and a URL format the app can build and parse.
 
 ## Deferred
-
-**Moment-specific OG cards.** The unfurl shows the station, not the hour. Lifting
-it needs runtime rasterising, which needs more than 10ms of CPU, which means
-Workers Paid. It is a **separate implementation** with its own engine choice, not
-a flag on this one. Add it when paid workers are actually funded.
 
 **Sharing an image directly from the app.** iOS can attach a rendered PNG
 alongside the URL in the share sheet, which sidesteps OG entirely for Messages
