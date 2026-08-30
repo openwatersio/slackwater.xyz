@@ -116,11 +116,27 @@ describe('predictSeries', () => {
 })
 
 describe('findEvents', () => {
-  it('finds slack and peaks for the station given', () => {
-    const events = findEvents(CURRENT, new Date('2026-09-01T00:00:00Z'), 24)
-    expect(events.length).toBeGreaterThan(0)
-    expect(events.every((e) => ['slack', 'flood', 'ebb'].includes(e.kind))).toBe(true)
-    expect(events.filter((e) => e.kind === 'slack').every((e) => e.knots === 0)).toBe(true)
+  const events = findEvents(CURRENT, new Date('2026-09-01T00:00:00Z'), 24)
+
+  it('finds slack, which getExtremesPrediction does not supply', () => {
+    // Slack is interpolated from sign changes between timeline samples. A
+    // version built on extremes alone returns none — this is the assertion
+    // that catches that rewrite.
+    expect(events.filter((e) => e.kind === 'slack').length).toBeGreaterThan(0)
+    expect(events.filter((e) => e.kind === 'slack').every((e) => e.level === 0)).toBe(true)
+  })
+
+  it('drops wrong-sign extremes rather than mislabelling them', () => {
+    // A "high" that never reaches positive velocity is a weakest-ebb wiggle
+    // mid-phase, not a flood. This filter is what keeps the site agreeing
+    // with slackwater-web's noaaCurrentState.
+    expect(events.filter((e) => e.kind === 'flood').every((e) => e.level > 0)).toBe(true)
+    expect(events.filter((e) => e.kind === 'ebb').every((e) => e.level < 0)).toBe(true)
+  })
+
+  it('returns events in time order', () => {
+    const times = events.map((e) => e.time.getTime())
+    expect(times).toEqual([...times].sort((a, b) => a - b))
   })
 })
 ```
@@ -174,9 +190,10 @@ export interface Sample {
 
 export type EventKind = 'slack' | 'flood' | 'ebb'
 
-export interface CurrentEvent {
+export interface StationEvent {
   kind: EventKind
   time: Date
+  /** Signed for flood/ebb, exactly 0 for slack. */
   level: number
 }
 
@@ -219,19 +236,53 @@ export function predictSeries(
     .map((p: { time: number; level: number }) => ({ time: new Date(p.time), level: p.level }))
 }
 
-/** Slack, max flood and max ebb, in time order. */
-export function findEvents(station: Station, start: Date, hours: number): CurrentEvent[] {
+/**
+ * Slack, max flood and max ebb, in time order.
+ *
+ * This is `currents.ts`'s existing algorithm with the station passed in. Do NOT
+ * simplify it to `getExtremesPrediction` alone — two behaviours here are load
+ * bearing and neither is visible in the predictor's API:
+ *
+ * 1. `getExtremesPrediction` returns NO slack events. Slack is interpolated
+ *    below from the sign change between timeline samples.
+ * 2. A "high" that never reaches positive velocity (or a "low" that never goes
+ *    negative) is a weakest-ebb/flood wiggle mid-phase, not a turn. Labelling it
+ *    a max would misdescribe the day, and this filter is what keeps the site
+ *    agreeing with slackwater-web's noaaCurrentState.
+ */
+export function findEvents(station: Station, start: Date, hours: number): StationEvent[] {
   const end = new Date(start.getTime() + hours * 3600_000)
-  const extremes = predictorFor(station).getExtremesPrediction({ start, end })
-  return extremes.map((e: { time: string | number; level: number; high: boolean }) => ({
-    kind: (Math.abs(e.level) < 1e-9 ? 'slack' : e.high ? 'flood' : 'ebb') as EventKind,
-    time: new Date(e.time),
-    level: e.level,
-  }))
+
+  const extremes: StationEvent[] = predictorFor(station)
+    .getExtremesPrediction({ start, end })
+    .filter((e: { high: boolean; level: number }) => (e.high ? e.level > 0 : e.level < 0))
+    .map((e: { high: boolean; level: number; time: number | Date }) => ({
+      kind: (e.high ? 'flood' : 'ebb') as EventKind,
+      time: new Date(e.time),
+      level: e.level,
+    }))
+
+  // Slack: interpolate the sign change between timeline samples. At 600s
+  // sampling that lands the crossing within seconds for a real station.
+  const timeline = predictSeries(station, start, hours)
+  const slacks: StationEvent[] = []
+  for (let i = 1; i < timeline.length; i++) {
+    const a = timeline[i - 1]
+    const b = timeline[i]
+    if (a.level === 0 || a.level > 0 === b.level > 0) continue
+    const frac = a.level / (a.level - b.level)
+    slacks.push({
+      kind: 'slack',
+      time: new Date(a.time.getTime() + frac * (b.time.getTime() - a.time.getTime())),
+      level: 0,
+    })
+  }
+
+  return [...extremes, ...slacks].sort((x, y) => x.time.getTime() - y.time.getTime())
 }
 
 /** The next event at or after `now`, or undefined past the window. */
-export function nextEvent(events: CurrentEvent[], now: Date): CurrentEvent | undefined {
+export function nextEvent(events: StationEvent[], now: Date): StationEvent | undefined {
   return events.find((e) => e.time.getTime() >= now.getTime())
 }
 ```
@@ -241,13 +292,33 @@ export function nextEvent(events: CurrentEvent[], now: Date): CurrentEvent | und
 `src/lib/currents.ts` keeps `HERO_STATION` for the homepage, but its prediction
 functions are now thin wrappers so there is exactly one implementation:
 
+`currents.ts`'s published shape uses **`knots`**, and 15 call sites across
+`CurrentCurve.tsx` (8), `currents.test.ts` (5) and `index.tsx` (2) read it.
+**Task 1 does not rename them.** The wrapper maps the neutral `level` back to
+`knots`, so every existing consumer and the existing test are untouched — which is
+what makes the "suite passes unchanged" promise in Step 6 true rather than
+aspirational. The rename lands in Task 3, where `CurrentCurve` is being rewritten
+anyway and its own tests cover the change.
+
 ```ts
 import station from '../data/hero-station.json'
-import { predictSeries as predict, findEvents as events, nextEvent } from './predict'
+import { predictSeries as predict, findEvents as events } from './predict'
+import type { EventKind } from './predict'
 import type { Station } from './station'
 
-export type { Sample, CurrentEvent, EventKind } from './predict'
-export { nextEvent }
+export type { EventKind }
+
+/** The published shape: signed knots along the major axis. Unchanged. */
+export interface Sample {
+  time: Date
+  knots: number
+}
+
+export interface CurrentEvent {
+  kind: EventKind
+  time: Date
+  knots: number
+}
 
 export const HERO_STATION: Station = {
   id: station.id, kind: 'current', slug: 'deception-pass', name: station.name,
@@ -257,12 +328,24 @@ export const HERO_STATION: Station = {
   floodDirection: station.floodDirection, ebbDirection: station.ebbDirection,
 }
 
-export function predictSeries(start: Date, hours: number, fidelitySeconds = 600) {
-  return predict(HERO_STATION, start, hours, fidelitySeconds)
+export function predictSeries(start: Date, hours: number, fidelitySeconds = 600): Sample[] {
+  return predict(HERO_STATION, start, hours, fidelitySeconds).map((s) => ({
+    time: s.time,
+    knots: s.level,
+  }))
 }
 
-export function findEvents(start: Date, hours: number) {
-  return events(HERO_STATION, start, hours)
+export function findEvents(start: Date, hours: number): CurrentEvent[] {
+  return events(HERO_STATION, start, hours).map((e) => ({
+    kind: e.kind,
+    time: e.time,
+    knots: e.level,
+  }))
+}
+
+/** The next event at or after `now` — what the hero actually announces. */
+export function nextEvent(evts: CurrentEvent[], now: Date): CurrentEvent | undefined {
+  return evts.find((e) => e.time.getTime() >= now.getTime())
 }
 ```
 
@@ -437,245 +520,7 @@ git commit -m "feat: join the slug table to the published station data"
 
 ---
 
-## Task 3: Prerender a page per station
-
-**Files:**
-- Create: `src/routes/tides.$slug.tsx`, `src/routes/currents.$slug.tsx`
-- Modify: `vite.config.ts`
-- Create: `src/routes/station-routes.test.ts`
-
-**Interfaces:**
-- Consumes: `loadCatalogue()` (Task 2), `predictSeries` / `findEvents` (Task 1)
-- Produces: prerendered `/tides/<slug>` and `/currents/<slug>` for all 3,607
-
-**THE LANDMINE.** `vite.config.ts` sets `autoStaticPathsDiscovery: true` and
-`crawlLinks: true`. TanStack Start **excludes parameterised routes from automatic
-discovery**; it reaches them only by crawling links from an already-rendered page.
-This design deliberately has no navigation between stations. Left as is, **the build
-succeeds and emits zero station pages** — a silent failure that looks like a working
-deploy. The `pages` array below is not optional.
-
-- [ ] **Step 1: Write the failing test**
-
-```ts
-// src/routes/station-routes.test.ts
-import { describe, expect, it } from 'vitest'
-import { existsSync, readFileSync } from 'node:fs'
-import { loadCatalogue } from '../lib/catalogue'
-
-const OUT = '.output/public'
-
-describe('prerendered station pages', () => {
-  it('emits exactly one page per station', () => {
-    if (!existsSync(OUT)) return expect.fail('run `pnpm build` before this test')
-    const all = loadCatalogue()
-    const missing = all.filter(
-      (s) => !existsSync(`${OUT}/${s.kind === 'tide' ? 'tides' : 'currents'}/${s.slug}/index.html`),
-    )
-    expect(missing.slice(0, 5).map((s) => s.id)).toEqual([])
-    expect(missing.length).toBe(0)
-  })
-
-  it('renders the station name and a real curve, not a placeholder', () => {
-    const html = readFileSync(`${OUT}/currents/deception-pass/index.html`, 'utf8')
-    expect(html).toContain('Deception Pass (Narrows)')
-    expect(html).toMatch(/<path[^>]+d="M[\d.,\-L\s]+"/)
-    expect(html).toContain('<link rel="canonical" href="https://slackwater.xyz/currents/deception-pass/"')
-  })
-
-  it('does not announce the wrong station to screen readers', () => {
-    // The accessibility text was hardcoded to one station; across 3,607 pages
-    // that would misname every one of them.
-    const html = readFileSync(`${OUT}/tides/seattle/index.html`, 'utf8')
-    expect(html).not.toContain('Deception Pass')
-  })
-})
-```
-
-- [ ] **Step 2: Run it to verify it fails**
-
-Run: `pnpm vitest run src/routes/station-routes.test.ts`
-Expected: FAIL — no `.output/public/currents/...` exists
-
-- [ ] **Step 3: Give the prerenderer an explicit page list**
-
-In `vite.config.ts`, import the catalogue and build the array:
-
-```ts
-import { loadCatalogue } from './src/lib/catalogue'
-
-const stationPages = loadCatalogue().map((s) => ({
-  path: `/${s.kind === 'tide' ? 'tides' : 'currents'}/${s.slug}/`,
-}))
-```
-
-and pass it to the plugin:
-
-```ts
-    tanstackStart({
-      prerender: {
-        enabled: true,
-        autoSubfolderIndex: true,
-        // Parameterised routes are excluded from discovery and this design has
-        // no links between stations, so without `pages` the build emits zero
-        // station pages and still reports success.
-        autoStaticPathsDiscovery: true,
-        crawlLinks: true,
-        pages: stationPages,
-        concurrency: 14,
-      },
-    }),
-```
-
-- [ ] **Step 4: Write the two routes**
-
-```tsx
-// src/routes/currents.$slug.tsx
-import { createFileRoute, notFound } from '@tanstack/react-router'
-import { CurrentCurve } from '#/components/CurrentCurve'
-import { loadCatalogue } from '#/lib/catalogue'
-import type { Station } from '#/lib/station'
-
-const CANONICAL = 'https://slackwater.xyz/currents/'
-
-/** Build-time only; the loader runs on the server and serialises one station. */
-function findStation(slug: string): Station | undefined {
-  return loadCatalogue().find((s) => s.kind === 'current' && s.slug === slug)
-}
-
-export const Route = createFileRoute('/currents/$slug')({
-  loader: ({ params }) => {
-    const station = findStation(params.slug)
-    if (!station) throw notFound()
-    return { station }
-  },
-  head: ({ loaderData }) => {
-    const s = loaderData?.station
-    if (!s) return {}
-    const title = `${s.name} — tidal currents`
-    const description = `Slack water and maximum flood and ebb for ${s.name}, computed from harmonic constituents.`
-    return {
-      links: [{ rel: 'canonical', href: `${CANONICAL}${s.slug}/` }],
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:url', content: `${CANONICAL}${s.slug}/` },
-        { property: 'og:image', content: `https://slackwater.xyz/og/currents/${s.slug}.png` },
-      ],
-    }
-  },
-  component: CurrentStation,
-})
-
-function CurrentStation() {
-  const { station } = Route.useLoaderData()
-  const start = new Date()
-  return (
-    <main className="mx-auto max-w-3xl px-5 pb-24 pt-10 sm:px-6 sm:pt-20">
-      <h1 className="text-4xl font-semibold tracking-tight text-sw-paper sm:text-5xl">
-        {station.name}
-      </h1>
-      <p className="mt-3 text-sw-steel">{station.region}</p>
-      <CurrentCurve station={station} start={start} hours={24} now={start} />
-    </main>
-  )
-}
-```
-
-`src/routes/tides.$slug.tsx` is the same shape with three differences: it filters
-`s.kind === 'tide'`, renders `TideCurve` (Task 5), and its copy says heights rather
-than currents. Write it out in full rather than importing a shared component — the
-two pages diverge as soon as either gets station-kind-specific content, and a shared
-one would have to branch on kind in every line.
-
-- [ ] **Step 5: Build and run the tests**
-
-Run: `pnpm build && pnpm vitest run src/routes/station-routes.test.ts`
-Expected: PASS. The build takes minutes — that is expected at 3,607 pages.
-
-- [ ] **Step 6: Assert the count from the build itself**
-
-Run: `ls .output/public/tides | wc -l && ls .output/public/currents | wc -l`
-Expected: `2765` and `842`
-
-- [ ] **Step 7: Commit**
-
-```bash
-git add src/routes/tides.$slug.tsx src/routes/currents.$slug.tsx src/routes/station-routes.test.ts vite.config.ts
-git commit -m "feat: prerender a page for every station in the catalogue"
-```
-
----
-
-## Task 4: Keep the catalogue out of the client bundle
-
-**Files:**
-- Create: `src/lib/bundle-size.test.ts`
-
-**Interfaces:**
-- Consumes: the build output from Task 3
-
-TanStack loaders are isomorphic. An ordinary top-level import of `catalogue.ts` in a
-route ships the whole tide database to every visitor. This is not hypothetical: the
-site's existing `routes-*.js` already contains the hero station's data, because
-`currents.ts` imports `hero-station.json` at module scope. At 2 KB that is invisible;
-at catalogue scale it is megabytes.
-
-- [ ] **Step 1: Write the failing test**
-
-```ts
-// src/lib/bundle-size.test.ts
-import { describe, expect, it } from 'vitest'
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
-
-const ASSETS = '.output/public/assets'
-
-describe('client bundle', () => {
-  const js = () => readdirSync(ASSETS).filter((f) => f.endsWith('.js'))
-
-  it('ships no station catalogue', () => {
-    if (!existsSync(ASSETS)) return expect.fail('run `pnpm build` first')
-    for (const f of js()) {
-      const src = readFileSync(`${ASSETS}/${f}`, 'utf8')
-      // Two stations that must never both appear in one client chunk: their
-      // presence together means the catalogue was bundled rather than the one
-      // station a page needs.
-      const both = src.includes('Deception Pass (Narrows)') && src.includes('SEATTLE (Madison St.)')
-      expect(both, `${f} contains more than one station`).toBe(false)
-    }
-  })
-
-  it('keeps any single chunk under a megabyte', () => {
-    for (const f of js()) {
-      expect(statSync(`${ASSETS}/${f}`).size, f).toBeLessThan(1_000_000)
-    }
-  })
-})
-```
-
-- [ ] **Step 2: Run it against the build from Task 3**
-
-Run: `pnpm vitest run src/lib/bundle-size.test.ts`
-Expected: PASS if the loader serialised one station; FAIL loudly if the catalogue leaked
-
-- [ ] **Step 3: If it fails, move the import behind the server boundary**
-
-The loader must not import `catalogue.ts` at module scope in a file that also ships
-to the client. Use TanStack's server-only loader path so the import graph the client
-sees never reaches it, and re-run.
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add src/lib/bundle-size.test.ts
-git commit -m "test: fail if the station catalogue reaches the client bundle"
-```
-
----
-
-## Task 5: The tide renderer
+## Task 3: The renderers
 
 **Files:**
 - Create: `src/components/TideCurve.tsx`, `src/components/TideCurve.test.tsx`
@@ -775,6 +620,304 @@ git commit -m "feat: draw heights, and let the current curve name its own statio
 
 ---
 
+## Task 4: Prerender a page per station
+
+**Files:**
+- Create: `src/routes/tides.$slug.tsx`, `src/routes/currents.$slug.tsx`
+- Modify: `vite.config.ts`
+- Create: `src/routes/station-routes.test.ts`
+
+**Interfaces:**
+- Consumes: `loadCatalogue()` (Task 2), `predictSeries` / `findEvents` (Task 1)
+- Produces: prerendered `/tides/<slug>` and `/currents/<slug>` for all 3,607
+
+**THE LANDMINE.** `vite.config.ts` sets `autoStaticPathsDiscovery: true` and
+`crawlLinks: true`. TanStack Start **excludes parameterised routes from automatic
+discovery**; it reaches them only by crawling links from an already-rendered page.
+This design deliberately has no navigation between stations. Left as is, **the build
+succeeds and emits zero station pages** — a silent failure that looks like a working
+deploy. The `pages` array below is not optional.
+
+- [ ] **Step 1: Write the failing test**
+
+```ts
+// src/routes/station-routes.test.ts
+import { describe, expect, it } from 'vitest'
+import { existsSync, readFileSync } from 'node:fs'
+import { loadCatalogue } from '../lib/catalogue'
+
+const OUT = '.output/public'
+
+describe('prerendered station pages', () => {
+  it('emits exactly one page per station', () => {
+    if (!existsSync(OUT)) return expect.fail('run `pnpm build` before this test')
+    const all = loadCatalogue()
+    const missing = all.filter(
+      (s) => !existsSync(`${OUT}/${s.kind === 'tide' ? 'tides' : 'currents'}/${s.slug}/index.html`),
+    )
+    expect(missing.slice(0, 5).map((s) => s.id)).toEqual([])
+    expect(missing.length).toBe(0)
+  })
+
+  it('renders the station name and a real curve, not a placeholder', () => {
+    const html = readFileSync(`${OUT}/currents/deception-pass/index.html`, 'utf8')
+    expect(html).toContain('Deception Pass (Narrows)')
+    expect(html).toMatch(/<path[^>]+d="M[\d.,\-L\s]+"/)
+    expect(html).toContain('<link rel="canonical" href="https://slackwater.xyz/currents/deception-pass/"')
+  })
+
+  it('does not announce the wrong station to screen readers', () => {
+    // The accessibility text was hardcoded to one station; across 3,607 pages
+    // that would misname every one of them.
+    const html = readFileSync(`${OUT}/tides/seattle/index.html`, 'utf8')
+    expect(html).not.toContain('Deception Pass')
+  })
+})
+```
+
+- [ ] **Step 2: Run it to verify it fails**
+
+Run: `pnpm vitest run src/routes/station-routes.test.ts`
+Expected: FAIL — no `.output/public/currents/...` exists
+
+- [ ] **Step 3: Give the prerenderer an explicit page list**
+
+In `vite.config.ts`, import the catalogue and build the array:
+
+```ts
+import { loadCatalogue } from './src/lib/catalogue'
+
+const stationPages = loadCatalogue().map((s) => ({
+  path: `/${s.kind === 'tide' ? 'tides' : 'currents'}/${s.slug}/`,
+}))
+```
+
+and pass it to the plugin:
+
+```ts
+    tanstackStart({
+      prerender: {
+        enabled: true,
+        autoSubfolderIndex: true,
+        // Parameterised routes are excluded from discovery and this design has
+        // no links between stations, so without `pages` the build emits zero
+        // station pages and still reports success.
+        autoStaticPathsDiscovery: true,
+        crawlLinks: true,
+        pages: stationPages,
+        concurrency: 14,
+      },
+    }),
+```
+
+- [ ] **Step 4: Put the catalogue behind a server boundary — before writing any route**
+
+Route modules are isomorphic. A top-level `import { loadCatalogue } from '#/lib/catalogue'`
+in a route file pulls the whole tide database into the client graph, and the next
+task's test would catch it only after the fact. Create the boundary first:
+
+```ts
+// src/lib/catalogue.server.ts
+import { createServerOnlyFn } from '@tanstack/react-start'
+import { loadCatalogue } from './catalogue'
+import type { Kind, Station } from './station'
+
+/**
+ * The only way a route may reach the catalogue.
+ *
+ * `createServerOnlyFn` makes the import graph from any route stop here, so the
+ * bundler never follows `catalogue.ts` into the client chunk. Routes import this
+ * module; nothing imports `catalogue.ts` directly except this file and the
+ * build-time sitemap and prerender-list generators.
+ */
+const index = createServerOnlyFn(() => {
+  const byKind = new Map<string, Station>()
+  for (const s of loadCatalogue()) byKind.set(`${s.kind}/${s.slug}`, s)
+  return byKind
+})
+
+export function stationBySlug(kind: Kind, slug: string): Station | undefined {
+  return index().get(`${kind}/${slug}`)
+}
+```
+
+Confirm the helper name against the installed `@tanstack/react-start` before
+using it — if this version exposes the server-only boundary under a different
+name, use that one rather than inventing a wrapper. Report which you used.
+
+- [ ] **Step 5: Write the two routes**
+
+```tsx
+// src/routes/currents.$slug.tsx
+import { createFileRoute, notFound } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { CurrentCurve } from '#/components/CurrentCurve'
+import { stationBySlug } from '#/lib/catalogue.server'
+import type { Station } from '#/lib/station'
+
+const CANONICAL = 'https://slackwater.xyz/currents/'
+
+export const Route = createFileRoute('/currents/$slug')({
+  loader: ({ params }) => {
+    // stationBySlug lives behind the server boundary (see below). The loader
+    // returns ONE station, which is what gets serialised into the page.
+    const station = stationBySlug('current', params.slug)
+    if (!station) throw notFound()
+    return { station }
+  },
+  head: ({ loaderData }) => {
+    const s = loaderData?.station
+    if (!s) return {}
+    const title = `${s.name} — tidal currents`
+    const description = `Slack water and maximum flood and ebb for ${s.name}, computed from harmonic constituents.`
+    return {
+      links: [{ rel: 'canonical', href: `${CANONICAL}${s.slug}/` }],
+      meta: [
+        { title },
+        { name: 'description', content: description },
+        { property: 'og:title', content: title },
+        { property: 'og:description', content: description },
+        { property: 'og:url', content: `${CANONICAL}${s.slug}/` },
+        { property: 'og:image', content: `https://slackwater.xyz/og/currents/${s.slug}.png` },
+      ],
+    }
+  },
+  component: CurrentStation,
+})
+
+function CurrentStation() {
+  const { station } = Route.useLoaderData()
+  // A fixed literal for the server render, then the real clock on the client.
+  // `new Date()` here would bake build time into all 3,607 prerendered pages
+  // AND differ between server and client, which is a hydration mismatch.
+  // `src/routes/index.tsx:104` already does exactly this — follow it.
+  const [now, setNow] = useState(() => new Date('2026-08-21T12:00:00Z'))
+  useEffect(() => {
+    setNow(new Date())
+    const id = setInterval(() => setNow(new Date()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+  const start = new Date(now.getTime() - 6 * 3600_000)
+  return (
+    <main className="mx-auto max-w-3xl px-5 pb-24 pt-10 sm:px-6 sm:pt-20">
+      <h1 className="text-4xl font-semibold tracking-tight text-sw-paper sm:text-5xl">
+        {station.name}
+      </h1>
+      <p className="mt-3 text-sw-steel">{station.region}</p>
+      <CurrentCurve station={station} start={start} hours={24} now={now} />
+    </main>
+  )
+}
+```
+
+`src/routes/tides.$slug.tsx` is the same shape with three differences: it filters
+`s.kind === 'tide'`, renders `TideCurve` (Task 3), and its copy says heights rather
+than currents. Write it out in full rather than importing a shared component — the
+two pages diverge as soon as either gets station-kind-specific content, and a shared
+one would have to branch on kind in every line.
+
+- [ ] **Step 6: Build and run the tests**
+
+Run: `pnpm build && pnpm vitest run src/routes/station-routes.test.ts`
+Expected: PASS. The build takes minutes — that is expected at 3,607 pages.
+
+- [ ] **Step 7: Assert the count from the build itself**
+
+Run: `ls .output/public/tides | wc -l && ls .output/public/currents | wc -l`
+Expected: `2765` and `842`
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add src/lib/catalogue.server.ts src/routes/tides.$slug.tsx src/routes/currents.$slug.tsx src/routes/station-routes.test.ts vite.config.ts
+git commit -m "feat: prerender a page for every station in the catalogue"
+```
+
+---
+
+## Task 5: Keep the catalogue out of the client bundle
+
+**Files:**
+- Create: `src/lib/bundle-size.test.ts`
+
+**Interfaces:**
+- Consumes: the build output from Task 4
+
+TanStack loaders are isomorphic. An ordinary top-level import of `catalogue.ts` in a
+route ships the whole tide database to every visitor. This is not hypothetical: the
+site's existing `routes-*.js` already contains the hero station's data, because
+`currents.ts` imports `hero-station.json` at module scope. At 2 KB that is invisible;
+at catalogue scale it is megabytes.
+
+- [ ] **Step 1: Write the failing test**
+
+```ts
+// src/lib/bundle-size.test.ts
+import { describe, expect, it } from 'vitest'
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
+
+const ASSETS = '.output/public/assets'
+
+describe('client bundle', () => {
+  const js = () => readdirSync(ASSETS).filter((f) => f.endsWith('.js'))
+
+  it('ships no station catalogue', () => {
+    if (!existsSync(ASSETS)) return expect.fail('run `pnpm build` first')
+    for (const f of js()) {
+      const src = readFileSync(`${ASSETS}/${f}`, 'utf8')
+      // Two stations that must never both appear in one client chunk: their
+      // presence together means the catalogue was bundled rather than the one
+      // station a page needs.
+      const both = src.includes('Deception Pass (Narrows)') && src.includes('SEATTLE (Madison St.)')
+      expect(both, `${f} contains more than one station`).toBe(false)
+    }
+  })
+
+  it('keeps any single chunk under a megabyte', () => {
+    for (const f of js()) {
+      expect(statSync(`${ASSETS}/${f}`).size, f).toBeLessThan(1_000_000)
+    }
+  })
+
+  it('keeps the whole client payload small enough that a leak cannot hide', () => {
+    // A two-name check misses leakage that was split across chunks or
+    // transformed. Total size is the blunt instrument that does not.
+    const total = js().reduce((n, f) => n + statSync(`${ASSETS}/${f}`).size, 0)
+    expect(total).toBeLessThan(1_500_000)
+  })
+
+  it('has no client chunk reaching the catalogue module', () => {
+    // The import graph, not the rendered strings: this catches a leak whose
+    // station names were minified, split or otherwise made unsearchable.
+    for (const f of js()) {
+      const src = readFileSync(`${ASSETS}/${f}`, 'utf8')
+      expect(src.includes('tide-database'), f).toBe(false)
+      expect(src.includes('noaa-current-stations'), f).toBe(false)
+    }
+  })
+})
+```
+
+- [ ] **Step 2: Run it against the build from Task 4**
+
+Run: `pnpm build && pnpm vitest run src/lib/bundle-size.test.ts`
+Expected: PASS if the loader serialised one station; FAIL loudly if the catalogue leaked
+
+- [ ] **Step 3: If it fails, move the import behind the server boundary**
+
+The loader must not import `catalogue.ts` at module scope in a file that also ships
+to the client. Use TanStack's server-only loader path so the import graph the client
+sees never reaches it, and re-run.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add src/lib/bundle-size.test.ts
+git commit -m "test: fail if the station catalogue reaches the client bundle"
+```
+
+---
+
 ## Task 6: Instant URLs, server-rendered
 
 **Files:**
@@ -782,7 +925,7 @@ git commit -m "feat: draw heights, and let the current curve name its own statio
 - Create: `src/routes/instant.test.ts`
 
 **Interfaces:**
-- Consumes: everything from Tasks 1-3, 5
+- Consumes: everything from Tasks 1-4
 - Produces: `/currents/<slug>/<iso-instant>` rendering the water at that moment
 
 The instant is an absolute ISO instant written in the station's own UTC offset, so it
@@ -952,11 +1095,25 @@ easy to break:
 
 Initialise the WASM module once per isolate, not per request.
 
-- [ ] **Step 5: Write the route**
+- [ ] **Step 5: Write BOTH routes — one file cannot serve both shapes**
 
-`/og/<kind>/<slug>.png` and `/og/<kind>/<slug>/<instant>.png`, returning
-`image/png` with `cache-control: public, max-age=31536000, immutable` — a given
-station at a given instant is deterministic and can never change.
+A single `og.$kind.$slug[.]png.ts` matches `/og/<kind>/<slug>.png` only. The
+instant card needs its own file:
+
+- `src/routes/og.$kind.$slug[.]png.ts` → `/og/<kind>/<slug>.png`
+- `src/routes/og.$kind.$slug.$instant[.]png.ts` → `/og/<kind>/<slug>/<instant>.png`
+
+**Their cache headers differ, and getting this wrong is the subtle half.**
+
+- The **instant** card is deterministic — a given station at a given moment can
+  never change — so `cache-control: public, max-age=31536000, immutable`.
+- The **bare** card renders "now" and goes stale by the minute. `immutable` would
+  freeze one moment's water into every future unfurl of that station. Use
+  `public, max-age=3600` and no `immutable`.
+
+Both return `image/png`. An unparseable instant returns 404 rather than falling
+back to now, for the same reason as the page route: silently showing different
+water is worse than showing none.
 
 - [ ] **Step 6: Record the plan dependency**
 
@@ -1002,8 +1159,19 @@ import { loadCatalogue } from './catalogue'
 describe('buildSitemaps', () => {
   const maps = buildSitemaps(loadCatalogue())
 
-  it('splits by kind and indexes them', () => {
-    expect(Object.keys(maps).sort()).toEqual(['sitemap-currents.xml', 'sitemap-tides.xml', 'sitemap.xml'])
+  it('splits by kind, keeps the static pages separate, and indexes all three', () => {
+    expect(Object.keys(maps).sort()).toEqual([
+      'sitemap-currents.xml', 'sitemap-static.xml', 'sitemap-tides.xml', 'sitemap.xml',
+    ])
+  })
+
+  it('makes the root an index, not a urlset', () => {
+    // A sitemapindex may only reference other sitemaps. Page URLs in it are
+    // invalid and Search Console rejects the file outright.
+    expect(maps['sitemap.xml']).toContain('<sitemapindex')
+    expect(maps['sitemap.xml']).not.toContain('<urlset')
+    expect(maps['sitemap.xml']).toContain('<loc>https://slackwater.xyz/sitemap-tides.xml</loc>')
+    expect(maps['sitemap-static.xml']).toContain('<loc>https://slackwater.xyz/support/</loc>')
   })
 
   it('lists every station exactly once, at its canonical URL', () => {
@@ -1025,11 +1193,17 @@ Expected: FAIL — `Cannot find module './sitemap'`
 
 - [ ] **Step 3: Write the generator and wire it into the build**
 
-`buildSitemaps(stations)` returns a map of filename → XML: one per kind plus an index
-referencing both, with the three existing static routes in the index's own map. Write
-them into `public/` as a build step so they ship as assets.
+`buildSitemaps(stations)` returns a map of filename → XML. **Four files, because a
+`<sitemapindex>` may only contain `<sitemap><loc>` entries pointing at other
+sitemaps — it cannot hold page URLs:**
 
-The hand-written `public/sitemap.xml` is replaced — its own comment predicted this.
+- `sitemap-tides.xml` — a `<urlset>` of 2,765 station URLs
+- `sitemap-currents.xml` — a `<urlset>` of 842
+- `sitemap-static.xml` — a `<urlset>` of `/`, `/support/`, `/privacy/`
+- `sitemap.xml` — a `<sitemapindex>` referencing the three above
+
+Write them into `public/` as a build step so they ship as assets. The
+hand-written `public/sitemap.xml` is replaced — its own comment predicted this.
 
 - [ ] **Step 4: Point robots.txt at the index**
 
@@ -1050,130 +1224,7 @@ git commit -m "feat: generate sitemaps for the station corpus"
 
 ---
 
-## Task 9: Serve the Apple App Site Association file
-
-**Files:**
-- Create: `src/routes/.well-known.apple-app-site-association.ts`
-- Create: `src/routes/aasa.test.ts`
-
-**Interfaces:**
-- Produces: `GET /.well-known/apple-app-site-association` returning `application/json`
-
-This is what makes `slackwater-ios#187`'s app half a path pattern in a JSON file
-rather than a second round of entitlement plumbing. Neither this file nor the
-`com.apple.developer.associated-domains` entitlement exists in either repo today,
-and the referral programme needs the same host — whichever ships first pays for it.
-
-Two details that are easy to get wrong and fail silently, because iOS fetches this
-file itself and reports nothing useful when it is malformed:
-
-- **No file extension.** The path is exactly `/.well-known/apple-app-site-association`
-  — not `.json`. A route file named for the extension serves the wrong URL.
-- **Content type is `application/json`.** Served as anything else, iOS ignores it.
-
-- [ ] **Step 1: Write the failing test**
-
-```ts
-// src/routes/aasa.test.ts
-import { describe, expect, it } from 'vitest'
-import { aasa } from './.well-known.apple-app-site-association'
-
-describe('apple-app-site-association', () => {
-  const doc = aasa()
-
-  it('claims the station paths and the referral route', () => {
-    const paths = doc.applinks.details.flatMap((d) => d.paths)
-    expect(paths).toContain('/tides/*')
-    expect(paths).toContain('/currents/*')
-    expect(paths).toContain('/r/*')
-  })
-
-  it('does not claim the whole site', () => {
-    // A bare "*" would hand every marketing page to the app, so someone who has
-    // it installed could never open the site itself.
-    const paths = doc.applinks.details.flatMap((d) => d.paths)
-    expect(paths).not.toContain('*')
-    expect(paths).not.toContain('/*')
-  })
-
-  it('is serialisable exactly as iOS expects', () => {
-    expect(() => JSON.parse(JSON.stringify(doc))).not.toThrow()
-    expect(doc.applinks.details.every((d) => typeof d.appID === 'string' && d.appID.includes('.'))).toBe(true)
-  })
-})
-```
-
-- [ ] **Step 2: Run it to verify it fails**
-
-Run: `pnpm vitest run src/routes/aasa.test.ts`
-Expected: FAIL — `Cannot find module './.well-known.apple-app-site-association'`
-
-- [ ] **Step 3: Write the route**
-
-```ts
-import { createFileRoute } from '@tanstack/react-router'
-
-/**
- * The app's Team ID and bundle id, as `<TEAMID>.<BUNDLEID>`.
- *
- * Read it from the iOS project rather than inventing it: a wrong appID fails
- * silently - iOS simply does not open the link, with nothing in any log here.
- */
-const APP_ID = 'REPLACE_WITH_TEAMID.io.openwaters.slackwater'
-
-export function aasa() {
-  return {
-    applinks: {
-      details: [
-        {
-          appID: APP_ID,
-          // Scoped deliberately. A bare "*" would claim every marketing page,
-          // so anyone with the app installed could never open the site itself.
-          paths: ['/tides/*', '/currents/*', '/r/*'],
-        },
-      ],
-    },
-  }
-}
-
-export const Route = createFileRoute('/.well-known/apple-app-site-association')({
-  server: {
-    handlers: {
-      GET: () =>
-        new Response(JSON.stringify(aasa()), {
-          headers: { 'Content-Type': 'application/json' },
-        }),
-    },
-  },
-})
-```
-
-**Before committing, replace `REPLACE_WITH_TEAMID`** with the real Team ID from
-`slackwater-ios/project.yml` or the App Store Connect app record. Do not guess it.
-
-- [ ] **Step 4: Verify against a real Worker**
-
-This is a Worker route and does not resolve under `pnpm dev`:
-
-```bash
-pnpm build && npx wrangler dev -c .output/server/wrangler.json
-curl -s -D- -o /tmp/aasa.json localhost:8787/.well-known/apple-app-site-association | grep -i 'content-type'
-cat /tmp/aasa.json | python3 -m json.tool > /dev/null && echo "valid JSON"
-```
-
-Expected: `content-type: application/json`, and valid JSON. Confirm the URL has **no**
-`.json` extension.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add src/routes/.well-known.apple-app-site-association.ts src/routes/aasa.test.ts
-git commit -m "feat: serve the app site association file"
-```
-
----
-
-## Task 10: Retire the stale documents
+## Task 9: Retire the stale documents
 
 **Files:**
 - Modify: `AGENTS.md`, `README.md`, `src/routes/index.tsx`
@@ -1220,5 +1271,4 @@ git commit -m "docs: this is no longer a one-page site"
 - An instant URL server-renders and canonicalises to its bare station URL
 - `/og/currents/deception-pass/<instant>.png` returns a 1200×630 PNG that differs from the station's own card
 - `sitemap-tides.xml` lists 2,765 URLs and no instant URLs
-- `/.well-known/apple-app-site-association` returns `application/json` with no extension
 - CHS stations 404 — expected, tracked in issue #17
