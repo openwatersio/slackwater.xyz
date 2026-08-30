@@ -48,6 +48,7 @@ introduces a user, a session, or a server that holds one.
 |---|---|
 | What the not-installed page renders | The real curve, live and scrubbable |
 | Corpus | Every bundled station (4,690), not a curated subset |
+| Canadian stations | Identity-only page; the curve on explicit request, fetched from DFO by the visitor's own browser |
 | URL | `/tides/<slug>` and `/currents/<slug>`, instant appended |
 | Rendering | Canonical pages prerendered; instant URLs server-rendered |
 | OG image | Rendered per request, showing the shared moment |
@@ -232,6 +233,82 @@ This does not change the design — one template, one build, both prerendered. I
 changes how the corpus is described and where effort goes if it ever has to be
 rationed. It also means the site's own copy should not describe coverage
 regionally; that is being fixed separately.
+
+## Canadian stations cannot be rendered from bundled data
+
+**1,082 of the 4,690 are CHS** — 1,058 tide ports and 24 current gates — and they
+are a different problem from the rest. Verified against the bundled resources:
+
+```
+chs-stations.json        1,058 stations,  0 with constituents
+chs-current-gates.json      22 stations,  0 with constituents
+stations.json            2,765 stations,  2,765 with constituents
+```
+
+CHS records are identity only: id, name, region, position, timezone. That is
+deliberate, and the reason is licensing rather than data availability.
+`slackwater-ios/Slackwater/ChsStation.swift:6` states the posture:
+
+> the app ships identity we authored. CHS predictions are fetched by each user
+> under DFO's own terms, fitted on-device, stored locally, and **never re-served**.
+> No CHS data is bundled.
+
+A prerendered public page showing a CHS-derived curve would be re-serving. So the
+design's central promise — the page renders the real curve — cannot apply to 23%
+of the corpus, and this is a constraint to honour rather than engineer around.
+
+It lands on the flagship case. `chs-dodd-narrows` is one of the 22 gates, and
+`slackwater-ios#187` opens with wanting to send someone Dodd Narrows.
+
+### What CHS stations get: identity by default, the water on request
+
+A CHS page is **identity-only when served**: name, position, what the station is,
+what the water does there in general terms, and the install CTA. Prerendered and
+indexable like every other page. No prediction, because we may not publish one.
+
+Then, **on an explicit action by the visitor**, the page fetches from DFO and
+renders the same curve the app would. Not on load — on a deliberate tap, with the
+wait made honest up front.
+
+This is not a workaround for the posture; it *is* the posture, moved to the
+browser. The visitor fetches under DFO's own terms, the fit happens on their
+device, nothing is stored by us and nothing is re-served.
+
+Three findings make it viable, each checked rather than assumed:
+
+- **IWLS permits browser requests.** `https://api-iwls.dfo-mpo.gc.ca/api/v1`
+  answers a cross-origin request with `access-control-allow-origin: *` and a
+  preflight allowing `GET`. The browser can talk to DFO directly. **This is the
+  load-bearing fact: the moment a fetch is proxied through our Worker, we become
+  the fetcher and the posture breaks.** No proxying, ever, for this path.
+- **The fitter is already JavaScript.** `ChsFitter.swift` is only a
+  JavaScriptCore bridge; the work is `chs-bundle.js` (120KB) and `chs-glue.js`
+  (4KB). It runs in a browser unchanged — nothing needs porting to TypeScript.
+- **The wait is real and must be stated.** `fitDays` on the current gates is 60
+  days for five, 210 for eight, and 0 for nine. Fetching months of samples before
+  anything draws is firmly a "you asked for this" interaction. Never put it on the
+  render path, and never start it automatically.
+
+### Open questions for the implementation
+
+- **What `fitDays: 0` means for nine of the 22 gates.** It may mark a derived gate
+  needing no fit — a reference station plus offsets — which would make those fast
+  and possibly renderable without the long wait, splitting CHS into a quick tier
+  and a slow one. Or it may mean unfitted and unsupported. Resolve before building
+  the CHS path, because a fast tier changes the interaction design.
+- **Whether the 1,058 tide ports behave like the 22 gates.** They carry no
+  `fitDays` and are absent from `chs-current-gates.json`, so their fetch-and-fit
+  path may differ entirely. Do not assume one implementation serves both.
+- **Where CHS identity comes from at build.** This blocks CHS pages entirely.
+  `slugs.json` carries all 1,080 CHS ids, but **1,048 of them have no identity in
+  any published package**: `station-metadata`'s registry holds 34, its corrections
+  none, and `chs-constituents` is not on npm. Their names and positions exist only
+  in `slackwater-ios/Slackwater/Resources/chs-stations.json`, which CI does not
+  check out. Either that identity gets published — extending the registry is the
+  natural home, since it already owns 34 of them — or CHS pages cannot be built
+  from a clean checkout. NOAA and TICON stations are unaffected: their data comes
+  from `@neaps/tide-database` and `@sailingnaturali/current-stations`, both
+  published.
 
 ## Indexation
 
