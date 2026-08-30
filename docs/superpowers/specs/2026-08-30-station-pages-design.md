@@ -300,6 +300,29 @@ The repo's rule is that the site claims correctness and a claim comes with a tes
   empirically on first deploy. Indexed-colour PNGs of a flat-ground chart should
   compress hard and are the first lever if it bites.
 - **Blocked on the slug vocabulary.** See Dependencies.
+- **Thin content at scale.** Raised by the openwaters.io audit running in
+  parallel, which cedes its own ~6,000 station pages partly on these grounds:
+  Google's helpful-content assessment is site-wide, so a large set of
+  near-identical pages can drag down the pages that are genuinely strong. That
+  argument does not stop at their domain, and this design publishes ~2,300 pages
+  from one template.
+
+  What separates these from theirs is that the content is *computed*, not
+  templated — a real harmonic prediction, a real curve, real events, different
+  numbers and a different shape at every station. Their pages are
+  `"Tide station: BOSTON"` under a keyword-free id URL. That is a real
+  difference, but it is not automatic immunity, and it should not be assumed.
+
+  Mitigations, in order of honesty:
+  - Per-station geographic context from `station-metadata`'s `places.json` and
+    `gazetteer.json`, so a page says something true about *where* it is rather
+    than only what the water does.
+  - **Do not publish a page that cannot be made useful.** A subordinate station
+    with almost nothing to say is a candidate for exclusion rather than a thin
+    page. The corpus being "all stations" is a default, not a principle.
+  - Treat "Crawled — currently not indexed" in Search Console as Google's verdict
+    on thinness and act on it, rather than assuming the corpus is working because
+    it deployed.
 
 ## Dependencies
 
