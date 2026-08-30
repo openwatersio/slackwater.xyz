@@ -185,7 +185,7 @@ around it. Verified against the current code:
 - **`CurrentCurve` takes no station input.** Its props are `start`, `hours`,
   `now`, `width`, `height`, `sparse`; it reaches into the module for data.
 - **`CurrentCurve.tsx:231` and `:236` hardcode the string "Deception Pass
-  Narrows"** in the accessibility description. Shipped as is across ~2,300 pages,
+  Narrows"** in the accessibility description. Shipped as is across 4,687 pages,
   every station would announce the wrong name to screen readers. This is a
   correctness bug that the current single-station page hides.
 - **There is no tide-height renderer at all.** Heights are unsigned, have no set
@@ -206,7 +206,7 @@ trap built on purpose.
   Unfurls are unaffected: OG tags are read from the fetched URL regardless of
   canonical.
 - Sitemaps split by kind, referenced from the existing index. `public/sitemap.xml`
-  goes from 3 hand-written URLs to ~2,300 generated ones — its own comment
+  goes from 3 hand-written URLs to 4,687 generated ones — its own comment
   predicted this.
 - Canonical URLs must be the ones that return 200. Workers Assets 307s
   `/support` to `/support/`; whichever way trailing slashes resolve for these
@@ -269,7 +269,7 @@ Three documents become false and are rewritten in the same change:
 
 Static assets are served without invoking the Worker, but whether those requests
 count toward the 100,000/day limit is **not documented**. Worth confirming before
-launch: a 2,300-page corpus crawled by search engines and AI crawlers is a very
+launch: a 4,687-page corpus crawled by search engines and AI crawlers is a very
 different traffic profile from a three-page site, and the ceiling is a hard stop
 rather than a bill.
 
@@ -296,7 +296,7 @@ The repo's rule is that the site claims correctness and a claim comes with a tes
 
 ## Risks
 
-- **Build time.** 43s today. Prerendering ~2,300 pages and rasterising ~2,300
+- **Build time.** 43s today. Prerendering 4,687 pages and rasterising 4,687
   PNGs will be minutes. Acceptable, but it changes the deploy feel and the CI
   budget.
 - **Total asset size.** Cloudflare documents per-file size and file count but no
