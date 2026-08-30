@@ -1,0 +1,9 @@
+# Cloudflare's AI Crawl Control appends its managed block (the Content-Signal
+# header and the AI-crawler Disallows) to this file. If those stop appearing at
+# https://slackwater.xyz/robots.txt after a deploy, this file is overriding them
+# instead of being appended to — delete it and put the sitemap in Search Console.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://slackwater.xyz/sitemap.xml

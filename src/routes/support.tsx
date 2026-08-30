@@ -2,14 +2,21 @@ import { createFileRoute } from '@tanstack/react-router'
 
 const SUPPORT_EMAIL = 'slackwater@openwaters.io'
 
+const TITLE = 'Support — Slackwater'
+const DESCRIPTION = 'How to get help with Slackwater, report a bug, or ask about a station.'
+// Trailing slash is required: Workers Assets 307s /support -> /support/,
+// and a canonical pointing at a redirect is a conflicting signal.
+const CANONICAL = 'https://slackwater.xyz/support/'
+
 export const Route = createFileRoute('/support')({
   head: () => ({
+    links: [{ rel: 'canonical', href: CANONICAL }],
     meta: [
-      { title: 'Support — Slackwater' },
-      {
-        name: 'description',
-        content: 'How to get help with Slackwater, report a bug, or ask about a station.',
-      },
+      { title: TITLE },
+      { name: 'description', content: DESCRIPTION },
+      { property: 'og:title', content: TITLE },
+      { property: 'og:description', content: DESCRIPTION },
+      { property: 'og:url', content: CANONICAL },
     ],
   }),
   component: Support,
@@ -50,7 +57,7 @@ function Support() {
           There are no accounts and nothing to reset — Slackwater keeps its data on your device.
           See the{' '}
           <a
-            href="/privacy"
+            href="/privacy/"
             className="underline decoration-sw-steel underline-offset-4 hover:decoration-sw-foam"
           >
             privacy policy

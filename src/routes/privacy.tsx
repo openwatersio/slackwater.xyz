@@ -2,14 +2,21 @@ import { createFileRoute } from '@tanstack/react-router'
 import { marked } from 'marked'
 import policy from '../content/privacy.md?raw'
 
+const TITLE = 'Privacy Policy — Slackwater'
+const DESCRIPTION = 'How Slackwater and slackwater.xyz handle data.'
+// Trailing slash is required: Workers Assets 307s /privacy -> /privacy/,
+// and a canonical pointing at a redirect is a conflicting signal.
+const CANONICAL = 'https://slackwater.xyz/privacy/'
+
 export const Route = createFileRoute('/privacy')({
   head: () => ({
+    links: [{ rel: 'canonical', href: CANONICAL }],
     meta: [
-      { title: 'Privacy Policy — Slackwater' },
-      {
-        name: 'description',
-        content: 'How Slackwater and slackwater.xyz handle data.',
-      },
+      { title: TITLE },
+      { name: 'description', content: DESCRIPTION },
+      { property: 'og:title', content: TITLE },
+      { property: 'og:description', content: DESCRIPTION },
+      { property: 'og:url', content: CANONICAL },
     ],
   }),
   component: PrivacyPolicy,
