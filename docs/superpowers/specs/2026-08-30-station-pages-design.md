@@ -319,7 +319,14 @@ The repo's rule is that the site claims correctness and a claim comes with a tes
     than only what the water does.
   - **Do not publish a page that cannot be made useful.** A subordinate station
     with almost nothing to say is a candidate for exclusion rather than a thin
-    page. The corpus being "all stations" is a default, not a principle.
+    page.
+
+    This is a **per-station test, not a reason to shrink the corpus**. The
+    decision is still every bundled station; exclusion is the exception that
+    needs justifying, and a page is presumed publishable because it carries a
+    real prediction. Read the other way — as licence to trim broadly — it would
+    reverse a decision that was made deliberately, and forfeit the corpus this
+    design exists to build.
   - Treat "Crawled — currently not indexed" in Search Console as Google's verdict
     on thinness and act on it, rather than assuming the corpus is working because
     it deployed.
