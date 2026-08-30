@@ -3,6 +3,10 @@ allowBuilds:
   lightningcss: true
   workerd: true
 
+minimumReleaseAgeExclude:
+  - '@openwaters/noaa-current-stations@0.5.0'
+  - '@openwaters/station-metadata@4.0.0'
+
 # unstorage@2 alpha (pulled in by nitro) imports destr without declaring it.
 # Under pnpm's strict node_modules that resolves to nothing and the vite config
 # fails to load. Declare it on unstorage's behalf rather than hoisting the world.
