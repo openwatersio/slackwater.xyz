@@ -1,9 +1,12 @@
-# Cloudflare's AI Crawl Control appends its managed block (the Content-Signal
-# header and the AI-crawler Disallows) to this file. If those stop appearing at
-# https://slackwater.xyz/robots.txt after a deploy, this file is overriding them
-# instead of being appended to — delete it and put the sitemap in Search Console.
-
-User-agent: *
-Allow: /
+# Crawl rules do not live here.
+#
+# Cloudflare's AI Crawl Control serves its managed block — the Content-Signal
+# header and the AI-crawler Disallows — ahead of this file, so the two are
+# concatenated at the edge. Verified against production after the deploy that
+# added this file. Change the crawl rules in the Cloudflare dashboard, not here.
+#
+# This file exists only to point at the sitemap. Sitemap: is a non-group
+# directive, so it needs no User-agent: * of its own — and adding one would
+# duplicate the group Cloudflare already supplies.
 
 Sitemap: https://slackwater.xyz/sitemap.xml
