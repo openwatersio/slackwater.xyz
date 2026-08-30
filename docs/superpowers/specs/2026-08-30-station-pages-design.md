@@ -14,15 +14,12 @@ link lands on.
 It grew past "a fallback page" during design. Two facts pushed it:
 
 1. **The handoff target named in #187 is gone.** Open call 1 there recommends a
-   thin page that hands the full curve to the PWA. But `slackwater.xyz`'s own
-   README and `index.tsx` now call that PWA deprecated, `web.slackwater.xyz` is
-   the decided home and has no DNS record, and the PWA is still serving 200.
-   There is no live surface to hand off to.
+   thin page that hands the full curve to the PWA. The PWA is deprecated and out
+   of development, and `web.slackwater.xyz` is not being built. There is no web
+   surface to hand off to and none is planned. This page is it.
 
-2. **The chart is already here.** `slackwater.xyz` computes real predictions with
-   `@neaps/tide-predictor` — validated to floating-point agreement with
-   slackwater-engine — and server-renders a real curve in `CurrentCurve.tsx`.
-   The "duplicate a chart renderer" cost open call 1 weighed does not exist.
+2. **The drawing is already here** — though not the parameterisation. See
+   *Rendering work this actually requires*, which is larger than it looks.
 
 So open call 1 is re-decided here: the page renders the curve itself.
 
@@ -82,9 +79,20 @@ station sharing a name; with the kind already in the path that yields
 `/currents/point-wilson-current`. Since the path carries the kind, the suffix is
 redundant.
 
-This moves slugs the PWA has already published. That is what `formerSlugs` and
-`slugs.lock.json` are for, and the catalogue is being regenerated anyway, so this
-is the cheapest moment it will ever be.
+This moves slugs. The catalogue is being regenerated anyway, so it is the
+cheapest moment it will ever be — but `formerSlugs` and `slugs.lock.json` only
+*record* a rename and prevent accidental reuse. **They do not serve anything.**
+
+So: every former slug returns a **301 to its current slug, scoped by kind**, and
+those redirects are tested. The set is bounded and known at build, so they are
+emitted as a generated `_redirects` file served by Workers Assets — no Worker
+invocation, no CPU.
+
+Without this, any slug that moves after launch silently 404s every link already
+sitting in someone's group chat. A dead share link has no error state: the
+receiver simply does not get the station. This applies to slackwater.xyz's own
+links; the deprecated PWA is on a host this Worker does not serve, and is not a
+consideration.
 
 ## What each page renders
 
@@ -105,6 +113,18 @@ Canonical pages are prerendered at build, as the site's three pages already are.
 Each page inlines its own station's harmonic constituents — roughly 2-3KB, the
 size of the existing `hero-station.json` — so there are no per-station JSON
 assets to fetch and no second round trip.
+
+**The station routes must be listed explicitly.** TanStack Start excludes
+parameterised routes from `autoStaticPathsDiscovery`; it reaches them only by
+crawling links from an already-rendered page. This design forbids exactly that
+navigation, and `vite.config.ts` currently relies on discovery plus `crawlLinks`.
+Left as is, the build **succeeds and emits zero station pages** — a silent
+failure that looks like a working deploy.
+
+So the prerender config takes an explicit `pages` array generated from the
+station catalogue, and the build asserts **exactly one output page per canonical
+station**, failing the build on any mismatch. A generated sitemap is not a
+substitute: it is an output, not a build-time route list.
 
 Instant URLs cannot be prerendered: the space is unbounded. They are also not
 server-rendered, because the free plan gives 10ms of CPU per invocation and React
@@ -141,10 +161,36 @@ deliberately rather than by luck:
 The OG chart is a separate variant of the component at 1200x630, not the 460x210
 viewBox — a chart legible at one size is not legible at the other.
 
-**Write the rasteriser as plain TypeScript with no Node-only dependencies.** It
-runs at build today. On a paid plan it runs unchanged in the Worker, and
-moment-specific cards become a config change rather than a rewrite. That seam is
-the point; do not let a Node-only image library close it.
+**The engine is `@resvg/resvg-js`, a build-only dependency.** Nothing portable is
+being hand-built: TypeScript and the Workers runtime do not rasterise arbitrary
+SVG, fonts, gradients and text, and writing something that does is far outside
+this scope.
+
+Runtime moment cards, if ever funded, are a **separate implementation** that
+picks its own engine — `@resvg/resvg-wasm` is the obvious candidate since it runs
+in both places. Nothing in today's pipeline is shaped around that possibility.
+
+## Rendering work this actually requires
+
+"The chart is already here" is true of the drawing and false of everything
+around it. Verified against the current code:
+
+- **`src/lib/currents.ts:41` binds a module-level predictor to
+  `hero-station.json`.** Every exported function closes over that one station.
+  It cannot serve a second station without being parameterised.
+- **`CurrentCurve` takes no station input.** Its props are `start`, `hours`,
+  `now`, `width`, `height`, `sparse`; it reaches into the module for data.
+- **`CurrentCurve.tsx:231` and `:236` hardcode the string "Deception Pass
+  Narrows"** in the accessibility description. Shipped as is across ~2,300 pages,
+  every station would announce the wrong name to screen readers. This is a
+  correctness bug that the current single-station page hides.
+- **There is no tide-height renderer at all.** Heights are unsigned, have no set
+  or direction and no slack window; the current renderer's whole visual language
+  — signed axis, speed ramp, slack band — does not transfer.
+
+Required before any of this is called done: station data becomes an input to both
+the prediction lib and the component, the accessibility text derives from the
+station, and tide and current get separate renderers.
 
 ## Indexation
 
@@ -162,6 +208,23 @@ trap built on purpose.
   `/support` to `/support/`; whichever way trailing slashes resolve for these
   routes, the canonical matches it. A canonical pointing at a redirect is a
   conflicting signal.
+
+## Client bundle invariant
+
+Inlining 2-3KB per page is only cheap if the **catalogue never enters the shared
+client bundle**. TanStack loaders are isomorphic, so an ordinary top-level
+`import catalogue from ...` in a route module ships every station to every
+visitor.
+
+This is not hypothetical. Today's `routes-*.js` already contains the hero
+station's data, because `currents.ts` imports `hero-station.json` at module
+scope and `index.tsx` imports from it. At 2.1KB that is invisible. At catalogue
+scale it is megabytes to every visitor.
+
+The catalogue is confined to build and server code; only the single station's
+constituents are serialised into its own page. **Enforced by an artifact check,
+not by intent:** a station's HTML contains its own constituents, and the shared
+client JS contains no catalogue and no other station's data.
 
 ## Apple App Site Association
 
@@ -188,10 +251,8 @@ Three documents become false and are rewritten in the same change:
 - `README.md` — the three-surfaces table. The apex absorbs what
   `web.slackwater.xyz` was reserved for.
 - `src/routes/index.tsx` — the `WEB_CLIENT` comment naming `web.slackwater.xyz`
-  as the decided home.
-
-`web.slackwater.xyz` and the deprecated PWA should be formally retired here, or
-the org will have three documented homes for one thing.
+  as the decided home. That subdomain is not being built and the comment should
+  say so, or be removed with the dead constant.
 
 ## Free-plan budget
 
@@ -214,8 +275,19 @@ The repo's rule is that the site claims correctness and a claim comes with a tes
 
 - Slug to station resolution across every station kind
 - URL build and parse round-trip, including the instant and its offset
-- Prerender coverage: every station in the vocabulary produces a page
+- **Prerender count:** exactly one output page per canonical station, build
+  failing on any mismatch. Not a spot check — the failure mode is emitting zero
+  pages while the build reports success
+- **Former-slug redirects:** every entry in the lock file 301s to its current
+  slug, within its kind, and no former slug resolves to a 404
+- **Client bundle artifact check:** a station's HTML contains its own
+  constituents; the shared client JS contains no catalogue and no other
+  station's data
+- **Accessibility text is station-derived**, asserted against a station that is
+  not the hero — the current hardcoded string would pass a test written against
+  Deception Pass
 - Canonical correctness: every canonical URL returns 200, not a redirect
+- Tide and current renderers each tested against their own station kind
 - The OG generator produces a decodable PNG of the expected dimensions
 
 ## Risks
@@ -242,8 +314,9 @@ and a URL format the app can build and parse.
 ## Deferred
 
 **Moment-specific OG cards.** The unfurl shows the station, not the hour. Lifting
-this needs runtime rasterising, which needs more than 10ms of CPU, which means
-Workers Paid. The rasteriser is written to make that a configuration change.
+it needs runtime rasterising, which needs more than 10ms of CPU, which means
+Workers Paid. It is a **separate implementation** with its own engine choice, not
+a flag on this one. Add it when paid workers are actually funded.
 
 **Sharing an image directly from the app.** iOS can attach a rendered PNG
 alongside the URL in the share sheet, which sidesteps OG entirely for Messages
