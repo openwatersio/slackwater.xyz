@@ -1,6 +1,7 @@
 import { useId, useMemo } from 'react'
 import { rampColor } from '#/lib/ramp'
-import { findEvents, nextEvent, predictSeries, type CurrentEvent } from '#/lib/currents'
+import { findEvents, nextEvent, predictSeries, type StationEvent } from '#/lib/predict'
+import type { Station } from '#/lib/station'
 
 /**
  * The signed velocity curve, drawn the way the app draws it.
@@ -12,6 +13,7 @@ import { findEvents, nextEvent, predictSeries, type CurrentEvent } from '#/lib/c
  */
 
 interface Props {
+  station: Station
   start: Date
   hours: number
   now: Date
@@ -27,6 +29,7 @@ interface Props {
 }
 
 export function CurrentCurve({
+  station,
   start,
   hours,
   now,
@@ -47,16 +50,16 @@ export function CurrentCurve({
   const PAD_TOP = 34
   const PAD_BOTTOM = 44
   const { path, area, zeroY, x, yOf, events, stops } = useMemo(() => {
-    const samples = predictSeries(start, hours)
-    const events = findEvents(start, hours)
-    const peak = Math.max(...samples.map((s) => Math.abs(s.knots)), 1)
+    const samples = predictSeries(station, start, hours)
+    const events = findEvents(station, start, hours)
+    const peak = Math.max(...samples.map((s) => Math.abs(s.level)), 1)
 
     const span = hours * 3600_000
     const x = (t: Date) => ((t.getTime() - start.getTime()) / span) * W
     const plot = H - PAD_TOP - PAD_BOTTOM
     const y = (k: number) => PAD_TOP + plot / 2 - (k / peak) * (plot / 2)
 
-    const pts = samples.map((s) => `${x(s.time).toFixed(2)},${y(s.knots).toFixed(2)}`)
+    const pts = samples.map((s) => `${x(s.time).toFixed(2)},${y(s.level).toFixed(2)}`)
 
     // Gradient stops run along time, but each stop's COLOUR comes from that
     // moment's speed. A left-to-right ramp would colour by clock position,
@@ -64,7 +67,7 @@ export function CurrentCurve({
     // the rip, and the same colour means the same knots on any day.
     const stops = samples.map((s) => ({
       offset: x(s.time) / W,
-      color: rampColor(s.knots),
+      color: rampColor(s.level),
     }))
 
     return {
@@ -76,13 +79,13 @@ export function CurrentCurve({
       x,
       events,
     }
-  }, [start, hours])
+  }, [station, start, hours])
 
   const next = nextEvent(events, now)
   // The fill fades out over the outer 6% at each end, so a label landing there
   // annotates a curve the reader can barely see and looks clipped. Drop it —
   // the window edge is arbitrary anyway.
-  const inFrame = (e: CurrentEvent) => x(e.time) > W * 0.07 && x(e.time) < W * 0.93
+  const inFrame = (e: StationEvent) => x(e.time) > W * 0.07 && x(e.time) < W * 0.93
   const slacks = events.filter((e) => e.kind === 'slack' && inFrame(e))
   const turns = events.filter((e) => e.kind !== 'slack' && inFrame(e))
 
@@ -92,7 +95,7 @@ export function CurrentCurve({
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"
         role="img"
-        aria-label={describe(events, now)}
+        aria-label={describe(station, events, now)}
       >
         <defs>
           <linearGradient id={rampId} x1="0" x2="1" y1="0" y2="0">
@@ -141,10 +144,10 @@ export function CurrentCurve({
           {/* Max flood / max ebb — a dot and a number, ink picked by luminance. */}
           {turns.map((e) => (
             <g key={`t${e.time.getTime()}`}>
-              <circle cx={x(e.time)} cy={yOf(e.knots)} r={4} fill="#E4F0E4" />
+              <circle cx={x(e.time)} cy={yOf(e.level)} r={4} fill="#E4F0E4" />
               <text
                 x={x(e.time)}
-                y={yOf(e.knots) + (e.knots > 0 ? -14 : 22)}
+                y={yOf(e.level) + (e.level > 0 ? -14 : 22)}
                 textAnchor="middle"
                 // Foam, not speedInk: the label sits on the page, not on the
                 // fill, so fill-contrast ink turns dark navy above ~6.6 kn and
@@ -153,7 +156,7 @@ export function CurrentCurve({
                 className="font-mono text-[15px] font-semibold [font-variant-numeric:tabular-nums]"
                 style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
               >
-                {Math.abs(e.knots).toFixed(1)} kn
+                {Math.abs(e.level).toFixed(1)} kn
               </text>
             </g>
           ))}
@@ -198,7 +201,7 @@ export function CurrentCurve({
         </g>
       </svg>
 
-      <figcaption className="sr-only">{describe(events, now)}</figcaption>
+      <figcaption className="sr-only">{describe(station, events, now)}</figcaption>
 
       {next && (
         <p className="mt-6 text-lg">
@@ -226,12 +229,12 @@ function until(then: Date, now: Date) {
 }
 
 /** Spoken form, for anyone who can't see the curve. Units written in full. */
-function describe(events: CurrentEvent[], now: Date) {
+function describe(station: Station, events: StationEvent[], now: Date) {
   const n = nextEvent(events, now)
-  if (!n) return 'Tidal current predictions for Deception Pass Narrows.'
+  if (!n) return `Tidal current predictions for ${station.name}.`
   const what =
     n.kind === 'slack'
       ? 'slack water'
-      : `maximum ${n.kind} of ${Math.abs(n.knots).toFixed(1)} knots`
-  return `Tidal current at Deception Pass Narrows. Next ${what} at ${hhmm(n.time)}, computed on this device.`
+      : `maximum ${n.kind} of ${Math.abs(n.level).toFixed(1)} knots`
+  return `Tidal current at ${station.name}. Next ${what} at ${hhmm(n.time)}, computed on this device.`
 }

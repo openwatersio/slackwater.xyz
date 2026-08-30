@@ -149,6 +149,7 @@ function Home() {
             12-hour window in a narrow viewBox — fewer events, readable type. */}
         <div className="mt-3 sm:hidden">
           <CurrentCurve
+            station={HERO_STATION}
             start={new Date(now.getTime() - 3 * 3600_000)}
             hours={12}
             now={now}
@@ -158,7 +159,12 @@ function Home() {
           />
         </div>
         <div className="mt-4 hidden sm:block">
-          <CurrentCurve start={new Date(now.getTime() - 6 * 3600_000)} hours={24} now={now} />
+          <CurrentCurve
+            station={HERO_STATION}
+            start={new Date(now.getTime() - 6 * 3600_000)}
+            hours={24}
+            now={now}
+          />
         </div>
 
         <p className="mt-5 max-w-2xl text-sm leading-relaxed text-sw-steel">
