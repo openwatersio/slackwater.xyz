@@ -52,11 +52,15 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           PR: ${{ github.event.pull_request.number }}
+        # bash (not the default `bash -e`) for pipefail: without it `tee` swallows
+        # a wrangler failure and the run dies later on a confusing grep miss.
+        # Wrangler logs the URLs to stderr, hence 2>&1.
+        shell: bash
         run: |
           pnpm exec wrangler versions upload \
             -c .output/server/wrangler.json \
             --preview-alias "pr-$PR" \
-            --message "PR #$PR at ${GITHUB_SHA::7}" | tee upload.log
+            --message "PR #$PR at ${GITHUB_SHA::7}" 2>&1 | tee upload.log
           url=$(grep -oE "https://pr-$PR-[a-z0-9-]+\.workers\.dev" upload.log | head -1)
           [ -n "$url" ] || { echo "::error::no preview alias URL in wrangler output"; exit 1; }
           echo "url=$url" >> "$GITHUB_OUTPUT"
