@@ -175,7 +175,7 @@ export function CurrentCurve({
                 className="font-mono text-[15px] font-semibold [font-variant-numeric:tabular-nums]"
                 style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
               >
-                {hhmm(s.time)}
+                {hhmm(s.time, station.timezone)}
               </text>
               )}
             </g>
@@ -210,7 +210,7 @@ export function CurrentCurve({
           </span>
           <br />
           <span className="[font-variant-numeric:tabular-nums] text-sw-paper">
-            {hhmm(next.time)}
+            {hhmm(next.time, station.timezone)}
           </span>
           <span className="text-sw-steel"> · in {until(next.time, now)}</span>
         </p>
@@ -219,8 +219,10 @@ export function CurrentCurve({
   )
 }
 
-const hhmm = (d: Date) =>
-  d.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', hour12: false })
+// The station's zone, never the runtime's: the Worker renders cards in UTC and a
+// reader's browser renders in their own zone. Both are the wrong water clock.
+const hhmm = (d: Date, timeZone: string) =>
+  d.toLocaleTimeString('en-CA', { timeZone, hour: '2-digit', minute: '2-digit', hour12: false })
 
 function until(then: Date, now: Date) {
   const mins = Math.max(0, Math.round((then.getTime() - now.getTime()) / 60_000))
@@ -236,5 +238,5 @@ function describe(station: Station, events: StationEvent[], now: Date) {
     n.kind === 'slack'
       ? 'slack water'
       : `maximum ${n.kind} of ${Math.abs(n.level).toFixed(1)} knots`
-  return `Tidal current at ${station.name}. Next ${what} at ${hhmm(n.time)}, computed on this device.`
+  return `Tidal current at ${station.name}. Next ${what} at ${hhmm(n.time, station.timezone)}, computed on this device.`
 }

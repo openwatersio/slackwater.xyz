@@ -144,14 +144,16 @@ export function TideCurve({ station, start, hours, now, width: W = 1000, height:
   )
 }
 
-const hhmm = (d: Date) =>
-  d.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', hour12: false })
+// The station's zone, never the runtime's: the Worker renders cards in UTC and a
+// reader's browser renders in their own zone. Both are the wrong water clock.
+const hhmm = (d: Date, timeZone: string) =>
+  d.toLocaleTimeString('en-CA', { timeZone, hour: '2-digit', minute: '2-digit', hour12: false })
 
 /** Spoken form, for anyone who can't see the curve. Units written in full. */
 function describe(station: Station, high: { time: Date; level: number }, low: { time: Date; level: number }) {
   return (
     `Tide predictions for ${station.name}. ` +
-    `High ${high.level.toFixed(1)} feet at ${hhmm(high.time)}, ` +
-    `low ${low.level.toFixed(1)} feet at ${hhmm(low.time)}.`
+    `High ${high.level.toFixed(1)} feet at ${hhmm(high.time, station.timezone)}, ` +
+    `low ${low.level.toFixed(1)} feet at ${hhmm(low.time, station.timezone)}.`
   )
 }
