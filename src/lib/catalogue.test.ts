@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import tzLookup from 'tz-lookup'
+import { cleanName } from '@openwaters/station-metadata'
 import { loadCatalogue } from './catalogue'
 
 describe('loadCatalogue', () => {
@@ -59,6 +60,18 @@ describe('loadCatalogue', () => {
     // UTC result can never come from a missing-data fallback instead.
     for (const s of all.filter((s) => s.kind === 'current')) {
       expect(s.timezone, s.id).toBe(tzLookup(s.latitude, s.longitude))
+    }
+  })
+  it('cleans provider names instead of shouting them', () => {
+    // NOAA publishes 86 of its tide stations all-caps ("ALBANY"); issue #31.
+    const albany = all.find((s) => s.id === 'noaa/8518995')
+    expect(albany?.name).toBe('Albany')
+    const turkey = all.find((s) => s.id === 'noaa/8518962')
+    expect(turkey?.name).toBe('Turkey Point, Hudson River')
+    // Every name is a fixed point of the cleaner - the wiring contract, not a
+    // re-test of cleanName itself, which station-metadata's own suite owns.
+    for (const s of all) {
+      expect(s.name, s.id).toBe(cleanName(s.name))
     }
   })
 })
