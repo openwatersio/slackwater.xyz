@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { loadCatalogue } from './catalogue'
-import { nearby } from './nearby'
+import { neighbourMap } from './nearby'
 import type { Kind, Station } from './station'
 
 /**
@@ -57,16 +57,29 @@ export const stationList = createServerFn({ method: 'GET' })
  * Server-side for the same reason as everything else here: answering it needs
  * the whole catalogue in memory, and the page needs only six names.
  */
+/**
+ * The nearest stations of the same kind, for the "Nearby" list on a station page.
+ *
+ * The neighbour map is built once on first use and reused for every page after.
+ * Ranking the catalogue per request instead put every one of the 3,607
+ * prerendered renders past three seconds and broke the prerender outright.
+ */
+const neighbours = (() => {
+  let cache: Map<string, Station[]> | undefined
+  return () => (cache ??= neighbourMap([...index().values()]))
+})()
+
+const toRow = (s: Station): StationRow => ({
+  slug: s.slug,
+  name: s.name,
+  ...(s.region ? { region: s.region } : {}),
+})
+
 export const nearbyStations = createServerFn({ method: 'GET' })
   .validator((data: { kind: Kind; slug: string }) => data)
   .handler(({ data }): StationRow[] => {
     const station = index().get(`${data.kind}/${data.slug}`)
-    if (!station) return []
-    return nearby(station, [...index().values()]).map((s) => ({
-      slug: s.slug,
-      name: s.name,
-      ...(s.region ? { region: s.region } : {}),
-    }))
+    return station ? (neighbours().get(station.id) ?? []).map(toRow) : []
   })
 
 export const stationBySlug = createServerFn({ method: 'GET' })

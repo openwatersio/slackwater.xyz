@@ -19,17 +19,38 @@ export function distanceNm(a: Station, b: Station): number {
  * Same kind only: a tide station is not an answer to "what else is near this
  * current", and mixing them would put a height page behind a link a reader
  * followed looking for a rate.
- *
- * ponytail: linear scan, ~3k distance calculations for one station. Called once
- * per page render, which is fast enough that a spatial index would be cost
- * without a benefit. If this ever runs per-request in a hot loop, bucket by
- * whole degrees first.
  */
 export function nearby(station: Station, all: Station[], k = 6): Station[] {
-  return all
-    .filter((s) => s.kind === station.kind && s.id !== station.id)
-    .map((s) => ({ s, d: distanceNm(station, s) }))
-    .sort((x, y) => x.d - y.d)
-    .slice(0, k)
-    .map((x) => x.s)
+  // Top-k by insertion rather than sorting every candidate: this runs once per
+  // station while building the whole neighbour map, so the difference between
+  // O(n) and O(n log n) per station is real at 3,607 stations.
+  const best: { s: Station; d: number }[] = []
+  for (const s of all) {
+    if (s.kind !== station.kind || s.id === station.id) continue
+    const d = distanceNm(station, s)
+    if (best.length === k && d >= best[best.length - 1].d) continue
+    let i = best.length
+    while (i > 0 && best[i - 1].d > d) i--
+    best.splice(i, 0, { s, d })
+    if (best.length > k) best.pop()
+  }
+  return best.map((b) => b.s)
+}
+
+/**
+ * Every station's neighbours, computed in one pass.
+ *
+ * Built once and reused, NOT recomputed per page. Doing it per render spread
+ * the whole catalogue into a fresh array and ranked it again for each of the
+ * 3,607 prerendered pages, which pushed page renders past three seconds and
+ * broke the prerender's Worker connections outright on CI.
+ *
+ * ponytail: still O(n^2) distance calculations, ~13M for the current corpus,
+ * which takes about a second once. If the corpus grows an order of magnitude,
+ * bucket by whole degrees and compare only neighbouring cells.
+ */
+export function neighbourMap(all: Station[], k = 6): Map<string, Station[]> {
+  const map = new Map<string, Station[]>()
+  for (const s of all) map.set(s.id, nearby(s, all, k))
+  return map
 }
