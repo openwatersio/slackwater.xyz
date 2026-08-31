@@ -100,7 +100,7 @@ function withHeader(svg: string, title: string, subtitle: string): string {
  * the server's or the viewer's, because the moment being shared is the
  * station's local water, not an instant in the ether.
  */
-export async function renderCard(station: Station, now: Date, live = false): Promise<Uint8Array> {
+export async function renderCard(station: Station, now: Date, live = false): Promise<Uint8Array<ArrayBuffer>> {
   const start = new Date(now.getTime() - 6 * 3600_000)
   const Curve = station.kind === 'tide' ? TideCurve : CurrentCurve
   const markup = renderToStaticMarkup(
@@ -128,7 +128,10 @@ export async function renderCard(station: Station, now: Date, live = false): Pro
     // whatever white the client puts behind a transparent PNG.
     background: '#00121f',
   })
-  return resvg.render().asPng()
+  // asPng() is typed Uint8Array<ArrayBufferLike>, which no longer satisfies
+  // BodyInit (SharedArrayBuffer is in the union). resvg allocates a plain
+  // ArrayBuffer; narrowing here keeps the `new Response(png)` call sites clean.
+  return resvg.render().asPng() as Uint8Array<ArrayBuffer>
 }
 
 /** The URL's plural kind segment (`currents`/`tides`) to the catalogue's singular Kind. */
