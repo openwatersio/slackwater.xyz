@@ -3,6 +3,11 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
+import { loadCatalogue } from './src/lib/catalogue'
+
+const stationPages = loadCatalogue().map((s) => ({
+  path: `/${s.kind === 'tide' ? 'tides' : 'currents'}/${s.slug}/`,
+}))
 
 // Deploy target is a Cloudflare Worker; the preset comes from NITRO_PRESET in the
 // build script rather than inline config, so it stays put across nitro betas.
@@ -11,9 +16,18 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     tanstackStart({
+      // `pages` is a top-level option, a sibling of `prerender` — not nested
+      // inside it. The installed plugin's schema (tanstackStartOptionsObjectSchema
+      // in @tanstack/start-plugin-core) validates `prerender` against a schema
+      // with no `pages` field, so nesting it there is silently dropped and the
+      // build still reports success while emitting zero station pages.
+      pages: stationPages,
       prerender: {
         enabled: true,
         autoSubfolderIndex: true,
+        // Parameterised routes are excluded from discovery and this design has
+        // no links between stations, so without `pages` above the build emits
+        // zero station pages and still reports success.
         autoStaticPathsDiscovery: true,
         crawlLinks: true,
         concurrency: 14,
