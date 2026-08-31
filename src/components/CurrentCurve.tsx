@@ -1,4 +1,5 @@
 import { useId, useMemo } from 'react'
+import { dayLabel, hhmm } from '#/lib/format'
 import { rampColor } from '#/lib/ramp'
 import { findEvents, nextEvent, predictSeries, type StationEvent } from '#/lib/predict'
 import type { Station } from '#/lib/station'
@@ -26,6 +27,18 @@ interface Props {
   height?: number
   /** Drop the in-chart slack times, keeping only the peaks. */
   sparse?: boolean
+  /**
+   * Is `now` actually now? Only a hydrated client can say yes.
+   *
+   * The "next slack, in 30m" line is a claim about the present, and a
+   * prerendered page makes it against a frozen build-time clock — a reading
+   * that is days old and drifting, in the one place a reader without JS
+   * (crawler, unfurl scraper) sees it. False here, that line does not render
+   * server-side; the client re-renders it after hydration against the real
+   * clock. Instant pages never set it: they show one fixed shared moment,
+   * and "in 30m" from a moment that may be in the past is simply wrong.
+   */
+  live?: boolean
 }
 
 export function CurrentCurve({
@@ -36,6 +49,7 @@ export function CurrentCurve({
   width: W = 1000,
   height: H = 320,
   sparse = false,
+  live = false,
 }: Props) {
   // Unique per instance. The page renders this twice — a phone version and a
   // desktop one, one of them display:none — and shared element ids make the
@@ -203,7 +217,7 @@ export function CurrentCurve({
 
       <figcaption className="sr-only">{describe(station, events, now)}</figcaption>
 
-      {next && (
+      {live && next && (
         <p className="mt-6 text-lg">
           <span className="font-mono text-[0.7rem] uppercase tracking-[0.16em] text-sw-leaf">
             Next {next.kind === 'slack' ? 'slack' : `max ${next.kind}`}
@@ -219,24 +233,32 @@ export function CurrentCurve({
   )
 }
 
-// The station's zone, never the runtime's: the Worker renders cards in UTC and a
-// reader's browser renders in their own zone. Both are the wrong water clock.
-const hhmm = (d: Date, timeZone: string) =>
-  d.toLocaleTimeString('en-CA', { timeZone, hour: '2-digit', minute: '2-digit', hour12: false })
-
 function until(then: Date, now: Date) {
   const mins = Math.max(0, Math.round((then.getTime() - now.getTime()) / 60_000))
   const h = Math.floor(mins / 60)
   return h ? `${h}h ${mins % 60}m` : `${mins}m`
 }
 
-/** Spoken form, for anyone who can't see the curve. Units written in full. */
+/**
+ * Spoken form, for anyone who can't see the curve. Units written in full, and
+ * the event is dated: a bare `hh:mm` leaves a reader unable to tell which day.
+ *
+ * "Computed from harmonic constituents", not "computed on this device": this
+ * same sentence ships in prerendered HTML, where no device computed anything.
+ * The claim has to be true on both rendering paths. It names the event's own
+ * day rather than calling it "next", for the same reason — nothing here knows
+ * whether the reader is looking at this page now.
+ */
 function describe(station: Station, events: StationEvent[], now: Date) {
   const n = nextEvent(events, now)
-  if (!n) return `Tidal current predictions for ${station.name}.`
+  if (!n) return `Tidal current predictions for ${station.name}, computed from harmonic constituents.`
   const what =
     n.kind === 'slack'
-      ? 'slack water'
-      : `maximum ${n.kind} of ${Math.abs(n.level).toFixed(1)} knots`
-  return `Tidal current at ${station.name}. Next ${what} at ${hhmm(n.time, station.timezone)}, computed on this device.`
+      ? 'Slack water'
+      : `Maximum ${n.kind} of ${Math.abs(n.level).toFixed(1)} knots`
+  const tz = station.timezone
+  return (
+    `Tidal current at ${station.name}, computed from harmonic constituents. ` +
+    `${what} on ${dayLabel(n.time, tz)} at ${hhmm(n.time, tz)}.`
+  )
 }

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
 import { CurrentCurve } from '#/components/CurrentCurve'
+import { useLiveNow } from '#/lib/use-live-now'
 import { Shot } from '#/components/Shot'
 import { HERO_STATION } from '#/lib/currents'
 import { SITE_DESCRIPTION } from '#/routes/__root'
@@ -74,12 +74,7 @@ function Cta() {
 }
 
 function Home() {
-  const [now, setNow] = useState(() => new Date('2026-08-21T12:00:00Z'))
-  useEffect(() => {
-    setNow(new Date())
-    const id = setInterval(() => setNow(new Date()), 60_000)
-    return () => clearInterval(id)
-  }, [])
+  const { now, live } = useLiveNow()
 
   return (
     <main className="mx-auto max-w-5xl px-5 pb-24 pt-10 sm:px-6 sm:pt-24">
@@ -126,6 +121,7 @@ function Home() {
             start={new Date(now.getTime() - 3 * 3600_000)}
             hours={12}
             now={now}
+            live={live}
             width={460}
             height={210}
             sparse
@@ -137,6 +133,7 @@ function Home() {
             start={new Date(now.getTime() - 6 * 3600_000)}
             hours={24}
             now={now}
+            live={live}
           />
         </div>
 

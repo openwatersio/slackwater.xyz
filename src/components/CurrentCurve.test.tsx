@@ -42,8 +42,26 @@ describe('CurrentCurve times', () => {
     // The same instants in Asia/Tokyo — what the broken code rendered.
     for (const host of ['23:59', '06:18', '11:16']) expect(svg).not.toContain(`>${host}<`)
 
-    // Next-event label and the accessibility text, same zone.
-    expect(svg).toContain('>16:47<')
-    expect(svg).toContain('Next maximum ebb of 1.9 knots at 16:47')
+    // The accessibility text, same zone — and dated, since a bare hh:mm on a
+    // page a reader may open any day says nothing about which day.
+    expect(svg).toContain('Maximum ebb of 1.9 knots on Sun 30 Aug 2026 at 16:47')
+    // True on both rendering paths: prerendered HTML computed nothing on a device.
+    expect(svg).not.toContain('this device')
+  })
+
+  it('makes no claim about the present unless the clock is real', () => {
+    // The "next X, in 30m" line is a claim about now, and a prerendered page
+    // makes it against a frozen build-time clock — stale the day it ships and
+    // drifting after that. It renders only for a hydrated client.
+    const at = { station: DECEPTION, start: new Date('2026-08-30T00:00:00-07:00'), hours: 24 }
+    const now = new Date('2026-08-30T14:30:00-07:00')
+    const server = renderToStaticMarkup(<CurrentCurve {...at} now={now} />)
+    expect(server).not.toMatch(/in \d+[hm]/)
+    expect(server).not.toContain('Next')
+
+    const hydrated = renderToStaticMarkup(<CurrentCurve {...at} now={now} live />)
+    expect(hydrated).toContain('Next')
+    expect(hydrated).toMatch(/in \d+[hm]/)
+    expect(hydrated).toContain('>16:47<')
   })
 })

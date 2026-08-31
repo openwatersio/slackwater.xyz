@@ -1,7 +1,7 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
-import { TideCurve } from '#/components/TideCurve'
+import { StationPage } from '#/components/StationPage'
 import { stationBySlug } from '#/lib/catalogue-server'
+import { useLiveNow } from '#/lib/use-live-now'
 
 const CANONICAL = 'https://slackwater.xyz/tides/'
 
@@ -35,24 +35,6 @@ export const Route = createFileRoute('/tides/$slug')({
 
 function TideStation() {
   const { station } = Route.useLoaderData()
-  // A fixed literal for the server render, then the real clock on the client.
-  // `new Date()` here would bake build time into all 3,607 prerendered pages
-  // AND differ between server and client, which is a hydration mismatch.
-  // `src/routes/index.tsx:104` already does exactly this — follow it.
-  const [now, setNow] = useState(() => new Date('2026-08-21T12:00:00Z'))
-  useEffect(() => {
-    setNow(new Date())
-    const id = setInterval(() => setNow(new Date()), 60_000)
-    return () => clearInterval(id)
-  }, [])
-  const start = new Date(now.getTime() - 6 * 3600_000)
-  return (
-    <main className="mx-auto max-w-3xl px-5 pb-24 pt-10 sm:px-6 sm:pt-20">
-      <h1 className="text-4xl font-semibold tracking-tight text-sw-paper sm:text-5xl">
-        {station.name}
-      </h1>
-      <p className="mt-3 text-sw-steel">{station.region}</p>
-      <TideCurve station={station} start={start} hours={24} now={now} />
-    </main>
-  )
+  const { now, live } = useLiveNow()
+  return <StationPage station={station} now={now} live={live} />
 }
