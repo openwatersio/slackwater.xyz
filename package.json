@@ -13,11 +13,11 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@cf-wasm/resvg": "0.4.0",
     "@neaps/tide-database": "^0.9.20260801",
     "@neaps/tide-predictor": "^0.11.0",
     "@openwaters/noaa-current-stations": "^0.5.0",
     "@openwaters/station-metadata": "^4.0.0",
-    "@resvg/resvg-wasm": "^2.6.2",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-router": "latest",
     "@tanstack/react-start": "latest",

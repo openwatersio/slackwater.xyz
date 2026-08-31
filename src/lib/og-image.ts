@@ -1,25 +1,23 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { initWasm, Resvg } from '@resvg/resvg-wasm'
-// `?inline` forces Vite to embed the wasm binary as a base64 data: URI at
-// build time. This is NOT the intended fix, it is a known, reported problem -
-// see the long comment on `ready()` below. It is the only import form that
-// gets `pnpm build` to complete in this toolchain (nitro 3.0.260522-beta +
-// Vite 8/Rolldown + Wrangler's `no_bundle` output): a bare
-// `@resvg/resvg-wasm/index_bg.wasm` import (static OR dynamic) fails
-// `pnpm build` outright - Vite 8's built-in `builtin:vite-wasm-fallback`
-// (a native Rolldown plugin, source not inspectable from JS) throws
-// "Could not load ... .wasm" before nitro's own unwasm plugin - configured
-// via `wasm: { esmImport: true }` in nitro's cloudflare-module preset
-// specifically to hand real `.wasm` imports to Wrangler - ever gets a chance
-// to run. Marking `.wasm` external in vite.config.ts gets past that but
-// leaves a dangling `import ".../index_bg.wasm"` that nothing resolves,
-// breaking every prerendered page, not just these two OG routes.
-import wasmDataUri from '@resvg/resvg-wasm/index_bg.wasm?inline'
+import { Resvg } from '@cf-wasm/resvg'
 import fontDataUri from './fonts/RobotoMono.ttf?inline'
 import { CurrentCurve } from '#/components/CurrentCurve'
 import { TideCurve } from '#/components/TideCurve'
 import type { Kind, Station } from './station'
+
+// `@cf-wasm/resvg` wraps `@resvg/resvg-wasm` with a package.json "exports"
+// condition per runtime (workerd/node/edge-light), each shipping the wasm in
+// the form that runtime accepts. The Worker build resolves "workerd" (an
+// already-compiled WebAssembly.Module, imported the way Wrangler's own
+// upload step expects) - a plain `@resvg/resvg-wasm` import could only ever
+// give raw bytes, and Cloudflare Workers refuse to compile WebAssembly from
+// bytes at request time ("Wasm code generation disallowed by embedder" -
+// verified against a real Worker, see task-7-report.md). Both builds
+// initialise once at module load (a call `@cf-wasm/resvg` makes itself,
+// synchronously, as an import side effect - satisfies "once per isolate"
+// without this file managing it) and expose the identical `Resvg` API, so
+// this file's logic is the same code path in both environments.
 
 // The OG card size - deliberately not the page's 460x210 viewBox, because a
 // chart legible at one is not legible at the other.
@@ -37,32 +35,6 @@ function bytesFromDataUri(dataUri: string): Uint8Array {
 }
 
 const fontBytes = bytesFromDataUri(fontDataUri)
-
-// initWasm throws if called twice, and a Worker isolate serves many requests
-// off one module instance - so the promise itself (not just a flag) is cached
-// at module scope and every request awaits the same one.
-//
-// KNOWN PROBLEM, not fixed: `initWasm` here is handed raw bytes decoded from
-// the `?inline` data: URI above, which makes `__wbg_load` call
-// `WebAssembly.instantiate(bytes, imports)` - the COMPILING overload. Verified
-// against a real Worker (`npx wrangler dev -c .output/server/wrangler.json`),
-// every request to either OG route 500s with:
-//   CompileError: WebAssembly.instantiate(): Wasm code generation disallowed
-//   by embedder
-// Cloudflare Workers only allow instantiating an ALREADY-COMPILED
-// WebAssembly.Module (the form a real `.wasm` module import gives you,
-// compiled ahead of time at upload) - not compiling from bytes at request
-// time, for any reason, ever. This is a platform security restriction, not
-// something fixable in this file. See og-image.test.ts and the task report
-// for what was tried. Reported rather than routed around further: the two
-// non-`?inline` import forms above (bare and dynamic) fail `pnpm build`
-// itself, so `?inline` is what ships here to keep the build green, with this
-// runtime failure left visible rather than papered over.
-let wasmReady: Promise<void> | undefined
-function ready() {
-  if (!wasmReady) wasmReady = initWasm(bytesFromDataUri(wasmDataUri))
-  return wasmReady
-}
 
 /**
  * The chart's <text> elements are styled with Tailwind classes, which mean
@@ -84,7 +56,6 @@ function withEmbeddedFont(svg: string): string {
  * behind both the canonical and instant OG card routes.
  */
 export async function renderCard(station: Station, now: Date): Promise<Uint8Array> {
-  await ready()
   const start = new Date(now.getTime() - 6 * 3600_000)
   const Curve = station.kind === 'tide' ? TideCurve : CurrentCurve
   const markup = renderToStaticMarkup(
@@ -100,7 +71,10 @@ export async function renderCard(station: Station, now: Date): Promise<Uint8Arra
   // with no namespaced root ("document does not have a root node").
   const withNamespace = svgMatch[0].replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ')
   const svg = withEmbeddedFont(withNamespace)
-  const resvg = new Resvg(svg, {
+  // `Resvg.async`, not `new Resvg`: init is a fire-and-forget side effect of
+  // importing the package (see the top-of-file comment), so the first
+  // request in a fresh isolate can otherwise race ahead of it being ready.
+  const resvg = await Resvg.async(svg, {
     font: { fontBuffers: [fontBytes], defaultFontFamily: FONT_FAMILY, monospaceFamily: FONT_FAMILY },
     // The chart itself paints no background (it's drawn assuming the app's
     // dark page behind it - its own text halo is stroked this exact colour,
