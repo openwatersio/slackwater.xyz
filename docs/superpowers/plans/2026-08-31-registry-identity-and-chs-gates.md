@@ -19,6 +19,12 @@
 - **`chs-arran-rapids` is excluded, explicitly and by name.** It is in the registry, so it becomes buildable by accident unless a rule keeps it out. Deferred owner decision.
 - **The catalogue must never reach the client bundle.** `src/lib/bundle-size.test.ts` guards this. `createServerFn` is the code-splitting boundary; `createServerOnlyFn` is not.
 - **No literal hex colours in components** — tokens from `src/styles.css` only.
+- **Never claim a feature the app doesn't have** (`AGENTS.md`, hard rule). Nine of the
+  twenty-three gates are never fitted on device, and nothing published says which nine,
+  so no page may claim offline prediction for a CHS station.
+- **Nothing in this repo type-checks today.** `pnpm test` is `vitest run`, `pnpm build`
+  is Vite, and neither workflow runs `tsc`. Task 3 adds `pnpm typecheck`; until it does,
+  a green suite says nothing about types.
 - **Public repo.** No session links in commits or PR bodies.
 - **Branch and PR; never push to `main`, never merge your own PR.**
 - Verify Worker-owned routes against a real Worker, not `pnpm dev`:
@@ -32,15 +38,18 @@
 | `src/lib/registry.ts` | Reads `registry.json`; curated identity by slug; the CHS gate list | **Create** |
 | `src/lib/catalogue.ts` | Assembles the corpus from providers + registry | Modify |
 | `src/lib/predict.ts` | Harmonic prediction | Modify — narrows to `BundledStation` |
-| `src/lib/provenance.ts` | One sentence about where a station's numbers come from | **Create** |
-| `src/components/StationPage.tsx` | The shared page body | Modify — identity-only branch |
-| `src/components/TideCurve.tsx`, `CurrentCurve.tsx` | The curves | Modify — provenance from a prop |
+| `src/lib/copy.ts` | Provenance clause and page description, per station source | **Create** |
+| `package.json`, `.github/workflows/*` | `typecheck` script, run on every PR | Modify — nothing type-checks today |
+| `src/lib/station.test-d.ts` | Type-level proof that a stub cannot reach prediction | **Create** |
+| `src/components/StationPage.test.tsx` | The identity-only page, and the CTA claim | **Create** |
+| `src/components/StationPage.tsx` | The shared page body | Modify — identity-only branch, and a CTA that stops claiming offline |
+| `src/components/TideCurve.tsx`, `CurrentCurve.tsx` | The curves | Modify — narrow to `BundledStation`, provenance from `copy.ts` |
 | `src/routes/{tides,currents}.$slug.tsx` + the two `$instant` routes | Route metadata | Modify — provenance in meta |
 | `src/routes/stations.index.tsx` | Browse index landing | Modify — counts and standfirst |
 | `src/lib/og-image.ts` | OG card | Modify — identity-only variant |
 | `AGENTS.md` | Agent context | Modify — corpus counts |
 
-`registry.ts` and `provenance.ts` are new files rather than additions to `catalogue.ts` because each has one job and `catalogue.ts` is already the densest module in `src/lib`.
+`registry.ts` and `copy.ts` are new files rather than additions to `catalogue.ts` because each has one job and `catalogue.ts` is already the densest module in `src/lib`.
 
 ---
 
@@ -210,89 +219,139 @@ git commit -m "fix: curated registry identity wins at the catalogue boundary"
 
 ### Task 2: One row per slug
 
-Also #38. Currently inert — it becomes load-bearing in Task 4, and landing it first means Task 4 cannot introduce a silent duplicate.
+Also #38. Currently inert — it becomes load-bearing in Task 4, and landing it first
+means Task 4 cannot introduce a silent duplicate.
+
+There is no failing test to write first here: every merged pair has exactly one
+buildable half today, so any assertion would pass before the change. Write the
+regression test alongside the dedupe and be honest that it is a tripwire for Task 4
+rather than a red-to-green cycle.
 
 **Files:**
-- Modify: `src/lib/catalogue.ts`
-- Modify: `src/lib/catalogue.test.ts`
+- Modify: `src/lib/registry.ts`, `src/lib/catalogue.ts`, `src/lib/catalogue.test.ts`
 
 **Interfaces:**
 - Consumes: `curatedBySlug` from Task 1.
-- Produces: `loadCatalogue()` returns at most one `Station` per `(kind, slug)`.
+- Produces: `REGISTRY_IDS: ReadonlySet<string>`; `loadCatalogue()` returns at most one
+  `Station` per `(kind, slug)`.
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Export the registry's id set**
 
-`catalogue.test.ts` already asserts slug uniqueness within a kind, and it passes today only because one half of each merged pair is unbuildable. Make the intent explicit:
+Add to `src/lib/registry.ts`:
 
 ```ts
-it('collapses a merged pair to one row, keeping the registry-named id', () => {
-  // station-metadata 4.1.2 points both ids of a merged pair at one slug.
-  // Building both would put two stations on one URL.
-  const rows = all.filter((s) => s.kind === 'current' && s.slug === 'boundary-pass')
-  expect(rows.length).toBe(1)
-})
+/** Every id station-metadata's registry names — the curated half of a merged pair. */
+export const REGISTRY_IDS: ReadonlySet<string> = new Set(Object.keys(entries))
 ```
 
-- [ ] **Step 2: Run it**
+- [ ] **Step 2: Implement the dedupe**
 
-Run: `pnpm vitest run src/lib/catalogue.test.ts`
-Expected: PASS already — only one half is buildable today. That is the point: this test is the tripwire for Task 4, not a fix for today. Record that it passes.
-
-- [ ] **Step 3: Implement the dedupe**
-
-At the end of `loadCatalogue`, before the `return out.sort(...)`:
+At the end of `loadCatalogue`, replacing the existing `return out.sort(...)`:
 
 ```ts
 // One row per slug. station-metadata merges duplicate identities by pointing
 // both ids at one slug (4.1.2), so a slug can arrive twice. Prefer the id the
-// registry names — that is the curated half in every merged pair — and fall
+// registry names - that is the curated half in every merged pair - and fall
 // back to first-seen so this is total rather than conditional.
 const bySlug = new Map<string, Station>()
 for (const s of out) {
   const key = `${s.kind}/${s.slug}`
   const held = bySlug.get(key)
-  if (!held || (!registryNames(held.id) && registryNames(s.id))) bySlug.set(key, s)
+  if (!held || (!REGISTRY_IDS.has(held.id) && REGISTRY_IDS.has(s.id))) bySlug.set(key, s)
 }
 return [...bySlug.values()].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
 ```
 
-Add to `src/lib/registry.ts` and export it:
+Import `REGISTRY_IDS` in `catalogue.ts` alongside `curatedBySlug`.
+
+- [ ] **Step 3: Add the regression test**
+
+In `src/lib/catalogue.test.ts`:
 
 ```ts
-/** True when station-metadata's registry names this id — the curated half of a merged pair. */
-export function registryNames(id: string): boolean {
-  return Object.hasOwn(entries, id)
-}
+it('collapses a merged pair to one row', () => {
+  // station-metadata 4.1.2 points both ids of a merged pair at one slug. Only
+  // one half is buildable today, so this passes before the dedupe exists - it
+  // is here as the tripwire for the CHS gates, where both halves build.
+  const rows = all.filter((s) => s.kind === 'current' && s.slug === 'boundary-pass')
+  expect(rows.length).toBe(1)
+})
 ```
 
-Import it in `catalogue.ts` alongside `curatedBySlug`.
+- [ ] **Step 4: Run both checks**
 
-- [ ] **Step 4: Run the suite**
-
-Run: `pnpm test`
+Run: `pnpm typecheck && pnpm test`
 Expected: PASS, counts unchanged at 3,607 / 2,765 / 842.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/lib/registry.ts src/lib/catalogue.ts src/lib/catalogue.test.ts
+git add src/lib
 git commit -m "fix: one row per slug, preferring the registry-named id"
 ```
 
 ---
 
-### Task 3: `Station` becomes a discriminated union
+### Task 3: `Station` becomes a discriminated union — and something that checks it
 
-Blocks Task 4. An optional `constituents` would type-check every call site and throw at prerender, because `predictorFor` passes `station.constituents` straight into `createTidePredictor` with no guard (`src/lib/predict.ts:37`).
+Blocks Task 4. An optional `constituents` would type-check every call site and throw at
+prerender, because `predictorFor` passes `station.constituents` straight into
+`createTidePredictor` with no guard (`src/lib/predict.ts:37`).
+
+**Nothing in this repo type-checks.** `pnpm test` is bare `vitest run`, which transpiles
+TypeScript and never checks it; `pnpm build` is Vite, which strips types the same way;
+and neither `deploy.yml` nor `preview.yml` runs `tsc`. So the union's entire safety
+argument rests on a compile error that nothing would ever surface. **Step 1 fixes that
+first** — without it the rest of this task is theatre, and its "expected: FAIL" steps
+would pass.
 
 **Files:**
+- Modify: `package.json`, `.github/workflows/deploy.yml`, `.github/workflows/preview.yml`
 - Modify: `src/lib/station.ts`, `src/lib/predict.ts`, `src/lib/currents.ts`, `src/lib/catalogue.ts`
 - Modify: `src/components/TideCurve.tsx`, `src/components/CurrentCurve.tsx`
 
 **Interfaces:**
-- Produces: `type Station = BundledStation | ChsStation`, discriminated on `source`. `predictSeries` and `findEvents` take `BundledStation`.
+- Produces: `type Station = BundledStation | ChsStation`, discriminated on `source`.
+  `predictSeries` and `findEvents` take `BundledStation`.
 
-- [ ] **Step 1: Rewrite the type**
+- [ ] **Step 1: Add a type check, and prove it runs**
+
+Add to `package.json` scripts:
+
+```json
+"typecheck": "tsc --noEmit"
+```
+
+Run it on `main` as it stands:
+
+```bash
+pnpm typecheck
+```
+
+Expected: PASS with no output. Record that — it is the baseline that makes every later
+"expected: FAIL" in this task meaningful.
+
+Add it to both workflows so this cannot rot. In `deploy.yml` and `preview.yml`, after
+`pnpm install --frozen-lockfile`:
+
+```yaml
+      - run: pnpm run typecheck
+```
+
+`preview.yml` currently runs only `pnpm run build` and no tests at all, so a type error
+on a PR reaches `main` unchallenged today.
+
+- [ ] **Step 2: Commit the check on its own**
+
+Landing it separately means the diff that adds it is reviewable without the refactor
+noise, and `git log` records that the repo was type-clean before the union landed.
+
+```bash
+git add package.json .github/workflows
+git commit -m "ci: type-check on every PR, which nothing did before"
+```
+
+- [ ] **Step 3: Rewrite the type**
 
 `src/lib/station.ts`:
 
@@ -345,14 +404,16 @@ export interface ChsStation extends StationIdentity {
 export type Station = BundledStation | ChsStation
 ```
 
-- [ ] **Step 2: Run the type check and watch it fail**
+- [ ] **Step 4: Run the type check and watch it fail**
 
-Run: `pnpm test`
-Expected: FAIL — type errors at every site that constructs a `Station` or reads `.constituents`. This list is the work.
+Run: `pnpm typecheck`
+Expected: FAIL, with an error at every site that constructs a `Station` or reads
+`.constituents`. That error list is the work for the next step. `pnpm test` will still
+pass at this point — which is exactly why Step 1 had to come first.
 
-- [ ] **Step 3: Narrow the prediction API**
+- [ ] **Step 5: Narrow the prediction API**
 
-In `src/lib/predict.ts`, change the three signatures to take the bundled type:
+In `src/lib/predict.ts`:
 
 ```ts
 import type { BundledStation } from './station'
@@ -362,22 +423,46 @@ import type { BundledStation } from './station'
 - `export function predictSeries(station: BundledStation, ...)`
 - `export function findEvents(station: BundledStation, ...)`
 
-In `src/lib/currents.ts`, add `source: 'bundled',` to the `HERO_STATION` literal and type it `BundledStation`.
+In `src/lib/currents.ts`, type `HERO_STATION` as `BundledStation` and add `source: 'bundled',`.
 
-- [ ] **Step 4: Tag the catalogue's output**
+In `src/lib/catalogue.ts`, add `source: 'bundled',` to both station literals.
 
-In `src/lib/catalogue.ts`, add `source: 'bundled',` to both station literals in `loadCatalogue`.
+`TideCurve` and `CurrentCurve` take `station: BundledStation`. They only ever receive
+bundled stations; Task 6 keeps CHS away from them entirely.
 
-- [ ] **Step 5: Narrow the curve components**
+Add `source: 'bundled'` to the fixtures in `predict.test.ts`, `nearby.test.ts`,
+`og-image.test.ts`, `instant-page.test.tsx`, `TideCurve.test.tsx` and
+`CurrentCurve.test.tsx`.
 
-`TideCurve` and `CurrentCurve` take `station: BundledStation` for now. Task 6 gives them a fetched-samples path; today they only ever receive bundled stations.
+- [ ] **Step 6: Prove the union actually rejects a stub**
 
-- [ ] **Step 6: Run the suite**
+A type that is never tested is a comment. Add `src/lib/station.test-d.ts`:
 
-Run: `pnpm test`
-Expected: PASS. Test fixtures in `predict.test.ts`, `nearby.test.ts`, `og-image.test.ts`, `instant-page.test.tsx`, `TideCurve.test.tsx` and `CurrentCurve.test.tsx` each need `source: 'bundled'` added.
+```ts
+// Type-level assertions. This file is never executed - `tsc --noEmit` is the
+// whole test. It exists because the union's only job is to make one specific
+// mistake impossible, and nothing else in the suite can observe that.
+import { predictSeries } from './predict'
+import type { ChsStation } from './station'
 
-- [ ] **Step 7: Commit**
+const stub: ChsStation = {
+  id: 'chs-dodd-narrows', kind: 'current', slug: 'dodd-narrows', name: 'Dodd Narrows',
+  source: 'chs', latitude: 49.1, longitude: -123.8, timezone: 'America/Vancouver',
+}
+
+// @ts-expect-error - a station with no constituents must not reach prediction.
+predictSeries(stub, new Date(), 24)
+```
+
+`@ts-expect-error` fails the build if the line ever stops erroring, so this catches
+someone widening the signature back to `Station` later.
+
+- [ ] **Step 7: Run both checks**
+
+Run: `pnpm typecheck && pnpm test`
+Expected: both PASS.
+
+- [ ] **Step 8: Commit**
 
 ```bash
 git add src/lib src/components
@@ -537,34 +622,48 @@ git commit -m "feat: build the 23 Canadian current gates from published registry
 
 ---
 
-### Task 5: Provenance copy stops claiming maths that did not happen
+### Task 5: Page copy stops promising things the page does not contain
 
-Eight sites say "computed from harmonic constituents". On a gate page all eight are false, and four of them render on the prerendered page before any curve exists.
+Eight sites say "computed from harmonic constituents". On a gate page all eight are
+false, and four of them render on the prerendered page before any curve exists.
+
+Swapping the provenance clause alone is not enough. The route description reads
+"Slack water and maximum flood and ebb for Dodd Narrows, …" — the page carries **no**
+slack water and **no** maxima, so fixing only the trailing clause leaves the sentence
+promising results the page does not have. An identity-only page needs its own sentence,
+not a substituted phrase.
 
 **Files:**
-- Create: `src/lib/provenance.ts`, `src/lib/provenance.test.ts`
+- Create: `src/lib/copy.ts`, `src/lib/copy.test.ts`
 - Modify: `src/components/TideCurve.tsx`, `src/components/CurrentCurve.tsx`
-- Modify: `src/routes/tides.$slug.tsx`, `src/routes/currents.$slug.tsx`, `src/routes/tides.$slug_.$instant.tsx`, `src/routes/currents.$slug_.$instant.tsx`, `src/routes/stations.index.tsx`
+- Modify: `src/routes/tides.$slug.tsx`, `src/routes/currents.$slug.tsx`,
+  `src/routes/tides.$slug_.$instant.tsx`, `src/routes/currents.$slug_.$instant.tsx`,
+  `src/routes/stations.index.tsx`
 
 **Interfaces:**
-- Produces: `provenance(station: Station): string` — the clause naming where this station's numbers come from, with no trailing full stop.
+- Produces:
+  - `provenance(station: Station): string` — a clause, no trailing stop, for the curve's
+    accessible description.
+  - `pageDescription(station: Station): string` — the whole `<meta name="description">`
+    sentence, including the full stop.
 
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// src/lib/provenance.test.ts
+// src/lib/copy.test.ts
 import { describe, expect, it } from 'vitest'
-import { provenance } from './provenance'
+import { pageDescription, provenance } from './copy'
 import type { BundledStation, ChsStation } from './station'
 
 const bundled = {
-  id: 'noaa/x', kind: 'current', slug: 'x', name: 'X', source: 'bundled',
+  id: 'noaa/x', kind: 'current', slug: 'x', name: 'Deception Pass', source: 'bundled',
   latitude: 0, longitude: 0, timezone: 'UTC', constituents: [],
 } satisfies BundledStation
 
 const chs = {
   id: 'chs-dodd-narrows', kind: 'current', slug: 'dodd-narrows', name: 'Dodd Narrows',
-  source: 'chs', latitude: 49.1, longitude: -123.8, timezone: 'America/Vancouver',
+  source: 'chs', region: 'Nanaimo',
+  latitude: 49.1, longitude: -123.8, timezone: 'America/Vancouver',
 } satisfies ChsStation
 
 describe('provenance', () => {
@@ -573,22 +672,30 @@ describe('provenance', () => {
   })
 
   it('never claims a computation for a CHS station', () => {
-    // The page performs none, and is not permitted to publish one.
     expect(provenance(chs)).not.toMatch(/comput/i)
   })
+})
 
-  it('names the Canadian Hydrographic Service for a CHS station', () => {
-    expect(provenance(chs)).toMatch(/Canadian Hydrographic Service/)
+describe('pageDescription', () => {
+  it('promises predictions only where the page has them', () => {
+    expect(pageDescription(bundled)).toMatch(/Slack water and maximum flood and ebb/)
+  })
+
+  it('promises no predictions on an identity-only page', () => {
+    const d = pageDescription(chs)
+    expect(d).not.toMatch(/Slack water|maximum flood|next high|comput/i)
+    expect(d).toContain('Dodd Narrows')
+    expect(d).toMatch(/Canadian Hydrographic Service/)
   })
 })
 ```
 
 - [ ] **Step 2: Run it and watch it fail**
 
-Run: `pnpm vitest run src/lib/provenance.test.ts`
-Expected: FAIL — cannot resolve `./provenance`.
+Run: `pnpm vitest run src/lib/copy.test.ts`
+Expected: FAIL — cannot resolve `./copy`.
 
-- [ ] **Step 3: Write `src/lib/provenance.ts`**
+- [ ] **Step 3: Write `src/lib/copy.ts`**
 
 ```ts
 import type { Station } from './station'
@@ -600,79 +707,101 @@ import type { Station } from './station'
  * "computed from harmonic constituents" has to be true on every rendering
  * path, and a Canadian page adds one where it is not: nothing is computed
  * there, and the licensing posture forbids us publishing a prediction at all.
- * Saying so is what keeps the page honest before a visitor asks DFO for a
- * curve themselves.
  */
 export function provenance(station: Station): string {
   return station.source === 'bundled'
     ? 'computed from harmonic constituents'
     : 'predicted by the Canadian Hydrographic Service'
 }
+
+/**
+ * The page's meta description — a whole sentence, because the subject changes
+ * and not just the trailing clause.
+ *
+ * A bundled page carries a curve, so it may promise slack water and maxima. A
+ * CHS page carries identity and nothing else, so it must promise identity and
+ * nothing else: substituting only the provenance clause would leave it
+ * advertising results the page does not contain, in the text a shared unfurl
+ * shows.
+ */
+export function pageDescription(station: Station): string {
+  if (station.source === 'chs') {
+    const where = station.region ? `${station.name}, ${station.region}` : station.name
+    return `Station information for ${where}. Predictions come from the Canadian ` +
+      `Hydrographic Service and are available in Slackwater.`
+  }
+  return station.kind === 'tide'
+    ? `Tide heights and the next high and low for ${station.name}, ${provenance(station)}.`
+    : `Slack water and maximum flood and ebb for ${station.name}, ${provenance(station)}.`
+}
 ```
 
 - [ ] **Step 4: Run it and watch it pass**
 
-Run: `pnpm vitest run src/lib/provenance.test.ts`
-Expected: PASS, 3 tests.
+Run: `pnpm vitest run src/lib/copy.test.ts`
+Expected: PASS, 4 tests.
 
-- [ ] **Step 5: Replace all eight literals**
+- [ ] **Step 5: Replace the eight literals**
 
-In `TideCurve.tsx` `describe()` and both branches of `CurrentCurve.tsx` `describe()`, take the clause from `provenance(station)` instead of the literal, keeping the surrounding sentence.
+In `TideCurve.tsx` `describe()` and **both** branches of `CurrentCurve.tsx` `describe()`
+(lines 320 and 327 — there are two, not one), take the clause from `provenance(station)`
+instead of the literal, keeping the surrounding sentence.
 
-In the four route `head()` functions, replace the literal in `description`. The canonical routes read:
-
-```ts
-const description = `Tide heights and the next high and low for ${s.name}, ${provenance(s)}.`
-```
-
-and for currents:
+In all four route `head()` functions, replace the whole hand-built `description` with:
 
 ```ts
-const description = `Slack water and maximum flood and ebb for ${s.name}, ${provenance(s)}.`
+const description = pageDescription(s)
 ```
 
-The two `$instant` routes carry the same sentence — change both.
+That covers `tides.$slug.tsx`, `currents.$slug.tsx` and both `$instant` routes, which
+carry the same sentence.
 
-In `stations.index.tsx`, the standfirst says heights come from harmonic constituents, which stops being true for the whole list. Reword it to describe the list rather than a method:
+In `stations.index.tsx`, the standfirst says heights come from harmonic constituents,
+which stops being true for the whole list. Reword to describe the list rather than a
+method:
 
 ```
 Every station Slackwater predicts, worldwide for tides and across the US and Canada for currents.
 ```
 
-- [ ] **Step 6: Assert a gate page does not claim a computation**
+- [ ] **Step 6: Run both checks**
 
-Add to `src/lib/provenance.test.ts`:
-
-```ts
-it('reads as a whole sentence in a page description', () => {
-  expect(`Slack water and maximum flood and ebb for Dodd Narrows, ${provenance(chs)}.`)
-    .toBe('Slack water and maximum flood and ebb for Dodd Narrows, predicted by the Canadian Hydrographic Service.')
-})
-```
-
-- [ ] **Step 7: Run the suite**
-
-Run: `pnpm test`
+Run: `pnpm typecheck && pnpm test`
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/lib/provenance.ts src/lib/provenance.test.ts src/components src/routes
-git commit -m "fix: provenance copy follows the station, not a hardcoded claim"
+git add src/lib/copy.ts src/lib/copy.test.ts src/components src/routes
+git commit -m "fix: page copy follows the station instead of a hardcoded claim"
 ```
 
 ---
 
-### Task 6: The gate page renders identity, not a curve
+### Task 6: The gate page renders identity, not a curve — and the CTA stops overclaiming
+
+**The existing CTA is false on nine of these twenty-three pages.** It says Slackwater
+"predicts tides and currents offline, on your phone — tides worldwide, currents across
+the US and Canada." Nine of the CHS gates are the `fitDays: 0` set: they failed the
+on-device fit bar and ship as `online: true`, *"findable, never fitted"*, backed by
+official CHS predictions fetched on demand. The app does not predict them offline.
+`AGENTS.md` makes this a hard rule: never claim a feature the app doesn't have.
+
+**And the web cannot tell which nine.** Verified against the published registry: the 24
+CHS gate entries carry `name`, `context`, `position`, `provider`, `aliases`,
+`tideReference`, `cities`, `magnitudeNote`, `source`, `kind` — and **no field
+distinguishing an online gate from a fitted one**. The spec deliberately keeps fit
+metadata out of any published artifact, so this is by design and not an oversight to
+fix here.
+
+That rules out per-gate copy in both directions. "Predicts this water offline" is false
+for the nine; "shows official CHS predictions in the app" is false for the other
+fourteen, whose curves come from an on-device fit rather than from CHS's published
+numbers. **The copy must claim coverage and a source, and no mechanism at all.**
 
 **Files:**
 - Modify: `src/components/StationPage.tsx`
 - Create: `src/components/StationPage.test.tsx`
-
-**Interfaces:**
-- Consumes: `Station` union, `provenance`.
-- Produces: a `StationPage` that renders no curve for `source: 'chs'`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -706,6 +835,13 @@ describe('StationPage for a CHS station', () => {
     expect(html).not.toMatch(/comput/i)
   })
 
+  it('does not claim the app works offline here', () => {
+    // Nine of the 23 gates are never fitted on device, and nothing in the
+    // published registry says which nine. Any offline claim is false for some
+    // of them, so the page makes none.
+    expect(html).not.toMatch(/offline/i)
+  })
+
   it('still offers the app, which is why these pages exist', () => {
     expect(html).toMatch(/TestFlight|beta/i)
   })
@@ -715,7 +851,8 @@ describe('StationPage for a CHS station', () => {
 - [ ] **Step 2: Run it and watch it fail**
 
 Run: `pnpm vitest run src/components/StationPage.test.tsx`
-Expected: FAIL — the component passes a `ChsStation` into a curve typed for `BundledStation`.
+Expected: FAIL — the offline assertion fails on the shared CTA, and the component passes
+a `ChsStation` into a curve typed for `BundledStation`.
 
 - [ ] **Step 3: Branch on `source`**
 
@@ -731,61 +868,118 @@ In `StationPage.tsx`, replace the curve ternary:
 )}
 ```
 
-and add the panel. It says what the water is and where the numbers would come from, and promises nothing this page does:
+and add the panel — coverage and source, no mechanism:
 
 ```tsx
 /**
  * A Canadian station, named but not predicted.
  *
  * CHS predictions are fetched by each user under DFO's own terms and never
- * re-served, so this page may carry identity and no curve. Saying that plainly
- * is better than an empty chart well: the reader learns the station exists,
- * that Slackwater covers it, and where the numbers come from.
+ * re-served, so this page may carry identity and no curve.
+ *
+ * Deliberately says nothing about HOW the app answers here. Fourteen of these
+ * gates are predicted on device from a fitted model; nine are never fitted and
+ * are fetched from CHS on demand. Nothing in the published registry says which
+ * is which, so any sentence naming a mechanism is false for one group or the
+ * other.
  */
 function ChsIdentity({ station }: { station: ChsStation }) {
   return (
     <section className="mt-10 rounded-lg border border-sw-steel/20 p-6">
       <p className="text-sw-foam">
-        Predictions for {station.name} are {provenance(station)}. Slackwater fetches them
-        under DFO&rsquo;s own terms and predicts this water offline in the app.
+        Predictions for {station.name} come from the Canadian Hydrographic Service,
+        fetched under DFO&rsquo;s own terms. Slackwater covers this water in the app.
       </p>
     </section>
   )
 }
 ```
 
-- [ ] **Step 4: Run it and watch it pass**
+- [ ] **Step 4: Fix the CTA in the same task**
 
-Run: `pnpm vitest run src/components/StationPage.test.tsx`
-Expected: PASS, 4 tests.
+`Cta` currently hard-codes the offline claim for every page. Give it the station's
+source, and drop the mechanism for a CHS page:
 
-- [ ] **Step 5: Run the suite and build**
+```tsx
+function Cta({ station }: { station: Station }) {
+  const pitch =
+    station.source === 'chs'
+      ? 'Slackwater shows tides and tidal currents on your phone — tides worldwide, currents across the US and Canada.'
+      : 'Slackwater predicts tides and currents offline, on your phone — tides worldwide, currents across the US and Canada.'
+```
 
-Run: `pnpm test && pnpm build`
-Expected: PASS, and the build emits 3,630 station pages.
+and pass it from `StationPage`: `<Cta station={station} />`. The offline claim stays
+exactly as it is for the 3,607 bundled pages, where it is true.
 
-- [ ] **Step 6: Look at the page**
+- [ ] **Step 5: Run it and watch it pass**
 
-Run: `pnpm build && npx wrangler dev -c .output/server/wrangler.json`, open `/currents/dodd-narrows/`, and confirm by eye: the station is named, there is no curve, the Nearby list has six BC gates, and the CTA is present. Screenshot it for the PR — a PR that changes anything visible shows it.
+Run: `pnpm typecheck && pnpm vitest run src/components/StationPage.test.tsx`
+Expected: PASS, 5 tests.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Assert Nearby actually fills for a gate**
+
+The manual check below is not evidence. Add to `src/lib/catalogue.test.ts`, where the
+whole corpus is in scope:
+
+```ts
+it('gives a CHS gate neighbours to link to', () => {
+  const all = loadCatalogue()
+  const dodd = all.find((s) => s.slug === 'dodd-narrows' && s.kind === 'current')!
+  const near = nearby(dodd, all, 6)
+  expect(near.length).toBe(6)
+  expect(near.every((s) => s.kind === 'current')).toBe(true)
+  expect(near.some((s) => s.id.startsWith('chs-'))).toBe(true)
+})
+```
+
+Import `nearby` from `./nearby`.
+
+- [ ] **Step 7: Run everything and look at the page**
+
+Run: `pnpm typecheck && pnpm test && pnpm build`, then
+`npx wrangler dev -c .output/server/wrangler.json` and open `/currents/dodd-narrows/`.
+
+Confirm by eye: the station is named, there is no curve, the Nearby list is populated,
+the CTA does not say "offline". Screenshot it for the PR — a PR that changes anything
+visible shows it.
+
+- [ ] **Step 8: Commit**
 
 ```bash
-git add src/components
-git commit -m "feat: a Canadian station page names its water without predicting it"
+git add src/components src/lib/catalogue.test.ts
+git commit -m "feat: name Canadian water without predicting it, or overclaiming offline"
 ```
 
 ---
 
 ### Task 7: The OG card for a station with no curve
 
+`renderCard` renders the curve component to SVG, extracts the `<svg>`, and overlays a
+header. With no curve there is no base SVG, so this task defines one rather than leaving
+the central visual to be invented.
+
+**Layout, explicitly.** Same canvas and the same header geometry as every other card, so
+nothing can overlap in a new way:
+
+| Element | Position | Style |
+|---|---|---|
+| Ground | `<rect>` full bleed | `#00121f` — the colour the header halo already strokes against |
+| Title | `x=40 y=52` | 36px, weight 700, `#fcfcfc` — unchanged, via `withHeader` |
+| Subtitle | `x=40 y=86` | 22px, weight 500, `#88b868` — the **region**, not a moment |
+| Source line | `x=40 y=340` | 28px, weight 500, `#fcfcfc` at 80% |
+
+The subtitle is the region rather than `formatMoment(...)` because a card with no curve
+depicts no moment — which is also what makes it byte-identical across times, asserted
+below.
+
 **Files:**
-- Modify: `src/lib/og-image.ts`
-- Modify: `src/lib/og-image.test.ts`
+- Modify: `src/lib/og-image.ts`, `src/lib/og-image.test.ts`
 
 - [ ] **Step 1: Write the failing test**
 
-Add a `DODD` fixture matching the `ChsStation` in Task 6, then assert the way the existing tests already do — PNG magic bytes and dimensions, not a length. A length assertion passes over a blank card.
+Add a `DODD` fixture matching the `ChsStation` in Task 6, then assert the way the
+existing tests already do — PNG magic bytes and dimensions, not a length. A length
+assertion passes over a blank card.
 
 ```ts
 it('produces a real PNG for a station with no curve', async () => {
@@ -806,24 +1000,66 @@ it('does not vary with the moment, having no curve to move', async () => {
 - [ ] **Step 2: Run it and watch it fail**
 
 Run: `pnpm vitest run src/lib/og-image.test.ts`
-Expected: FAIL — `renderCard`'s curve path reads constituents, which a `ChsStation` does not have.
+Expected: FAIL — `renderCard` picks a curve component by `station.kind` and passes a
+`ChsStation` into one typed for `BundledStation`.
 
-- [ ] **Step 3: Branch the card**
+- [ ] **Step 3: Branch before the curve is chosen**
 
-Draw the station name, region and the app wordmark; skip the sparkline entirely for `source: 'chs'`. Keep the existing layout constants — the last OG defect was overlapping text, so change position of nothing that already works.
+In `renderCard`, take the identity path first so no curve component is selected:
+
+```ts
+export async function renderCard(station: Station, now: Date, live = false) {
+  const svg =
+    station.source === 'chs' ? identityCard(station) : curveCard(station, now, live)
+  const resvg = await Resvg.async(svg, { /* unchanged options */ })
+  // ...unchanged from here
+}
+```
+
+Move the existing body — `start`, `Curve`, `renderToStaticMarkup`, the `svgMatch`
+guard, `withNamespace`, `subtitle`, `withHeader` — verbatim into `curveCard`. Nothing
+about the bundled path changes; the last OG defect was overlapping text, so the working
+layout is not touched.
+
+```ts
+/**
+ * A card for a station whose curve we may not publish.
+ *
+ * The region rather than a moment as the subtitle: this card depicts no
+ * moment, so stamping one on it would claim a reading the image does not
+ * contain. It also makes the card identical for every instant URL, which is
+ * correct - there is nothing per-instant to draw.
+ */
+function identityCard(station: ChsStation): string {
+  const ground =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" ` +
+    `viewBox="0 0 ${WIDTH} ${HEIGHT}">` +
+    `<rect width="${WIDTH}" height="${HEIGHT}" fill="#00121f"/>` +
+    `<text x="40" y="340" fill="#fcfcfc" fill-opacity="0.8" ` +
+    `style="font-family:'${FONT_FAMILY}';font-size:28px;font-weight:500">` +
+    `Predictions from the Canadian Hydrographic Service</text>` +
+    `</svg>`
+  return withHeader(withEmbeddedFont(ground), station.name, station.region ?? '')
+}
+```
 
 - [ ] **Step 4: Run it and watch it pass**
 
-Run: `pnpm vitest run src/lib/og-image.test.ts`
+Run: `pnpm typecheck && pnpm vitest run src/lib/og-image.test.ts`
 Expected: PASS.
 
 - [ ] **Step 5: Open the PNG**
 
-Run the Worker and fetch `/og/currents/dodd-narrows.png`, then open the file. A byte-length assertion has passed over a broken card before; look at it.
+A byte-length assertion has passed over a broken card here before. Look at it.
 
 ```bash
+pnpm build && npx wrangler dev -c .output/server/wrangler.json &
 curl -s http://localhost:8787/og/currents/dodd-narrows.png -o /tmp/dodd.png && open /tmp/dodd.png
 ```
+
+Check: the name is legible, the region sits under it without collision, the source line
+does not run off the right edge for the longest gate name in the corpus
+(`chs-johnstone-strait-central`, "Johnstone Strait - Central"). Attach it to the PR.
 
 - [ ] **Step 6: Commit**
 
@@ -888,12 +1124,22 @@ PR body includes: the Dodd Narrows screenshot, the OG card, and the before/after
 
 Before calling this done, confirm each by running it rather than by reasoning about it:
 
+- [ ] `pnpm typecheck` passes — and existed before this branch only because Task 3 added
+      it. Nothing in this repo type-checked before, in CI or locally, so treat a green
+      `pnpm test` as saying nothing about the union.
 - [ ] `pnpm test` passes.
 - [ ] `pnpm build` emits 3,630 station pages and the sitemaps carry 865 current URLs.
 - [ ] `/currents/dodd-narrows/` returns 200 from a real Worker and names Dodd Narrows.
 - [ ] `/currents/arran-rapids/` still returns 404.
 - [ ] `/currents/boundary-pass/` is titled **Boundary Pass**, not "Turn Point, Boundary Pass".
-- [ ] No page in `.output/public/currents/` for a CHS gate contains an `<svg>` curve or the word "computed".
+- [ ] No page in `.output/public/currents/` for a CHS gate contains an `<svg>` curve, the
+      word "computed", or the word "offline". Grep the built HTML — this is the claim
+      that is false for nine of the twenty-three and cannot be checked per gate:
+
+      ```bash
+      grep -rliE 'offline|comput' .output/public/currents/dodd-narrows/ && echo FAIL || echo ok
+      ```
+- [ ] A CHS page's `<meta name="description">` promises identity, not slack water or maxima.
 - [ ] The OG PNG for a gate has been opened and looked at.
 - [ ] Build wall-clock and slowest prerender recorded before and after.
 
