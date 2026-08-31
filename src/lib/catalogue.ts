@@ -5,6 +5,7 @@
 import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type: 'json' }
 import currentBundle from '@openwaters/noaa-current-stations/currents.json' with { type: 'json' }
 import { stationsById } from '@neaps/tide-database'
+import tzLookup from 'tz-lookup'
 import type { Kind, Station } from './station'
 
 /**
@@ -55,11 +56,16 @@ export function loadCatalogue(): Station[] {
       } else {
         const r = currents.get(id)
         if (!r) throw new Error(`catalogue: no current data for ${id}`)
+        const latitude = Number(r.latitude)
+        const longitude = Number(r.longitude)
+        // The current bundle carries no timezone field at all - derive one from
+        // coordinates rather than defaulting to UTC, which would quietly show
+        // every current station's slack time seven-plus hours wrong.
         out.push({
           id, kind, slug,
           name: String(r.name),
-          latitude: Number(r.latitude), longitude: Number(r.longitude),
-          timezone: String(r.timezone ?? 'UTC'),
+          latitude, longitude,
+          timezone: tzLookup(latitude, longitude),
           constituents: r.constituents as Station['constituents'],
           offset: Number(r.offset ?? 0),
           floodDirection: Number(r.floodDirection),

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import tzLookup from 'tz-lookup'
 import { loadCatalogue } from './catalogue'
 
 describe('loadCatalogue', () => {
@@ -41,5 +42,23 @@ describe('loadCatalogue', () => {
     const d = all.find((s) => s.id === 'noaa/PUG1701')
     expect(d?.name).toBe('Deception Pass (Narrows)')
     expect(d?.kind).toBe('current')
+  })
+
+  it('gives Deception Pass its real local zone, not UTC', () => {
+    // The current bundle carries no timezone field at all - catalogue.ts must
+    // derive one from coordinates. Asserting the zone itself, not merely that
+    // one is present, is the point: a "has a timezone" check passes on 'UTC'.
+    const d = all.find((s) => s.id === 'noaa/PUG1701')
+    expect(d?.timezone).toBe('America/Los_Angeles')
+  })
+
+  it('never silently defaults a current station to UTC', () => {
+    // Every current station's timezone must match what its own coordinates
+    // resolve to. A station whose zone happens to genuinely be UTC would
+    // still pass, since tzLookup itself would agree - the point is that a
+    // UTC result can never come from a missing-data fallback instead.
+    for (const s of all.filter((s) => s.kind === 'current')) {
+      expect(s.timezone, s.id).toBe(tzLookup(s.latitude, s.longitude))
+    }
   })
 })
