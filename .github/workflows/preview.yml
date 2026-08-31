@@ -52,16 +52,17 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           PR: ${{ github.event.pull_request.number }}
-        # Wrangler prints the URLs to stderr, hence 2>&1. Its own exit status is
-        # logged but not trusted (hence no pipefail): the alias URL appearing in
-        # the output is the thing that actually means the upload landed.
+        # `shell: bash` for pipefail — the default `bash -e` lets tee mask a
+        # wrangler failure. Wrangler prints the URLs to stderr, hence 2>&1, and
+        # the alias host carries the account subdomain (pr-21-slackwater-xyz.
+        # <account>.workers.dev), so the character class has to allow dots.
+        shell: bash
         run: |
           pnpm exec wrangler versions upload \
             -c .output/server/wrangler.json \
             --preview-alias "pr-$PR" \
             --message "PR #$PR at ${GITHUB_SHA::7}" 2>&1 | tee upload.log
-          echo "wrangler exited ${PIPESTATUS[0]}"
-          url=$(grep -m1 -oE "https://pr-$PR-[a-z0-9-]+\.workers\.dev" upload.log || true)
+          url=$(grep -m1 -oE "https://pr-$PR-[a-z0-9.-]+\.workers\.dev" upload.log || true)
           [ -n "$url" ] || { echo "::error::no preview alias URL in wrangler output"; exit 1; }
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
