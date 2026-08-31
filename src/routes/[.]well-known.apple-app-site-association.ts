@@ -1,15 +1,32 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 /**
- * The one value that changes if the app's signing identity does:
- * `<Apple Team ID>.<bundle identifier>`.
+ * The apps allowed to open a station link, as `<Apple Team ID>.<bundle id>`.
  *
  * Both halves come from the iOS project — the team from `DEVELOPMENT_TEAM`,
- * the bundle from `PRODUCT_BUNDLE_IDENTIFIER` on the app target (not the
- * widget extension, which is a separate identifier and must not be listed
- * here: it has no UI to open a link with).
+ * the bundle from `PRODUCT_BUNDLE_IDENTIFIER` on the app target. The widget
+ * extension is a separate identifier and is deliberately absent: it has no UI
+ * to open a link with.
+ *
+ * **Two entries, on purpose.** The app's identifiers are moving from the
+ * `org.openwaters` prefix to `io.openwaters`, under a different team. A bundle
+ * id is permanent once registered, so that is a new app record rather than a
+ * rename, and for a while both can exist on real devices — a build installed
+ * before the move keeps working, and testers cross over by installing the new
+ * one. An association file may list several app ids for the same paths, so
+ * listing both is what keeps links working on both sides of that change
+ * instead of breaking one of them for as long as Apple's CDN caches this.
+ *
+ * The incoming entry is inert until that app exists: an id no installed app
+ * claims does nothing. Retire the outgoing one once no device runs it.
  */
-const APP_ID = 'R3H8DPTV9C.org.openwaters.slackwater'
+const APP_IDS = [
+  // Current, shipping.
+  'R3H8DPTV9C.org.openwaters.slackwater',
+  // Incoming — openwatersio/slackwater-ios#207. Update if that lands under a
+  // different team or bundle id; it is a draft and neither is final.
+  'Z59BQLF5VQ.io.openwaters.slackwater',
+]
 
 /**
  * Apple App Site Association — the file that lets iOS open a station link in
@@ -47,7 +64,7 @@ const association = {
   applinks: {
     details: [
       {
-        appIDs: [APP_ID],
+        appIDs: APP_IDS,
         components: [
           { '/': '/tides/*', comment: 'A tide station, with or without an instant' },
           { '/': '/currents/*', comment: 'A current station, with or without an instant' },
