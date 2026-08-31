@@ -36,15 +36,14 @@
   --color-sw-sunrise: #f0d890;
   --color-sw-sunset: #c8a86a;
 
-  /* the current speed ramp — inferno family, six stops, anchored to
-     capability not quantiles: 0.5 / 3 / 6 / 16 kn. Never a rainbow;
-     a rainbow passes through green, and green means slack. */
-  --color-sw-ramp-0: #0d2033;
-  --color-sw-ramp-1: #3b2c63;
-  --color-sw-ramp-2: #7b2e62;
-  --color-sw-ramp-3: #b8434f;
-  --color-sw-ramp-4: #e8763c;
-  --color-sw-ramp-5: #f5c96b;
+  /* the current speed ramp — SN.speedRampStops, four stops: yellow at the
+     comfort threshold, orange beyond it, red at the fast end. It never
+     enters green, because green means slack. The six-stop inferno that
+     stood here (navy through magenta to yellow) was not the app's. */
+  --color-sw-ramp-0: #f5c96b;
+  --color-sw-ramp-1: #f5c96b;
+  --color-sw-ramp-2: #e8763c;
+  --color-sw-ramp-3: #c93a32;
 
   /* the map inverts to a paper chart — cream, not dark */
   --color-sw-chart-land: #f5ecd7;
