@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import tzLookup from 'tz-lookup'
 import { cleanName } from '@openwaters/station-metadata'
 import { loadCatalogue } from './catalogue'
+import { nearby } from './nearby'
 
 describe('loadCatalogue', () => {
   const all = loadCatalogue()
@@ -90,5 +91,13 @@ describe('loadCatalogue', () => {
     // is here as the tripwire for the CHS gates, where both halves build.
     const rows = all.filter((s) => s.kind === 'current' && s.slug === 'boundary-pass')
     expect(rows.length).toBe(1)
+  })
+
+  it('gives a CHS gate neighbours to link to', () => {
+    const dodd = all.find((s) => s.slug === 'dodd-narrows' && s.kind === 'current')!
+    const near = nearby(dodd, all, 6)
+    expect(near.length).toBe(6)
+    expect(near.every((s) => s.kind === 'current')).toBe(true)
+    expect(near.some((s) => s.id.startsWith('chs-'))).toBe(true)
   })
 })

@@ -3,7 +3,7 @@ import { TideCurve } from './TideCurve'
 import { dayLabel } from '#/lib/format'
 import { TESTFLIGHT } from '#/lib/links'
 import type { StationRow } from '#/lib/catalogue-server'
-import type { Station } from '#/lib/station'
+import type { ChsStation, Station } from '#/lib/station'
 
 interface Props {
   station: Station
@@ -37,15 +37,39 @@ export function StationPage({ station, now, live = false, nearby = [] }: Props) 
         {station.name}
       </h1>
       <p className="mt-3 text-sw-steel">{subtitle}</p>
-      {station.source === 'bundled' &&
-        (station.kind === 'tide' ? (
-          <TideCurve station={station} start={start} hours={24} now={now} />
-        ) : (
-          <CurrentCurve station={station} start={start} hours={24} now={now} live={live} />
-        ))}
+      {station.source === 'chs' ? (
+        <ChsIdentity station={station} />
+      ) : station.kind === 'tide' ? (
+        <TideCurve station={station} start={start} hours={24} now={now} />
+      ) : (
+        <CurrentCurve station={station} start={start} hours={24} now={now} live={live} />
+      )}
       <Nearby station={station} rows={nearby} />
-      <Cta />
+      <Cta station={station} />
     </main>
+  )
+}
+
+/**
+ * A Canadian station, named but not predicted.
+ *
+ * CHS predictions are fetched by each user under DFO's own terms and never
+ * re-served, so this page may carry identity and no curve.
+ *
+ * Deliberately says nothing about HOW the app answers here. Fourteen of these
+ * gates are predicted on device from a fitted model; nine are never fitted and
+ * are fetched from CHS on demand. Nothing in the published registry says which
+ * is which, so any sentence naming a mechanism is false for one group or the
+ * other.
+ */
+function ChsIdentity({ station }: { station: ChsStation }) {
+  return (
+    <section className="mt-10 rounded-lg border border-sw-steel/20 p-6">
+      <p className="text-sw-foam">
+        Predictions for {station.name} come from the Canadian Hydrographic Service,
+        fetched under DFO&rsquo;s own terms. Slackwater covers this water in the app.
+      </p>
+    </section>
   )
 }
 
@@ -88,13 +112,14 @@ function Nearby({ station, rows }: { station: Station; rows: StationRow[] }) {
  * The home link is not decoration: without it all 3,607 station pages are
  * orphans with no internal link back into the site.
  */
-function Cta() {
+function Cta({ station }: { station: Station }) {
+  const pitch =
+    station.source === 'chs'
+      ? 'Slackwater shows tides and tidal currents on your phone — tides worldwide, currents across the US and Canada.'
+      : 'Slackwater predicts tides and currents offline, on your phone — tides worldwide, currents across the US and Canada.'
   return (
     <section className="mt-14 border-t border-sw-steel/15 pt-8">
-      <p className="text-sw-steel">
-        Slackwater predicts tides and currents offline, on your phone — tides worldwide,
-        currents across the US and Canada.
-      </p>
+      <p className="text-sw-steel">{pitch}</p>
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
         {TESTFLIGHT ? (
           <a
