@@ -71,16 +71,36 @@ describe('slackWindows', () => {
 
   it('opens and closes exactly where the curve meets the threshold', () => {
     expect(windows.length).toBeGreaterThan(0)
+    const end = new Date(start.getTime() + 24 * 3600_000)
     // The endpoints are interpolated crossings, not the nearest 10-minute
-    // sample: at a fast gate a sample lands a long way from the edge.
+    // sample: at a fast gate a sample lands a long way from the edge. The one
+    // exception is a window still open when the frame runs out — that end is
+    // the frame, and the water there is inside the band, not on its edge.
     for (const w of windows) {
       for (const edge of [w.start, w.end]) {
+        const clamped = edge <= start || edge >= new Date(end.getTime() - 600_000)
         // Fidelity 1, not the default: the timeline snaps to a 10-minute grid,
         // which is the very error the interpolation exists to remove.
-        const at = predictSeries(CURRENT, edge, 1 / 3600, 1)[0].level
-        expect(Math.abs(at)).toBeCloseTo(SLACK_KNOTS, 2)
+        const at = Math.abs(predictSeries(CURRENT, edge, 1 / 3600, 1)[0].level)
+        if (clamped) expect(at).toBeLessThanOrEqual(SLACK_KNOTS)
+        else expect(at).toBeCloseTo(SLACK_KNOTS, 2)
       }
     }
+  })
+
+  it('clamps a window still open at the frame edge rather than dropping it', () => {
+    // Start the frame inside a window: the water is already slack at t=0, so
+    // there is no opening crossing to find. Half a window is still water you
+    // can transit, and the chart draws to the frame either way.
+    const w = windows[0]
+    const mid = new Date((w.start.getTime() + w.end.getTime()) / 2)
+    const clipped = slackWindows(CURRENT, mid, 24)
+    // The frame's first sample, not `mid` exactly — the predictor's timeline
+    // snaps to its own 10-minute grid, so the frame edge is within one sample.
+    expect(Math.abs(clipped[0].start.getTime() - mid.getTime())).toBeLessThanOrEqual(600_000)
+    // And it is a clamp, not a crossing: the water there is inside the band.
+    const at = Math.abs(predictSeries(CURRENT, clipped[0].start, 1 / 3600, 1)[0].level)
+    expect(at).toBeLessThan(SLACK_KNOTS)
   })
 
   it('wraps each slack, one window per reversal', () => {

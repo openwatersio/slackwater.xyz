@@ -245,7 +245,10 @@ export function CurrentCurve({
               {!sparse && (
               <text
                 x={x(s.time)}
-                y={zeroY - 14}
+                // Clear of the BAND, not of the zero line: the band's height is
+                // the threshold, so a label pinned near zero sits inside it as
+                // soon as the threshold grows. At 0.5 kn this is where it was.
+                y={yOf(SLACK_KNOTS) - 8}
                 textAnchor="middle"
                 fill="#E4F0E4"
                 fillOpacity={0.6}

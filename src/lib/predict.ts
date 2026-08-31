@@ -117,12 +117,17 @@ export interface SlackWindow {
 /**
  * The speed below which the water counts as slack, in knots.
  *
- * The same anchor the colour ramp turns on (`KNOT_ANCHORS[0]` in ramp.ts). The
- * app makes this a user setting; here it is fixed. Both of the chart's slack
- * marks — the band and the inked run of curve — derive from this one value, so
- * they cannot drift apart.
+ * The app makes this a per-boat setting (`slackThresholdKn`, range 0.1…10);
+ * the web has no settings, so it ships one value for everyone. THREE marks
+ * derive from it — the band's height, the length of the inked run, and the
+ * baseline the speed fill starts from — so it is the single number that says
+ * what this chart considers workable water, and they cannot drift apart.
+ *
+ * NOTE: the app's own default is still `defaultSlackThresholdKn = 0.5`
+ * (slackwater-ios, SlackWindow.swift). Until that moves, a reader comparing
+ * the two sees different windows for the same station.
  */
-export const SLACK_KNOTS = 0.5
+export const SLACK_KNOTS = 1.5
 
 /**
  * The runs of time the water is transitable, as opposed to the instant it
