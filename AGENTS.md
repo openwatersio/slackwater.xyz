@@ -11,14 +11,14 @@ private repos stay out of it.
 ## This was a one-page site
 
 One page, one job used to constrain almost every decision: turn a reader into an install, and
-nothing got to exist unless it served that. It's now a landing page plus 3,607 prerendered
+nothing got to exist unless it served that. It's now a landing page plus 3,630 prerendered
 station pages at `/tides/<slug>` and `/currents/<slug>`. The constraint didn't relax — a second
 page finally earned it. The station corpus is both the thing a reader shares a link to instead
 of describing what the water's doing, and the indexable content the site had none of before. A
 referral route and a web client still haven't earned their place, which is why neither exists.
 
 - **Reach for less, more than ever.** A dependency, an abstraction, or a build step needs to
-  earn its place on a site whose pitch is that it loads instantly. 3,607 pages multiply the cost
+  earn its place on a site whose pitch is that it loads instantly. 3,630 pages multiply the cost
   of anything that doesn't.
 - **Don't build the referral route or the web client** because you noticed they're missing.
   They're missing on purpose — the station corpus earning its place doesn't change the case for
@@ -27,10 +27,12 @@ referral route and a web client still haven't earned their place, which is why n
   prediction from `src/lib/predict.ts` against bundled constituents; the hero on `/` is one more
   instance of that, not a separate demo. If you touch `predict.ts` or `src/lib/ramp.ts`, a test
   comes with it.
-- **The corpus is 3,607 of 4,690 stations, not all of them.** The missing 1,082 are Canadian
-  (CHS): no bundled constituents, predictions DFO's terms don't allow re-serving, and for 1,048
-  of them no published identity anywhere to build a page from. Tracked in issue #17 — don't
-  write or imply full coverage; `/currents/dodd-narrows` genuinely 404s today.
+- **The corpus is 3,630 pages of 4,686 distinct waters, not all of them.** 23 Canadian (CHS)
+  current gates build from published registry identity, without a curve — DFO's terms don't
+  allow re-serving predictions for them. What's still missing is the Canadian tide ports, whose
+  identity is not published yet, plus `chs-arran-rapids`, excluded by name pending an owner
+  decision. Tracked in issue #17 — don't write or imply full coverage; `/currents/dodd-narrows`
+  now resolves.
 
 ## Hard rules
 

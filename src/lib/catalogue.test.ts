@@ -15,6 +15,10 @@ describe('loadCatalogue', () => {
 
   it('still excludes the CHS tide ports, whose identity is not published yet', () => {
     expect(all.some((s) => s.kind === 'tide' && s.id.startsWith('chs-'))).toBe(false)
+    // Buildability is decided by id shape (`id.includes('/')`), not a `chs-`/`noaa-`
+    // prefix: `noaa-boundary-pass` is registry-owned despite its name, and a prefix
+    // test would let it through to a throw.
+    expect(all.some((s) => s.id === 'noaa-boundary-pass')).toBe(false)
   })
 
   it('builds the flagship gate', () => {
