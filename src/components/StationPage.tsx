@@ -1,6 +1,7 @@
 import { CurrentCurve } from './CurrentCurve'
 import { TideCurve } from './TideCurve'
 import { dayLabel } from '#/lib/format'
+import { TESTFLIGHT } from '#/lib/links'
 import type { Station } from '#/lib/station'
 
 interface Props {
@@ -38,6 +39,46 @@ export function StationPage({ station, now, live = false }: Props) {
       ) : (
         <CurrentCurve station={station} start={start} hours={24} now={now} live={live} />
       )}
+      <Cta />
     </main>
+  )
+}
+
+/**
+ * The reason these pages exist: a shared link reaches someone without the app,
+ * so every station page has to offer the app. Kept honest against what ships —
+ * tides are worldwide, currents are not (see the corpus split in the catalogue).
+ *
+ * The home link is not decoration: without it all 3,607 station pages are
+ * orphans with no internal link back into the site.
+ */
+function Cta() {
+  return (
+    <section className="mt-14 border-t border-sw-steel/15 pt-8">
+      <p className="text-sw-steel">
+        Slackwater predicts tides and currents offline, on your phone — tides worldwide,
+        currents across the US and Canada.
+      </p>
+      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+        {TESTFLIGHT ? (
+          <a
+            href={TESTFLIGHT}
+            className="rounded-md bg-sw-leaf px-5 py-3 font-medium text-sw-navy-deep transition hover:bg-sw-leaf/90"
+          >
+            Get the beta on TestFlight
+          </a>
+        ) : (
+          <span className="rounded-md border border-sw-leaf/30 px-5 py-3 font-medium text-sw-steel">
+            iPhone beta — opening soon
+          </span>
+        )}
+        <a
+          href="/"
+          className="whitespace-nowrap text-sw-steel underline underline-offset-4 transition hover:text-sw-paper"
+        >
+          Slackwater
+        </a>
+      </div>
+    </section>
   )
 }

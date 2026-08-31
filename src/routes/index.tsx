@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { CurrentCurve } from '#/components/CurrentCurve'
+import { TESTFLIGHT } from '#/lib/links'
 import { useLiveNow } from '#/lib/use-live-now'
 import { Shot } from '#/components/Shot'
 import { HERO_STATION } from '#/lib/currents'
@@ -37,14 +38,6 @@ export const Route = createFileRoute('/')({
   component: Home,
 })
 
-/**
- * The public beta link — TestFlight group "OSS and Externals", minted for this.
- *
- * NOT the Friends & Family link in slackwater-ios/docs/testflight.md. That one
- * is handed out personally; publishing it turns a curated group into an open
- * door and burns the only link that can be given to someone individually.
- */
-const TESTFLIGHT: string | null = 'https://testflight.apple.com/join/FCSS4w8s'
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
