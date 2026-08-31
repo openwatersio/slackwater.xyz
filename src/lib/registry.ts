@@ -7,7 +7,8 @@
 // until this existed.
 import registry from '@openwaters/station-metadata/data/registry.json' with { type: 'json' }
 import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type: 'json' }
-import type { Kind } from './station'
+import tzLookup from 'tz-lookup'
+import type { ChsStation, Kind } from './station'
 
 interface RegistryEntry {
   name: string
@@ -47,6 +48,45 @@ export function curatedBySlug(kind: Kind): Map<string, Curated> {
     const slug = table[id]
     if (!slug) continue
     out.set(slug, { name: entry.name, ...(entry.context ? { region: entry.context } : {}) })
+  }
+  return out
+}
+
+/**
+ * Deferred by owner decision, and excluded by name because the registry
+ * publishes it like any other gate — without this rule it would become a page
+ * as a side effect of a data source. slackwater-ios excludes it fully as a
+ * hazard call: violent rapids, "wrong water under a trusted name". Whether
+ * official DFO predictions change that answer is an open question, not one to
+ * settle by deleting this line.
+ */
+const EXCLUDED = new Set(['chs-arran-rapids'])
+
+/**
+ * The Canadian current gates, from identity station-metadata already publishes.
+ *
+ * No new package and no upstream release: all 24 gates are registry entries
+ * with a curated name, region and corrected position. Only the timezone is
+ * derived, from the position, the way the tide ports get theirs.
+ */
+export function chsGates(): ChsStation[] {
+  const table = slugTable.current as Record<string, string>
+  const out: ChsStation[] = []
+  for (const [id, entry] of Object.entries(entries)) {
+    if (entry.provider !== 'chs' || kindOf(entry) !== 'current') continue
+    if (EXCLUDED.has(id)) continue
+    const slug = table[id]
+    // A gate with no published slug is a broken corpus, not one to skip: it
+    // means the registry and the slug table disagree about what exists.
+    if (!slug) throw new Error(`registry: no published slug for gate ${id}`)
+    const [latitude, longitude] = entry.position
+    out.push({
+      id, kind: 'current', slug, source: 'chs',
+      name: entry.name,
+      ...(entry.context ? { region: entry.context } : {}),
+      latitude, longitude,
+      timezone: tzLookup(latitude, longitude),
+    })
   }
   return out
 }

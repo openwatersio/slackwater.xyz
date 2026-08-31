@@ -38,6 +38,7 @@ describe('client bundle', () => {
       const src = readFileSync(`${ASSETS}/${f}`, 'utf8')
       expect(src.includes('tide-database'), f).toBe(false)
       expect(src.includes('noaa-current-stations'), f).toBe(false)
+      expect(src.includes('station-metadata/data'), f).toBe(false)
     }
   })
 })

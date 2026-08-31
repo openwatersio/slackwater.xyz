@@ -7,7 +7,7 @@ import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type
 import currentBundle from '@openwaters/noaa-current-stations/currents.json' with { type: 'json' }
 import { stationsById } from '@neaps/tide-database'
 import tzLookup from 'tz-lookup'
-import { curatedBySlug, REGISTRY_IDS } from './registry'
+import { chsGates, curatedBySlug, REGISTRY_IDS } from './registry'
 import type { BundledStation, Kind, Station } from './station'
 
 /**
@@ -106,6 +106,8 @@ export function loadCatalogue(): Station[] {
       }
     }
   }
+
+  out.push(...chsGates())
 
   // One row per slug. station-metadata merges duplicate identities by pointing
   // both ids at one slug (4.1.2), so a slug can arrive twice. Prefer the id the

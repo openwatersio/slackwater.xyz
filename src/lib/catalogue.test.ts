@@ -6,17 +6,18 @@ import { loadCatalogue } from './catalogue'
 describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
-  it('yields every station whose data ships on npm', () => {
-    expect(all.length).toBe(3607)
+  it('yields every station whose data ships on npm, plus the CHS gates', () => {
+    expect(all.length).toBe(3630)
     expect(all.filter((s) => s.kind === 'tide').length).toBe(2765)
-    expect(all.filter((s) => s.kind === 'current').length).toBe(842)
+    expect(all.filter((s) => s.kind === 'current').length).toBe(865)
   })
 
-  it('excludes stations no data package can satisfy', () => {
-    expect(all.some((s) => s.id.startsWith('chs-'))).toBe(false)
-    // Registry-owned despite the noaa- name; a chs- prefix test misses it.
-    expect(all.some((s) => s.id === 'noaa-boundary-pass')).toBe(false)
-    expect(all.every((s) => s.id.includes('/'))).toBe(true)
+  it('still excludes the CHS tide ports, whose identity is not published yet', () => {
+    expect(all.some((s) => s.kind === 'tide' && s.id.startsWith('chs-'))).toBe(false)
+  })
+
+  it('builds the flagship gate', () => {
+    expect(all.some((s) => s.slug === 'dodd-narrows' && s.kind === 'current')).toBe(true)
   })
 
   it('gives every station what it needs to be predicted and addressed', () => {
