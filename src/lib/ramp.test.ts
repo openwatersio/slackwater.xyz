@@ -1,49 +1,43 @@
 import { describe, expect, it } from 'vitest'
-import { RAMP, rampColor, rampT, speedInk } from './ramp'
+import { SPEED_STOPS, speedColor } from './ramp'
 
 describe('speed ramp', () => {
-  it('anchors to capability, not to the day', () => {
-    expect(rampT(0)).toBe(0)
-    expect(rampT(0.5)).toBe(0)          // slack threshold
-    expect(rampT(3)).toBeCloseTo(1 / 3) // a paddler can't make way
-    expect(rampT(6)).toBeCloseTo(2 / 3) // a small craft can't stem it
-    expect(rampT(16)).toBeCloseTo(1)    // Sechelt Rapids
-    expect(rampT(25)).toBe(1)           // clamps, never wraps
+  it('is the app ramp, stop for stop', () => {
+    // SN.speedRampStops, Theme.swift. If this disagrees with that file, that
+    // file wins — and the drift is exactly what this test exists to catch.
+    expect(SPEED_STOPS).toEqual([
+      [0, '#F5C96B'],
+      [1 / 3, '#F5C96B'],
+      [2 / 3, '#E8763C'],
+      [1, '#C93A32'],
+    ])
   })
 
-  it('is symmetric in direction — the ramp is speed, the sign is direction', () => {
-    expect(rampT(-4.8)).toBeCloseTo(rampT(4.8))
+  it('holds yellow to a third, then warms to red', () => {
+    expect(speedColor(0)).toBe('#f5c96b')
+    expect(speedColor(1 / 3)).toBe('#f5c96b')
+    expect(speedColor(2 / 3)).toBe('#e8763c')
+    expect(speedColor(1)).toBe('#c93a32')
   })
 
-  it('rises monotonically', () => {
-    let prev = -1
-    for (let k = 0; k <= 20; k += 0.25) {
-      const t = rampT(k)
-      expect(t).toBeGreaterThanOrEqual(prev)
-      prev = t
-    }
+  it('clamps rather than wrapping', () => {
+    expect(speedColor(-1)).toBe(speedColor(0))
+    expect(speedColor(4)).toBe(speedColor(1))
   })
 
   it('never contains green — green means slack', () => {
-    for (const hex of RAMP) {
-      const r = parseInt(hex.slice(1, 3), 16)
-      const g = parseInt(hex.slice(3, 5), 16)
-      const b = parseInt(hex.slice(5, 7), 16)
+    for (let t = 0; t <= 1; t += 0.02) {
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(speedColor(t).slice(i, i + 2), 16))
       expect(g > r + 20 && g > b + 20).toBe(false)
     }
   })
 
-  it('colours by speed, so slack is dark and a rip is bright', () => {
-    expect(rampColor(0)).toBe(RAMP[0].toLowerCase())
-    expect(rampColor(16)).toBe(RAMP[5].toLowerCase())
-    // A 6 kn gate must not read the same as a 1 kn drift.
-    expect(rampColor(6)).not.toBe(rampColor(1))
-    // Direction never changes the colour — that is the blue/amber axis's job.
-    expect(rampColor(-4.8)).toBe(rampColor(4.8))
-  })
-
-  it('flips ink to dark only at the light end', () => {
-    expect(speedInk(1)).toBe('#FCFCFC')
-    expect(speedInk(15)).toBe('#00121F')
+  it('cools its green channel monotonically, so hotter never reads calmer', () => {
+    let prev = 256
+    for (let t = 0; t <= 1; t += 0.02) {
+      const g = parseInt(speedColor(t).slice(3, 5), 16)
+      expect(g).toBeLessThanOrEqual(prev)
+      prev = g
+    }
   })
 })

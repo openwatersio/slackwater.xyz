@@ -1,6 +1,6 @@
 import { useId, useMemo } from 'react'
 import { dayLabel, hhmm } from '#/lib/format'
-import { rampColor } from '#/lib/ramp'
+import { speedColor } from '#/lib/ramp'
 import {
   findEvents,
   nextEvent,
@@ -14,9 +14,14 @@ import type { Station } from '#/lib/station'
 /**
  * The signed velocity curve, drawn the way the app draws it.
  *
- * Colour is state, form is kind. The fill is the speed ramp — one horizontal
- * gradient across the whole curve, so colour reads as "how hard is it running"
- * and never as "what kind of station is this".
+ * Colour is state, form is kind.
+ *
+ * The fill is the app's speed ramp, and it starts at the COMFORT LIMIT rather
+ * than at zero: only the excess above ±threshold is inked, yellow where it
+ * leaves the band and red at the edge of the plot. Water you can work in is
+ * not drawn hot at all. The gradient runs vertically against the auto-fitted
+ * plot, exactly as `drawCurrent` runs it, so the day's peak is the red end
+ * whatever it measures — see `speedColor`.
  *
  * Green is slack, and it makes two separate claims with two separate marks.
  * The BAND is what slack is set to: a flat rule from +threshold to -threshold
@@ -76,7 +81,10 @@ export function CurrentCurve({
   // second SVG reference the first's gradient, which sits in a hidden subtree
   // and paints nothing. The stroke survives, the fill silently vanishes.
   const uid = useId().replace(/:/g, '')
-  const rampId = `ramp-${uid}`
+  const hotUpId = `hot-up-${uid}`
+  const hotDownId = `hot-down-${uid}`
+  const hotAboveId = `above-${uid}`
+  const hotBelowId = `below-${uid}`
   const maskId = `edges-${uid}`
   const fadeId = `fade-${uid}`
   const clipId = `plot-${uid}`
@@ -84,7 +92,7 @@ export function CurrentCurve({
 
   const PAD_TOP = 34
   const PAD_BOTTOM = 44
-  const { path, area, zeroY, x, yOf, events, stops, windows } = useMemo(() => {
+  const { path, area, zeroY, x, yOf, events, windows } = useMemo(() => {
     const samples = predictSeries(station, start, hours)
     const events = findEvents(station, start, hours)
     const windows = slackWindows(station, start, hours)
@@ -97,17 +105,7 @@ export function CurrentCurve({
 
     const pts = samples.map((s) => `${x(s.time).toFixed(2)},${y(s.level).toFixed(2)}`)
 
-    // Gradient stops run along time, but each stop's COLOUR comes from that
-    // moment's speed. A left-to-right ramp would colour by clock position,
-    // which means nothing; this way the fill is dark at slack and bright in
-    // the rip, and the same colour means the same knots on any day.
-    const stops = samples.map((s) => ({
-      offset: x(s.time) / W,
-      color: rampColor(s.level),
-    }))
-
     return {
-      stops,
       windows,
       yOf: y,
       path: `M${pts.join('L')}`,
@@ -135,11 +133,31 @@ export function CurrentCurve({
         aria-label={describe(station, events, now)}
       >
         <defs>
-          <linearGradient id={rampId} x1="0" x2="1" y1="0" y2="0">
-            {stops.map((s, i) => (
-              <stop key={i} offset={s.offset} stopColor={s.color} />
-            ))}
+          {/* Vertical, in user space: the ramp is a position in the PLOT, not
+              a speed, so the yellow end pins to the threshold line and the red
+              end to the edge of the fitted plot. Two of them because the ebb
+              half runs the other way. */}
+          <linearGradient id={hotUpId} gradientUnits="userSpaceOnUse" x1={0} x2={0} y1={yOf(SLACK_KNOTS)} y2={PAD_TOP}>
+            <stop offset="0" stopColor={speedColor(0)} />
+            <stop offset="0.5" stopColor={speedColor(0.5)} />
+            <stop offset="1" stopColor={speedColor(1)} />
           </linearGradient>
+          <linearGradient id={hotDownId} gradientUnits="userSpaceOnUse" x1={0} x2={0} y1={yOf(-SLACK_KNOTS)} y2={H - PAD_BOTTOM}>
+            <stop offset="0" stopColor={speedColor(0)} />
+            <stop offset="0.5" stopColor={speedColor(0.5)} />
+            <stop offset="1" stopColor={speedColor(1)} />
+          </linearGradient>
+          {/* The excess, without walking the samples for it: the area between
+              the zero line and the curve, intersected with the half-plane
+              outside the band, IS the area between the threshold line and the
+              curve wherever the curve exceeds it. The clip edge lands on the
+              exact crossing, which a sampled polygon would not. */}
+          <clipPath id={hotAboveId}>
+            <rect x={0} y={0} width={W} height={yOf(SLACK_KNOTS)} />
+          </clipPath>
+          <clipPath id={hotBelowId}>
+            <rect x={0} y={yOf(-SLACK_KNOTS)} width={W} height={H - yOf(-SLACK_KNOTS)} />
+          </clipPath>
           <clipPath id={clipId}>
             <rect x="0" y="0" width={W} height={H} />
           </clipPath>
@@ -181,7 +199,12 @@ export function CurrentCurve({
               // ponytail: 0.56 is the app's, settled by eye on a phone. Tune here.
               opacity={0.56}
             />
-            <path d={area} fill={`url(#${rampId})`} opacity={0.9} />
+            <g clipPath={`url(#${hotAboveId})`}>
+              <path d={area} fill={`url(#${hotUpId})`} />
+            </g>
+            <g clipPath={`url(#${hotBelowId})`}>
+              <path d={area} fill={`url(#${hotDownId})`} />
+            </g>
             <path d={path} fill="none" stroke="#DFEEE0" strokeWidth={2.2} strokeLinejoin="round" />
             {/* The same curve, inked green where it is inside the band. Clipped
                 rather than re-fitted: the clip's edges are the interpolated
@@ -191,7 +214,6 @@ export function CurrentCurve({
               <path d={path} fill="none" stroke={GO} strokeWidth={4.4} strokeLinejoin="round" />
             </g>
           </g>
-          <line x1={0} x2={W} y1={zeroY} y2={zeroY} stroke="#FFFFFF" strokeOpacity={0.4} />
 
           {/* Max flood / max ebb — a dot and a number, ink picked by luminance. */}
           {turns.map((e) => (
@@ -201,9 +223,9 @@ export function CurrentCurve({
                 x={x(e.time)}
                 y={yOf(e.level) + (e.level > 0 ? -14 : 22)}
                 textAnchor="middle"
-                // Foam, not speedInk: the label sits on the page, not on the
-                // fill, so fill-contrast ink turns dark navy above ~6.6 kn and
-                // vanishes. The curve already carries the speed as colour.
+                // Foam, always: the label sits on the page as often as on the
+                // fill, and the app's own `SN.speedInk` contrast switch is for
+                // a mark drawn inside the fill. The curve carries the speed.
                 fill="#E4F0E4"
                 className="font-mono text-[15px] font-semibold [font-variant-numeric:tabular-nums]"
                 style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
