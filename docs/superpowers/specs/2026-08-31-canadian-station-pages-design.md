@@ -215,8 +215,42 @@ This is what stops `/currents/dodd-narrows` returning a 404 — the URL
 `isBuildable(id)` currently answers one question with one rule: an id containing `/`
 comes from a provider package that carries constituents. That rule stays true and
 stays the right shape; what changes is that a station without constituents is now
-buildable as identity. `Station.constituents` becomes optional, and `loadCatalogue`
-gains a third source alongside the tide database and the current bundle.
+buildable as identity. `loadCatalogue` gains a third source alongside the tide
+database and the current bundle.
+
+**`Station` becomes a discriminated union, not a type with an optional field.**
+Making `constituents` optional would type-check every existing call site and break at
+runtime: `predictorFor` passes `station.constituents` straight into
+`createTidePredictor` (`src/lib/predict.ts:37`) with no guard, so the first CHS stub
+to reach it throws — during prerender, across 1,081 pages.
+
+```ts
+interface StationIdentity {
+  id: string; kind: Kind; slug: string; name: string
+  latitude: number; longitude: number; timezone: string; region?: string
+}
+/** Constituents ship with the page; the curve is synthesised at build. */
+interface BundledStation extends StationIdentity {
+  source: 'bundled'
+  constituents: Constituent[]
+  offset?: number
+  floodDirection?: number
+  ebbDirection?: number
+}
+/** Identity only. The curve, if the visitor asks for it, comes from DFO. */
+interface ChsStation extends StationIdentity { source: 'chs' }
+
+type Station = BundledStation | ChsStation
+```
+
+`predictSeries`, `findEvents` and `currents.ts` narrow to `BundledStation`, so passing
+a stub into prediction is a **compile error rather than a prerender crash**. The
+discriminant earns its place three times over: it narrows the type, it selects the
+page's render branch, and it selects the provenance copy below.
+
+An optional `samples` prop on the curve components is not a substitute. It makes the
+fetched path *possible*; it does nothing to make the synthesised path *impossible* for
+a station that has nothing to synthesise from.
 
 The existing throw — a slug with no data is a broken corpus, not a station to skip —
 must survive: a CHS slug with no row in `chs-stations.json` is the same class of
@@ -293,6 +327,58 @@ same drawing code, same colour ramp.
 rather than duplicated. This is the better data: `findEvents` interpolates slack from
 sign changes, while DFO publishes the slack time directly.
 
+### Provenance copy: eight sites that would lie
+
+Reusing the curves reuses their **claims about where the numbers came from**, and on a
+CHS page every one of those claims is false. The codebase already treats this as a
+correctness invariant rather than wording — `TideCurve.tsx:153` says so directly:
+
+> "Computed from harmonic constituents", not "computed on this device": this same
+> sentence ships in prerendered HTML, where no device computed anything. **The claim
+> has to be true on both rendering paths.**
+
+A CHS page adds a third path, on which the existing sentence is simply untrue. Every
+site, found by grepping the phrase rather than by reading the two obvious ones:
+
+| Site | Claim |
+|---|---|
+| `TideCurve.tsx:160` | `describe()` — accessible description |
+| `CurrentCurve.tsx:320` | `describe()`, no-event branch |
+| `CurrentCurve.tsx:327` | `describe()`, main branch |
+| `routes/tides.$slug.tsx:21` | meta + `og:description` |
+| `routes/currents.$slug.tsx:21` | meta + `og:description` |
+| `routes/tides.$slug_.$instant.tsx:36` | meta + `og:description` |
+| `routes/currents.$slug_.$instant.tsx:36` | meta + `og:description` |
+| `routes/stations.index.tsx:27` | "Heights come from harmonic constituents" |
+
+**Four of these land in Project B, not C.** The route metadata is rendered on the
+prerendered stub, before any curve is requested and whether or not one ever is — so a
+CHS stub would ship a description claiming a computation that the page does not
+perform and is not permitted to perform. That is the licensing posture contradicted in
+the page's own `<meta>`, and it is also the text that appears in a shared unfurl.
+
+`stations.index.tsx` becomes false the moment 1,058 CHS rows join a list whose
+standfirst says heights come from harmonic constituents.
+
+So provenance becomes a value derived from `station.source`, not a literal:
+
+- `bundled` → "computed from harmonic constituents" (unchanged).
+- `chs`, no curve drawn (Project B) → says what the page *is*: identity, position, and
+  that predictions come from DFO in the app or on request. It must not describe a
+  computation.
+- `chs`, curve drawn (Project C) → "published by the Canadian Hydrographic Service",
+  naming DFO as the source, since that is both true and the stronger claim.
+
+One helper, one call site per surface. The OG card carries no provenance text, so it
+needs no seam — confirmed by reading `og-image.ts`, not assumed.
+
+**Adjacent, and deliberately not in scope:** `routes/index.tsx:206` tells the reader
+the app uses "harmonic constituents published by NOAA and the Canadian Hydrographic
+Service, computed on your phone rather than fetched from anyone's server." CHS
+publishes no constituents — that is the premise of this whole document — and the CHS
+path is fetched. That copy describes the app and predates this work, so correcting it
+is not #17's job, but #17 is what makes it conspicuous. Worth its own issue.
+
 ### Units and datum
 
 DFO publishes heights in **metres on chart datum**. The site speaks feet, and every
@@ -352,8 +438,11 @@ on anyone else. It is worth landing first regardless — the same gap is why
 `/currents/boundary-pass` is titled "Turn Point, Boundary Pass" today, with the URL
 and the heading disagreeing on a live page.
 
-Project A is not affected. Its guard is that generated ids match the CHS **keys** of
-`slugs.json`, and the keys are correct — it is the values that are shared, by design.
+Project A is not affected, and there is no upstream fix for it to wait on. Its guard
+is that generated ids match the CHS **keys** of `slugs.json`, and the keys are correct
+— it is the values that are shared, by design. There is no collision survivor to pick
+and no tombstone to record: 4.1.2 already decided, and it decided that both ids name
+one station.
 
 ### A correction to an earlier reading
 
