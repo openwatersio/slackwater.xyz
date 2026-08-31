@@ -108,3 +108,69 @@ export function findEvents(station: Station, start: Date, hours: number): Statio
 export function nextEvent(events: StationEvent[], now: Date): StationEvent | undefined {
   return events.find((e) => e.time.getTime() >= now.getTime())
 }
+
+export interface SlackWindow {
+  start: Date
+  end: Date
+}
+
+/**
+ * The speed below which the water counts as slack, in knots.
+ *
+ * The same anchor the colour ramp turns on (`KNOT_ANCHORS[0]` in ramp.ts). The
+ * app makes this a user setting; here it is fixed. Both of the chart's slack
+ * marks — the band and the inked run of curve — derive from this one value, so
+ * they cannot drift apart.
+ */
+export const SLACK_KNOTS = 0.5
+
+/**
+ * The runs of time the water is transitable, as opposed to the instant it
+ * reverses.
+ *
+ * Endpoints are the interpolated `±threshold` crossings, not the nearest
+ * sample: at a fast gate a 10-minute sample lands a long way from the edge.
+ *
+ * A run only counts if the velocity changes sign inside it. A lull that dips
+ * under the threshold and then builds back the way it came is weak water, not
+ * slack, and drawing it green would promise a transit that never opens. This
+ * is what keeps two windows separated by a sub-threshold blip as one run.
+ */
+export function slackWindows(
+  station: Station,
+  start: Date,
+  hours: number,
+  threshold = SLACK_KNOTS,
+): SlackWindow[] {
+  const timeline = predictSeries(station, start, hours)
+  // Signed distance out of the band — negative inside, zero at the edge. The
+  // crossing is interpolated on it the same way findEvents interpolates slack.
+  const out = (s: Sample) => Math.abs(s.level) - threshold
+  const cross = (a: Sample, b: Sample) =>
+    new Date(a.time.getTime() + (out(a) / (out(a) - out(b))) * (b.time.getTime() - a.time.getTime()))
+
+  const windows: SlackWindow[] = []
+  let from: Date | undefined = out(timeline[0]) <= 0 ? timeline[0].time : undefined
+  let turned = false
+  for (let i = 1; i < timeline.length; i++) {
+    const a = timeline[i - 1]
+    const b = timeline[i]
+    const inA = out(a) <= 0
+    const inB = out(b) <= 0
+    if (!inA && inB) {
+      from = cross(a, b)
+      turned = false
+    }
+    // Checked on the entry and exit steps too, not just the ones wholly inside:
+    // at a violent gate the reversal and the band edge land in one sample.
+    if ((inA || inB) && a.level > 0 !== b.level > 0) turned = true
+    if (inA && !inB) {
+      if (from && turned) windows.push({ start: from, end: cross(a, b) })
+      from = undefined
+      turned = false
+    }
+  }
+  // A window open at the frame edge is real water; it just has no visible end.
+  if (from && turned) windows.push({ start: from, end: timeline[timeline.length - 1].time })
+  return windows
+}

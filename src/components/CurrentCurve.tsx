@@ -1,7 +1,14 @@
 import { useId, useMemo } from 'react'
 import { dayLabel, hhmm } from '#/lib/format'
 import { rampColor } from '#/lib/ramp'
-import { findEvents, nextEvent, predictSeries, type StationEvent } from '#/lib/predict'
+import {
+  findEvents,
+  nextEvent,
+  predictSeries,
+  slackWindows,
+  SLACK_KNOTS,
+  type StationEvent,
+} from '#/lib/predict'
 import type { Station } from '#/lib/station'
 
 /**
@@ -9,9 +16,22 @@ import type { Station } from '#/lib/station'
  *
  * Colour is state, form is kind. The fill is the speed ramp — one horizontal
  * gradient across the whole curve, so colour reads as "how hard is it running"
- * and never as "what kind of station is this". Green appears exactly once, as
- * the slack window, and it is drawn UNDER the fill: slack is ground, not figure.
+ * and never as "what kind of station is this".
+ *
+ * Green is slack, and it makes two separate claims with two separate marks.
+ * The BAND is what slack is set to: a flat rule from +threshold to -threshold
+ * across the whole width, ground rather than figure, claiming nothing about
+ * time. The INKED RUN is when it is happening: the curve itself, overdrawn
+ * green between the window's crossings. Drawing the window on the water rather
+ * than behind it means the mark cannot over-claim — a peak that rises out of
+ * the band breaks the green — and makes two windows comparable by length
+ * alone, which a mark whose height followed the curve's steepness was not.
  */
+
+// ponytail: the app's SN.go. A literal, like the foam and ramp hexes below it —
+// the tokens in styles.css can't reach the OG card, which resvg rasterises from
+// bare markup with no stylesheet (see lib/og-image.ts).
+const GO = '#88B868'
 
 interface Props {
   station: Station
@@ -60,12 +80,14 @@ export function CurrentCurve({
   const maskId = `edges-${uid}`
   const fadeId = `fade-${uid}`
   const clipId = `plot-${uid}`
+  const slackId = `slack-${uid}`
 
   const PAD_TOP = 34
   const PAD_BOTTOM = 44
-  const { path, area, zeroY, x, yOf, events, stops } = useMemo(() => {
+  const { path, area, zeroY, x, yOf, events, stops, windows } = useMemo(() => {
     const samples = predictSeries(station, start, hours)
     const events = findEvents(station, start, hours)
+    const windows = slackWindows(station, start, hours)
     const peak = Math.max(...samples.map((s) => Math.abs(s.level)), 1)
 
     const span = hours * 3600_000
@@ -86,6 +108,7 @@ export function CurrentCurve({
 
     return {
       stops,
+      windows,
       yOf: y,
       path: `M${pts.join('L')}`,
       area: `M${x(samples[0].time).toFixed(2)},${y(0)}L${pts.join('L')}L${x(samples[samples.length - 1].time).toFixed(2)},${y(0)}Z`,
@@ -133,25 +156,40 @@ export function CurrentCurve({
           <mask id={maskId}>
             <rect x="0" y="0" width={W} height={H} fill={`url(#${fadeId})`} />
           </mask>
+          {/* A clipPath unions its children, so every window fits in one. */}
+          <clipPath id={slackId}>
+            {windows.map((w) => (
+              <rect key={w.start.getTime()} x={x(w.start)} y={0} width={x(w.end) - x(w.start)} height={H} />
+            ))}
+          </clipPath>
         </defs>
 
         <g clipPath={`url(#${clipId})`}>
-          {/* Slack windows: ground, not figure. Under everything. */}
-          {slacks.map((s) => (
-            <rect
-              key={`w${s.time.getTime()}`}
-              x={x(s.time) - 9}
-              y={0}
-              width={18}
-              height={H}
-              fill="#88B868"
-              opacity={0.2}
-            />
-          ))}
-
           <g mask={`url(#${maskId})`}>
+            {/* The slack band: the threshold made visible everywhere at once, so
+                it reads as a speed the reader can check any moment against. It
+                claims nothing about time — the inked run does that. Under the
+                fill, so a peak crossing the band occludes it rather than being
+                tinted green; inside the mask, so it fades at the frame edges
+                with everything else instead of ending in a hard vertical cut. */}
+            <rect
+              x={0}
+              y={yOf(SLACK_KNOTS)}
+              width={W}
+              height={yOf(-SLACK_KNOTS) - yOf(SLACK_KNOTS)}
+              fill={GO}
+              // ponytail: 0.56 is the app's, settled by eye on a phone. Tune here.
+              opacity={0.56}
+            />
             <path d={area} fill={`url(#${rampId})`} opacity={0.9} />
             <path d={path} fill="none" stroke="#DFEEE0" strokeWidth={2.2} strokeLinejoin="round" />
+            {/* The same curve, inked green where it is inside the band. Clipped
+                rather than re-fitted: the clip's edges are the interpolated
+                crossings, so the green starts and stops exactly where the water
+                does and not at the nearest 10-minute sample. */}
+            <g clipPath={`url(#${slackId})`}>
+              <path d={path} fill="none" stroke={GO} strokeWidth={4.4} strokeLinejoin="round" />
+            </g>
           </g>
           <line x1={0} x2={W} y1={zeroY} y2={zeroY} stroke="#FFFFFF" strokeOpacity={0.4} />
 
@@ -176,7 +214,9 @@ export function CurrentCurve({
           ))}
 
           {/* Slack instants: foam, never green. A mathematical point is not
-              something you can transit at — the window above is. */}
+              something you can transit at — the inked run is. Set smaller than
+              the peak labels for the same reason: an instant rendered louder
+              than its own window inverts the hierarchy. */}
           {slacks.map((s) => (
             <g key={`s${s.time.getTime()}`}>
               <circle cx={x(s.time)} cy={zeroY} r={4} fill="#E4F0E4" />
@@ -186,7 +226,8 @@ export function CurrentCurve({
                 y={zeroY - 14}
                 textAnchor="middle"
                 fill="#E4F0E4"
-                className="font-mono text-[15px] font-semibold [font-variant-numeric:tabular-nums]"
+                fillOpacity={0.6}
+                className="font-mono text-[12px] [font-variant-numeric:tabular-nums]"
                 style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
               >
                 {hhmm(s.time, station.timezone)}
@@ -197,15 +238,15 @@ export function CurrentCurve({
 
           {/* Now. */}
           <g>
-            <line x1={x(now)} x2={x(now)} y1={0} y2={H} stroke="#88B868" strokeOpacity={0.9} strokeWidth={1.5} />
-            <circle cx={x(now)} cy={zeroY} r={3} fill="#88B868" />
+            <line x1={x(now)} x2={x(now)} y1={0} y2={H} stroke={GO} strokeOpacity={0.9} strokeWidth={1.5} />
+            <circle cx={x(now)} cy={zeroY} r={3} fill={GO} />
             {/* Top, not bottom: the bottom is where a max-ebb label lands, and
                 on a phone the two collide. */}
             <text
               x={x(now)}
               y={12}
               textAnchor="middle"
-              fill="#88B868"
+              fill={GO}
               className="font-mono text-[11px] font-medium uppercase tracking-[0.16em]"
               style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
             >

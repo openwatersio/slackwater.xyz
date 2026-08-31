@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { predictSeries, findEvents } from './predict'
+import { predictSeries, findEvents, slackWindows, SLACK_KNOTS } from './predict'
 import type { Station } from './station'
 
 const CURRENT: Station = {
@@ -62,5 +62,45 @@ describe('findEvents', () => {
   it('returns events in time order', () => {
     const times = events.map((e) => e.time.getTime())
     expect(times).toEqual([...times].sort((a, b) => a - b))
+  })
+})
+
+describe('slackWindows', () => {
+  const start = new Date('2026-09-01T00:00:00Z')
+  const windows = slackWindows(CURRENT, start, 24)
+
+  it('opens and closes exactly where the curve meets the threshold', () => {
+    expect(windows.length).toBeGreaterThan(0)
+    // The endpoints are interpolated crossings, not the nearest 10-minute
+    // sample: at a fast gate a sample lands a long way from the edge.
+    for (const w of windows) {
+      for (const edge of [w.start, w.end]) {
+        // Fidelity 1, not the default: the timeline snaps to a 10-minute grid,
+        // which is the very error the interpolation exists to remove.
+        const at = predictSeries(CURRENT, edge, 1 / 3600, 1)[0].level
+        expect(Math.abs(at)).toBeCloseTo(SLACK_KNOTS, 2)
+      }
+    }
+  })
+
+  it('wraps each slack, one window per reversal', () => {
+    const slacks = findEvents(CURRENT, start, 24)
+      .filter((e) => e.kind === 'slack')
+      .map((e) => e.time.getTime())
+    expect(windows.length).toBe(slacks.length)
+    for (const w of windows) {
+      const inside = slacks.filter((t) => t >= w.start.getTime() && t <= w.end.getTime())
+      expect(inside.length).toBe(1)
+    }
+  })
+
+  it('is not fooled by a lull that never reverses', () => {
+    // Bias the whole day just above zero, so the curve dips well inside the
+    // threshold and builds back the way it came. That is weak water, not
+    // slack — drawing it green promises a transit that never opens.
+    const levels = predictSeries(CURRENT, start, 24).map((s) => s.level)
+    const lull = { ...CURRENT, offset: -Math.min(...levels) + 0.2 }
+    expect(Math.min(...predictSeries(lull, start, 24).map((s) => s.level))).toBeCloseTo(0.2, 6)
+    expect(slackWindows(lull, start, 24)).toEqual([])
   })
 })
