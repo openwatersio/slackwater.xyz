@@ -29,9 +29,11 @@ describe('pageDescription', () => {
   })
 
   it('promises no predictions on an identity-only page', () => {
-    const d = pageDescription(chs)
-    expect(d).not.toMatch(/Slack water|maximum flood|next high|comput/i)
-    expect(d).toContain('Dodd Narrows')
-    expect(d).toMatch(/Canadian Hydrographic Service/)
+    // Exact, not a denylist: the previous version listed four retired phrases,
+    // which let a new false claim through in different words.
+    expect(pageDescription(chs)).toBe(
+      'Station information for Dodd Narrows, Nanaimo. Predictions come from the ' +
+        'Canadian Hydrographic Service and are available in the Slackwater app.',
+    )
   })
 })

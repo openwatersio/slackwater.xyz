@@ -28,7 +28,7 @@ export function pageDescription(station: Station): string {
   if (station.source === 'chs') {
     const where = station.region ? `${station.name}, ${station.region}` : station.name
     return `Station information for ${where}. Predictions come from the Canadian ` +
-      `Hydrographic Service and are available in Slackwater.`
+      `Hydrographic Service and are available in the Slackwater app.`
   }
   return station.kind === 'tide'
     ? `Tide heights and the next high and low for ${station.name}, ${provenance(station)}.`
