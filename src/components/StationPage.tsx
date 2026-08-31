@@ -24,13 +24,18 @@ interface Props {
  */
 export function StationPage({ station, now, live = false, nearby = [] }: Props) {
   const start = new Date(now.getTime() - 6 * 3600_000)
-  // The date, always, in the station's own zone. The chart speaks in bare
-  // `hh:mm`, and a shared link can point at any day — without this a receiver
-  // cannot tell which day's water they are looking at. Joined with the region
-  // rather than sitting in its own element so that a station with no region
-  // (every current station: the NOAA bundle carries no region field) renders
-  // one line instead of one line and an empty <p>.
-  const subtitle = [station.region, dayLabel(now, station.timezone)].filter(Boolean).join(' · ')
+  // The date, always, in the station's own zone — but only where there is a
+  // chart to date. The chart speaks in bare `hh:mm`, and a shared link can
+  // point at any day — without a date a receiver cannot tell which day's
+  // water they are looking at. A CHS page draws no chart, so there is
+  // nothing for a date to disambiguate: on a prerender `now` is the fixed
+  // build clock, and printing it would read as the freshness of information
+  // that is not there. Joined with the region rather than sitting in its own
+  // element so that a station with no region (most current stations: the
+  // NOAA bundle carries no region field) renders one line instead of one
+  // line and an empty <p>.
+  const date = station.source === 'bundled' ? dayLabel(now, station.timezone) : undefined
+  const subtitle = [station.region, date].filter(Boolean).join(' · ')
   return (
     <main className="mx-auto max-w-3xl px-5 pb-24 pt-10 sm:px-6 sm:pt-20">
       <h1 className="text-4xl font-semibold tracking-tight text-sw-paper sm:text-5xl">
