@@ -51,6 +51,11 @@ jobs:
       # not a type error. The job still fails on a real one.
       - run: pnpm run typecheck
 
+      # A PR that breaks the test suite went green until this ran only in
+      # Deploy, i.e. after merge. After the build for the same generated-file
+      # reason as typecheck above: the route tests assert against .output/public.
+      - run: pnpm run test
+
       # Not wrangler-action: this needs the alias URL back out, and grepping the
       # command is less indirection than parsing the action's outputs.
       - name: Upload preview version
