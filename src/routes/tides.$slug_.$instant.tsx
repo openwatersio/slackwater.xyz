@@ -1,11 +1,22 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
-import { TideCurve } from '#/components/TideCurve'
+import { StationPage } from '#/components/StationPage'
 import { stationBySlug } from '#/lib/catalogue-server'
 import { parseInstant } from './instant-url'
 
 const CANONICAL = 'https://slackwater.xyz/tides/'
 
-export const Route = createFileRoute('/tides/$slug/$instant')({
+// `$slug_`, with the trailing underscore, and NOT `$slug`.
+//
+// Flat file routing nests by filename: `tides.$slug.$instant.tsx` makes this
+// route a CHILD of `tides.$slug.tsx`, whose component renders no <Outlet/>.
+// The child's loader still runs — so the 404s, the canonical and the og:image
+// were all correct — but its component never mounts, and every instant URL
+// rendered the parent page frozen at its build-time clock. A shared link
+// unfurled the right hour and landed on a different one. The underscore opts
+// this route out of nesting (the URL is unchanged: `/tides/<slug>/<instant>`),
+// which is the router's own convention for a route that shares a path prefix
+// but not a layout. `src/routes/instant-page.test.tsx` is the guard.
+export const Route = createFileRoute('/tides/$slug_/$instant')({
   loader: async ({ params }) => {
     // stationBySlug lives behind the server boundary (see below). The loader
     // returns ONE station, which is what gets serialised into the page.
@@ -45,14 +56,7 @@ export const Route = createFileRoute('/tides/$slug/$instant')({
 
 function TideInstant() {
   const { station, instant } = Route.useLoaderData()
-  const start = new Date(instant.getTime() - 6 * 3600_000)
-  return (
-    <main className="mx-auto max-w-3xl px-5 pb-24 pt-10 sm:px-6 sm:pt-20">
-      <h1 className="text-4xl font-semibold tracking-tight text-sw-paper sm:text-5xl">
-        {station.name}
-      </h1>
-      <p className="mt-3 text-sw-steel">{station.region}</p>
-      <TideCurve station={station} start={start} hours={24} now={instant} />
-    </main>
-  )
+  // Never `live`: this page is one fixed shared moment, so a relative "in 30m"
+  // would be measured from a moment that may be long past.
+  return <StationPage station={station} now={instant} />
 }
