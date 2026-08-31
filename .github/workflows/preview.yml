@@ -1,0 +1,72 @@
+# Publish a preview of a PR so it can be reviewed by looking at it.
+#
+# `wrangler versions upload` uploads the Worker as a new version WITHOUT routing
+# any production traffic to it — the apex and www keep serving whatever was last
+# deployed. `preview_urls: true` in wrangler.jsonc is what makes the version
+# reachable, and `--preview-alias pr-<n>` gives it a stable URL that survives a
+# force-push, so the PR comment never goes stale.
+#
+# Uses the same CLOUDFLARE_API_TOKEN secret as Deploy. Secrets aren't exposed to
+# pull_request runs from forks, so this job fails on one — outside contributions
+# aren't sought here (README.md).
+name: Preview
+
+on:
+  pull_request:
+
+# A preview for an older commit on the same PR is worth nothing once a newer one
+# is building; unlike a deploy, nothing is left half-published if it's killed.
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # "ERROR [nitro] Preview server exited with code 143" here is normal — see
+      # CONTRIBUTING.md "Gotchas". The step's exit code is what matters.
+      - run: pnpm run build
+
+      # Not wrangler-action: this needs the alias URL back out, and grepping the
+      # command is less indirection than parsing the action's outputs.
+      - name: Upload preview version
+        id: upload
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          pnpm exec wrangler versions upload \
+            -c .output/server/wrangler.json \
+            --preview-alias "pr-$PR" \
+            --message "PR #$PR at ${GITHUB_SHA::7}" | tee upload.log
+          url=$(grep -oE "https://pr-$PR-[a-z0-9-]+\.workers\.dev" upload.log | head -1)
+          [ -n "$url" ] || { echo "::error::no preview alias URL in wrangler output"; exit 1; }
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment the preview URL
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          URL: ${{ steps.upload.outputs.url }}
+        run: |
+          gh pr comment "$PR" --edit-last --create-if-none \
+            --body "Preview: $URL — built from ${GITHUB_SHA::7}."
