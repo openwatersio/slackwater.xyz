@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
 import { CurrentCurve } from '#/components/CurrentCurve'
+import { useLiveNow } from '#/lib/use-live-now'
 import { Shot } from '#/components/Shot'
 import { HERO_STATION } from '#/lib/currents'
 import { SITE_DESCRIPTION } from '#/routes/__root'
@@ -46,35 +46,11 @@ export const Route = createFileRoute('/')({
  */
 const TESTFLIGHT: string | null = 'https://testflight.apple.com/join/FCSS4w8s'
 
-/**
- * No web-client link right now.
- *
- * `web.slackwater.xyz` is the decided home and has no DNS record yet, and the
- * PWA that used to stand in for it is deprecated. Sending someone to a demo
- * whose first action fails is worse than not offering the demo — this page's
- * whole argument is that the thing works when you need it.
- *
- * Restore when there is a web client to point at.
- */
-const WEB_CLIENT: string | null = null
-
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
     <span className="font-mono text-[0.65rem] font-medium uppercase tracking-[0.14em] text-sw-leaf sm:text-[0.7rem] sm:tracking-[0.16em]">
       {children}
     </span>
-  )
-}
-
-function WebClientLink({ className = '' }: { className?: string }) {
-  if (!WEB_CLIENT) return null
-  return (
-    <a
-      href={WEB_CLIENT}
-      className={`text-sw-foam underline decoration-sw-steel underline-offset-4 hover:decoration-sw-foam ${className}`}
-    >
-      Or just look at the water now
-    </a>
   )
 }
 
@@ -93,20 +69,12 @@ function Cta() {
           iPhone beta — opening soon
         </span>
       )}
-      {/* Desktop only. On a phone the fold is scarce and belongs to the
-          primary action; the alternative reads fine after the chart. */}
-      <WebClientLink className="hidden sm:inline" />
     </div>
   )
 }
 
 function Home() {
-  const [now, setNow] = useState(() => new Date('2026-08-21T12:00:00Z'))
-  useEffect(() => {
-    setNow(new Date())
-    const id = setInterval(() => setNow(new Date()), 60_000)
-    return () => clearInterval(id)
-  }, [])
+  const { now, live } = useLiveNow()
 
   return (
     <main className="mx-auto max-w-5xl px-5 pb-24 pt-10 sm:px-6 sm:pt-24">
@@ -149,16 +117,24 @@ function Home() {
             12-hour window in a narrow viewBox — fewer events, readable type. */}
         <div className="mt-3 sm:hidden">
           <CurrentCurve
+            station={HERO_STATION}
             start={new Date(now.getTime() - 3 * 3600_000)}
             hours={12}
             now={now}
+            live={live}
             width={460}
             height={210}
             sparse
           />
         </div>
         <div className="mt-4 hidden sm:block">
-          <CurrentCurve start={new Date(now.getTime() - 6 * 3600_000)} hours={24} now={now} />
+          <CurrentCurve
+            station={HERO_STATION}
+            start={new Date(now.getTime() - 6 * 3600_000)}
+            hours={24}
+            now={now}
+            live={live}
+          />
         </div>
 
         <p className="mt-5 max-w-2xl text-sm leading-relaxed text-sw-steel">
@@ -171,10 +147,6 @@ function Home() {
           </span>
         </p>
       </section>
-
-      <p className="mt-6 sm:hidden">
-        <WebClientLink />
-      </p>
 
       {/* ── Correctness first, per gtm.md's ordering ───────────────────── */}
       <section className="mt-20 sm:mt-28">

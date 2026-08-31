@@ -1,6 +1,8 @@
 import { useId, useMemo } from 'react'
+import { dayLabel, hhmm } from '#/lib/format'
 import { rampColor } from '#/lib/ramp'
-import { findEvents, nextEvent, predictSeries, type CurrentEvent } from '#/lib/currents'
+import { findEvents, nextEvent, predictSeries, type StationEvent } from '#/lib/predict'
+import type { Station } from '#/lib/station'
 
 /**
  * The signed velocity curve, drawn the way the app draws it.
@@ -12,6 +14,7 @@ import { findEvents, nextEvent, predictSeries, type CurrentEvent } from '#/lib/c
  */
 
 interface Props {
+  station: Station
   start: Date
   hours: number
   now: Date
@@ -24,15 +27,29 @@ interface Props {
   height?: number
   /** Drop the in-chart slack times, keeping only the peaks. */
   sparse?: boolean
+  /**
+   * Is `now` actually now? Only a hydrated client can say yes.
+   *
+   * The "next slack, in 30m" line is a claim about the present, and a
+   * prerendered page makes it against a frozen build-time clock — a reading
+   * that is days old and drifting, in the one place a reader without JS
+   * (crawler, unfurl scraper) sees it. False here, that line does not render
+   * server-side; the client re-renders it after hydration against the real
+   * clock. Instant pages never set it: they show one fixed shared moment,
+   * and "in 30m" from a moment that may be in the past is simply wrong.
+   */
+  live?: boolean
 }
 
 export function CurrentCurve({
+  station,
   start,
   hours,
   now,
   width: W = 1000,
   height: H = 320,
   sparse = false,
+  live = false,
 }: Props) {
   // Unique per instance. The page renders this twice — a phone version and a
   // desktop one, one of them display:none — and shared element ids make the
@@ -47,16 +64,16 @@ export function CurrentCurve({
   const PAD_TOP = 34
   const PAD_BOTTOM = 44
   const { path, area, zeroY, x, yOf, events, stops } = useMemo(() => {
-    const samples = predictSeries(start, hours)
-    const events = findEvents(start, hours)
-    const peak = Math.max(...samples.map((s) => Math.abs(s.knots)), 1)
+    const samples = predictSeries(station, start, hours)
+    const events = findEvents(station, start, hours)
+    const peak = Math.max(...samples.map((s) => Math.abs(s.level)), 1)
 
     const span = hours * 3600_000
     const x = (t: Date) => ((t.getTime() - start.getTime()) / span) * W
     const plot = H - PAD_TOP - PAD_BOTTOM
     const y = (k: number) => PAD_TOP + plot / 2 - (k / peak) * (plot / 2)
 
-    const pts = samples.map((s) => `${x(s.time).toFixed(2)},${y(s.knots).toFixed(2)}`)
+    const pts = samples.map((s) => `${x(s.time).toFixed(2)},${y(s.level).toFixed(2)}`)
 
     // Gradient stops run along time, but each stop's COLOUR comes from that
     // moment's speed. A left-to-right ramp would colour by clock position,
@@ -64,7 +81,7 @@ export function CurrentCurve({
     // the rip, and the same colour means the same knots on any day.
     const stops = samples.map((s) => ({
       offset: x(s.time) / W,
-      color: rampColor(s.knots),
+      color: rampColor(s.level),
     }))
 
     return {
@@ -76,13 +93,13 @@ export function CurrentCurve({
       x,
       events,
     }
-  }, [start, hours])
+  }, [station, start, hours])
 
   const next = nextEvent(events, now)
   // The fill fades out over the outer 6% at each end, so a label landing there
   // annotates a curve the reader can barely see and looks clipped. Drop it —
   // the window edge is arbitrary anyway.
-  const inFrame = (e: CurrentEvent) => x(e.time) > W * 0.07 && x(e.time) < W * 0.93
+  const inFrame = (e: StationEvent) => x(e.time) > W * 0.07 && x(e.time) < W * 0.93
   const slacks = events.filter((e) => e.kind === 'slack' && inFrame(e))
   const turns = events.filter((e) => e.kind !== 'slack' && inFrame(e))
 
@@ -92,7 +109,7 @@ export function CurrentCurve({
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"
         role="img"
-        aria-label={describe(events, now)}
+        aria-label={describe(station, events, now)}
       >
         <defs>
           <linearGradient id={rampId} x1="0" x2="1" y1="0" y2="0">
@@ -141,10 +158,10 @@ export function CurrentCurve({
           {/* Max flood / max ebb — a dot and a number, ink picked by luminance. */}
           {turns.map((e) => (
             <g key={`t${e.time.getTime()}`}>
-              <circle cx={x(e.time)} cy={yOf(e.knots)} r={4} fill="#E4F0E4" />
+              <circle cx={x(e.time)} cy={yOf(e.level)} r={4} fill="#E4F0E4" />
               <text
                 x={x(e.time)}
-                y={yOf(e.knots) + (e.knots > 0 ? -14 : 22)}
+                y={yOf(e.level) + (e.level > 0 ? -14 : 22)}
                 textAnchor="middle"
                 // Foam, not speedInk: the label sits on the page, not on the
                 // fill, so fill-contrast ink turns dark navy above ~6.6 kn and
@@ -153,7 +170,7 @@ export function CurrentCurve({
                 className="font-mono text-[15px] font-semibold [font-variant-numeric:tabular-nums]"
                 style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
               >
-                {Math.abs(e.knots).toFixed(1)} kn
+                {Math.abs(e.level).toFixed(1)} kn
               </text>
             </g>
           ))}
@@ -172,7 +189,7 @@ export function CurrentCurve({
                 className="font-mono text-[15px] font-semibold [font-variant-numeric:tabular-nums]"
                 style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
               >
-                {hhmm(s.time)}
+                {hhmm(s.time, station.timezone)}
               </text>
               )}
             </g>
@@ -198,16 +215,16 @@ export function CurrentCurve({
         </g>
       </svg>
 
-      <figcaption className="sr-only">{describe(events, now)}</figcaption>
+      <figcaption className="sr-only">{describe(station, events, now)}</figcaption>
 
-      {next && (
+      {live && next && (
         <p className="mt-6 text-lg">
           <span className="font-mono text-[0.7rem] uppercase tracking-[0.16em] text-sw-leaf">
             Next {next.kind === 'slack' ? 'slack' : `max ${next.kind}`}
           </span>
           <br />
           <span className="[font-variant-numeric:tabular-nums] text-sw-paper">
-            {hhmm(next.time)}
+            {hhmm(next.time, station.timezone)}
           </span>
           <span className="text-sw-steel"> · in {until(next.time, now)}</span>
         </p>
@@ -216,22 +233,32 @@ export function CurrentCurve({
   )
 }
 
-const hhmm = (d: Date) =>
-  d.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', hour12: false })
-
 function until(then: Date, now: Date) {
   const mins = Math.max(0, Math.round((then.getTime() - now.getTime()) / 60_000))
   const h = Math.floor(mins / 60)
   return h ? `${h}h ${mins % 60}m` : `${mins}m`
 }
 
-/** Spoken form, for anyone who can't see the curve. Units written in full. */
-function describe(events: CurrentEvent[], now: Date) {
+/**
+ * Spoken form, for anyone who can't see the curve. Units written in full, and
+ * the event is dated: a bare `hh:mm` leaves a reader unable to tell which day.
+ *
+ * "Computed from harmonic constituents", not "computed on this device": this
+ * same sentence ships in prerendered HTML, where no device computed anything.
+ * The claim has to be true on both rendering paths. It names the event's own
+ * day rather than calling it "next", for the same reason — nothing here knows
+ * whether the reader is looking at this page now.
+ */
+function describe(station: Station, events: StationEvent[], now: Date) {
   const n = nextEvent(events, now)
-  if (!n) return 'Tidal current predictions for Deception Pass Narrows.'
+  if (!n) return `Tidal current predictions for ${station.name}, computed from harmonic constituents.`
   const what =
     n.kind === 'slack'
-      ? 'slack water'
-      : `maximum ${n.kind} of ${Math.abs(n.knots).toFixed(1)} knots`
-  return `Tidal current at Deception Pass Narrows. Next ${what} at ${hhmm(n.time)}, computed on this device.`
+      ? 'Slack water'
+      : `Maximum ${n.kind} of ${Math.abs(n.level).toFixed(1)} knots`
+  const tz = station.timezone
+  return (
+    `Tidal current at ${station.name}, computed from harmonic constituents. ` +
+    `${what} on ${dayLabel(n.time, tz)} at ${hhmm(n.time, tz)}.`
+  )
 }

@@ -7,27 +7,35 @@ currents across the US and Canada.
 
 ## What this is
 
-The marketing site, and only that. It explains the app and points people at the beta; its one
-job is to turn a reader into an install.
+The marketing site — and, now, a page per station. It explains the app, points people at the
+beta, and prerenders a real computed curve at `/tides/<slug>` and `/currents/<slug>` for 3,607
+stations: the share-landing surface for anyone sent a link, and indexable content the site
+previously had none of.
 
 The hero is not a screenshot. It computes a real current prediction for Deception Pass
-(Narrows) in your browser from bundled NOAA harmonic constituents. A page whose argument is
-"correct, and it works with no signal" ought to demonstrate that rather than assert it.
+(Narrows) in your browser from bundled NOAA harmonic constituents, the same way every station
+page computes its own. A page whose argument is "correct, and it works with no signal" ought to
+demonstrate that rather than assert it.
 
-## The three surfaces
+3,607, not the full catalogue. The missing 1,082 are Canadian (CHS) stations: no bundled
+constituents, predictions DFO's terms don't allow re-serving, and 1,048 of them have no
+published identity anywhere to build a page from. Tracked in [issue
+#17](https://github.com/openwatersio/slackwater.xyz/issues/17); those stations 404 rather than
+claim a curve nobody can compute.
 
-Slackwater is three separate things, and confusing them is the easiest mistake to make here.
+## The two surfaces
+
+Slackwater is two separate things, and confusing them is the easiest mistake to make here.
 
 | | Where | What it is |
 |---|---|---|
-| **Landing page** | `slackwater.xyz` — this repo | Explains the app. Drives installs. |
+| **This site** | `slackwater.xyz` — this repo | Explains the app, drives installs, and serves a real prediction for every station it has data for. |
 | **iOS app** | [`openwatersio/slackwater-ios`](https://github.com/openwatersio/slackwater-ios) | The product. The only surface that can be paid. |
-| **Web client** | `web.slackwater.xyz` | A demo — for people who won't install an app, or who just want an answer now. |
 
-The web client is a demo *structurally*, not out of restraint. Slackwater is account-free from
-the entitlement down — the entitlement is a device flag, the referral gate is a Keychain item,
-no server holds a user — and charging on the web would require accounts. It matches iOS in
-look and data, not in depth.
+A third surface, `web.slackwater.xyz`, was reserved early as a demo for people who wouldn't
+install an app but just wanted an answer now — it never got a DNS record. The station pages
+turned out to be that surface: instant, indexable, computing the same curve in the browser the
+hero always did. There is no web client, and no plan to build one.
 
 ## How it's built
 
@@ -44,8 +52,8 @@ endpoint are same-origin. No cookies, no persistent identifier, nothing stored o
 
 ## Design rules
 
-The page **matches the app in look and data, not in depth** — the same rule the web client
-runs under, and the reason both exist.
+Every page **matches the app in look and data, not in depth** — the hero and the station pages
+render the same computed curve the app does, but none of them are the app.
 
 - **Dark only**, because the app is. A light theme is wanted eventually, so colour goes through
   the tokens in `src/styles.css` and never a literal hex in a component.
@@ -68,6 +76,5 @@ Layout, testing, deploys, and the handful of gotchas that will otherwise cost yo
 in [CONTRIBUTING.md](CONTRIBUTING.md). If you are an AI agent working in this repo, read
 [AGENTS.md](AGENTS.md) first.
 
-This repo is public because a one-page marketing site has nothing to hide, not because it is
-looking for contributors. Read it, borrow from it; there is no licence, so all rights are
-reserved.
+This repo is public because a marketing site has nothing to hide, not because it is looking for
+contributors. Read it, borrow from it; there is no licence, so all rights are reserved.

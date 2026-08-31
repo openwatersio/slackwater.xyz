@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Three routes, hand-maintained. If this ever needs generating, the site has
-     grown past what a landing page is supposed to be. -->
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://slackwater.xyz/</loc></url>
-  <url><loc>https://slackwater.xyz/support/</loc></url>
-  <url><loc>https://slackwater.xyz/privacy/</loc></url>
-</urlset>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap><loc>https://slackwater.xyz/sitemap-static.xml</loc></sitemap>
+  <sitemap><loc>https://slackwater.xyz/sitemap-tides.xml</loc></sitemap>
+  <sitemap><loc>https://slackwater.xyz/sitemap-currents.xml</loc></sitemap>
+</sitemapindex>

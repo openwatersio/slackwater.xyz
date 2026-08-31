@@ -1,8 +1,8 @@
 # Working on slackwater.xyz
 
 How this site gets built and shipped. It is the working doc for whoever maintains it, not an
-invitation — the repo is public because a one-page marketing site has nothing to hide, and
-outside contributions aren't being sought. Bug reports about the live site are welcome.
+invitation — the repo is public because a marketing site has nothing to hide, and outside
+contributions aren't being sought. Bug reports about the live site are welcome.
 
 Short, because it is meant to be followed rather than consulted. What the site is and why it
 looks the way it does is in [README.md](README.md).
@@ -37,8 +37,9 @@ pnpm deploy     # build, then wrangler deploy with nitro's generated config
 where being wrong is invisible in a screenshot and embarrassing on the water, so a change to
 either arrives with a test.
 
-Presentation is checked by looking at it. There is no snapshot suite and a landing page does
-not want one.
+Presentation is checked by looking at it. There is no snapshot suite: 3,607 pages come from two
+templates, so a representative tide page and a representative current page is the check, and a
+diff across thousands of near-identical generated pages would be noise, not signal.
 
 ## Branch and PR
 
@@ -77,8 +78,9 @@ side:
 
 **Merging to `main` publishes the site.** `.github/workflows/deploy.yml` runs the tests, builds,
 and publishes with the `CLOUDFLARE_API_TOKEN` repo secret. It is the whole release process —
-no version number and no changelog: the site is one page and the merge is the release. The
-only other environment is the per-PR preview above, which never serves the apex.
+no version number and no changelog: every merge deploys immediately, so the git log already is
+the changelog, and a separate one would just repeat it a commit behind. The only other
+environment is the per-PR preview above, which never serves the apex.
 
 That workflow exists because the manual step got skipped. `/privacy` and the Plausible script
 were both merged and neither reached the apex, which went on serving an older build; nothing
@@ -119,7 +121,9 @@ that changes what the site measures changes that file in the same commit.
   `vite dev` with `Vite environment "ssr" is unavailable` and a 60s `getBuiltins` transport
   timeout — every request 500s, while `pnpm build` stays perfectly green, because the plugin
   only runs in dev. It is not the nitro beta, the Vite version, or the presence of wrangler;
-  all three were ruled out one at a time. A landing page has no use for router devtools.
+  all three were ruled out one at a time. The site isn't too simple to want router devtools
+  anymore — there are parameterised routes and a server boundary now — the plugin is just
+  broken until the timeout above is fixed.
 
 - **`ERROR [nitro] Preview server exited with code 143` at the end of a build is normal.**
   Nitro spins up a preview server to prerender against and SIGTERMs it when done. The build

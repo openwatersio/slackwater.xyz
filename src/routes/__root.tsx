@@ -47,7 +47,32 @@ export const Route = createRootRoute({
     ],
   }),
   shellComponent: RootDocument,
+  // 1,083 of the 4,690 known slugs 404 by design — every Canadian (CHS)
+  // station, `dodd-narrows` among them, which is the flagship share case.
+  // The router's default is a bare title, so the receiver of that link got a
+  // blank page. Say what happened and give them a way onward.
+  notFoundComponent: NotFound,
 })
+
+function NotFound() {
+  return (
+    <main className="mx-auto max-w-3xl px-5 pb-24 pt-10 sm:px-6 sm:pt-20">
+      <h1 className="text-4xl font-semibold tracking-tight text-sw-paper sm:text-5xl">
+        Not published
+      </h1>
+      <p className="mt-4 max-w-xl text-lg leading-snug text-sw-foam">
+        There is no page here. If you followed a link to a station, that station isn't published
+        yet — the site covers 3,607 US stations, and the Canadian (CHS) ones have no predictions
+        it can compute or re-serve.
+      </p>
+      <p className="mt-6">
+        <a className="text-sw-leaf underline underline-offset-4" href="/">
+          Slackwater — tides and currents
+        </a>
+      </p>
+    </main>
+  )
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
