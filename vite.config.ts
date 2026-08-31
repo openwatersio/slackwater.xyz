@@ -1,13 +1,23 @@
+import { writeFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 import { loadCatalogue } from './src/lib/catalogue'
+import { buildSitemaps } from './src/lib/sitemap'
 
-const stationPages = loadCatalogue().map((s) => ({
+const catalogue = loadCatalogue()
+
+const stationPages = catalogue.map((s) => ({
   path: `/${s.kind === 'tide' ? 'tides' : 'currents'}/${s.slug}/`,
 }))
+
+// Written straight into public/ so Vite's static copy ships them as
+// .output/public/sitemap*.xml — same mechanism as the old hand-written file.
+for (const [name, xml] of Object.entries(buildSitemaps(catalogue))) {
+  writeFileSync(`./public/${name}`, xml)
+}
 
 // Deploy target is a Cloudflare Worker; the preset comes from NITRO_PRESET in the
 // build script rather than inline config, so it stays put across nitro betas.
