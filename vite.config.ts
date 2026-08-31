@@ -13,6 +13,9 @@ const stationPages = loadCatalogue().map((s) => ({
 // build script rather than inline config, so it stays put across nitro betas.
 export default defineConfig({
   resolve: { tsconfigPaths: true },
+  // `.wasm` is not in Vite's default asset list, so the OG card rasteriser's
+  // `?inline` import of resvg's wasm binary fails import analysis without this.
+  assetsInclude: ['**/*.wasm'],
   plugins: [
     tailwindcss(),
     tanstackStart({

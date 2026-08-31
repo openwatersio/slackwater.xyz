@@ -6,6 +6,11 @@
   // Deploy with that one — `pnpm deploy` does.
   "compatibility_date": "2026-06-01",
   "compatibility_flags": ["nodejs_compat"],
+  // Requires the Workers Paid plan: SSR on the instant station routes, the
+  // resvg-wasm bundle, and per-request OG card rasterising (src/lib/og-image.ts)
+  // each individually exceed the free tier's 10ms CPU limit per request. On
+  // free this doesn't fail loudly — it just fails, differently, per request.
+
   // Custom domains create and manage their own DNS records — do not hand-add
   // the apex or www in Cloudflare. See infrastructure/dns.md § slackwater.xyz.
   "routes": [
