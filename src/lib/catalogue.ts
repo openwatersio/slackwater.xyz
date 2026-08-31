@@ -2,6 +2,7 @@
 // BUILD-TIME ONLY. Never import this from a route module: it pulls the whole
 // tide database and the current bundle, and TanStack loaders are isomorphic, so
 // one careless import ships megabytes to every visitor. Task 4 asserts that.
+import { cleanName } from '@openwaters/station-metadata'
 import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type: 'json' }
 import currentBundle from '@openwaters/noaa-current-stations/currents.json' with { type: 'json' }
 import { stationsById } from '@neaps/tide-database'
@@ -64,7 +65,7 @@ export function loadCatalogue(): Station[] {
         if (!r) throw new Error(`catalogue: no tide data for ${id}`)
         out.push({
           id, kind, slug,
-          name: String(r.name),
+          name: cleanName(String(r.name)),
           latitude: Number(r.latitude), longitude: Number(r.longitude),
           timezone: String(r.timezone), region: r.region ? String(r.region) : undefined,
           constituents: (r.harmonic_constituents as Station['constituents']).map((c) => ({
@@ -82,7 +83,7 @@ export function loadCatalogue(): Station[] {
         // every current station's slack time seven-plus hours wrong.
         out.push({
           id, kind, slug,
-          name: String(r.name),
+          name: cleanName(String(r.name)),
           latitude, longitude,
           timezone: tzLookup(latitude, longitude),
           constituents: r.constituents as Station['constituents'],
