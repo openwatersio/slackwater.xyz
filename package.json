@@ -10,7 +10,8 @@
     "build": "NITRO_PRESET=cloudflare_module vite build",
     "preview": "vite preview",
     "deploy": "pnpm build && wrangler deploy -c .output/server/wrangler.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@cf-wasm/resvg": "0.4.0",

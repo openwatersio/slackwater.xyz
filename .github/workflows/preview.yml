@@ -45,6 +45,12 @@ jobs:
       # CONTRIBUTING.md "Gotchas". The step's exit code is what matters.
       - run: pnpm run build
 
+      # After the build, not before it: src/routeTree.gen.ts is gitignored and
+      # only exists as a vite build side effect, so tsc on a fresh checkout
+      # fails with "Cannot find module './routeTree.gen'" - a missing file,
+      # not a type error. The job still fails on a real one.
+      - run: pnpm run typecheck
+
       # Not wrangler-action: this needs the alias URL back out, and grepping the
       # command is less indirection than parsing the action's outputs.
       - name: Upload preview version
