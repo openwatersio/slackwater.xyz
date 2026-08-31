@@ -27,6 +27,24 @@ describe('prerendered station pages', () => {
     )
   })
 
+  it('quotes station counts that match the catalogue', () => {
+    // The homepage and /stations/ both state the corpus size in prose. Nothing
+    // derives those numbers - they are written into the copy - so adding
+    // stations silently makes the site claim a figure that is no longer true.
+    // A count a reader could check is exactly the kind of number this codebase
+    // has shipped wrong before.
+    const all = loadCatalogue()
+    const counts = {
+      tide: all.filter((s) => s.kind === 'tide').length.toLocaleString('en-US'),
+      current: all.filter((s) => s.kind === 'current').length.toLocaleString('en-US'),
+    }
+    for (const page of ['index.html', 'stations/index.html']) {
+      const html = readFileSync(`${OUT}/${page}`, 'utf8')
+      expect(html, `${page} misstates the tide count`).toContain(counts.tide)
+      expect(html, `${page} misstates the current count`).toContain(counts.current)
+    }
+  })
+
   it('offers the app and links home on both page kinds', () => {
     // The whole point of the corpus: a shared link lands on someone WITHOUT the
     // app. A station page that renders the water and never offers the app is a

@@ -294,6 +294,27 @@ function Home() {
         </div>
       </section>
 
+      <section className="mt-20 sm:mt-28">
+        <Eyebrow>Every station, on the web</Eyebrow>
+        <h2 className="mt-3 max-w-2xl text-2xl font-semibold leading-tight text-sw-paper sm:text-3xl">
+          Browse the whole corpus.
+        </h2>
+        <div className="mt-5 max-w-2xl space-y-4 leading-relaxed text-sw-foam">
+          <p>
+            Every station has its own page, so a link you send works for someone who
+            hasn&rsquo;t installed anything &mdash; they get the curve, not a screenshot of it.
+          </p>
+        </div>
+        <div className="mt-6 flex flex-wrap gap-x-8 gap-y-3">
+          <a href="/stations/tides/" className="text-sw-paper underline underline-offset-4 hover:text-sw-leaf">
+            2,765 tide stations
+          </a>
+          <a href="/stations/currents/" className="text-sw-paper underline underline-offset-4 hover:text-sw-leaf">
+            842 current stations
+          </a>
+        </div>
+      </section>
+
       <section className="mt-20 rounded-lg border border-sw-leaf/20 bg-white/[0.04] p-6 sm:mt-28 sm:p-8">
         <Eyebrow>The deal</Eyebrow>
         <h2 className="mt-3 text-2xl font-semibold leading-tight text-sw-paper sm:text-3xl">
