@@ -61,7 +61,9 @@ jobs:
             -c .output/server/wrangler.json \
             --preview-alias "pr-$PR" \
             --message "PR #$PR at ${GITHUB_SHA::7}" 2>&1 | tee upload.log
-          url=$(grep -oE "https://pr-$PR-[a-z0-9-]+\.workers\.dev" upload.log | head -1)
+          # grep -m1, not `| head -1`: head closing the pipe SIGPIPEs grep, and
+          # pipefail turns that into a failed run after a successful upload.
+          url=$(grep -m1 -oE "https://pr-$PR-[a-z0-9-]+\.workers\.dev" upload.log)
           [ -n "$url" ] || { echo "::error::no preview alias URL in wrangler output"; exit 1; }
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
