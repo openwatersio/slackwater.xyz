@@ -140,8 +140,8 @@ identity for it, which is precisely the decision being deferred.
 So this work builds **1,081** pages: 1,058 tide ports + 22 gates + `chs-malibu-rapids`.
 
 Afterwards, two registry-style slugs still 404: `chs-arran-rapids` (deferred) and
-`noaa-boundary-pass` (a duplicate of `turn-point`, being retired in `station-metadata`
-— see Sequencing).
+`noaa-boundary-pass` (which shares the `boundary-pass` slug with `noaa/PUG1717` in
+4.1.2 — see Sequencing).
 
 ## Project A — publish CHS identity
 
@@ -188,6 +188,11 @@ was handed the iOS catalogue files as input. If the generator running inside
 — and the allocator's collision ladder will make the result look plausible rather than
 broken. A test asserts the generated id set equals the CHS keys of `slugs.json`
 exactly, in both directions.
+
+A second assertion, in the same test: **the CHS slugs must be distinct.** That fails
+against 4.1.2 as published — three CHS tide ports share a slug with a curated twin
+(see Sequencing) — which makes it the cheapest available regression test for the
+upstream fix, and stops Project B from being built on a table that cannot support it.
 
 ### CONTRIBUTING
 
@@ -312,29 +317,90 @@ policy is false.
 reference port's high and low water plus a fixed lag. Its page stubs in Project B like
 any other; its curve is a different computation and can land separately.
 
-## Sequencing
+## Sequencing, and a landmine already in the published package
 
-**Project A depends on work in flight elsewhere.** Another session is retiring four
-duplicate slug identities in `station-metadata` after a position sweep found them
-1.5–63 m from a curated twin. Three of the four are CHS tide ports that this work
-turns into pages:
+`@openwaters/station-metadata` **4.1.2 is published and `main` already depends on it**
+(`7b32275`). It reassigned five slugs to resolve the duplicate identities found by a
+position sweep — but it reassigned them **without retiring the twins**, so four slugs
+are now claimed by two station ids each. Verified by reading the published 4.1.2
+artifact:
 
-| Slug being retired | Id | Kept |
-|---|---|---|
-| `vancouver-bc` | `chs-vancouver-2` | `vancouver` |
-| `victoria-harbour` | `chs-victoria-harbour` | `victoria` |
-| `point-atkinson-west-vancouver-bc` | `chs-point-atkinson-2` | `point-atkinson` |
-| `boundary-pass` | `noaa-boundary-pass` | `turn-point` |
+```
+tide     3823 slugs, 3820 distinct — 3 colliding
+  point-atkinson <- chs-point-atkinson + chs-point-atkinson-2
+  vancouver      <- chs-vancouver     + chs-vancouver-2
+  victoria       <- chs-victoria      + chs-victoria-harbour
+current   867 slugs,  866 distinct — 1 colliding
+  boundary-pass  <- noaa-boundary-pass + noaa/PUG1717
+```
 
-Issue #17 says "no slug work is needed here", and that holds — this repo mints no
-slugs. But it must build against the post-retirement table, or it publishes three
-pages for water that already has a page. **A lands after the retirement ships.**
+**Three of the four are CHS tide ports, and this work is what detonates them.** They
+are invisible today only because `isBuildable` excludes every id without a `/`, so
+both halves of each pair are skipped. Project B makes them buildable, and then:
 
-The two are also complementary: that session wants a position-collision check in
-`station-metadata` CI, and `chs-stations.json` is exactly the input that lets it sweep
-the 1,048 stations previously unsweepable.
+- `catalogue-server.ts` indexes stations in a `Map` keyed `${kind}/${slug}`, so the
+  second of each pair **silently overwrites the first**. One page survives, showing
+  one of two stations, with no error raised.
+- `buildSitemaps` emits the duplicate URL twice.
+- Every count stays green. 3,823 slugs, 3,823 rows, 200 on every URL. This is the
+  same failure shape as the four defects listed under Verification: structurally
+  perfect, wrong on the page.
 
-Otherwise: **A → B → C.** A blocks both. B and C are separable.
+Issue #17's second comment observed that "a slug-uniqueness check will never catch
+this, because the slugs are unique". That was true of 4.0.0. It is no longer true —
+in 4.1.2 the slugs are *not* unique, so a plain uniqueness assertion over the
+published table now catches all four. That check belongs in `station-metadata` CI,
+and it is cheap.
+
+**Project B is blocked until this is resolved upstream.** The fix is the half of the
+retirement that did not ship: each pair collapses to one id, with the loser
+tombstoned rather than left in the table. Which id survives is an owner decision, not
+one to take from here — `slug-tombstones.json` is empty in 4.1.2, so nothing has been
+retired yet.
+
+Project A is *not* blocked. It can be built and tested against 4.1.2 as published,
+because its guard is that generated ids match the CHS keys of `slugs.json`, and the
+keys are correct — it is the values that collide. That guard gains a second
+assertion: the CHS slugs must also be **distinct**, which fails today and is the
+cheapest possible regression test for the fix.
+
+### Already-shipped collateral, adjacent but not this work
+
+The same reassignment moved `boundary-pass` from `noaa-boundary-pass` to
+`noaa/PUG1717`, which is the buildable half. So `/currents/boundary-pass` now returns
+200 — and **`/currents/turn-point`, which was prerendered, live and in the sitemap,
+now 404s with no redirect.** Confirmed against production: the live
+`sitemap-currents.xml` lists `boundary-pass` and no longer lists `turn-point`.
+
+The first design's indexation section says canonical URLs must be the ones that
+return 200. An indexed URL that became a 404 wants a redirect, and that is worth its
+own issue. It is not #17's to fix, but #17 must not be built on the assumption that
+the slug table is settled.
+
+### Order
+
+**A → B → C.** A blocks both and can start now. B additionally waits on the collision
+fix upstream. B and C are otherwise separable.
+
+## Rebasing on the currents chart rework
+
+PR #36 (`feat/slack-window-band`) rewrites the currents visualisation and lands
+before this work. It replaces `src/lib/ramp.ts` outright: `RAMP`, `rampT`,
+`rampColor` and `speedInk` are gone, replaced by `SPEED_STOPS` and `speedColor(t)`,
+with the ramp corrected from a six-stop navy→yellow inferno to the app's four stops
+(yellow→orange→red). The fill now starts at ±`slackThreshold` rather than the zero
+line, with a vertical gradient against the auto-fitted plot.
+
+CHS current gates render through that same `CurrentCurve`, so nothing here should
+import the old ramp surface, and any colour described in this document defers to
+whatever #36 lands.
+
+**One consequence lands directly on a CHS page.** A derived gate with no slack
+windows draws the band with no inked green run — the page shows a band and nothing
+else. iOS keeps a hairline tick at the slack instant for that case and the web has no
+equivalent yet. `chs-malibu-rapids` is exactly that shape: derived from a reference
+port's high and low water plus a fixed lag. It stubs fine in Project B; it is a
+question for Project C, and an argument for keeping its curve in a separate change.
 
 ## Verification
 
@@ -385,3 +451,6 @@ So:
 - **Whether the fitted gates' pages should say anything about the app's model
   differing from DFO's published curve.** Probably not — the page shows DFO's numbers
   and says so — but it is the kind of thing worth one look once a page exists.
+- **Which id survives each of the three colliding CHS tide pairs**, and whether
+  `/currents/turn-point` gets a redirect now that `boundary-pass` has taken its slug.
+  Both are owner decisions in `station-metadata`, and the first one blocks Project B.
