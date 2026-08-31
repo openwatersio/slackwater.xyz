@@ -27,6 +27,20 @@ describe('prerendered station pages', () => {
     )
   })
 
+  it('offers the app and links home on both page kinds', () => {
+    // The whole point of the corpus: a shared link lands on someone WITHOUT the
+    // app. A station page that renders the water and never offers the app is a
+    // dead end, and one with no link home leaves 3,607 orphans with no internal
+    // route back into the site. Both shipped missing once; this is the guard.
+    for (const path of ['currents/deception-pass-narrows', 'tides/boston']) {
+      const html = readFileSync(`${OUT}/${path}/index.html`, 'utf8')
+      expect(html, `${path} has no TestFlight CTA`).toContain(
+        'https://testflight.apple.com/join/',
+      )
+      expect(html, `${path} has no link home`).toMatch(/<a[^>]+href="\/"/)
+    }
+  })
+
   it('claims nothing about now in HTML that was rendered days ago', () => {
     // A prerendered page is served for as long as the deploy lasts, so a
     // relative "in 30m" or a "next slack" in it is a live-sounding reading
