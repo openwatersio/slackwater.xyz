@@ -39,6 +39,11 @@ const SEATTLE: Station = {
 vi.mock('#/lib/catalogue-server', () => ({
   stationBySlug: async ({ data }: { data: { kind: string; slug: string } }) =>
     [DECEPTION, SEATTLE].find((s) => s.kind === data.kind && s.slug === data.slug),
+  // Every server function a station route imports must be mocked here. A
+  // missing one throws inside the loader, and the router then renders the SAME
+  // error page for both instants - which looks exactly like the nesting bug
+  // this file exists to catch, and sends you hunting in the wrong place.
+  nearbyStations: async () => [],
 }))
 
 const { routeTree } = await import('#/routeTree.gen')

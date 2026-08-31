@@ -1,6 +1,6 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { StationPage } from '#/components/StationPage'
-import { stationBySlug } from '#/lib/catalogue-server'
+import { nearbyStations, stationBySlug } from '#/lib/catalogue-server'
 import { useLiveNow } from '#/lib/use-live-now'
 
 const CANONICAL = 'https://slackwater.xyz/tides/'
@@ -11,7 +11,8 @@ export const Route = createFileRoute('/tides/$slug')({
     // returns ONE station, which is what gets serialised into the page.
     const station = await stationBySlug({ data: { kind: 'tide', slug: params.slug } })
     if (!station) throw notFound()
-    return { station }
+    const nearby = await nearbyStations({ data: { kind: 'tide', slug: params.slug } })
+    return { station, nearby }
   },
   head: ({ loaderData }) => {
     const s = loaderData?.station
@@ -34,7 +35,7 @@ export const Route = createFileRoute('/tides/$slug')({
 })
 
 function TideStation() {
-  const { station } = Route.useLoaderData()
+  const { station, nearby } = Route.useLoaderData()
   const { now, live } = useLiveNow()
-  return <StationPage station={station} now={now} live={live} />
+  return <StationPage station={station} now={now} live={live} nearby={nearby} />
 }

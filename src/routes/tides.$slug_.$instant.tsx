@@ -1,6 +1,6 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { StationPage } from '#/components/StationPage'
-import { stationBySlug } from '#/lib/catalogue-server'
+import { nearbyStations, stationBySlug } from '#/lib/catalogue-server'
 import { parseInstant } from './instant-url'
 
 const CANONICAL = 'https://slackwater.xyz/tides/'
@@ -26,7 +26,8 @@ export const Route = createFileRoute('/tides/$slug_/$instant')({
     // the receiver different water from the one that was actually shared.
     const instant = parseInstant(params.instant)
     if (!instant) throw notFound()
-    return { station, instant }
+    const nearby = await nearbyStations({ data: { kind: 'tide', slug: params.slug } })
+    return { station, instant, nearby }
   },
   head: ({ loaderData, params }) => {
     const s = loaderData?.station
@@ -55,8 +56,8 @@ export const Route = createFileRoute('/tides/$slug_/$instant')({
 })
 
 function TideInstant() {
-  const { station, instant } = Route.useLoaderData()
+  const { station, instant, nearby } = Route.useLoaderData()
   // Never `live`: this page is one fixed shared moment, so a relative "in 30m"
   // would be measured from a moment that may be long past.
-  return <StationPage station={station} now={instant} />
+  return <StationPage station={station} now={instant} nearby={nearby} />
 }

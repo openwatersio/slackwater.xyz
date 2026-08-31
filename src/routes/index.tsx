@@ -317,6 +317,9 @@ function Home() {
             Open Waters
           </a>
           .{' '}
+          <a href="/stations/" className="underline underline-offset-4">
+            Stations
+          </a>
           <a href="/privacy/" className="underline underline-offset-4">
             Privacy
           </a>

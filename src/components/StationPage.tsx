@@ -2,6 +2,7 @@ import { CurrentCurve } from './CurrentCurve'
 import { TideCurve } from './TideCurve'
 import { dayLabel } from '#/lib/format'
 import { TESTFLIGHT } from '#/lib/links'
+import type { StationRow } from '#/lib/catalogue-server'
 import type { Station } from '#/lib/station'
 
 interface Props {
@@ -10,6 +11,8 @@ interface Props {
   now: Date
   /** True only on a hydrated client — see `useLiveNow`. */
   live?: boolean
+  /** Nearest stations of the same kind. Empty is fine — the section hides. */
+  nearby?: StationRow[]
 }
 
 /**
@@ -19,7 +22,7 @@ interface Props {
  * card, not in what they draw, so the page itself lives here rather than in
  * four near-identical copies that can drift apart.
  */
-export function StationPage({ station, now, live = false }: Props) {
+export function StationPage({ station, now, live = false, nearby = [] }: Props) {
   const start = new Date(now.getTime() - 6 * 3600_000)
   // The date, always, in the station's own zone. The chart speaks in bare
   // `hh:mm`, and a shared link can point at any day — without this a receiver
@@ -39,8 +42,40 @@ export function StationPage({ station, now, live = false }: Props) {
       ) : (
         <CurrentCurve station={station} start={start} hours={24} now={now} live={live} />
       )}
+      <Nearby station={station} rows={nearby} />
       <Cta />
     </main>
+  )
+}
+
+/**
+ * Neighbouring stations, which are the question a reader actually has next:
+ * the water at the next headland, not the same water again. Also the only
+ * thing linking station pages to each other — without it all 3,607 are
+ * reachable from the sitemap and nothing else.
+ */
+function Nearby({ station, rows }: { station: Station; rows: StationRow[] }) {
+  if (!rows.length) return null
+  const base = station.kind === 'tide' ? '/tides/' : '/currents/'
+  const all = station.kind === 'tide' ? '/stations/tides/' : '/stations/currents/'
+  return (
+    <section className="mt-12">
+      <h2 className="text-sm font-medium uppercase tracking-wider text-sw-leaf">Nearby</h2>
+      <ul className="mt-3 grid gap-x-6 gap-y-1 sm:grid-cols-2">
+        {rows.map((r) => (
+          <li key={r.slug}>
+            <a href={`${base}${r.slug}/`} className="text-sw-paper/90 hover:text-sw-leaf">
+              {r.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-4">
+        <a href={all} className="text-sw-steel underline underline-offset-4 hover:text-sw-paper">
+          All {station.kind === 'tide' ? 'tide' : 'current'} stations
+        </a>
+      </p>
+    </section>
   )
 }
 
