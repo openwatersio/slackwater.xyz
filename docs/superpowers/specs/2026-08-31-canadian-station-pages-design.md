@@ -140,8 +140,8 @@ identity for it, which is precisely the decision being deferred.
 So this work builds **1,081** pages: 1,058 tide ports + 22 gates + `chs-malibu-rapids`.
 
 Afterwards, two registry-style slugs still 404: `chs-arran-rapids` (deferred) and
-`noaa-boundary-pass` (which shares the `boundary-pass` slug with `noaa/PUG1717` in
-4.1.2 — see Sequencing).
+`noaa-boundary-pass` (which shares the `boundary-pass` slug with its own provider row
+`noaa/PUG1717` by design in 4.1.2 — see Sequencing, and #38).
 
 ## Project A — publish CHS identity
 
@@ -189,10 +189,10 @@ was handed the iOS catalogue files as input. If the generator running inside
 broken. A test asserts the generated id set equals the CHS keys of `slugs.json`
 exactly, in both directions.
 
-A second assertion, in the same test: **the CHS slugs must be distinct.** That fails
-against 4.1.2 as published — three CHS tide ports share a slug with a curated twin
-(see Sequencing) — which makes it the cheapest available regression test for the
-upstream fix, and stops Project B from being built on a table that cannot support it.
+Note the assertion is over **keys**, not values. Three CHS tide ports deliberately
+share a slug with a curated twin in 4.1.2 (see Sequencing), so a distinctness check on
+the slugs themselves would fail on correct data. Deduplication belongs in the
+consumer, in #38.
 
 ### CONTRIBUTING
 
@@ -317,70 +317,66 @@ policy is false.
 reference port's high and low water plus a fixed lag. Its page stubs in Project B like
 any other; its curve is a different computation and can land separately.
 
-## Sequencing, and a landmine already in the published package
+## Sequencing, and what the slug table actually does now
 
 `@openwaters/station-metadata` **4.1.2 is published and `main` already depends on it**
-(`7b32275`). It reassigned five slugs to resolve the duplicate identities found by a
-position sweep — but it reassigned them **without retiring the twins**, so four slugs
-are now claimed by two station ids each. Verified by reading the published 4.1.2
-artifact:
+(`7b32275`). It changed the slug table in a way this work has to understand, and the
+change is deliberate and correct — the gap it exposes is on this side.
+
+Four entries in the 4.0.0 catalogue were **one station entered twice**: a curated
+registry identity and the provider's own row for the same water, 1.5 m to 63 m apart.
+4.1.2 merged each pair so that **both ids resolve to one slug** — "one slug per
+station, not one per catalogue row":
 
 ```
-tide     3823 slugs, 3820 distinct — 3 colliding
-  point-atkinson <- chs-point-atkinson + chs-point-atkinson-2
-  vancouver      <- chs-vancouver     + chs-vancouver-2
-  victoria       <- chs-victoria      + chs-victoria-harbour
-current   867 slugs,  866 distinct — 1 colliding
-  boundary-pass  <- noaa-boundary-pass + noaa/PUG1717
+victoria       <- chs-victoria       + chs-victoria-harbour
+vancouver      <- chs-vancouver      + chs-vancouver-2
+point-atkinson <- chs-point-atkinson + chs-point-atkinson-2
+boundary-pass  <- noaa-boundary-pass + noaa/PUG1717
 ```
 
-**Three of the four are CHS tide ports, and this work is what detonates them.** They
-are invisible today only because `isBuildable` excludes every id without a `/`, so
-both halves of each pair are skipped. Project B makes them buildable, and then:
+The retired slug of each pair is recorded in the registry's `formerSlugs` so a
+consumer can redirect rather than 404.
 
-- `catalogue-server.ts` indexes stations in a `Map` keyed `${kind}/${slug}`, so the
-  second of each pair **silently overwrites the first**. One page survives, showing
-  one of two stations, with no error raised.
-- `buildSitemaps` emits the duplicate URL twice.
-- Every count stays green. 3,823 slugs, 3,823 rows, 200 on every URL. This is the
-  same failure shape as the four defects listed under Verification: structurally
-  perfect, wrong on the page.
+**Three of the four pairs are CHS tide ports, and this work is what makes them
+buildable.** `loadCatalogue` iterates the slug table per **id**, so a merged pair
+becomes two `Station` rows carrying one slug. Today that is harmless by accident: the
+three CHS pairs are both-halves-unbuildable, and the `boundary-pass` pair has exactly
+one buildable half. Once CHS builds, the `Map` in `catalogue-server.ts` keyed
+`${kind}/${slug}` silently keeps one row of each pair — one page, one of two stations,
+no error, and every count still green.
 
-Issue #17's second comment observed that "a slug-uniqueness check will never catch
-this, because the slugs are unique". That was true of 4.0.0. It is no longer true —
-in 4.1.2 the slugs are *not* unique, so a plain uniqueness assertion over the
-published table now catches all four. That check belongs in `station-metadata` CI,
-and it is cheap.
+So **Project B depends on #38**, which teaches the catalogue to read the registry:
+curated identity wins, and one row per slug. That is a change in this repo, not a wait
+on anyone else. It is worth landing first regardless — the same gap is why
+`/currents/boundary-pass` is titled "Turn Point, Boundary Pass" today, with the URL
+and the heading disagreeing on a live page.
 
-**Project B is blocked until this is resolved upstream.** The fix is the half of the
-retirement that did not ship: each pair collapses to one id, with the loser
-tombstoned rather than left in the table. Which id survives is an owner decision, not
-one to take from here — `slug-tombstones.json` is empty in 4.1.2, so nothing has been
-retired yet.
+Project A is not affected. Its guard is that generated ids match the CHS **keys** of
+`slugs.json`, and the keys are correct — it is the values that are shared, by design.
 
-Project A is *not* blocked. It can be built and tested against 4.1.2 as published,
-because its guard is that generated ids match the CHS keys of `slugs.json`, and the
-keys are correct — it is the values that collide. That guard gains a second
-assertion: the CHS slugs must also be **distinct**, which fails today and is the
-cheapest possible regression test for the fix.
+### A correction to an earlier reading
 
-### Already-shipped collateral, adjacent but not this work
+An earlier draft of this document called the shared slugs an upstream defect and said
+Project B was blocked on a fix in `station-metadata`. That was wrong. The merge is
+intentional, the redirect data is published, and the consumer contract is documented
+on the type: *"Slugs this station used to resolve to. A consumer builds a redirect map
+from these."* Nothing upstream needs to change. Recorded here because the wrong reading
+is the more natural one, and the next person to look at a slug owned by two ids will
+reach for it too.
 
-The same reassignment moved `boundary-pass` from `noaa-boundary-pass` to
-`noaa/PUG1717`, which is the buildable half. So `/currents/boundary-pass` now returns
-200 — and **`/currents/turn-point`, which was prerendered, live and in the sitemap,
-now 404s with no redirect.** Confirmed against production: the live
-`sitemap-currents.xml` lists `boundary-pass` and no longer lists `turn-point`.
+### Already-shipped collateral
 
-The first design's indexation section says canonical URLs must be the ones that
-return 200. An indexed URL that became a 404 wants a redirect, and that is worth its
-own issue. It is not #17's to fix, but #17 must not be built on the assumption that
-the slug table is settled.
+`boundary-pass` moved to the buildable half of its pair, so
+**`/currents/turn-point` — prerendered, live, and in the sitemap — now 404s with no
+redirect**, because this site never built the redirect map that `formerSlugs` exists
+to feed. Tracked as #39. Not a blocker for #17, but the three CHS former slugs arrive
+through the same mechanism.
 
 ### Order
 
-**A → B → C.** A blocks both and can start now. B additionally waits on the collision
-fix upstream. B and C are otherwise separable.
+**#38 → A → B → C.** A can start now and does not wait on #38. B waits on #38. B and C
+are otherwise separable, and #39 is independent of all of them.
 
 ## Rebasing on the currents chart rework
 
@@ -451,6 +447,6 @@ So:
 - **Whether the fitted gates' pages should say anything about the app's model
   differing from DFO's published curve.** Probably not — the page shows DFO's numbers
   and says so — but it is the kind of thing worth one look once a page exists.
-- **Which id survives each of the three colliding CHS tide pairs**, and whether
-  `/currents/turn-point` gets a redirect now that `boundary-pass` has taken its slug.
-  Both are owner decisions in `station-metadata`, and the first one blocks Project B.
+- **Nothing outstanding upstream.** The two consumer-side gaps this work uncovered
+  are tracked as #38 (the catalogue must read the registry) and #39 (`formerSlugs`
+  redirects). #38 gates Project B.
