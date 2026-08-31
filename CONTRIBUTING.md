@@ -56,6 +56,15 @@ force-pushes and branch deletion. No approval is required, so you can merge your
 the rule is that the change travels through one, not that someone else signs it off.
 Unresolved review comments block the merge.
 
+**Every PR gets a preview.** `.github/workflows/preview.yml` builds the branch and uploads it
+as a Worker *version* — no production traffic is routed to it — then comments the URL on the
+PR. The alias is `pr-<number>`, so the link is stable across force-pushes and stays correct
+as the branch moves. Reviewing on a phone is the point.
+
+Preview traffic is reported to Plausible as `slackwater.xyz`, because `data-domain` is a
+constant. A handful of your own pageviews per PR; if that ever matters, derive the domain
+from the request host in `__root.tsx`.
+
 A PR that changes anything visible should show it — a screenshot, or before and after side by
 side:
 
@@ -69,9 +78,9 @@ side:
 
 **Merging to `main` publishes the site.** `.github/workflows/deploy.yml` runs the tests, builds,
 and publishes with the `CLOUDFLARE_API_TOKEN` repo secret. It is the whole release process —
-there is no staging environment, no version number, and no changelog: every merge deploys
-immediately, so the git log already is the changelog, and a separate one would just repeat it a
-commit behind.
+no version number and no changelog: every merge deploys immediately, so the git log already is
+the changelog, and a separate one would just repeat it a commit behind. The only other
+environment is the per-PR preview above, which never serves the apex.
 
 That workflow exists because the manual step got skipped. `/privacy` and the Plausible script
 were both merged and neither reached the apex, which went on serving an older build; nothing
