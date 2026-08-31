@@ -51,11 +51,56 @@ function withEmbeddedFont(svg: string): string {
   )
 }
 
+function escapeXml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+/** "Thu 30 Aug 14:30", in the station's own timezone - never the server's. */
+function formatMoment(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone,
+  }).formatToParts(date)
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? ''
+  return `${get('weekday')} ${get('day')} ${get('month')} ${get('hour')}:${get('minute')}`
+}
+
+/**
+ * An anonymous curve is not a share card - "the image is the message" needs
+ * the station name and the moment legible in a thumbnail, not just the water.
+ * Drawn last (appended right before </svg>) so it paints over the chart
+ * rather than under it, and the shared text{...} rule from withEmbeddedFont
+ * already gives it the right font - only size/weight need overriding here,
+ * done via inline `style` since that's the one thing that outranks a
+ * stylesheet rule in the cascade. Stroked with the same dark halo technique
+ * the chart's own labels use (`paint-order:stroke`), not an opaque band: a
+ * band tall enough to guarantee contrast would cover the chart's peaks.
+ */
+function withHeader(svg: string, title: string, subtitle: string): string {
+  const halo = 'paint-order:stroke;stroke:#00121f;stroke-width:6'
+  const header =
+    `<text x="40" y="52" fill="#fcfcfc" style="${halo};font-family:'${FONT_FAMILY}';font-size:36px;font-weight:700">${escapeXml(title)}</text>` +
+    `<text x="40" y="86" fill="#88b868" style="${halo};font-family:'${FONT_FAMILY}';font-size:22px;font-weight:500">${escapeXml(subtitle)}</text>`
+  return svg.replace('</svg>', `${header}</svg>`)
+}
+
 /**
  * Renders a station's curve, centred on `now`, as a 1200x630 PNG - the image
  * behind both the canonical and instant OG card routes.
+ *
+ * `live`: the bare route renders "now" and goes stale by the minute, so its
+ * card says "Current conditions" rather than a timestamp that would read as
+ * a stale promise. The instant route (`live` false, the default) shares one
+ * fixed moment, so the card names it - in the station's own timezone, not
+ * the server's or the viewer's, because the moment being shared is the
+ * station's local water, not an instant in the ether.
  */
-export async function renderCard(station: Station, now: Date): Promise<Uint8Array> {
+export async function renderCard(station: Station, now: Date, live = false): Promise<Uint8Array> {
   const start = new Date(now.getTime() - 6 * 3600_000)
   const Curve = station.kind === 'tide' ? TideCurve : CurrentCurve
   const markup = renderToStaticMarkup(
@@ -70,7 +115,8 @@ export async function renderCard(station: Station, now: Date): Promise<Uint8Arra
   // resvg parses this string as a standalone XML document and rejects one
   // with no namespaced root ("document does not have a root node").
   const withNamespace = svgMatch[0].replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ')
-  const svg = withEmbeddedFont(withNamespace)
+  const subtitle = live ? 'Current conditions' : formatMoment(now, station.timezone)
+  const svg = withHeader(withEmbeddedFont(withNamespace), station.name, subtitle)
   // `Resvg.async`, not `new Resvg`: init is a fire-and-forget side effect of
   // importing the package (see the top-of-file comment), so the first
   // request in a fresh isolate can otherwise race ahead of it being ready.

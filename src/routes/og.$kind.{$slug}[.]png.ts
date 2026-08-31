@@ -25,7 +25,9 @@ export const Route = createFileRoute('/og/$kind/{$slug}.png')({
         if (!kind) return new Response(null, { status: 404 })
         const station = await stationBySlug({ data: { kind, slug: params.slug } })
         if (!station) return new Response(null, { status: 404 })
-        const png = await renderCard(station, new Date())
+        // `live: true` - the card says "Current conditions", not a timestamp
+        // that would go stale the moment this response is cached.
+        const png = await renderCard(station, new Date(), true)
         return new Response(png, {
           headers: {
             'content-type': 'image/png',
