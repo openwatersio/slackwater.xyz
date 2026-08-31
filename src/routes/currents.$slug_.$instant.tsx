@@ -1,7 +1,7 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { StationPage } from '#/components/StationPage'
 import { nearbyStations, stationBySlug } from '#/lib/catalogue-server'
-import { pageDescription } from '#/lib/copy'
+import { ogImageAlt, pageDescription } from '#/lib/copy'
 import { parseInstant } from './instant-url'
 
 const CANONICAL = 'https://slackwater.xyz/currents/'
@@ -35,6 +35,7 @@ export const Route = createFileRoute('/currents/$slug_/$instant')({
     if (!s) return {}
     const title = `${s.name} — tidal currents`
     const description = pageDescription(s)
+    const alt = ogImageAlt(s)
     return {
       // Points at the bare station URL, not this instant URL: the instant
       // space is unbounded, so treating each shared moment as its own
@@ -50,6 +51,8 @@ export const Route = createFileRoute('/currents/$slug_/$instant')({
           property: 'og:image',
           content: `https://slackwater.xyz/og/currents/${s.slug}/${params.instant}.png`,
         },
+        // Overrides the site default only where it would be false — see `ogImageAlt`.
+        ...(alt ? [{ property: 'og:image:alt', content: alt }] : []),
       ],
     }
   },

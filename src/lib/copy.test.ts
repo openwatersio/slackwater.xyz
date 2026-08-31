@@ -17,10 +17,6 @@ describe('provenance', () => {
   it('names harmonic constituents for a bundled station', () => {
     expect(provenance(bundled)).toBe('computed from harmonic constituents')
   })
-
-  it('never claims a computation for a CHS station', () => {
-    expect(provenance(chs)).not.toMatch(/comput/i)
-  })
 })
 
 describe('pageDescription', () => {

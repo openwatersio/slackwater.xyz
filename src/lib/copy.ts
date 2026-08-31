@@ -1,17 +1,18 @@
-import type { Station } from './station'
+import type { BundledStation, Station } from './station'
 
 /**
  * Where this station's numbers come from, as a clause with no full stop.
  *
- * A claim, not wording. `TideCurve` has said since it was written that
- * "computed from harmonic constituents" has to be true on every rendering
- * path, and a Canadian page adds one where it is not: nothing is computed
- * there, and the licensing posture forbids us publishing a prediction at all.
+ * Typed `BundledStation`, not `Station`: this is only ever true of a page
+ * that draws a curve, so a CHS station must not type-check here. A CHS
+ * branch lived here once ("predicted by the Canadian Hydrographic Service"),
+ * the exact authorship framing ruled false and replaced everywhere else with
+ * "based on ... data" — this function was written first and never revisited.
+ * The project that draws a CHS curve gets to write that sentence fresh,
+ * against whatever the licensing posture is by then.
  */
-export function provenance(station: Station): string {
-  return station.source === 'bundled'
-    ? 'computed from harmonic constituents'
-    : 'predicted by the Canadian Hydrographic Service'
+export function provenance(_station: BundledStation): string {
+  return 'computed from harmonic constituents'
 }
 
 /**
@@ -33,4 +34,20 @@ export function pageDescription(station: Station): string {
   return station.kind === 'tide'
     ? `Tide heights and the next high and low for ${station.name}, ${provenance(station)}.`
     : `Slack water and maximum flood and ebb for ${station.name}, ${provenance(station)}.`
+}
+
+/**
+ * `og:image:alt` for one station's card, where it must say something other
+ * than the site default.
+ *
+ * `__root.tsx` sets a site-wide default describing "a tide curve crossing
+ * the datum line, with the slack marker on the crossing" — true of every
+ * bundled card, so those pages keep it and this returns `undefined`. A CHS
+ * card has no curve at all (see `identityCard` in `og-image.ts`), so that
+ * description is false for it and needs its own, naming only what the card
+ * shows: the station, not a chart.
+ */
+export function ogImageAlt(station: Station): string | undefined {
+  if (station.source !== 'chs') return undefined
+  return `${station.name}: a Slackwater station card naming the water, with no chart.`
 }
