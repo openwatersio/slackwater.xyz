@@ -127,14 +127,14 @@ function curveCard(station: BundledStation, now: Date, live: boolean): string {
  * contain. It also makes the card identical for every instant URL, which is
  * correct - there is nothing per-instant to draw.
  */
-function identityCard(station: ChsStation): string {
+export function identityCard(station: ChsStation): string {
   const ground =
     `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" ` +
     `viewBox="0 0 ${WIDTH} ${HEIGHT}">` +
     `<rect width="${WIDTH}" height="${HEIGHT}" fill="#00121f"/>` +
     `<text x="40" y="340" fill="#fcfcfc" fill-opacity="0.8" ` +
     `style="font-family:'${FONT_FAMILY}';font-size:28px;font-weight:500">` +
-    `Predictions from the Canadian Hydrographic Service</text>` +
+    `Predictions based on Canadian Hydrographic Service data</text>` +
     `</svg>`
   return withHeader(withEmbeddedFont(ground), station.name, station.region ?? '')
 }

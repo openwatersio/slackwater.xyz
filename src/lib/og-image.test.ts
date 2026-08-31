@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { renderCard } from './og-image'
+import { identityCard, renderCard } from './og-image'
 import type { ChsStation, Station } from './station'
 
 const S: Station = {
@@ -50,5 +50,11 @@ describe('renderCard', () => {
     const a = await renderCard(DODD, new Date('2026-09-01T00:00:00Z'))
     const b = await renderCard(DODD, new Date('2026-09-01T06:00:00Z'))
     expect(Buffer.compare(Buffer.from(a), Buffer.from(b))).toBe(0)
+  })
+
+  it('attributes CHS as a data source, not as the predictions themselves', () => {
+    const svg = identityCard(DODD)
+    expect(svg).toContain('Predictions based on Canadian Hydrographic Service data')
+    expect(svg).not.toContain('Predictions from')
   })
 })
