@@ -39,9 +39,11 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm run test
-
+      # Build first: the route and bundle-size tests assert against the
+      # prerendered output in .output/public.
       - run: pnpm run build
+
+      - run: pnpm run test
 
       # "ERROR [nitro] Preview server exited with code 143" in the build log
       # above is normal — nitro SIGTERMs the server it prerendered against.
