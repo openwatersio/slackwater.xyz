@@ -66,7 +66,7 @@ function ChsIdentity({ station }: { station: ChsStation }) {
   return (
     <section className="mt-10 rounded-lg border border-sw-steel/20 p-6">
       <p className="text-sw-foam">
-        Predictions for {station.name} come from the Canadian Hydrographic Service,
+        Predictions for {station.name} are based on Canadian Hydrographic Service data,
         fetched under DFO&rsquo;s own terms. Slackwater covers this water in the app.
       </p>
     </section>

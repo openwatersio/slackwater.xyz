@@ -32,8 +32,8 @@ describe('pageDescription', () => {
     // Exact, not a denylist: the previous version listed four retired phrases,
     // which let a new false claim through in different words.
     expect(pageDescription(chs)).toBe(
-      'Station information for Dodd Narrows, Nanaimo. Predictions come from the ' +
-        'Canadian Hydrographic Service and are available in the Slackwater app.',
+      'Station information for Dodd Narrows, Nanaimo. Predictions are based on ' +
+        'Canadian Hydrographic Service data and are available in the Slackwater app.',
     )
   })
 })
