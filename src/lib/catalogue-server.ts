@@ -1,5 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { loadCatalogue } from './catalogue'
+import { nearby } from './nearby'
 import type { Kind, Station } from './station'
 
 /**
@@ -25,6 +26,48 @@ const index = (() => {
     return cache
   }
 })()
+
+/** One row of the browse index: enough to render a link, and nothing else. */
+export interface StationRow {
+  slug: string
+  name: string
+  region?: string
+}
+
+/**
+ * Every station of one kind, for the browse index.
+ *
+ * Deliberately NOT `Station[]`: the full record carries the harmonic
+ * constituents, and 2,765 of those serialised into a page's loader data would
+ * put the tide database back on the wire that `stationBySlug` exists to keep it
+ * off. Three fields per station is the whole payload.
+ */
+export const stationList = createServerFn({ method: 'GET' })
+  .validator((data: { kind: Kind }) => data)
+  .handler(({ data }): StationRow[] =>
+    [...index().values()]
+      .filter((s) => s.kind === data.kind)
+      .map((s) => ({ slug: s.slug, name: s.name, ...(s.region ? { region: s.region } : {}) }))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+  )
+
+/**
+ * The nearest stations of the same kind, for the "Nearby" list on a station page.
+ *
+ * Server-side for the same reason as everything else here: answering it needs
+ * the whole catalogue in memory, and the page needs only six names.
+ */
+export const nearbyStations = createServerFn({ method: 'GET' })
+  .validator((data: { kind: Kind; slug: string }) => data)
+  .handler(({ data }): StationRow[] => {
+    const station = index().get(`${data.kind}/${data.slug}`)
+    if (!station) return []
+    return nearby(station, [...index().values()]).map((s) => ({
+      slug: s.slug,
+      name: s.name,
+      ...(s.region ? { region: s.region } : {}),
+    }))
+  })
 
 export const stationBySlug = createServerFn({ method: 'GET' })
   .validator((data: { kind: Kind; slug: string }) => data)

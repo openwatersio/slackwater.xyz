@@ -35,9 +35,11 @@ export default defineConfig({
       prerender: {
         enabled: true,
         autoSubfolderIndex: true,
-        // Parameterised routes are excluded from discovery and this design has
-        // no links between stations, so without `pages` above the build emits
-        // zero station pages and still reports success.
+        // Parameterised routes are excluded from discovery, so without `pages`
+        // above the build emits zero station pages and still reports success.
+        // The browse index links to every station and would now let crawlLinks
+        // find them, but `pages` stays: discovery via one page is a single point
+        // of failure for the whole corpus.
         autoStaticPathsDiscovery: true,
         crawlLinks: true,
         concurrency: 14,

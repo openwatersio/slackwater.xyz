@@ -22,7 +22,9 @@ const stationLoc = (s: Station) => `${ORIGIN}/${s.kind === 'tide' ? 'tides' : 'c
 export function buildSitemaps(stations: Station[]): Record<string, string> {
   const tides = stations.filter((s) => s.kind === 'tide').map(stationLoc)
   const currents = stations.filter((s) => s.kind === 'current').map(stationLoc)
-  const staticPages = ['/', '/support/', '/privacy/'].map((p) => `${ORIGIN}${p}`)
+  const staticPages = ['/', '/support/', '/privacy/', '/stations/', '/stations/tides/', '/stations/currents/'].map(
+    (p) => `${ORIGIN}${p}`,
+  )
 
   return {
     'sitemap-tides.xml': urlset(tides),
