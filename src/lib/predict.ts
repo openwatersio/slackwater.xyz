@@ -1,5 +1,5 @@
 import { createTidePredictor } from '@neaps/tide-predictor'
-import type { Station } from './station'
+import type { BundledStation } from './station'
 
 export interface Sample {
   time: Date
@@ -27,7 +27,7 @@ export interface StationEvent {
  */
 const predictors = new Map<string, ReturnType<typeof createTidePredictor>>()
 
-function predictorFor(station: Station) {
+function predictorFor(station: BundledStation) {
   // Keyed on id + offset, not id alone: a real station's id never carries two
   // offsets, but keying on id alone would let a stale offset survive a cache
   // hit if one ever did.
@@ -48,7 +48,7 @@ function predictorFor(station: Station) {
  * Use the library's own timeline.
  */
 export function predictSeries(
-  station: Station,
+  station: BundledStation,
   start: Date,
   hours: number,
   fidelitySeconds = 600,
@@ -73,7 +73,7 @@ export function predictSeries(
  *    a max would misdescribe the day, and this filter is what keeps the site
  *    agreeing with slackwater-web's noaaCurrentState.
  */
-export function findEvents(station: Station, start: Date, hours: number): StationEvent[] {
+export function findEvents(station: BundledStation, start: Date, hours: number): StationEvent[] {
   const end = new Date(start.getTime() + hours * 3600_000)
 
   const extremes: StationEvent[] = predictorFor(station)
@@ -142,7 +142,7 @@ export const SLACK_KNOTS = 1.5
  * is what keeps two windows separated by a sub-threshold blip as one run.
  */
 export function slackWindows(
-  station: Station,
+  station: BundledStation,
   start: Date,
   hours: number,
   threshold = SLACK_KNOTS,

@@ -101,6 +101,13 @@ function withHeader(svg: string, title: string, subtitle: string): string {
  * station's local water, not an instant in the ether.
  */
 export async function renderCard(station: Station, now: Date, live = false): Promise<Uint8Array<ArrayBuffer>> {
+  // CHS stations carry no constituents, so no card can be drawn for one. The
+  // catalogue does not ship any yet; this is here so the day it does, a stub
+  // reaching this route fails loudly instead of `predictorFor` throwing deep
+  // inside `resvg` with a much less legible stack.
+  if (station.source !== 'bundled') {
+    throw new Error(`renderCard: no curve for a CHS station (${station.id})`)
+  }
   const start = new Date(now.getTime() - 6 * 3600_000)
   const Curve = station.kind === 'tide' ? TideCurve : CurrentCurve
   const markup = renderToStaticMarkup(

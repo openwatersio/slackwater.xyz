@@ -8,7 +8,7 @@ import currentBundle from '@openwaters/noaa-current-stations/currents.json' with
 import { stationsById } from '@neaps/tide-database'
 import tzLookup from 'tz-lookup'
 import { curatedBySlug, REGISTRY_IDS } from './registry'
-import type { Kind, Station } from './station'
+import type { BundledStation, Kind, Station } from './station'
 
 /**
  * A station is buildable when a provider catalogue ships its data, which the id
@@ -67,13 +67,14 @@ export function loadCatalogue(): Station[] {
         if (!r) throw new Error(`catalogue: no tide data for ${id}`)
         out.push({
           id, kind, slug,
+          source: 'bundled',
           // Curated identity wins. The provider row names the water whatever the
           // provider calls it; the registry names it what a mariner calls it.
           name: curated.get(slug)?.name ?? cleanName(String(r.name)),
           latitude: Number(r.latitude), longitude: Number(r.longitude),
           timezone: String(r.timezone),
           region: curated.get(slug)?.region ?? (r.region ? String(r.region) : undefined),
-          constituents: (r.harmonic_constituents as Station['constituents']).map((c) => ({
+          constituents: (r.harmonic_constituents as BundledStation['constituents']).map((c) => ({
             ...c,
             amplitude: c.amplitude * FEET_PER_METRE,
           })),
@@ -88,6 +89,7 @@ export function loadCatalogue(): Station[] {
         // every current station's slack time seven-plus hours wrong.
         out.push({
           id, kind, slug,
+          source: 'bundled',
           // Curated identity wins. The provider row names the water whatever the
           // provider calls it; the registry names it what a mariner calls it.
           name: curated.get(slug)?.name ?? cleanName(String(r.name)),
@@ -96,7 +98,7 @@ export function loadCatalogue(): Station[] {
           // The NOAA bundle carries no region field at all, so the registry is
           // the only source and there is nothing to fall back to.
           region: curated.get(slug)?.region,
-          constituents: r.constituents as Station['constituents'],
+          constituents: r.constituents as BundledStation['constituents'],
           offset: Number(r.offset ?? 0),
           floodDirection: Number(r.floodDirection),
           ebbDirection: Number(r.ebbDirection),

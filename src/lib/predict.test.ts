@@ -1,16 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import { predictSeries, findEvents, slackWindows, SLACK_KNOTS } from './predict'
-import type { Station } from './station'
+import type { BundledStation } from './station'
 
-const CURRENT: Station = {
+const CURRENT: BundledStation = {
   id: 'noaa/PUG1701', kind: 'current', slug: 'deception-pass', name: 'Deception Pass (Narrows)',
   latitude: 48.4, longitude: -122.64, timezone: 'America/Los_Angeles',
+  source: 'bundled',
   offset: 0, floodDirection: 101.5, ebbDirection: 281.5,
   constituents: [{ name: 'M2', amplitude: 3.2, phase: 100 }, { name: 'K1', amplitude: 1.1, phase: 250 }],
 }
-const TIDE: Station = {
+const TIDE: BundledStation = {
   id: 'noaa/9447130', kind: 'tide', slug: 'seattle', name: 'SEATTLE (Madison St.), Elliott Bay',
   latitude: 47.6, longitude: -122.34, timezone: 'America/Los_Angeles',
+  source: 'bundled',
   // Feet: the catalogue converts the database's metres once, at the boundary.
   constituents: [{ name: 'M2', amplitude: 3.487, phase: 10.8 }, { name: 'K1', amplitude: 2.625, phase: 300 }],
 }

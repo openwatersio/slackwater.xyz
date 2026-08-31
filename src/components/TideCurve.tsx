@@ -1,7 +1,7 @@
 import { useId, useMemo } from 'react'
 import { dayLabel, hhmm } from '#/lib/format'
 import { predictSeries } from '#/lib/predict'
-import type { Station } from '#/lib/station'
+import type { BundledStation } from '#/lib/station'
 
 /**
  * The height curve, drawn the way a tide actually behaves.
@@ -13,7 +13,7 @@ import type { Station } from '#/lib/station'
  */
 
 interface Props {
-  station: Station
+  station: BundledStation
   start: Date
   hours: number
   now: Date
@@ -154,7 +154,7 @@ export function TideCurve({ station, start, hours, now, width: W = 1000, height:
  * same sentence ships in prerendered HTML, where no device computed anything.
  * The claim has to be true on both rendering paths.
  */
-function describe(station: Station, high: { time: Date; level: number }, low: { time: Date; level: number }) {
+function describe(station: BundledStation, high: { time: Date; level: number }, low: { time: Date; level: number }) {
   const tz = station.timezone
   return (
     `Tide predictions for ${station.name}, computed from harmonic constituents. ` +

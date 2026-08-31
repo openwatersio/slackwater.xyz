@@ -1,11 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { TideCurve } from './TideCurve'
-import type { Station } from '#/lib/station'
+import type { BundledStation } from '#/lib/station'
 
-const SEATTLE: Station = {
+const SEATTLE: BundledStation = {
   id: 'noaa/9447130', kind: 'tide', slug: 'seattle', name: 'SEATTLE (Madison St.), Elliott Bay',
   latitude: 47.6, longitude: -122.34, timezone: 'America/Los_Angeles',
+  source: 'bundled',
   // FEET. `@neaps/tide-database` ships Seattle's M2 as 1.063 METRES; the
   // catalogue converts once at the provider boundary (see catalogue.ts), so a
   // `Station` that reaches a renderer is already in the unit its labels claim.

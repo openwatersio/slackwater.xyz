@@ -37,11 +37,12 @@ export function StationPage({ station, now, live = false, nearby = [] }: Props) 
         {station.name}
       </h1>
       <p className="mt-3 text-sw-steel">{subtitle}</p>
-      {station.kind === 'tide' ? (
-        <TideCurve station={station} start={start} hours={24} now={now} />
-      ) : (
-        <CurrentCurve station={station} start={start} hours={24} now={now} live={live} />
-      )}
+      {station.source === 'bundled' &&
+        (station.kind === 'tide' ? (
+          <TideCurve station={station} start={start} hours={24} now={now} />
+        ) : (
+          <CurrentCurve station={station} start={start} hours={24} now={now} live={live} />
+        ))}
       <Nearby station={station} rows={nearby} />
       <Cta />
     </main>

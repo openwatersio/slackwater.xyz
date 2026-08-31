@@ -22,9 +22,11 @@ describe('loadCatalogue', () => {
   it('gives every station what it needs to be predicted and addressed', () => {
     for (const s of all) {
       expect(s.slug, s.id).toMatch(/^[a-z0-9-]+$/)
-      expect(s.constituents.length, s.id).toBeGreaterThan(0)
       expect(Number.isFinite(s.latitude), s.id).toBe(true)
       expect(s.name.trim(), s.id).not.toBe('')
+    }
+    for (const s of all.filter((s) => s.source === 'bundled')) {
+      expect(s.constituents.length, s.id).toBeGreaterThan(0)
     }
   })
 

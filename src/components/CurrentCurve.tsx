@@ -9,7 +9,7 @@ import {
   SLACK_KNOTS,
   type StationEvent,
 } from '#/lib/predict'
-import type { Station } from '#/lib/station'
+import type { BundledStation } from '#/lib/station'
 
 /**
  * The signed velocity curve, drawn the way the app draws it.
@@ -39,7 +39,7 @@ import type { Station } from '#/lib/station'
 const GO = '#88B868'
 
 interface Props {
-  station: Station
+  station: BundledStation
   start: Date
   hours: number
   now: Date
@@ -315,7 +315,7 @@ function until(then: Date, now: Date) {
  * day rather than calling it "next", for the same reason — nothing here knows
  * whether the reader is looking at this page now.
  */
-function describe(station: Station, events: StationEvent[], now: Date) {
+function describe(station: BundledStation, events: StationEvent[], now: Date) {
   const n = nextEvent(events, now)
   if (!n) return `Tidal current predictions for ${station.name}, computed from harmonic constituents.`
   const what =
