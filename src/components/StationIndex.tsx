@@ -12,6 +12,25 @@ const UNPLACED = 'Elsewhere'
  */
 const isPlace = (region: string) => !/^\d+$/.test(region)
 
+/**
+ * Group only when region data covers a meaningful share of the rows.
+ *
+ * `rows.some((r) => r.region && isPlace(r.region))` was the original rule:
+ * group if ANY row has a placeable region. That held while no current
+ * station had one at all. Then `boundary-pass` gained a curated region and
+ * 23 CHS gates arrived carrying one each — 24 rows out of 865 — and `.some()`
+ * fired on that alone, sorting 24 one-station headings ahead of an
+ * `Elsewhere` bucket holding the other 841. A reader looking for a US
+ * current station scrolled past two dozen Canadian headings to reach the
+ * site's entire bulk under a heading that isn't a place.
+ *
+ * A quarter is the line: below it, region data is too thin to be worth the
+ * extra furniture and the page stays one flat list (currents, at 2.8%
+ * placed); at or above it, region carries enough of the corpus that
+ * grouping earns its place (tides, at 94.8% placed).
+ */
+const PLACED_SHARE_TO_GROUP = 0.25
+
 function group(rows: StationRow[]): [string, StationRow[]][] {
   const by = new Map<string, StationRow[]>()
   for (const r of rows) {
@@ -34,12 +53,15 @@ function group(rows: StationRow[]): [string, StationRow[]][] {
  * pages carrying one link each, which is the thin-content problem the corpus
  * already has to answer for.
  *
- * Current stations carry no region at all (the NOAA bundle has no such field),
- * so they render as one alphabetical list. The shape follows the data instead
- * of forcing both kinds into the same furniture.
+ * Most current stations carry no region at all (the NOAA bundle has no such
+ * field) — a curated few (CHS gates, `boundary-pass`) do, but not enough of
+ * the corpus to earn grouping, so they render as one alphabetical list. The
+ * shape follows the data instead of forcing both kinds into the same
+ * furniture. See `PLACED_SHARE_TO_GROUP` for the threshold.
  */
 export function StationIndex({ kind, rows }: { kind: Kind; rows: StationRow[] }) {
-  const grouped = rows.some((r) => r.region && isPlace(r.region))
+  const placed = rows.filter((r) => r.region && isPlace(r.region)).length
+  const grouped = rows.length > 0 && placed / rows.length >= PLACED_SHARE_TO_GROUP
   const label = kind === 'tide' ? 'Tide stations' : 'Current stations'
   return (
     <main className="mx-auto max-w-5xl px-5 pb-24 pt-10 sm:px-6 sm:pt-20">
