@@ -46,35 +46,11 @@ export const Route = createFileRoute('/')({
  */
 const TESTFLIGHT: string | null = 'https://testflight.apple.com/join/FCSS4w8s'
 
-/**
- * No web-client link right now.
- *
- * `web.slackwater.xyz` is the decided home and has no DNS record yet, and the
- * PWA that used to stand in for it is deprecated. Sending someone to a demo
- * whose first action fails is worse than not offering the demo — this page's
- * whole argument is that the thing works when you need it.
- *
- * Restore when there is a web client to point at.
- */
-const WEB_CLIENT: string | null = null
-
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
     <span className="font-mono text-[0.65rem] font-medium uppercase tracking-[0.14em] text-sw-leaf sm:text-[0.7rem] sm:tracking-[0.16em]">
       {children}
     </span>
-  )
-}
-
-function WebClientLink({ className = '' }: { className?: string }) {
-  if (!WEB_CLIENT) return null
-  return (
-    <a
-      href={WEB_CLIENT}
-      className={`text-sw-foam underline decoration-sw-steel underline-offset-4 hover:decoration-sw-foam ${className}`}
-    >
-      Or just look at the water now
-    </a>
   )
 }
 
@@ -93,9 +69,6 @@ function Cta() {
           iPhone beta — opening soon
         </span>
       )}
-      {/* Desktop only. On a phone the fold is scarce and belongs to the
-          primary action; the alternative reads fine after the chart. */}
-      <WebClientLink className="hidden sm:inline" />
     </div>
   )
 }
@@ -177,10 +150,6 @@ function Home() {
           </span>
         </p>
       </section>
-
-      <p className="mt-6 sm:hidden">
-        <WebClientLink />
-      </p>
 
       {/* ── Correctness first, per gtm.md's ordering ───────────────────── */}
       <section className="mt-20 sm:mt-28">

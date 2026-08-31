@@ -8,16 +8,29 @@ This is a **public repo**. Everything you write here — code, comments, docs, c
 PR bodies — is published. Roadmaps, sequencing, pricing, unreleased plans, and paths into
 private repos stay out of it.
 
-## This is a landing page
+## This was a one-page site
 
-One page, one job: turn a reader into an install. That constrains almost every decision.
+One page, one job used to constrain almost every decision: turn a reader into an install, and
+nothing got to exist unless it served that. It's now a landing page plus 3,607 prerendered
+station pages at `/tides/<slug>` and `/currents/<slug>`. The constraint didn't relax — a second
+page finally earned it. The station corpus is both the thing a reader shares a link to instead
+of describing what the water's doing, and the indexable content the site had none of before. A
+referral route and a web client still haven't earned their place, which is why neither exists.
 
-- **Reach for less.** A dependency, an abstraction, or a build step needs to earn its place on
-  a page whose pitch is that it loads instantly.
-- **Don't build the referral route, the web client, or a second page** because you noticed
-  they're missing. They're missing on purpose.
-- **The site claims correctness.** The hero runs real predictions from `src/lib/currents.ts`.
-  If you touch that or `src/lib/ramp.ts`, a test comes with it.
+- **Reach for less, more than ever.** A dependency, an abstraction, or a build step needs to
+  earn its place on a site whose pitch is that it loads instantly. 3,607 pages multiply the cost
+  of anything that doesn't.
+- **Don't build the referral route or the web client** because you noticed they're missing.
+  They're missing on purpose — the station corpus earning its place doesn't change the case for
+  either of them.
+- **The site claims correctness, station by station.** Every station page runs a real
+  prediction from `src/lib/predict.ts` against bundled constituents; the hero on `/` is one more
+  instance of that, not a separate demo. If you touch `predict.ts` or `src/lib/ramp.ts`, a test
+  comes with it.
+- **The corpus is 3,607 of 4,690 stations, not all of them.** The missing 1,082 are Canadian
+  (CHS): no bundled constituents, predictions DFO's terms don't allow re-serving, and for 1,048
+  of them no published identity anywhere to build a page from. Tracked in issue #17 — don't
+  write or imply full coverage; `/currents/dodd-narrows` genuinely 404s today.
 
 ## Hard rules
 
