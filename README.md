@@ -1,7 +1,7 @@
 # slackwater.xyz
 
-The landing page for **Slackwater** — offline tide and current predictions for the Salish Sea
-and beyond.
+The landing page for **Slackwater** — offline tide and current predictions. Tides worldwide,
+currents across the US and Canada.
 
 **Live at <https://slackwater.xyz>**
 

@@ -270,8 +270,8 @@ function Home() {
           <div className="sm:w-[260px]">
             <Shot
               src="/shots/m41-map-zoom.webp"
-              alt="The app's chart of the Salish Sea, densely covered with tide stations as blue squares and current stations as orange circles, with place names from Sechelt Rapids and Squamish down past Seattle to Budd Inlet."
-              caption="The Salish Sea: blue squares are tide stations, orange circles are currents. Every one of them predicts without a connection."
+              alt="The app's chart zoomed to the Salish Sea, densely covered with tide stations as blue squares and current stations as orange circles, with place names from Sechelt Rapids and Squamish down past Seattle to Budd Inlet."
+              caption="Zoomed to the Salish Sea: blue squares are tide stations, orange circles are currents. Tides run worldwide, currents across the US and Canada. Every one of them predicts without a connection."
             />
           </div>
         </div>
