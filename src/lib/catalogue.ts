@@ -7,7 +7,7 @@ import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type
 import currentBundle from '@openwaters/noaa-current-stations/currents.json' with { type: 'json' }
 import { stationsById } from '@neaps/tide-database'
 import tzLookup from 'tz-lookup'
-import { curatedBySlug } from './registry'
+import { curatedBySlug, REGISTRY_IDS } from './registry'
 import type { Kind, Station } from './station'
 
 /**
@@ -105,5 +105,15 @@ export function loadCatalogue(): Station[] {
     }
   }
 
-  return out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  // One row per slug. station-metadata merges duplicate identities by pointing
+  // both ids at one slug (4.1.2), so a slug can arrive twice. Prefer the id the
+  // registry names - that is the curated half in every merged pair - and fall
+  // back to first-seen so this is total rather than conditional.
+  const bySlug = new Map<string, Station>()
+  for (const s of out) {
+    const key = `${s.kind}/${s.slug}`
+    const held = bySlug.get(key)
+    if (!held || (!REGISTRY_IDS.has(held.id) && REGISTRY_IDS.has(s.id))) bySlug.set(key, s)
+  }
+  return [...bySlug.values()].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
 }

@@ -21,6 +21,9 @@ interface RegistryEntry {
 
 const entries = registry as unknown as Record<string, RegistryEntry>
 
+/** Every id station-metadata's registry names — the curated half of a merged pair. */
+export const REGISTRY_IDS: ReadonlySet<string> = new Set(Object.keys(entries))
+
 /** A registry entry with no `kind` is a current gate — the registry's own rule. */
 const kindOf = (e: RegistryEntry): Kind => (e.kind === 'tide' ? 'tide' : 'current')
 
