@@ -126,12 +126,14 @@ function curveCard(station: BundledStation, now: Date, live: boolean): string {
  * moment, so stamping one on it would claim a reading the image does not
  * contain. It also makes the card identical for every instant URL, which is
  * correct - there is nothing per-instant to draw.
+ *
+ * No background rect: `renderCard` already passes resvg a `background`,
+ * the same way `curveCard`'s SVG paints no ground of its own either.
  */
 export function identityCard(station: ChsStation): string {
   const ground =
     `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" ` +
     `viewBox="0 0 ${WIDTH} ${HEIGHT}">` +
-    `<rect width="${WIDTH}" height="${HEIGHT}" fill="#00121f"/>` +
     `<text x="40" y="340" fill="#fcfcfc" fill-opacity="0.8" ` +
     `style="font-family:'${FONT_FAMILY}';font-size:28px;font-weight:500">` +
     `Predictions based on Canadian Hydrographic Service data</text>` +

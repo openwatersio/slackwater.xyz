@@ -19,6 +19,10 @@ describe('loadCatalogue', () => {
     // prefix: `noaa-boundary-pass` is registry-owned despite its name, and a prefix
     // test would let it through to a throw.
     expect(all.some((s) => s.id === 'noaa-boundary-pass')).toBe(false)
+    // The id-shape invariant itself: every row in the catalogue either came
+    // from `chsGates()` (a hand-built identity, no provider package involved)
+    // or has a slashed id from a provider package. Nothing else is buildable.
+    expect(all.every((s) => s.source === 'chs' || s.id.includes('/'))).toBe(true)
   })
 
   it('builds the flagship gate', () => {

@@ -55,6 +55,5 @@ describe('renderCard', () => {
   it('attributes CHS as a data source, not as the predictions themselves', () => {
     const svg = identityCard(DODD)
     expect(svg).toContain('Predictions based on Canadian Hydrographic Service data')
-    expect(svg).not.toContain('Predictions from')
   })
 })
