@@ -1,4 +1,5 @@
 import { useId, useMemo } from 'react'
+import { dayLabel, hhmm } from '#/lib/format'
 import { predictSeries } from '#/lib/predict'
 import type { Station } from '#/lib/station'
 
@@ -144,16 +145,20 @@ export function TideCurve({ station, start, hours, now, width: W = 1000, height:
   )
 }
 
-// The station's zone, never the runtime's: the Worker renders cards in UTC and a
-// reader's browser renders in their own zone. Both are the wrong water clock.
-const hhmm = (d: Date, timeZone: string) =>
-  d.toLocaleTimeString('en-CA', { timeZone, hour: '2-digit', minute: '2-digit', hour12: false })
-
-/** Spoken form, for anyone who can't see the curve. Units written in full. */
+/**
+ * Spoken form, for anyone who can't see the curve. Units written in full, and
+ * each time carries its own day: the window straddles midnight, so a bare
+ * `hh:mm` leaves a reader unable to tell which day the low belongs to.
+ *
+ * "Computed from harmonic constituents", not "computed on this device": this
+ * same sentence ships in prerendered HTML, where no device computed anything.
+ * The claim has to be true on both rendering paths.
+ */
 function describe(station: Station, high: { time: Date; level: number }, low: { time: Date; level: number }) {
+  const tz = station.timezone
   return (
-    `Tide predictions for ${station.name}. ` +
-    `High ${high.level.toFixed(1)} feet at ${hhmm(high.time, station.timezone)}, ` +
-    `low ${low.level.toFixed(1)} feet at ${hhmm(low.time, station.timezone)}.`
+    `Tide predictions for ${station.name}, computed from harmonic constituents. ` +
+    `High ${high.level.toFixed(1)} feet on ${dayLabel(high.time, tz)} at ${hhmm(high.time, tz)}, ` +
+    `low ${low.level.toFixed(1)} feet on ${dayLabel(low.time, tz)} at ${hhmm(low.time, tz)}.`
   )
 }

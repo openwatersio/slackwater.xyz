@@ -6,7 +6,12 @@ import type { Station } from '#/lib/station'
 const SEATTLE: Station = {
   id: 'noaa/9447130', kind: 'tide', slug: 'seattle', name: 'SEATTLE (Madison St.), Elliott Bay',
   latitude: 47.6, longitude: -122.34, timezone: 'America/Los_Angeles',
-  constituents: [{ name: 'M2', amplitude: 1.063, phase: 10.8 }, { name: 'K1', amplitude: 0.8, phase: 300 }],
+  // FEET. `@neaps/tide-database` ships Seattle's M2 as 1.063 METRES; the
+  // catalogue converts once at the provider boundary (see catalogue.ts), so a
+  // `Station` that reaches a renderer is already in the unit its labels claim.
+  // These are those metre figures times 3.28084 — a fixture in metres would
+  // make this file agree with a page that reads 3.28x shallow.
+  constituents: [{ name: 'M2', amplitude: 3.487, phase: 10.8 }, { name: 'K1', amplitude: 2.625, phase: 300 }],
 }
 
 describe('TideCurve', () => {
@@ -26,6 +31,15 @@ describe('TideCurve', () => {
   it('paints with attributes, not classes, so a rasteriser can render it', () => {
     // resvg cannot resolve Tailwind classes; a class-styled chart rasterises blank.
     expect(svg).toMatch(/(fill|stroke)="#[0-9A-Fa-f]{6}"/)
+  })
+
+  it('labels heights in feet, not the database metres', () => {
+    // Seattle swings about 10 ft in a day. Rendered from the raw database
+    // metres the same curve labels a ~3 ft swing — plausible-looking, wrong by
+    // 3.28x, and the reason this assertion is a range and not a string.
+    const m = svg.match(/High (-?[\d.]+) feet[\s\S]*?low (-?[\d.]+) feet/)
+    expect(m, 'no high/low in the accessibility text').not.toBeNull()
+    expect(Number(m![1]) - Number(m![2])).toBeGreaterThan(8)
   })
 
   it('uses no current-only visual language', () => {
@@ -53,7 +67,11 @@ describe('TideCurve times', () => {
       <TideCurve station={SEATTLE} start={new Date('2026-09-01T00:00:00Z')} hours={24} now={new Date('2026-09-01T06:00:00Z')} />,
     )
     // America/Los_Angeles, not the Asia/Tokyo 12:40 / 19:50 the broken code gave.
-    expect(tokyoSvg).toContain('High 1.9 feet at 20:40, low -1.3 feet at 03:50.')
+    // Each extreme carries its own day: this window straddles local midnight,
+    // so "at 03:50" alone would not say which day's low it is.
+    expect(tokyoSvg).toContain(
+      'High 6.2 feet on Mon 31 Aug 2026 at 20:40, low -4.4 feet on Tue 1 Sep 2026 at 03:50.',
+    )
     expect(tokyoSvg).not.toContain('12:40')
   })
 })

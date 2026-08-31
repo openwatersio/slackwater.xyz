@@ -11,7 +11,8 @@ const CURRENT: Station = {
 const TIDE: Station = {
   id: 'noaa/9447130', kind: 'tide', slug: 'seattle', name: 'SEATTLE (Madison St.), Elliott Bay',
   latitude: 47.6, longitude: -122.34, timezone: 'America/Los_Angeles',
-  constituents: [{ name: 'M2', amplitude: 1.063, phase: 10.8 }, { name: 'K1', amplitude: 0.8, phase: 300 }],
+  // Feet: the catalogue converts the database's metres once, at the boundary.
+  constituents: [{ name: 'M2', amplitude: 3.487, phase: 10.8 }, { name: 'K1', amplitude: 2.625, phase: 300 }],
 }
 
 describe('predictSeries', () => {

@@ -26,6 +26,22 @@ export function isBuildable(id: string): boolean {
 /** The current bundle keys stations by bare NOAA id; the slug table prefixes them. */
 const NOAA = 'noaa/'
 
+/**
+ * `@neaps/tide-database` ships tide amplitudes in METRES (Boston M2 = 1.371,
+ * a 9.5 ft range once summed) — the current bundle is already in knots. The
+ * site speaks feet, so the conversion happens once, here, at the boundary
+ * where provider data enters: from this point on a tide `Station` is in feet
+ * and no renderer has to know what a provider chose. Labelling a metre "ft"
+ * at the far end is wrong by 3.28x and looks entirely plausible.
+ *
+ * ponytail: heights remain MSL-relative (a constituent sum has no datum in
+ * it) while every station's `chart_datum` is MLLW, which is why lows read
+ * negative. That is a datum decision for the owner, not a units bug — the
+ * `datums` field on each record carries the MSL-to-MLLW offset if it is ever
+ * taken (Boston: MSL 2.66, MLLW 1.074, both metres).
+ */
+const FEET_PER_METRE = 3.28084
+
 function tideRecord(id: string): Record<string, unknown> | undefined {
   const db = stationsById as unknown
   return db instanceof Map ? db.get(id) : (db as Record<string, never>)[id]
@@ -51,7 +67,10 @@ export function loadCatalogue(): Station[] {
           name: String(r.name),
           latitude: Number(r.latitude), longitude: Number(r.longitude),
           timezone: String(r.timezone), region: r.region ? String(r.region) : undefined,
-          constituents: r.harmonic_constituents as Station['constituents'],
+          constituents: (r.harmonic_constituents as Station['constituents']).map((c) => ({
+            ...c,
+            amplitude: c.amplitude * FEET_PER_METRE,
+          })),
         })
       } else {
         const r = currents.get(id)
