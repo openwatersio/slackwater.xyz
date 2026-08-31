@@ -74,4 +74,10 @@ describe('loadCatalogue', () => {
       expect(s.name, s.id).toBe(cleanName(s.name))
     }
   })
+
+  it('gives a registry station its curated name, not the provider row name', () => {
+    const bp = all.find((s) => s.kind === 'current' && s.slug === 'boundary-pass')
+    expect(bp?.name).toBe('Boundary Pass')
+    expect(bp?.region).toBe('Saturna & Patos Islands')
+  })
 })

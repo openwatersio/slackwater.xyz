@@ -7,6 +7,7 @@ import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type
 import currentBundle from '@openwaters/noaa-current-stations/currents.json' with { type: 'json' }
 import { stationsById } from '@neaps/tide-database'
 import tzLookup from 'tz-lookup'
+import { curatedBySlug } from './registry'
 import type { Kind, Station } from './station'
 
 /**
@@ -55,6 +56,7 @@ export function loadCatalogue(): Station[] {
   const out: Station[] = []
 
   for (const kind of ['tide', 'current'] as Kind[]) {
+    const curated = curatedBySlug(kind)
     for (const [id, slug] of Object.entries(slugTable[kind] as Record<string, string>)) {
       if (!isBuildable(id)) continue
 
@@ -65,9 +67,12 @@ export function loadCatalogue(): Station[] {
         if (!r) throw new Error(`catalogue: no tide data for ${id}`)
         out.push({
           id, kind, slug,
-          name: cleanName(String(r.name)),
+          // Curated identity wins. The provider row names the water whatever the
+          // provider calls it; the registry names it what a mariner calls it.
+          name: curated.get(slug)?.name ?? cleanName(String(r.name)),
           latitude: Number(r.latitude), longitude: Number(r.longitude),
-          timezone: String(r.timezone), region: r.region ? String(r.region) : undefined,
+          timezone: String(r.timezone),
+          region: curated.get(slug)?.region ?? (r.region ? String(r.region) : undefined),
           constituents: (r.harmonic_constituents as Station['constituents']).map((c) => ({
             ...c,
             amplitude: c.amplitude * FEET_PER_METRE,
@@ -83,9 +88,14 @@ export function loadCatalogue(): Station[] {
         // every current station's slack time seven-plus hours wrong.
         out.push({
           id, kind, slug,
-          name: cleanName(String(r.name)),
+          // Curated identity wins. The provider row names the water whatever the
+          // provider calls it; the registry names it what a mariner calls it.
+          name: curated.get(slug)?.name ?? cleanName(String(r.name)),
           latitude, longitude,
           timezone: tzLookup(latitude, longitude),
+          // The NOAA bundle carries no region field at all, so the registry is
+          // the only source and there is nothing to fall back to.
+          region: curated.get(slug)?.region,
           constituents: r.constituents as Station['constituents'],
           offset: Number(r.offset ?? 0),
           floodDirection: Number(r.floodDirection),
