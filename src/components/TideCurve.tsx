@@ -1,4 +1,5 @@
 import { useId, useMemo } from 'react'
+import { provenance } from '#/lib/copy'
 import { dayLabel, hhmm } from '#/lib/format'
 import { predictSeries } from '#/lib/predict'
 import type { BundledStation } from '#/lib/station'
@@ -157,7 +158,7 @@ export function TideCurve({ station, start, hours, now, width: W = 1000, height:
 function describe(station: BundledStation, high: { time: Date; level: number }, low: { time: Date; level: number }) {
   const tz = station.timezone
   return (
-    `Tide predictions for ${station.name}, computed from harmonic constituents. ` +
+    `Tide predictions for ${station.name}, ${provenance(station)}. ` +
     `High ${high.level.toFixed(1)} feet on ${dayLabel(high.time, tz)} at ${hhmm(high.time, tz)}, ` +
     `low ${low.level.toFixed(1)} feet on ${dayLabel(low.time, tz)} at ${hhmm(low.time, tz)}.`
   )

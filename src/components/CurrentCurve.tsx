@@ -1,4 +1,5 @@
 import { useId, useMemo } from 'react'
+import { provenance } from '#/lib/copy'
 import { dayLabel, hhmm } from '#/lib/format'
 import { speedColor } from '#/lib/ramp'
 import {
@@ -317,14 +318,14 @@ function until(then: Date, now: Date) {
  */
 function describe(station: BundledStation, events: StationEvent[], now: Date) {
   const n = nextEvent(events, now)
-  if (!n) return `Tidal current predictions for ${station.name}, computed from harmonic constituents.`
+  if (!n) return `Tidal current predictions for ${station.name}, ${provenance(station)}.`
   const what =
     n.kind === 'slack'
       ? 'Slack water'
       : `Maximum ${n.kind} of ${Math.abs(n.level).toFixed(1)} knots`
   const tz = station.timezone
   return (
-    `Tidal current at ${station.name}, computed from harmonic constituents. ` +
+    `Tidal current at ${station.name}, ${provenance(station)}. ` +
     `${what} on ${dayLabel(n.time, tz)} at ${hhmm(n.time, tz)}.`
   )
 }

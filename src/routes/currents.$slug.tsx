@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { StationPage } from '#/components/StationPage'
 import { nearbyStations, stationBySlug } from '#/lib/catalogue-server'
+import { pageDescription } from '#/lib/copy'
 import { useLiveNow } from '#/lib/use-live-now'
 
 const CANONICAL = 'https://slackwater.xyz/currents/'
@@ -18,7 +19,7 @@ export const Route = createFileRoute('/currents/$slug')({
     const s = loaderData?.station
     if (!s) return {}
     const title = `${s.name} — tidal currents`
-    const description = `Slack water and maximum flood and ebb for ${s.name}, computed from harmonic constituents.`
+    const description = pageDescription(s)
     return {
       links: [{ rel: 'canonical', href: `${CANONICAL}${s.slug}/` }],
       meta: [

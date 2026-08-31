@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { StationPage } from '#/components/StationPage'
 import { nearbyStations, stationBySlug } from '#/lib/catalogue-server'
+import { pageDescription } from '#/lib/copy'
 import { parseInstant } from './instant-url'
 
 const CANONICAL = 'https://slackwater.xyz/tides/'
@@ -33,7 +34,7 @@ export const Route = createFileRoute('/tides/$slug_/$instant')({
     const s = loaderData?.station
     if (!s) return {}
     const title = `${s.name} — tide heights`
-    const description = `Tide heights and the next high and low for ${s.name}, computed from harmonic constituents.`
+    const description = pageDescription(s)
     return {
       // Points at the bare station URL, not this instant URL: the instant
       // space is unbounded, so treating each shared moment as its own
