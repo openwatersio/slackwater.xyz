@@ -23,16 +23,18 @@ referral route and a web client still haven't earned their place, which is why n
 - **Don't build the referral route or the web client** because you noticed they're missing.
   They're missing on purpose — the station corpus earning its place doesn't change the case for
   either of them.
-- **The site claims correctness, station by station.** Every station page runs a real
-  prediction from `src/lib/predict.ts` against bundled constituents; the hero on `/` is one more
-  instance of that, not a separate demo. If you touch `predict.ts` or `src/lib/ramp.ts`, a test
-  comes with it.
+- **The site claims correctness, station by station.** Every page that draws a curve runs a
+  real prediction from `src/lib/predict.ts` against bundled constituents; the hero on `/` is one
+  more instance of that, not a separate demo. The Canadian gates draw no curve and claim none —
+  see below. If you touch `predict.ts` or `src/lib/ramp.ts`, a test comes with it.
 - **The corpus is 3,630 pages of 4,686 distinct waters, not all of them.** 23 Canadian (CHS)
   current gates build from published registry identity, without a curve — DFO's terms don't
-  allow re-serving predictions for them. What's still missing is the Canadian tide ports, whose
-  identity is not published yet, plus `chs-arran-rapids`, excluded by name pending an owner
-  decision. Tracked in issue #17 — don't write or imply full coverage; `/currents/dodd-narrows`
-  now resolves.
+  allow re-serving predictions for them. This work does not build the Canadian tide ports:
+  the registry already publishes curated identity for 10 of them (Victoria, Vancouver and
+  eight more), unbuilt only because `loadCatalogue` has no tide analogue of `chsGates()` — for
+  the rest, no identity is published at all. Plus `chs-arran-rapids`, excluded by name pending
+  an owner decision. Tracked in issue #17 — don't write or imply full coverage;
+  `/currents/dodd-narrows` now resolves.
 
 ## Hard rules
 

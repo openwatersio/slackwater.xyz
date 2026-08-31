@@ -20,9 +20,9 @@ demonstrate that rather than assert it.
 
 3,630 pages, not the full catalogue: 3,607 get a computed curve, and 23 Canadian (CHS) current
 gates get identity only — DFO's terms don't allow re-serving predictions, so those pages name
-the gate without claiming a curve. What's still missing entirely is the Canadian tide ports,
-whose identity isn't published anywhere yet, plus `chs-arran-rapids`, excluded pending an owner
-decision. Tracked in [issue
+the gate without claiming a curve. This work does not build the Canadian tide ports: identity
+is published for 10 of them (Victoria, Vancouver and eight more) and for none of the rest,
+plus `chs-arran-rapids`, excluded pending an owner decision. Tracked in [issue
 #17](https://github.com/openwatersio/slackwater.xyz/issues/17); those stations 404 rather than
 claim a curve nobody can compute.
 
