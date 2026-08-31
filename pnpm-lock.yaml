@@ -23,8 +23,8 @@ importers:
         specifier: ^0.5.0
         version: 0.5.0
       '@openwaters/station-metadata':
-        specifier: ^4.0.0
-        version: 4.0.0
+        specifier: ^4.1.2
+        version: 4.1.2
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.3.3(vite@8.0.14(@types/node@22.20.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
@@ -593,8 +593,8 @@ packages:
     engines: {node: '>=20'}
     hasBin: true
 
-  '@openwaters/station-metadata@4.0.0':
-    resolution: {integrity: sha512-a799tciIu6lB9lzOzeheZPvsn1EG6otc2ENQjVEAyWjB+cAazI6j9bjdiWpUl/JRRovC5MsUG9cDF/wmTiZ4pg==}
+  '@openwaters/station-metadata@4.1.2':
+    resolution: {integrity: sha512-vhwtIGHNjzR9zzC+H6neh/kN/WCzE7RuP9mud9WmxHYFrc9gPXJqOvgj07X2Y9g1ut9FIBbx57g43JqCoNkD6w==}
     hasBin: true
 
   '@oxc-project/types@0.132.0':
@@ -2398,7 +2398,7 @@ snapshots:
 
   '@openwaters/noaa-current-stations@0.5.0': {}
 
-  '@openwaters/station-metadata@4.0.0':
+  '@openwaters/station-metadata@4.1.2':
     dependencies:
       '@turf/boolean-point-in-polygon': 7.4.0
       '@turf/helpers': 7.4.0
