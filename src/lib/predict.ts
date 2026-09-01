@@ -140,14 +140,12 @@ export const SLACK_KNOTS = 1.5
  * under the threshold and then builds back the way it came is weak water, not
  * slack, and drawing it green would promise a transit that never opens. This
  * is what keeps two windows separated by a sub-threshold blip as one run.
+ *
+ * Takes the timeline rather than a station: this is pure over a curve, and
+ * only ever took a station in order to re-derive one. A Canadian gate's curve
+ * is fetched from DFO rather than predicted, and it needs the same windows.
  */
-export function slackWindows(
-  station: BundledStation,
-  start: Date,
-  hours: number,
-  threshold = SLACK_KNOTS,
-): SlackWindow[] {
-  const timeline = predictSeries(station, start, hours)
+export function slackWindows(timeline: Sample[], threshold = SLACK_KNOTS): SlackWindow[] {
   // Signed distance out of the band — negative inside, zero at the edge. The
   // crossing is interpolated on it the same way findEvents interpolates slack.
   const out = (s: Sample) => Math.abs(s.level) - threshold

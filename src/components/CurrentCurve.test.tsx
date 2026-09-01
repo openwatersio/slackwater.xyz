@@ -1,7 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { CurrentCurve } from './CurrentCurve'
-import type { BundledStation } from '#/lib/station'
+import { gateEvents, signedSamples } from '#/lib/iwls'
+import fixture from '#/lib/__fixtures__/iwls.json' with { type: 'json' }
+import type { BundledStation, ChsStation } from '#/lib/station'
 
 const DECEPTION: BundledStation = {
   id: 'noaa/PUG1701', kind: 'current', slug: 'deception-pass-narrows', name: 'Deception Pass (Narrows)',
@@ -64,5 +66,58 @@ describe('CurrentCurve times', () => {
     expect(hydrated).toContain('Next')
     expect(hydrated).toMatch(/in \d+[hm]/)
     expect(hydrated).toContain('>16:47<')
+  })
+})
+
+describe('CurrentCurve with fetched samples', () => {
+  // A Canadian gate draws the same curve from numbers the reader's browser
+  // fetched from DFO, rather than from constituents we may not re-serve.
+  const DODD: ChsStation = {
+    id: 'chs-dodd-narrows', kind: 'current', slug: 'dodd-narrows', name: 'Dodd Narrows',
+    latitude: 49.135, longitude: -123.817, timezone: 'America/Vancouver',
+    source: 'chs', region: 'Nanaimo',
+  }
+  const START = new Date('2026-09-01T00:00:00Z')
+  const samples = signedSamples(
+    fixture.gates['Dodd Narrows'].wcsp1,
+    fixture.gates['Dodd Narrows'].wcdp1,
+    fixture.gates['Dodd Narrows'].floodDirection,
+  )
+  const events = gateEvents(fixture.gates['Dodd Narrows']['wcp1-events'])
+  const svg = renderToStaticMarkup(
+    <CurrentCurve
+      station={DODD} start={START} hours={24} now={new Date('2026-09-01T06:00:00Z')}
+      samples={samples} events={events}
+    />,
+  )
+
+  it("prints DFO's own published peak speeds on the chart", () => {
+    // The number a mariner reads. DFO publishes 7.099 kn flood and 7.037 kn
+    // ebb for this day; a cosine projection onto the flood axis would label
+    // the ebb 6.6 and still draw a plausible-looking day.
+    expect(svg).toContain('7.1 kn')
+    expect(svg).toContain('7.0 kn')
+  })
+
+  it("prints DFO's own published slack times, in the station's zone", () => {
+    // 01:49, 08:28, 14:38 and 20:30 UTC — Vancouver is UTC-7 on this date, and
+    // the first and last fall outside the drawn frame.
+    expect(svg).toContain('01:28')
+    expect(svg).toContain('07:38')
+  })
+
+  it('credits DFO where a reader can see it, not only in the sr-only caption', () => {
+    // The identity panel that named CHS has been replaced by the chart it
+    // offered, so this is the only place left on the page that says whose
+    // predictions these are. NOAA's data is public domain and the US pages
+    // credit nothing here; DFO's is not.
+    const visible = svg.replace(/<figcaption[^]*?<\/figcaption>/g, '')
+    expect(visible).toContain('Predictions published by the Canadian Hydrographic Service')
+    expect(visible).toContain('fetched from DFO by your browser')
+  })
+
+  it('says CHS published it, and claims nothing about the app', () => {
+    expect(svg).toContain('published by the Canadian Hydrographic Service')
+    expect(svg).not.toMatch(/harmonic constituents|offline|on-device/)
   })
 })

@@ -25,11 +25,20 @@ referral route and a web client still haven't earned their place, which is why n
   either of them.
 - **The site claims correctness, station by station.** Every page that draws a curve runs a
   real prediction from `src/lib/predict.ts` against bundled constituents; the hero on `/` is one
-  more instance of that, not a separate demo. The Canadian gates draw no curve and claim none —
-  see below. If you touch `predict.ts` or `src/lib/ramp.ts`, a test comes with it.
+  more instance of that, not a separate demo. The Canadian gates ship no curve and prerender
+  none — the reader's own browser fetches DFO's published predictions, and nothing about them is
+  ever re-served by us. See below. If you touch `predict.ts`,
+  `src/lib/ramp.ts` or `src/lib/iwls.ts`, a test comes with it.
 - **The corpus is 3,630 pages of 4,686 distinct waters, not all of them.** 23 Canadian (CHS)
-  current gates build from published registry identity, without a curve — DFO's terms don't
-  allow re-serving predictions for them. This work does not build the Canadian tide ports:
+  current gates build from published registry identity, with no prediction in the page — DFO's
+  terms don't allow re-serving predictions for them. On 22 of them the visitor's own browser fetches
+  DFO's numbers from `api-iwls.dfo-mpo.gc.ca` when the page loads, with a Cancel button while
+  it is in flight; the 23rd, `chs-malibu-rapids`, is derived from a reference port and has no
+  station to fetch. **Never proxy IWLS through the Worker**, for CORS or anything else — the
+  moment we fetch, we are re-serving. **Never prerender the curve** — the served page carries
+  no CHS prediction, which is what makes fetching on load a privacy question and not a
+  licensing one. `src/content/privacy.md` describes the on-load request; it moves with any
+  change to when or whether that request happens. This work does not build the Canadian tide ports:
   the registry already publishes curated identity for 10 of them (Victoria, Vancouver and
   eight more), unbuilt only because `loadCatalogue` has no tide analogue of `chsGates()` — for
   the rest, no identity is published at all. Plus `chs-arran-rapids`, excluded by name pending

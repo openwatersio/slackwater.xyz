@@ -41,6 +41,12 @@ export interface BundledStation extends StationIdentity {
  */
 export interface ChsStation extends StationIdentity {
   source: 'chs'
+  /**
+   * True where the station has no provider station of its own and its water is
+   * derived from a reference port plus a fixed lag. There is nothing to fetch
+   * for one of these, so its page offers no curve — see `ChsGate`.
+   */
+  derived?: true
 }
 
 /**

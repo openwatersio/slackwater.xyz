@@ -17,6 +17,24 @@ describe('provenance', () => {
   it('names harmonic constituents for a bundled station', () => {
     expect(provenance(bundled)).toBe('computed from harmonic constituents')
   })
+
+  it('names CHS as the publisher, which is only true once the curve is drawn', () => {
+    // The identity panel may not say this (#44): nine of the 23 gates are
+    // never fitted on device and nothing published says which nine, so any
+    // sentence naming a mechanism is false for one group or the other. That
+    // constraint does not reach here. What this clause describes is a curve
+    // the reader's browser fetched from DFO, which is CHS's own published
+    // prediction for every gate without exception.
+    expect(provenance(chs)).toBe('published by the Canadian Hydrographic Service')
+  })
+
+  it('claims nothing about the app, on either branch', () => {
+    // "Slackwater's on-device model" is app copy and false on a page showing
+    // DFO's own numbers; "offline" is false for the online gates.
+    for (const s of [bundled, chs]) {
+      expect(provenance(s)).not.toMatch(/slackwater|offline|on-device|app/i)
+    }
+  })
 })
 
 describe('pageDescription', () => {

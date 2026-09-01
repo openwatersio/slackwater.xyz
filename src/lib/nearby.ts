@@ -3,8 +3,15 @@ import type { Station } from './station'
 const EARTH_NM = 3440.065 // mean Earth radius in nautical miles
 const rad = (d: number) => (d * Math.PI) / 180
 
+/** Anything with a position. Widened from `Station` so `iwls.ts` can resolve a
+ *  provider record against a curated one without a second great-circle. */
+export interface Positioned {
+  latitude: number
+  longitude: number
+}
+
 /** Great-circle distance in nautical miles — the unit the audience navigates in. */
-export function distanceNm(a: Station, b: Station): number {
+export function distanceNm(a: Positioned, b: Positioned): number {
   const dLat = rad(b.latitude - a.latitude)
   const dLon = rad(b.longitude - a.longitude)
   const h =
