@@ -316,6 +316,17 @@ export function CurrentCurve(props: Props) {
         </g>
       </svg>
 
+      {/* Visible, not only in the sr-only caption: these are DFO's own
+          published numbers and this is the one place on the page that says so
+          once the identity panel has been replaced by the chart it offered.
+          The US pages credit nothing here because NOAA's data is public
+          domain; DFO's is not. */}
+      {station.source === 'chs' && (
+        <p className="mt-3 text-sm text-sw-steel">
+          Predictions {provenance(station)}, fetched from DFO by your browser.
+        </p>
+      )}
+
       <figcaption className="sr-only">{describe(station, events, now)}</figcaption>
 
       {live && next && (

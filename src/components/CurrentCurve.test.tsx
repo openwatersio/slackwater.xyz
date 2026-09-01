@@ -106,6 +106,16 @@ describe('CurrentCurve with fetched samples', () => {
     expect(svg).toContain('07:38')
   })
 
+  it('credits DFO where a reader can see it, not only in the sr-only caption', () => {
+    // The identity panel that named CHS has been replaced by the chart it
+    // offered, so this is the only place left on the page that says whose
+    // predictions these are. NOAA's data is public domain and the US pages
+    // credit nothing here; DFO's is not.
+    const visible = svg.replace(/<figcaption[^]*?<\/figcaption>/g, '')
+    expect(visible).toContain('Predictions published by the Canadian Hydrographic Service')
+    expect(visible).toContain('fetched from DFO by your browser')
+  })
+
   it('says CHS published it, and claims nothing about the app', () => {
     expect(svg).toContain('published by the Canadian Hydrographic Service')
     expect(svg).not.toMatch(/harmonic constituents|offline|on-device/)
