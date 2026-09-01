@@ -1,6 +1,6 @@
 # Privacy policy
 
-Effective August 29, 2026
+Effective August 31, 2026
 
 This policy covers the Slackwater iOS app and slackwater.xyz. Slackwater is operated by Open Water Software, LLC, doing business as Open Waters (“Open Waters,” “we,” or “us”).
 
@@ -9,6 +9,7 @@ This policy covers the Slackwater iOS app and slackwater.xyz. Slackwater is oper
 - Slackwater has no user accounts or advertising.
 - Your precise location stays on your device.
 - The Slackwater app does not send us crash reports or usage data. The website counts visits without cookies.
+- A Canadian station page contacts the Canadian Hydrographic Service only if you ask it to, and only from your own browser.
 - We do not sell personal information or track you across apps or websites.
 - Our hosting provider keeps short-lived technical request logs for security and reliability.
 
@@ -41,6 +42,14 @@ slackwater.xyz counts visits using Plausible Analytics, a privacy-focused analyt
 - **Purpose**: aggregate measurement of how many people read which pages and follow which links, so we can tell whether the site is doing its job.
 - **Retention**: the aggregate counts are kept indefinitely. No personal information is retained.
 - **Choices**: the analytics script is served from slackwater.xyz itself rather than a third-party domain, so blocking `slackwater.xyz/js/script.js` in your browser or content blocker stops it. Because it sets no cookies or similar storage and retains no personal information, we do not present a consent banner.
+
+### Canadian predictions on station pages
+
+Station pages for Canadian tidal current gates carry no predictions. Each offers a button that loads them. If you choose it, your browser requests those predictions directly from the Canadian Hydrographic Service at `api-iwls.dfo-mpo.gc.ca`, and draws the chart from what comes back.
+
+- **Nothing is requested until you ask.** No Canadian prediction is fetched when the page loads, and none is stored in the page in advance.
+- **The request does not pass through us.** It goes from your browser to the Canadian Hydrographic Service. Open Waters does not proxy it, does not receive the predictions, and does not store them.
+- **What DFO receives**: the information normally sent with an internet request, such as an IP address and technical request details, together with the station and the dates you asked about. The Canadian Hydrographic Service handles that under its own terms and privacy policy.
 
 Cloudflare hosts the site and processes technical request information such as IP address, request URL, browser information, timestamps, and errors to deliver, secure, and diagnose the site. Worker logs are retained for no more than seven days. We do not use them to build profiles or track people across services.
 
