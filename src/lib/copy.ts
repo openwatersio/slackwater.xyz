@@ -3,16 +3,24 @@ import type { BundledStation, Station } from './station'
 /**
  * Where this station's numbers come from, as a clause with no full stop.
  *
- * Typed `BundledStation`, not `Station`: this is only ever true of a page
- * that draws a curve, so a CHS station must not type-check here. A CHS
- * branch lived here once ("predicted by the Canadian Hydrographic Service"),
- * the exact authorship framing ruled false and replaced everywhere else with
- * "based on ... data" — this function was written first and never revisited.
- * The project that draws a CHS curve gets to write that sentence fresh,
- * against whatever the licensing posture is by then.
+ * Reached only from a drawn curve — the two curve components' spoken
+ * descriptions, and `pageDescription` on the bundled branch. That is what
+ * makes the CHS clause sayable at all, and it is why this now takes a
+ * `Station`: it was typed `BundledStation` while a CHS page had no curve to
+ * describe.
+ *
+ * "Published by", not "based on". Everywhere else on a CHS page the site says
+ * "based on Canadian Hydrographic Service data", because the identity panel
+ * cannot name a mechanism (#44) and the app fits 14 of the 23 gates itself.
+ * Here the reader's browser has just fetched DFO's own published prediction
+ * and it is on the screen, so the stronger, more specific claim is the true
+ * one. Do NOT let this wording drift back into the panel, which describes
+ * something else.
  */
-export function provenance(_station: BundledStation): string {
-  return 'computed from harmonic constituents'
+export function provenance(station: Station): string {
+  return station.source === 'chs'
+    ? 'published by the Canadian Hydrographic Service'
+    : 'computed from harmonic constituents'
 }
 
 /**

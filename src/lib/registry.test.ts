@@ -38,3 +38,24 @@ describe('chsGates', () => {
     expect(dodd?.timezone).toBe('America/Vancouver')
   })
 })
+
+describe('chsGates and the derived gate', () => {
+  const gates = chsGates()
+
+  it('marks the one gate with no CHS current station of its own', () => {
+    // Malibu Rapids is derived: slack is Point Atkinson's high and low water
+    // plus a fixed lag. Its position resolves to Sechelt Rapids 47 km away
+    // down another inlet, so without this flag its page would either offer a
+    // button that fails or, far worse, draw a real curve for the wrong water.
+    const derived = gates.filter((g) => g.derived).map((g) => g.id)
+    expect(derived).toEqual(['chs-malibu-rapids'])
+  })
+
+  it('leaves every fetchable gate unflagged', () => {
+    // The other 22 all serve wcsp1 at their own published position, worst
+    // match 0.17 km. A flag creeping onto one of them silently removes its
+    // curve, and the page would still render and still look finished.
+    expect(gates.find((g) => g.id === 'chs-dodd-narrows')?.derived).toBeUndefined()
+    expect(gates.filter((g) => !g.derived)).toHaveLength(22)
+  })
+})

@@ -84,6 +84,10 @@ export function chsGates(): ChsStation[] {
       id, kind: 'current', slug, source: 'chs',
       name: entry.name,
       ...(entry.context ? { region: entry.context } : {}),
+      // Carried through so the page knows not to offer a curve it cannot
+      // fetch: a derived gate has no CHS current station, and resolving its
+      // position would land on real water 47 km away down another inlet.
+      ...(entry.derived ? { derived: true as const } : {}),
       latitude, longitude,
       timezone: tzLookup(latitude, longitude),
     })

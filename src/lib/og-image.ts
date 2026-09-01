@@ -102,9 +102,16 @@ function withHeader(svg: string, title: string, subtitle: string): string {
  */
 function curveCard(station: BundledStation, now: Date, live: boolean): string {
   const start = new Date(now.getTime() - 6 * 3600_000)
-  const Curve = station.kind === 'tide' ? TideCurve : CurrentCurve
+  // Branched rather than picking the component into a variable: CurrentCurve's
+  // props are a union now (a Canadian gate supplies fetched samples), so the
+  // two components no longer share one props type. `station` is a
+  // BundledStation either way - a CHS card draws no curve at all, see
+  // `identityCard`.
+  const props = { station, start, hours: 24, now, width: WIDTH, height: HEIGHT }
   const markup = renderToStaticMarkup(
-    createElement(Curve, { station, start, hours: 24, now, width: WIDTH, height: HEIGHT }),
+    station.kind === 'tide'
+      ? createElement(TideCurve, props)
+      : createElement(CurrentCurve, props),
   )
   // The component's root element is a <figure> wrapping the <svg> plus a
   // sr-only <figcaption> - resvg needs an SVG document as its root, so pull

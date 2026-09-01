@@ -8,9 +8,10 @@ import {
   predictSeries,
   slackWindows,
   SLACK_KNOTS,
+  type Sample,
   type StationEvent,
 } from '#/lib/predict'
-import type { BundledStation } from '#/lib/station'
+import type { BundledStation, ChsStation, Station } from '#/lib/station'
 
 /**
  * The signed velocity curve, drawn the way the app draws it.
@@ -39,8 +40,7 @@ import type { BundledStation } from '#/lib/station'
 // bare markup with no stylesheet (see lib/og-image.ts).
 const GO = '#88B868'
 
-interface Props {
-  station: BundledStation
+interface Common {
   start: Date
   hours: number
   now: Date
@@ -67,16 +67,48 @@ interface Props {
   live?: boolean
 }
 
-export function CurrentCurve({
-  station,
-  start,
-  hours,
-  now,
-  width: W = 1000,
-  height: H = 320,
-  sparse = false,
-  live = false,
-}: Props) {
+/**
+ * Either a station whose curve we can compute, or a station whose curve
+ * arrived from somewhere else — never a CHS station with neither.
+ *
+ * A union rather than two optional props, for the reason `Station` is a union:
+ * `predictSeries` narrows to `BundledStation`, so a stub reaching the
+ * prediction path is a compile error rather than a throw on every prerendered
+ * Canadian page. Making `samples` merely optional would put that failure back
+ * at runtime, or — worse — draw an empty curve.
+ */
+type Props = Common &
+  (
+    | { station: BundledStation; samples?: never; events?: never }
+    | { station: ChsStation; samples: Sample[]; events: StationEvent[] }
+  )
+
+/**
+ * The day's curve and the day's events, from whichever source this station has.
+ *
+ * A Canadian gate's events are DFO's own published slacks and maxima, so the
+ * derived path is bypassed rather than duplicated: `findEvents` interpolates
+ * slack from a sign change between samples, and DFO states the time outright.
+ */
+function curveOf(props: Props, start: Date, hours: number) {
+  if (props.samples) return { samples: props.samples, events: props.events }
+  return {
+    samples: predictSeries(props.station, start, hours),
+    events: findEvents(props.station, start, hours),
+  }
+}
+
+export function CurrentCurve(props: Props) {
+  const {
+    station,
+    start,
+    hours,
+    now,
+    width: W = 1000,
+    height: H = 320,
+    sparse = false,
+    live = false,
+  } = props
   // Unique per instance. The page renders this twice — a phone version and a
   // desktop one, one of them display:none — and shared element ids make the
   // second SVG reference the first's gradient, which sits in a hidden subtree
@@ -94,9 +126,8 @@ export function CurrentCurve({
   const PAD_TOP = 34
   const PAD_BOTTOM = 44
   const { path, area, zeroY, x, yOf, events, windows } = useMemo(() => {
-    const samples = predictSeries(station, start, hours)
-    const events = findEvents(station, start, hours)
-    const windows = slackWindows(station, start, hours)
+    const { samples, events } = curveOf(props, start, hours)
+    const windows = slackWindows(samples)
     const peak = Math.max(...samples.map((s) => Math.abs(s.level)), 1)
 
     const span = hours * 3600_000
@@ -115,7 +146,10 @@ export function CurrentCurve({
       x,
       events,
     }
-  }, [station, start, hours])
+    // `props` itself would be a new object every render, and this page ticks:
+    // the whole path would be rebuilt once a minute for a curve that has not
+    // changed. The two fetched arrays are set once and never mutated.
+  }, [station, props.samples, props.events, start, hours])
 
   const next = nextEvent(events, now)
   // The fill fades out over the outer 6% at each end, so a label landing there
@@ -316,7 +350,7 @@ function until(then: Date, now: Date) {
  * day rather than calling it "next", for the same reason — nothing here knows
  * whether the reader is looking at this page now.
  */
-function describe(station: BundledStation, events: StationEvent[], now: Date) {
+function describe(station: Station, events: StationEvent[], now: Date) {
   const n = nextEvent(events, now)
   if (!n) return `Tidal current predictions for ${station.name}, ${provenance(station)}.`
   const what =
