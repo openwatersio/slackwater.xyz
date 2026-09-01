@@ -16,6 +16,27 @@ export function provenance(_station: BundledStation): string {
 }
 
 /**
+ * The line under the chart: which datum these heights are quoted against, and
+ * where they came from. Mirrors the app's own footer ("MLLW datum · …").
+ *
+ * Returns undefined when the station carries no datum, so the page goes quiet
+ * rather than announcing an "undefined datum". `catalogue.test.ts` asserts no
+ * tide station is in that state; this is what happens if that ever stops
+ * being true.
+ */
+export function datumLine(station: BundledStation): string | undefined {
+  return station.chartDatum ? `${station.chartDatum} datum · ${provenance(station)}` : undefined
+}
+
+/**
+ * What a datum means for someone who came here from a shared link rather than
+ * from a chart table. The app keeps this behind a "Station details" disclosure;
+ * this page has one reader arriving cold and nowhere to hide it.
+ */
+export const DATUM_NOTE =
+  'Heights are measured above chart datum. A negative height means there is that much less water than the charted depth shows.'
+
+/**
  * The page's meta description — a whole sentence, because the subject changes
  * and not just the trailing clause.
  *

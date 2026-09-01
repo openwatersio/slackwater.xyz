@@ -110,3 +110,44 @@ describe('TideCurve near zero', () => {
     expect(deepSvg).toMatch(/low -1\.2 feet/)
   })
 })
+
+describe('TideCurve datum', () => {
+  // Its own id: `predict.ts` keys predictors on id + offset, and a fixture that
+  // shares both with another would share its curve.
+  const MLLW: BundledStation = {
+    ...SEATTLE, id: 'noaa/9447131', slug: 'seattle-mllw', chartDatum: 'MLLW', offset: 6.64,
+  }
+  const svg = renderToStaticMarkup(
+    <TideCurve station={MLLW} start={new Date('2026-09-01T00:00:00Z')} hours={24} now={new Date('2026-09-01T06:00:00Z')} />,
+  )
+
+  it('names the datum its heights are quoted against', () => {
+    // A height with no datum on it is a number, not a depth. The app says the
+    // same thing under its own chart.
+    expect(svg).toContain('MLLW datum')
+    expect(svg).toMatch(/A negative height means there is that much less water/)
+  })
+
+  it('says it in the accessible description too', () => {
+    expect(svg).toMatch(/above MLLW/)
+  })
+
+  it('keeps the datum line out of the SVG, and so off the share card', () => {
+    // `og-image.ts` rasterises the <svg> alone. Anything inside it lands on the
+    // 1200x630 card, where the top-left already collides with the station name
+    // (#26) — this line has no business competing for that space.
+    const inner = svg.match(/<svg[\s\S]*<\/svg>/)![0]
+    expect(inner).not.toContain('MLLW datum')
+    expect(inner).not.toContain('negative height')
+  })
+
+  it('says nothing about a datum it was not given', () => {
+    // The catalogue guarantees a datum for every tide station; if that ever
+    // breaks, the page must go quiet rather than render "undefined datum".
+    const bare = renderToStaticMarkup(
+      <TideCurve station={SEATTLE} start={new Date('2026-09-01T00:00:00Z')} hours={24} now={new Date('2026-09-01T06:00:00Z')} />,
+    )
+    expect(bare).not.toContain('datum')
+    expect(bare).not.toContain('undefined')
+  })
+})
