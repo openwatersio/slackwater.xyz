@@ -8,8 +8,8 @@ currents across the US and Canada.
 ## What this is
 
 The marketing site — and, now, a page per station. It explains the app, points people at the
-beta, and prerenders a page at `/tides/<slug>` and `/currents/<slug>` for 3,630 stations — a
-real computed curve for 3,607 of them, and identity only for 23 Canadian current gates: the
+beta, and prerenders a page at `/tides/<slug>` and `/currents/<slug>` for 3,640 stations — a
+real computed curve for 3,607 of them, and identity only for 33 Canadian ones: the
 share-landing surface for anyone sent a link, and indexable content the site previously had
 none of.
 
@@ -18,11 +18,13 @@ The hero is not a screenshot. It computes a real current prediction for Deceptio
 page computes its own. A page whose argument is "correct, and it works with no signal" ought to
 demonstrate that rather than assert it.
 
-3,630 pages, not the full catalogue: 3,607 get a computed curve, and 23 Canadian (CHS) current
-gates get identity only — DFO's terms don't allow re-serving predictions, so those pages name
-the gate without claiming a curve. This work does not build the Canadian tide ports: identity
-is published for 10 of them (Victoria, Vancouver and eight more) and for none of the rest,
-plus `chs-arran-rapids`, excluded pending an owner decision. Tracked in [issue
+3,640 pages, not the full catalogue: 3,607 get a computed curve, and 33 Canadian (CHS)
+stations — 23 current gates and 10 tide ports — get identity only. DFO's terms don't allow
+re-serving predictions, so nothing about those 33 is prerendered; the reader's own browser
+fetches DFO's published numbers and draws them. This work builds 10 of the 1,058 Canadian
+tide ports, the ten whose identity the registry publishes (Victoria, Vancouver and eight
+more); identity for the other 1,048 is published nowhere yet. Plus `chs-arran-rapids`,
+excluded pending an owner decision. Tracked in [issue
 #17](https://github.com/openwatersio/slackwater.xyz/issues/17); those stations 404 rather than
 claim a curve nobody can compute.
 

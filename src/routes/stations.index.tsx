@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 const CANONICAL = 'https://slackwater.xyz/stations/'
 const TITLE = 'Stations — Slackwater'
 const DESCRIPTION =
-  'Browse every tide and tidal current station Slackwater predicts: 2,765 tide stations worldwide and 865 current stations across the US and Canada.'
+  'Browse every tide and tidal current station Slackwater predicts: 2,775 tide stations worldwide and 865 current stations across the US and Canada.'
 
 export const Route = createFileRoute('/stations/')({
   head: () => ({
@@ -32,7 +32,7 @@ function Stations() {
           <a href="/stations/tides/" className="text-xl text-sw-paper hover:text-sw-leaf">
             Tide stations
           </a>
-          <p className="text-sw-steel">2,765 worldwide.</p>
+          <p className="text-sw-steel">2,775 worldwide.</p>
         </li>
         <li>
           <a href="/stations/currents/" className="text-xl text-sw-paper hover:text-sw-leaf">

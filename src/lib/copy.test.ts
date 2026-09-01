@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { pageDescription, provenance } from './copy'
+import { datumLine, pageDescription, provenance } from './copy'
 import type { BundledStation, ChsStation } from './station'
 
 const bundled = {
@@ -48,6 +48,24 @@ describe('pageDescription', () => {
     expect(pageDescription(chs)).toBe(
       'Station information for Dodd Narrows, Nanaimo. Predictions are based on ' +
         'Canadian Hydrographic Service data and are available in the Slackwater app.',
+    )
+  })
+})
+
+describe('datumLine', () => {
+  it('names a bundled station\'s own datum code', () => {
+    expect(datumLine({ ...bundled, kind: 'tide', chartDatum: 'MLLW' })).toBe(
+      'MLLW datum · computed from harmonic constituents',
+    )
+  })
+
+  it('names chart datum for a CHS port, and no code', () => {
+    // DFO publishes on chart datum and states no code for it. Victoria's own
+    // metadata puts LLWLT at -0.09 m — nine centimetres BELOW the zero those
+    // heights are quoted from — so borrowing the corpus's vocabulary here
+    // would be a precise claim and a wrong one.
+    expect(datumLine({ ...chs, kind: 'tide' })).toBe(
+      'Chart datum · published by the Canadian Hydrographic Service',
     )
   })
 })

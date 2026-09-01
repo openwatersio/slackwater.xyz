@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chsGates, curatedBySlug } from './registry'
+import { chsStations, curatedBySlug } from './registry'
 
 describe('curatedBySlug', () => {
   it('carries the curated name and region for a registry station', () => {
@@ -15,9 +15,9 @@ describe('curatedBySlug', () => {
   })
 })
 
-describe('chsGates', () => {
+describe('chsStations for the current gates', () => {
   it('yields every CHS current gate the registry publishes, less the excluded one', () => {
-    const gates = chsGates()
+    const gates = chsStations('current')
     expect(gates.length).toBe(23)
     expect(gates.every((g) => g.source === 'chs')).toBe(true)
   })
@@ -27,11 +27,11 @@ describe('chsGates', () => {
     // trusted name - and whether the web may name it is an open owner
     // decision. The registry publishes it, so only an explicit rule keeps it
     // out. Do not remove this without that decision.
-    expect(chsGates().some((g) => g.id === 'chs-arran-rapids')).toBe(false)
+    expect(chsStations('current').some((g) => g.id === 'chs-arran-rapids')).toBe(false)
   })
 
   it('names Dodd Narrows, the flagship gate', () => {
-    const dodd = chsGates().find((g) => g.id === 'chs-dodd-narrows')
+    const dodd = chsStations('current').find((g) => g.id === 'chs-dodd-narrows')
     expect(dodd?.name).toBe('Dodd Narrows')
     expect(dodd?.slug).toBe('dodd-narrows')
     expect(dodd?.region).toBe('Nanaimo')
@@ -39,8 +39,8 @@ describe('chsGates', () => {
   })
 })
 
-describe('chsGates and the derived gate', () => {
-  const gates = chsGates()
+describe('chsStations and the derived gate', () => {
+  const gates = chsStations('current')
 
   it('marks the one gate with no CHS current station of its own', () => {
     // Malibu Rapids is derived: slack is Point Atkinson's high and low water

@@ -65,7 +65,7 @@ function NotFound() {
       </h1>
       <p className="mt-4 max-w-xl text-lg leading-snug text-sw-foam">
         There is no page here. If you followed a link to a station, that station isn't published
-        yet — the site covers 3,630 US and Canadian stations, with more on the way.
+        yet — the site covers 3,640 US and Canadian stations, with more on the way.
       </p>
       <p className="mt-6">
         <a className="text-sw-leaf underline underline-offset-4" href="/">

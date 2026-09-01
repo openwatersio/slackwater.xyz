@@ -1,4 +1,4 @@
-import type { BundledStation, Station } from './station'
+import type { Station } from './station'
 
 /**
  * Where this station's numbers come from, as a clause with no full stop.
@@ -31,8 +31,16 @@ export function provenance(station: Station): string {
  * rather than announcing an "undefined datum". `catalogue.test.ts` asserts no
  * tide station is in that state; this is what happens if that ever stops
  * being true.
+ *
+ * A CHS port names no code, and that is not vagueness. DFO publishes its tide
+ * predictions on chart datum and states no code for it — Victoria's own
+ * metadata puts LLWLT at -0.09 m, nine centimetres BELOW the zero those
+ * heights are quoted from, so borrowing the corpus's vocabulary and printing
+ * "LLWLT datum" would be a precise claim and a wrong one. "Chart datum" is
+ * what DFO itself prints above the same numbers.
  */
-export function datumLine(station: BundledStation): string | undefined {
+export function datumLine(station: Station): string | undefined {
+  if (station.source === 'chs') return `Chart datum · ${provenance(station)}`
   return station.chartDatum ? `${station.chartDatum} datum · ${provenance(station)}` : undefined
 }
 

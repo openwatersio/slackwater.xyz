@@ -45,7 +45,7 @@ slackwater.xyz counts visits using Plausible Analytics, a privacy-focused analyt
 
 ### Canadian predictions on station pages
 
-The page we serve for a Canadian tidal current gate carries no predictions at all. When you open one, your browser requests them directly from the Canadian Hydrographic Service at `api-iwls.dfo-mpo.gc.ca` and draws the chart from what comes back.
+The page we serve for a Canadian tidal current gate or tide port carries no predictions at all. When you open one, your browser requests them directly from the Canadian Hydrographic Service at `api-iwls.dfo-mpo.gc.ca` and draws the chart from what comes back.
 
 - **The request starts when the page loads**, without waiting for you to ask. While it is in flight the page shows a Cancel button that stops it, and stopping it sends nothing further.
 - **The request does not pass through us.** It goes from your browser to the Canadian Hydrographic Service. Open Waters does not proxy it, does not receive the predictions, and does not store them.

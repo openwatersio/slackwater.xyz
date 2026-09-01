@@ -104,3 +104,37 @@ describe('StationPage for a derived gate', () => {
     expect(html).toMatch(/TestFlight|beta/i)
   })
 })
+
+describe('StationPage for a CHS tide port', () => {
+  const victoria = {
+    id: 'chs-victoria', kind: 'tide', slug: 'victoria', name: 'Victoria',
+    source: 'chs', region: 'Inner Harbour',
+    latitude: 48.424, longitude: -123.371, timezone: 'America/Vancouver',
+  } satisfies ChsStation
+  const html = renderToStaticMarkup(
+    <StationPage station={victoria} now={new Date('2026-09-01T12:00:00Z')} />,
+  )
+
+  it('prerenders no curve, exactly as a gate does not', () => {
+    // The licensing rule does not care which kind of water it is: nothing we
+    // serve may contain a CHS prediction.
+    expect(html).not.toContain('<svg')
+    expect(html).not.toMatch(/Chart datum|published by the Canadian/)
+  })
+
+  it('serves no control for a request that has not started', () => {
+    expect(html).not.toContain('<button')
+    expect(html).not.toMatch(/cancel|your browser/i)
+  })
+
+  it('names the water and its region, and offers the app', () => {
+    expect(html).toContain('Victoria')
+    expect(html).toContain('Inner Harbour')
+    expect(html).toMatch(/TestFlight|beta/i)
+  })
+
+  it('claims no computation and no offline capability', () => {
+    expect(html).not.toMatch(/comput/i)
+    expect(html).not.toMatch(/offline/i)
+  })
+})

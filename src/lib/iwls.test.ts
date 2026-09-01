@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { fetchGateCurrent, gateEvents, nearestStation, signedSamples } from './iwls'
+import { fetchGateCurrent, fetchPortTides, gateEvents, nearestStation, signedSamples } from './iwls'
 import fixture from './__fixtures__/iwls.json' with { type: 'json' }
+import portFixture from './__fixtures__/iwls-ports.json' with { type: 'json' }
 
 // Recorded from api-iwls.dfo-mpo.gc.ca on 2026-08-31 for 1 September 2026, so
 // CI asserts against DFO's real numbers without reaching the network. The
@@ -183,5 +184,119 @@ describe('fetchGateCurrent', () => {
     await expect(
       fetchGateCurrent({ latitude: 50.1626, longitude: -123.8515 }, START, 24, fetcher),
     ).rejects.toThrow(/no Canadian Hydrographic Service current station/i)
+  })
+})
+
+// Recorded from api-iwls.dfo-mpo.gc.ca on 2026-09-01 for that day, so CI
+// asserts against DFO's real published tide table without reaching the
+// network. The station list is trimmed to the 121 records within 40 km of a
+// curated port — the ten matches and the neighbours a loose tolerance would
+// resolve to instead — because the live `wlp` list is 1,149 stations and 745 KB.
+const VICTORIA = portFixture.ports['Victoria Harbour']
+const TOFINO = portFixture.ports.Tofino
+
+describe('fetchPortTides', () => {
+  // The curated position station-metadata publishes for chs-victoria.
+  const VICTORIA_POSITION = { latitude: 48.424, longitude: -123.371 }
+  const START = new Date('2026-09-01T00:00:00Z')
+
+  /** Replays the recorded day, and records every URL asked for. */
+  function replay(port: typeof VICTORIA) {
+    const urls: string[] = []
+    const body = (url: string) => {
+      if (url.includes('/stations?')) return portFixture.stations
+      if (url.includes('time-series-code=wlp-hilo')) return port['wlp-hilo']
+      if (url.includes('time-series-code=wlp')) return port.wlp
+      throw new Error(`unexpected url ${url}`)
+    }
+    const fetcher: typeof fetch = async (input) => {
+      const url = String(input)
+      urls.push(url)
+      return { ok: true, json: async () => body(url) } as Response
+    }
+    return { urls, fetcher }
+  }
+
+  it("quotes DFO's published high and low in FEET, not the metres it sent", async () => {
+    // The whole point. DFO publishes Victoria's high for this day as 2.544 m
+    // and its low as 1.065 m. Rendered as "2.5" and "1.1" beside a "ft" label
+    // they would look entirely plausible and be wrong by 3.28x — which has
+    // shipped on this site once already, with a test locking it in.
+    const { fetcher } = replay(VICTORIA)
+    const { high, low } = await fetchPortTides(VICTORIA_POSITION, START, 24, fetcher)
+    expect(high.level).toBeCloseTo(8.35, 2)
+    expect(low.level).toBeCloseTo(3.49, 2)
+    expect(high.time.toISOString()).toBe('2026-09-01T00:49:00.000Z')
+    expect(low.time.toISOString()).toBe('2026-09-01T07:29:00.000Z')
+  })
+
+  it("takes DFO's published minute, which the sampled grid does not have", () => {
+    // `wlp-hilo` states the minute; the fifteen-minute grid only samples around
+    // it. Victoria's high is published at 00:49 and its low at 07:29 — neither
+    // is a quarter hour, so a grid maximum would print 00:45 and 07:30.
+    //
+    // Not asserted on the LEVEL, which is the trap here: the curve is flat
+    // enough at the turn that the 00:45 sample reads 2.544 too, the same to
+    // three decimals as the published high. A test on the height alone would
+    // pass with the grid extremes and prove nothing. The minute is the number
+    // a mariner plans a transit around, and the minute is wrong.
+    const grid = VICTORIA.wlp.map((p) => p.eventDate.slice(11, 16))
+    expect(grid).not.toContain('00:49')
+    expect(grid).not.toContain('07:29')
+    expect(VICTORIA['wlp-hilo'].map((e) => e.eventDate.slice(11, 16))).toEqual([
+      '00:49', '07:29', '13:45', '18:53',
+    ])
+  })
+
+  it('reads the same day right on the outer coast, where the range is twice as big', async () => {
+    // Tofino, open Pacific: 3.472 m against Victoria's 2.544. A conversion that
+    // happened to look plausible on one station is checked against another whose
+    // numbers are nowhere near it.
+    const { fetcher } = replay(TOFINO)
+    const { high, low } = await fetchPortTides({ latitude: 49.154, longitude: -125.913 }, START, 24, fetcher)
+    expect(high.level).toBeCloseTo(11.39, 2)
+    expect(low.level).toBeCloseTo(2.44, 2)
+  })
+
+  it('asks DFO directly, and never sends resolution with the hilo series', async () => {
+    // Same gotcha as `wcp1-events`: an event series answers 200 with
+    // `resolution` set and quietly returns a fraction of the day's turns.
+    const { urls, fetcher } = replay(VICTORIA)
+    await fetchPortTides(VICTORIA_POSITION, START, 24, fetcher)
+    expect(urls.every((u) => u.startsWith('https://api-iwls.dfo-mpo.gc.ca/'))).toBe(true)
+    const data = urls.filter((u) => u.includes('/data?'))
+    expect(data.find((u) => u.includes('wlp-hilo'))).not.toContain('resolution')
+    // `wlp` is one-minute native: without this a Victoria day is 182,834 bytes
+    // rather than 12,314, for a curve no reader could tell apart.
+    expect(data.find((u) => u.includes('time-series-code=wlp&'))).toContain('FIFTEEN_MINUTES')
+  })
+
+  it('asks for three things, not the gates’ four — a tide has no flood axis', async () => {
+    const { urls, fetcher } = replay(VICTORIA)
+    await fetchPortTides(VICTORIA_POSITION, START, 24, fetcher)
+    expect(urls).toHaveLength(3)
+    expect(urls.some((u) => u.includes('/metadata'))).toBe(false)
+  })
+
+  it('resolves every curated port to its own IWLS station', async () => {
+    // The join the whole feature rests on: the IWLS station id is
+    // provider-minted, so it is never bundled and is looked up fresh from the
+    // position the registry publishes. Worst real match is 0.063 km.
+    for (const [lat, lon, name] of [
+      [48.424, -123.371, 'Victoria Harbour'],
+      [49.286, -123.1, 'Vancouver'],
+      [49.337, -123.254, 'Point Atkinson'],
+      [49.154, -125.913, 'Tofino'],
+      [50.31, -125.223, 'Owen Bay'],
+    ] as [number, number, string][]) {
+      expect(nearestStation(portFixture.stations, lat, lon)?.officialName).toBe(name)
+    }
+  })
+
+  it('refuses a position with no station near it rather than drawing another port', async () => {
+    const { fetcher } = replay(VICTORIA)
+    await expect(
+      fetchPortTides({ latitude: 0, longitude: 0 }, START, 24, fetcher),
+    ).rejects.toThrow(/no Canadian Hydrographic Service tide station/i)
   })
 })

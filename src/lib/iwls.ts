@@ -19,6 +19,7 @@
  * replays a recorded day). A reader who cancels must actually stop the
  * request, not just stop seeing it.
  */
+import { FEET_PER_METRE } from './format'
 import { distanceNm } from './nearby'
 import type { EventKind, Sample, StationEvent } from './predict'
 
@@ -224,5 +225,83 @@ export async function fetchGateCurrent(
   return {
     samples: signedSamples(speeds, directions, floodDirection),
     events: gateEvents(raw),
+  }
+}
+
+/**
+ * One port's day of tide heights, fetched from DFO by the reader's own browser.
+ *
+ * Three requests, not the gates' four: there is no flood axis to look up, so
+ * `/metadata` is never asked for. `/stations` is filtered to the stations
+ * serving `wlp` — 1,149 of them, 82 KB gzipped, against the gates' 3.8 KB.
+ * That is the price of resolving by position instead of shipping a
+ * provider-minted station id, and it is the posture rather than an oversight.
+ * IWLS answers `cache-control: no-store`, so it is paid per page view; there
+ * is no narrower query — `code` is the only other filter IWLS honours and it
+ * takes the station number we deliberately do not carry. An unrecognised
+ * parameter is IGNORED rather than rejected, so a `bbox` or `name` that looks
+ * like it worked silently returns all 1,575 stations.
+ *
+ * FEET, not metres. DFO publishes heights in metres on chart datum; the site
+ * speaks feet, and the conversion happens here, at the boundary where provider
+ * data enters, exactly as the bundled corpus converts at its own. Labelling a
+ * metre "ft" is wrong by 3.28x, looks entirely plausible, and has shipped here
+ * once already.
+ *
+ * `high` and `low` come from `wlp-hilo` rather than from the extremes of the
+ * fifteen-minute grid, for the same reason `gateEvents` prefers
+ * `wcp1-events`: those are the numbers and the minutes DFO publishes, and the
+ * grid is a sampling of them. The grid's own maximum lands up to seven
+ * minutes off the published high and a centimetre under it. Same gotcha, too
+ * — never send `resolution` with an event series.
+ */
+export async function fetchPortTides(
+  station: { latitude: number; longitude: number },
+  start: Date,
+  hours: number,
+  fetcher: typeof fetch = fetch,
+): Promise<{ samples: Sample[]; high: Sample; low: Sample }> {
+  const get = async (url: string) => {
+    const res = await fetcher(url)
+    if (!res.ok) throw new Error(`The Canadian Hydrographic Service returned ${res.status}.`)
+    return res.json()
+  }
+
+  const stations: IwlsStation[] = await get(`${BASE}/stations?time-series-code=wlp`)
+  const match = nearestStation(stations, station.latitude, station.longitude)
+  if (!match) {
+    throw new Error(
+      'There is no Canadian Hydrographic Service tide station at this port, ' +
+        'so there is nothing to show here.',
+    )
+  }
+
+  const from = start.toISOString()
+  const to = new Date(start.getTime() + hours * 3600_000).toISOString()
+  const series = (code: string, resolution: boolean) =>
+    `${BASE}/stations/${match.id}/data?time-series-code=${code}` +
+    `&from=${from}&to=${to}${resolution ? '&resolution=FIFTEEN_MINUTES' : ''}`
+
+  // `wlp` is ONE-MINUTE native, unlike the gates' fifteen-minute `wcsp1`:
+  // without this parameter a Victoria day is 182,834 bytes instead of 12,314,
+  // for a curve no reader could tell apart.
+  const heights: IwlsPoint[] = await get(series('wlp', true))
+  const hilo: IwlsPoint[] = await get(series('wlp-hilo', false))
+
+  const feet = (p: IwlsPoint[]): Sample[] =>
+    p.map((h) => ({ time: new Date(h.eventDate), level: h.value * FEET_PER_METRE }))
+  const samples = feet(heights)
+  const turns = feet(hilo)
+  if (!samples.length || !turns.length) {
+    throw new Error('The Canadian Hydrographic Service returned no predictions for this day.')
+  }
+  // The highest and the lowest of the day, because those are the two the chart
+  // labels. `wlp-hilo` says only that each point is a turn — unlike
+  // `wcp1-events`, it carries no qualifier naming which — but it does not need
+  // to: which is the high is the one that is highest.
+  return {
+    samples,
+    high: turns.reduce((a, b) => (b.level > a.level ? b : a)),
+    low: turns.reduce((a, b) => (b.level < a.level ? b : a)),
   }
 }

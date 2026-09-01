@@ -1,7 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { TideCurve } from './TideCurve'
-import type { BundledStation } from '#/lib/station'
+import { fetchPortTides } from '#/lib/iwls'
+import portFixture from '#/lib/__fixtures__/iwls-ports.json' with { type: 'json' }
+import type { BundledStation, ChsStation } from '#/lib/station'
 
 const SEATTLE: BundledStation = {
   id: 'noaa/9447130', kind: 'tide', slug: 'seattle', name: 'SEATTLE (Madison St.), Elliott Bay',
@@ -149,5 +151,60 @@ describe('TideCurve datum', () => {
     )
     expect(bare).not.toContain('datum')
     expect(bare).not.toContain('undefined')
+  })
+})
+
+describe('TideCurve with fetched samples', () => {
+  // A Canadian port draws the same curve from numbers the reader's browser
+  // fetched from DFO, rather than from constituents we may not re-serve.
+  const VICTORIA: ChsStation = {
+    id: 'chs-victoria', kind: 'tide', slug: 'victoria', name: 'Victoria',
+    latitude: 48.424, longitude: -123.371, timezone: 'America/Vancouver',
+    source: 'chs', region: 'Inner Harbour',
+  }
+  const port = portFixture.ports['Victoria Harbour']
+  const fetcher: typeof fetch = async (input) => {
+    const url = String(input)
+    const body = url.includes('/stations?')
+      ? portFixture.stations
+      : url.includes('wlp-hilo')
+        ? port['wlp-hilo']
+        : port.wlp
+    return { ok: true, json: async () => body } as Response
+  }
+
+  let svg = ''
+  beforeAll(async () => {
+    const day = await fetchPortTides(VICTORIA, new Date('2026-09-01T00:00:00Z'), 24, fetcher)
+    svg = renderToStaticMarkup(
+      <TideCurve
+        station={VICTORIA} start={new Date('2026-09-01T00:00:00Z')} hours={24}
+        now={new Date('2026-09-01T06:00:00Z')}
+        samples={day.samples} high={day.high} low={day.low}
+      />,
+    )
+  })
+
+  it("prints DFO's published high and low in feet, at DFO's own minute", () => {
+    // DFO publishes 2.544 m at 00:49 and 1.065 m at 07:29 for this day.
+    // 8.3 ft and 3.5 ft in the station's zone: 17:49 and 00:29 PDT.
+    // Rendered from the metres they arrived as, this page would read "2.5 ft"
+    // — plausible, and wrong by 3.28x.
+    expect(svg).toContain('8.3 ft')
+    expect(svg).toContain('3.5 ft')
+    expect(svg).toContain('17:49')
+    expect(svg).toContain('00:29')
+  })
+
+  it('names chart datum, and no code it would be wrong about', () => {
+    // Victoria's own LLWLT is -0.09 m, nine centimetres below the zero these
+    // heights are quoted from, so borrowing the corpus's datum vocabulary
+    // would be a precise claim and a false one.
+    expect(svg).toContain('Chart datum · published by the Canadian Hydrographic Service')
+    expect(svg).not.toMatch(/LLWLT|MLLW|LAT datum/)
+  })
+
+  it('claims nothing about computing it, or about the app', () => {
+    expect(svg).not.toMatch(/harmonic constituents|offline|on-device/)
   })
 })
