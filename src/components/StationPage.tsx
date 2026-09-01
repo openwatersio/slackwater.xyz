@@ -2,25 +2,29 @@ import { useEffect, useRef, useState } from 'react'
 import { CurrentCurve } from './CurrentCurve'
 import { TideCurve } from './TideCurve'
 import { dayLabel } from '#/lib/format'
-import { fetchGateCurrent } from '#/lib/iwls'
+import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
 import { TESTFLIGHT } from '#/lib/links'
 import type { StationRow } from '#/lib/catalogue-server'
 import type { Sample, StationEvent } from '#/lib/predict'
 import type { ChsStation, Station } from '#/lib/station'
 
-/** One gate's day, once DFO has sent it back. */
-interface Curve {
-  samples: Sample[]
-  events: StationEvent[]
-  /**
-   * The moment it was fetched for. Carried, rather than the page reading its
-   * own live clock, because it answers two questions that must not diverge:
-   * which 24 hours the frame covers, and which date the page prints. DFO sent
-   * a fixed day; a clock that keeps moving would slide the frame off the end
-   * of it and, worse, date the page differently from the water it drew.
-   */
-  at: Date
-}
+/**
+ * One Canadian station's day, once DFO has sent it back.
+ *
+ * A gate carries the published slacks and maxima; a port carries the published
+ * high and low. Neither is derived from the samples, because DFO states both
+ * outright and a fifteen-minute grid only samples them.
+ *
+ * `at` is the moment it was fetched for. Carried, rather than the page reading
+ * its own live clock, because it answers two questions that must not diverge:
+ * which 24 hours the frame covers, and which date the page prints. DFO sent a
+ * fixed day; a clock that keeps moving would slide the frame off the end of it
+ * and, worse, date the page differently from the water it drew.
+ */
+type Curve = { at: Date } & (
+  | { kind: 'current'; samples: Sample[]; events: StationEvent[] }
+  | { kind: 'tide'; samples: Sample[]; high: Sample; low: Sample }
+)
 
 /**
  * How far before `now` a chart begins — six hours behind, eighteen ahead.
@@ -93,13 +97,18 @@ export function StationPage({ station, now, live = false, settled = live, nearby
       </h1>
       <p className="mt-3 text-sw-steel">{subtitle}</p>
       {station.source === 'chs' ? (
-        curve ? (
+        !curve ? (
+          <ChsGate station={station} now={now} settled={settled} hours={24} onCurve={setCurve} />
+        ) : curve.kind === 'tide' ? (
+          <TideCurve
+            station={station} start={start} hours={24} now={now}
+            samples={curve.samples} high={curve.high} low={curve.low}
+          />
+        ) : (
           <CurrentCurve
             station={station} start={start} hours={24} now={now} live={live}
             samples={curve.samples} events={curve.events}
           />
-        ) : (
-          <ChsGate station={station} now={now} settled={settled} hours={24} onCurve={setCurve} />
         )
       ) : station.kind === 'tide' ? (
         <TideCurve station={station} start={start} hours={24} now={now} />
@@ -173,10 +182,19 @@ function ChsGate({
     // rather than starting a request that could only fail.
     const moment = at.current
     const stop = new AbortController()
+    const signalled: typeof fetch = (url) => fetch(url, { signal: stop.signal })
     setInFlight(true)
-    fetchGateCurrent(station, startOf(moment), hours, (url) =>
-      fetch(url, { signal: stop.signal }),
-    )
+    // Same posture, two series: a gate's signed velocity from `wcsp1`/`wcdp1`,
+    // a port's heights from `wlp`. Both go straight from this browser to DFO.
+    const day =
+      station.kind === 'tide'
+        ? fetchPortTides(station, startOf(moment), hours, signalled).then(
+            (c) => ({ kind: 'tide', ...c }) as const,
+          )
+        : fetchGateCurrent(station, startOf(moment), hours, signalled).then(
+            (c) => ({ kind: 'current', ...c }) as const,
+          )
+    day
       .then((curve) => onCurve({ ...curve, at: moment }))
       .catch((e) => {
         // A cancel rejects too. The reader asked for that and does not need to
@@ -211,7 +229,7 @@ function ChsGate({
             }}
             className="rounded-md border border-sw-leaf/40 px-5 py-3 font-medium text-sw-foam transition hover:border-sw-leaf hover:text-sw-leaf"
           >
-            {inFlight ? 'Cancel' : "Show today's currents"}
+            {inFlight ? 'Cancel' : `Show today's ${station.kind === 'tide' ? 'tides' : 'currents'}`}
           </button>
           {/* Present tense only while it is actually in flight. This is the
               reader's browser contacting a third party, and the privacy policy

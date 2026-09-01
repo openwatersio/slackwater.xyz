@@ -8,22 +8,41 @@ import { nearby } from './nearby'
 describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
-  it('yields every station whose data ships on npm, plus the CHS gates', () => {
-    expect(all.length).toBe(3630)
-    expect(all.filter((s) => s.kind === 'tide').length).toBe(2765)
+  it('yields every station whose data ships on npm, plus the CHS gates and ports', () => {
+    expect(all.length).toBe(3640)
+    expect(all.filter((s) => s.kind === 'tide').length).toBe(2775)
     expect(all.filter((s) => s.kind === 'current').length).toBe(865)
   })
 
-  it('still excludes the CHS tide ports, whose identity is not published yet', () => {
-    expect(all.some((s) => s.kind === 'tide' && s.id.startsWith('chs-'))).toBe(false)
+  it('builds the ten CHS tide ports whose identity IS published, and no more', () => {
+    // The registry publishes curated identity for exactly ten Canadian tide
+    // ports. The other 1,048 exist only as slugs — identity for them needs an
+    // operator run against IWLS and a release (#17), so a count creeping above
+    // ten here means something started inventing identity from a slug table.
+    const ports = all.filter((s) => s.kind === 'tide' && s.source === 'chs')
+    expect(ports).toHaveLength(10)
+    expect(ports.map((s) => s.slug).sort()).toEqual([
+      'campbell-river', 'fulford-harbour', 'owen-bay', 'point-atkinson',
+      'port-alberni', 'port-renfrew', 'sooke', 'tofino', 'vancouver', 'victoria',
+    ])
     // Buildability is decided by id shape (`id.includes('/')`), not a `chs-`/`noaa-`
     // prefix: `noaa-boundary-pass` is registry-owned despite its name, and a prefix
     // test would let it through to a throw.
     expect(all.some((s) => s.id === 'noaa-boundary-pass')).toBe(false)
     // The id-shape invariant itself: every row in the catalogue either came
-    // from `chsGates()` (a hand-built identity, no provider package involved)
-    // or has a slashed id from a provider package. Nothing else is buildable.
+    // from `chsStations()` (a hand-built identity, no provider package
+    // involved) or has a slashed id from a provider package. Nothing else is
+    // buildable.
     expect(all.every((s) => s.source === 'chs' || s.id.includes('/'))).toBe(true)
+  })
+
+  it('gives a CHS port no constituents to be predicted from', () => {
+    // The licensing rule as a property of the catalogue, not of a component:
+    // if one of these ever arrived with constituents, every guard downstream
+    // would let it through and the site would prerender a CHS curve.
+    for (const s of all.filter((x) => x.source === 'chs')) {
+      expect(s, s.id).not.toHaveProperty('constituents')
+    }
   })
 
   it('builds the flagship gate', () => {
@@ -141,7 +160,7 @@ describe('chart datum', () => {
   })
 
   it('uses each station its own datum, not MLLW everywhere', () => {
-    // The corpus spans 8 chart datums and MLLW covers 1,418 of 2,765 tide
+    // The corpus spans 8 chart datums and MLLW covers 1,418 of 2,765 bundled tide
     // stations. Shifting a Greenland or Canadian station by an MLLW offset —
     // or labelling it MLLW — is wrong for more than half the world.
     const aasiaat = bundled('ticon/aasiaat-aas-grl-gloss')

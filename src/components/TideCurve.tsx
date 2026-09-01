@@ -2,7 +2,8 @@ import { useId, useMemo } from 'react'
 import { DATUM_NOTE, datumLine, provenance } from '#/lib/copy'
 import { dayLabel, height, hhmm } from '#/lib/format'
 import { predictSeries } from '#/lib/predict'
-import type { BundledStation } from '#/lib/station'
+import type { Sample } from '#/lib/predict'
+import type { BundledStation, ChsStation, Station } from '#/lib/station'
 
 /**
  * The height curve, drawn the way a tide actually behaves.
@@ -13,8 +14,7 @@ import type { BundledStation } from '#/lib/station'
  * component with different numbers, it is a smaller one.
  */
 
-interface Props {
-  station: BundledStation
+interface Common {
   start: Date
   hours: number
   now: Date
@@ -27,7 +27,27 @@ interface Props {
   height?: number
 }
 
-export function TideCurve({ station, start, hours, now, width: W = 1000, height: H = 320 }: Props) {
+/**
+ * Either a station whose curve we can compute, or a station whose curve
+ * arrived from somewhere else — never a CHS station with neither.
+ *
+ * The same union `CurrentCurve` carries, for the same reason `Station` is one:
+ * `predictSeries` narrows to `BundledStation`, so a stub reaching the
+ * prediction path is a compile error rather than a throw on a prerendered
+ * Canadian page. Optional props would put that failure back at runtime.
+ *
+ * `high` and `low` come with the samples because DFO publishes them: the
+ * extremes of a fifteen-minute grid are a sampling of the numbers in the tide
+ * tables, not the numbers themselves.
+ */
+type Props = Common &
+  (
+    | { station: BundledStation; samples?: never; high?: never; low?: never }
+    | { station: ChsStation; samples: Sample[]; high: Sample; low: Sample }
+  )
+
+export function TideCurve(props: Props) {
+  const { station, start, hours, now, width: W = 1000, height: H = 320 } = props
   // Unique per instance. The page renders this twice — a phone version and a
   // desktop one, one of them display:none — and shared element ids make the
   // second SVG reference the first's gradient, which sits in a hidden subtree
@@ -43,7 +63,7 @@ export function TideCurve({ station, start, hours, now, width: W = 1000, height:
   const PAD_TOP = 34
   const PAD_BOTTOM = 44
   const { path, area, x, yOf, high, low } = useMemo(() => {
-    const samples = predictSeries(station, start, hours)
+    const samples = props.samples ?? predictSeries(props.station, start, hours)
     const levels = samples.map((s) => s.level)
     const max = Math.max(...levels)
     const min = Math.min(...levels)
@@ -56,8 +76,10 @@ export function TideCurve({ station, start, hours, now, width: W = 1000, height:
 
     const pts = samples.map((s) => `${x(s.time).toFixed(2)},${y(s.level).toFixed(2)}`)
 
-    const high = samples.reduce((best, s) => (s.level > best.level ? s : best))
-    const low = samples.reduce((best, s) => (s.level < best.level ? s : best))
+    // A fetched curve brings DFO's own published high and low; a computed one
+    // has no published anything, so its extremes are the curve's own.
+    const high = props.high ?? samples.reduce((best, s) => (s.level > best.level ? s : best))
+    const low = props.low ?? samples.reduce((best, s) => (s.level < best.level ? s : best))
 
     return {
       yOf: y,
@@ -67,7 +89,10 @@ export function TideCurve({ station, start, hours, now, width: W = 1000, height:
       high,
       low,
     }
-  }, [station, start, hours])
+    // `props` itself would be a new object every render, and this page ticks:
+    // the whole path would be rebuilt once a minute for a curve that has not
+    // changed. The fetched arrays are set once and never mutated.
+  }, [station, props.samples, props.high, props.low, start, hours])
 
   return (
     <figure className="m-0">
@@ -164,14 +189,19 @@ export function TideCurve({ station, start, hours, now, width: W = 1000, height:
  * same sentence ships in prerendered HTML, where no device computed anything.
  * The claim has to be true on both rendering paths.
  */
-function describe(station: BundledStation, high: { time: Date; level: number }, low: { time: Date; level: number }) {
+function describe(station: Station, high: { time: Date; level: number }, low: { time: Date; level: number }) {
   const tz = station.timezone
   return (
     `Tide predictions for ${station.name}, ${provenance(station)}. ` +
     `High ${height(high.level)} feet on ${dayLabel(high.time, tz)} at ${hhmm(high.time, tz)}, ` +
     `low ${height(low.level)} feet on ${dayLabel(low.time, tz)} at ${hhmm(low.time, tz)}` +
     // The datum belongs in the spoken form for the same reason it is on the
-    // page: a height quoted against nothing cannot be acted on.
-    (station.chartDatum ? `, above ${station.chartDatum}, the chart datum.` : '.')
+    // page: a height quoted against nothing cannot be acted on. A CHS port
+    // names no code — see `datumLine` — so it says the thing itself.
+    (station.source === 'chs'
+      ? ', above chart datum.'
+      : station.chartDatum
+        ? `, above ${station.chartDatum}, the chart datum.`
+        : '.')
   )
 }
