@@ -76,3 +76,37 @@ describe('TideCurve times', () => {
     expect(tokyoSvg).not.toContain('12:40')
   })
 })
+
+describe('TideCurve near zero', () => {
+  // A Baltic-scale station: real, tiny, and the shape of the 33 pages in #34
+  // that rendered a low of "-0.0 ft". The extremes land between -0.05 and 0,
+  // where `toFixed(1)` puts a minus sign on a zero.
+  const FLAT: BundledStation = {
+    ...SEATTLE, id: 'noaa/0000000', slug: 'flat', name: 'Flat Water',
+    constituents: [{ name: 'M2', amplitude: 0.03, phase: 10.8 }],
+  }
+  const svg = renderToStaticMarkup(
+    <TideCurve station={FLAT} start={new Date('2026-09-01T00:00:00Z')} hours={24} now={new Date('2026-09-01T06:00:00Z')} />,
+  )
+
+  it('labels a hair below zero as 0.0, on the chart and in the spoken text', () => {
+    // Both renders, not one: the chart label is what a reader sees and what the
+    // OG card rasterises, the figcaption is what a screen reader says, and
+    // fixing only the first leaves the page still saying "minus zero point zero".
+    expect(svg).not.toContain('-0.0')
+    expect(svg).toMatch(/low 0\.0 feet/)
+  })
+
+  it('still reports a low that is genuinely below datum', () => {
+    // The guard strips a sign from zero, not from a station sitting under its
+    // datum — those readings are true (#34 part 3) and must survive.
+    //
+    // Its own id: `predict.ts` caches predictors by station id, so a fixture
+    // reusing FLAT's id gets FLAT's curve and this asserts nothing.
+    const deep: BundledStation = { ...FLAT, id: 'noaa/0000001', constituents: [{ name: 'M2', amplitude: 1.2, phase: 10.8 }] }
+    const deepSvg = renderToStaticMarkup(
+      <TideCurve station={deep} start={new Date('2026-09-01T00:00:00Z')} hours={24} now={new Date('2026-09-01T06:00:00Z')} />,
+    )
+    expect(deepSvg).toMatch(/low -1\.2 feet/)
+  })
+})
