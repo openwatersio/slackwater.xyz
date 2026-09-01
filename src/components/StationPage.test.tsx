@@ -39,22 +39,26 @@ describe('StationPage for a CHS station', () => {
 })
 
 describe('StationPage offers the CHS curve without fetching anything itself', () => {
+  // What the Worker serves. Effects do not run here, which is the point: this
+  // is the prerendered page, and it must carry no prediction whatever the
+  // browser goes on to do with it.
   const html = renderToStaticMarkup(
     <StationPage station={dodd} now={new Date('2026-09-01T12:00:00Z')} />,
   )
 
-  it('offers the curve behind a deliberate action', () => {
-    // Never on load and never automatically: a prerendered CHS curve, or one
-    // fetched by us, is a re-served CHS prediction. The button is the consent.
-    expect(html).toContain('<button')
-    expect(html).toMatch(/show .*current/i)
+  it('serves no control for a request that has not started', () => {
+    // The browser asks DFO on load, but only once it is a browser: the fetch
+    // and every control belonging to it live behind an effect. So the page we
+    // SERVE is the identity page #43 shipped. A reader with JS off, or one
+    // whose hydration failed, must not be shown a Cancel button for a request
+    // that is not happening, or told in the present tense about a fetch that
+    // never started.
+    expect(html).not.toContain('<button')
+    expect(html).not.toMatch(/cancel|your browser/i)
   })
 
-  it('names DFO before the click, not after it', () => {
-    // The visitor's own browser is about to contact a third party. They get to
-    // know that while they can still decline.
+  it('still names the source of the numbers it does not have', () => {
     expect(html).toMatch(/Canadian Hydrographic Service/)
-    expect(html).toMatch(/your browser/i)
   })
 
   it('keeps the identity panel saying exactly what it said', () => {
@@ -65,8 +69,12 @@ describe('StationPage offers the CHS curve without fetching anything itself', ()
     expect(html).not.toContain('published by the Canadian Hydrographic Service')
   })
 
-  it('still draws nothing until asked', () => {
+  it('prerenders no curve at all', () => {
+    // The licensing rule, and the one that did not move: nothing we serve may
+    // contain a CHS prediction. Fetching on load changes who starts the
+    // request, not who serves the numbers.
     expect(html).not.toContain('<svg')
+    expect(html).not.toContain('published by the Canadian Hydrographic Service')
   })
 })
 
@@ -86,8 +94,9 @@ describe('StationPage for a derived gate', () => {
     <StationPage station={malibu} now={new Date('2026-09-01T12:00:00Z')} />,
   )
 
-  it('offers no button it cannot honour', () => {
+  it('starts no request, and offers no button it cannot honour', () => {
     expect(html).not.toContain('<button')
+    expect(html).not.toMatch(/cancel|your browser/i)
   })
 
   it('still names the water and offers the app', () => {

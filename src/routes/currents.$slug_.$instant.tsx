@@ -62,6 +62,8 @@ export const Route = createFileRoute('/currents/$slug_/$instant')({
 function CurrentInstant() {
   const { station, instant, nearby } = Route.useLoaderData()
   // Never `live`: this page is one fixed shared moment, so a relative "in 30m"
-  // would be measured from a moment that may be long past.
-  return <StationPage station={station} now={instant} nearby={nearby} />
+  // would be measured from a moment that may be long past. But `settled` from
+  // the first render — that moment came out of the URL and nothing will
+  // replace it, which is the opposite of a live page's build-time placeholder.
+  return <StationPage station={station} now={instant} settled nearby={nearby} />
 }

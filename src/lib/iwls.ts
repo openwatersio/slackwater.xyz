@@ -8,12 +8,16 @@
  *
  * THE POSTURE, which is the whole reason this file has the shape it has: CHS
  * predictions are fetched by each user under DFO's own terms and never
- * re-served. So every request here is a plain browser `fetch()` on a
- * deliberate action. Nothing is proxied through the Worker — the moment we
- * fetch, we are the fetcher and the posture breaks — nothing is prerendered,
- * and nothing is stored by us. Reaching for a CORS proxy is the reflex to
- * resist; IWLS answers cross-origin with `access-control-allow-origin: *` and
- * needs no help.
+ * re-served. So every request here is a plain browser `fetch()`, made from the
+ * reader's own browser once their page has loaded. Nothing is proxied through
+ * the Worker — the moment we fetch, we are the fetcher and the posture breaks
+ * — nothing is prerendered, and nothing is stored by us. Reaching for a CORS
+ * proxy is the reflex to resist; IWLS answers cross-origin with
+ * `access-control-allow-origin: *` and needs no help.
+ *
+ * `fetcher` is how the caller passes an `AbortSignal` (and how the test
+ * replays a recorded day). A reader who cancels must actually stop the
+ * request, not just stop seeing it.
  */
 import { distanceNm } from './nearby'
 import type { EventKind, Sample, StationEvent } from './predict'
