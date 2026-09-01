@@ -1,18 +1,27 @@
 import { describe, expect, it } from 'vitest'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, statSync } from 'node:fs'
 import { loadCatalogue } from '../lib/catalogue'
 
 const OUT = '.output/public'
 
 describe('prerendered station pages', () => {
-  it('emits exactly one page per station', () => {
+  it('emits one non-empty page per station', () => {
     if (!existsSync(OUT)) return expect.fail('run `pnpm build` before this test')
+    // A truncated prerender write leaves a file that exists and holds nothing,
+    // which existsSync alone called present. It happened once (issue #48) and
+    // was caught only because it landed on `seattle`, one of the two slugs any
+    // other assertion here reads; on any of the other 3,628 it would have gone
+    // green and deployed a station page serving an empty document. The floor is
+    // far below the smallest real page (6,232 bytes, currents/masset-sound) and
+    // far above an empty one, so it fails on truncation without tracking size.
+    const FLOOR = 2048
     const all = loadCatalogue()
-    const missing = all.filter(
-      (s) => !existsSync(`${OUT}/${s.kind === 'tide' ? 'tides' : 'currents'}/${s.slug}/index.html`),
-    )
-    expect(missing.slice(0, 5).map((s) => s.id)).toEqual([])
-    expect(missing.length).toBe(0)
+    const bad = all.filter((s) => {
+      const file = `${OUT}/${s.kind === 'tide' ? 'tides' : 'currents'}/${s.slug}/index.html`
+      return !existsSync(file) || statSync(file).size < FLOOR
+    })
+    expect(bad.slice(0, 5).map((s) => s.id)).toEqual([])
+    expect(bad.length).toBe(0)
   })
 
   it('renders the station name and a real curve, not a placeholder', () => {

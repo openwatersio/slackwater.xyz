@@ -135,6 +135,13 @@ that changes what the site measures changes that file in the same commit.
   `pnpm build && npx wrangler dev -c .output/server/wrangler.json`. Nothing is lost in dev —
   the Plausible script ignores localhost regardless.
 
+- **`npx vite preview` serves pages with no CSS or JS.** `vite.config.ts` overrides nitro's
+  preview command to mount an empty assets directory: the prerender crawl runs against that
+  same server, and `wrangler dev` restarts on every write into the directory it serves assets
+  from — which is the directory the crawl is filling. That cost one deploy and one PR run
+  (issue #48). Use `pnpm preview`, which runs `wrangler dev` against the generated config and
+  serves the real assets.
+
 - **`wrangler.jsonc` at the root is the *source*, not the deployable config.** Nitro reads it
   and emits `.output/server/wrangler.json` with `main` and `assets` rewritten to the right
   relative paths. Deploy with that one; `pnpm deploy` already does.
