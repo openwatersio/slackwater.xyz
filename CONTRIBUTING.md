@@ -37,7 +37,7 @@ pnpm deploy     # build, then wrangler deploy with nitro's generated config
 where being wrong is invisible in a screenshot and embarrassing on the water, so a change to
 either arrives with a test.
 
-Presentation is checked by looking at it. There is no snapshot suite: 3,630 pages come from
+Presentation is checked by looking at it. There is no snapshot suite: 3,640 pages come from
 three templates, so a representative tide page, a representative current page, and a
 representative CHS identity-only page (`/currents/dodd-narrows`) is the check, and a diff
 across thousands of near-identical generated pages would be noise, not signal.

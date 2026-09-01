@@ -38,7 +38,7 @@ export interface StationRow {
  * Every station of one kind, for the browse index.
  *
  * Deliberately NOT `Station[]`: the full record carries the harmonic
- * constituents, and 2,765 of those serialised into a page's loader data would
+ * constituents, and 2,775 of those serialised into a page's loader data would
  * put the tide database back on the wire that `stationBySlug` exists to keep it
  * off. Three fields per station is the whole payload.
  */

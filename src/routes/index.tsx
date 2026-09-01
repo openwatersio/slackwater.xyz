@@ -307,7 +307,7 @@ function Home() {
         </div>
         <div className="mt-6 flex flex-wrap gap-x-8 gap-y-3">
           <a href="/stations/tides/" className="text-sw-paper underline underline-offset-4 hover:text-sw-leaf">
-            2,765 tide stations
+            2,775 tide stations
           </a>
           <a href="/stations/currents/" className="text-sw-paper underline underline-offset-4 hover:text-sw-leaf">
             865 current stations
