@@ -43,6 +43,12 @@ jobs:
       # prerendered output in .output/public.
       - run: pnpm run build
 
+      # After the build, not before it: src/routeTree.gen.ts is gitignored and
+      # only exists as a vite build side effect, so tsc on a fresh checkout
+      # fails with "Cannot find module './routeTree.gen'" - a missing file,
+      # not a type error. The job still fails on a real one.
+      - run: pnpm run typecheck
+
       - run: pnpm run test
 
       # "ERROR [nitro] Preview server exited with code 143" in the build log

@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { StationPage } from '#/components/StationPage'
 import { nearbyStations, stationBySlug } from '#/lib/catalogue-server'
+import { ogImageAlt, pageDescription } from '#/lib/copy'
 import { useLiveNow } from '#/lib/use-live-now'
 
 const CANONICAL = 'https://slackwater.xyz/tides/'
@@ -18,7 +19,8 @@ export const Route = createFileRoute('/tides/$slug')({
     const s = loaderData?.station
     if (!s) return {}
     const title = `${s.name} — tide heights`
-    const description = `Tide heights and the next high and low for ${s.name}, computed from harmonic constituents.`
+    const description = pageDescription(s)
+    const alt = ogImageAlt(s)
     return {
       links: [{ rel: 'canonical', href: `${CANONICAL}${s.slug}/` }],
       meta: [
@@ -28,6 +30,8 @@ export const Route = createFileRoute('/tides/$slug')({
         { property: 'og:description', content: description },
         { property: 'og:url', content: `${CANONICAL}${s.slug}/` },
         { property: 'og:image', content: `https://slackwater.xyz/og/tides/${s.slug}.png` },
+        // Overrides the site default only where it would be false — see `ogImageAlt`.
+        ...(alt ? [{ property: 'og:image:alt', content: alt }] : []),
       ],
     }
   },

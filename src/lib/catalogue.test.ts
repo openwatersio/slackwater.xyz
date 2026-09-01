@@ -2,29 +2,41 @@ import { describe, expect, it } from 'vitest'
 import tzLookup from 'tz-lookup'
 import { cleanName } from '@openwaters/station-metadata'
 import { loadCatalogue } from './catalogue'
+import { nearby } from './nearby'
 
 describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
-  it('yields every station whose data ships on npm', () => {
-    expect(all.length).toBe(3607)
+  it('yields every station whose data ships on npm, plus the CHS gates', () => {
+    expect(all.length).toBe(3630)
     expect(all.filter((s) => s.kind === 'tide').length).toBe(2765)
-    expect(all.filter((s) => s.kind === 'current').length).toBe(842)
+    expect(all.filter((s) => s.kind === 'current').length).toBe(865)
   })
 
-  it('excludes stations no data package can satisfy', () => {
-    expect(all.some((s) => s.id.startsWith('chs-'))).toBe(false)
-    // Registry-owned despite the noaa- name; a chs- prefix test misses it.
+  it('still excludes the CHS tide ports, whose identity is not published yet', () => {
+    expect(all.some((s) => s.kind === 'tide' && s.id.startsWith('chs-'))).toBe(false)
+    // Buildability is decided by id shape (`id.includes('/')`), not a `chs-`/`noaa-`
+    // prefix: `noaa-boundary-pass` is registry-owned despite its name, and a prefix
+    // test would let it through to a throw.
     expect(all.some((s) => s.id === 'noaa-boundary-pass')).toBe(false)
-    expect(all.every((s) => s.id.includes('/'))).toBe(true)
+    // The id-shape invariant itself: every row in the catalogue either came
+    // from `chsGates()` (a hand-built identity, no provider package involved)
+    // or has a slashed id from a provider package. Nothing else is buildable.
+    expect(all.every((s) => s.source === 'chs' || s.id.includes('/'))).toBe(true)
+  })
+
+  it('builds the flagship gate', () => {
+    expect(all.some((s) => s.slug === 'dodd-narrows' && s.kind === 'current')).toBe(true)
   })
 
   it('gives every station what it needs to be predicted and addressed', () => {
     for (const s of all) {
       expect(s.slug, s.id).toMatch(/^[a-z0-9-]+$/)
-      expect(s.constituents.length, s.id).toBeGreaterThan(0)
       expect(Number.isFinite(s.latitude), s.id).toBe(true)
       expect(s.name.trim(), s.id).not.toBe('')
+    }
+    for (const s of all.filter((s) => s.source === 'bundled')) {
+      expect(s.constituents.length, s.id).toBeGreaterThan(0)
     }
   })
 
@@ -73,5 +85,27 @@ describe('loadCatalogue', () => {
     for (const s of all) {
       expect(s.name, s.id).toBe(cleanName(s.name))
     }
+  })
+
+  it('gives a registry station its curated name, not the provider row name', () => {
+    const bp = all.find((s) => s.kind === 'current' && s.slug === 'boundary-pass')
+    expect(bp?.name).toBe('Boundary Pass')
+    expect(bp?.region).toBe('Saturna & Patos Islands')
+  })
+
+  it('collapses a merged pair to one row', () => {
+    // station-metadata 4.1.2 points both ids of a merged pair at one slug. Only
+    // one half is buildable today, so this passes before the dedupe exists - it
+    // is here as the tripwire for the CHS gates, where both halves build.
+    const rows = all.filter((s) => s.kind === 'current' && s.slug === 'boundary-pass')
+    expect(rows.length).toBe(1)
+  })
+
+  it('gives a CHS gate neighbours to link to', () => {
+    const dodd = all.find((s) => s.slug === 'dodd-narrows' && s.kind === 'current')!
+    const near = nearby(dodd, all, 6)
+    expect(near.length).toBe(6)
+    expect(near.every((s) => s.kind === 'current')).toBe(true)
+    expect(near.some((s) => s.id.startsWith('chs-'))).toBe(true)
   })
 })

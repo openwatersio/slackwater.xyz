@@ -4,7 +4,7 @@ import { Resvg } from '@cf-wasm/resvg'
 import fontDataUri from './fonts/RobotoMono.ttf?inline'
 import { CurrentCurve } from '#/components/CurrentCurve'
 import { TideCurve } from '#/components/TideCurve'
-import type { Kind, Station } from './station'
+import type { BundledStation, ChsStation, Kind, Station } from './station'
 
 // `@cf-wasm/resvg` wraps `@resvg/resvg-wasm` with a package.json "exports"
 // condition per runtime (workerd/node/edge-light), each shipping the wasm in
@@ -90,8 +90,8 @@ function withHeader(svg: string, title: string, subtitle: string): string {
 }
 
 /**
- * Renders a station's curve, centred on `now`, as a 1200x630 PNG - the image
- * behind both the canonical and instant OG card routes.
+ * Renders a station's curve, centred on `now`, as an SVG string - the visual
+ * for every bundled station's OG card.
  *
  * `live`: the bare route renders "now" and goes stale by the minute, so its
  * card says "Current conditions" rather than a timestamp that would read as
@@ -100,7 +100,7 @@ function withHeader(svg: string, title: string, subtitle: string): string {
  * the server's or the viewer's, because the moment being shared is the
  * station's local water, not an instant in the ether.
  */
-export async function renderCard(station: Station, now: Date, live = false): Promise<Uint8Array<ArrayBuffer>> {
+function curveCard(station: BundledStation, now: Date, live: boolean): string {
   const start = new Date(now.getTime() - 6 * 3600_000)
   const Curve = station.kind === 'tide' ? TideCurve : CurrentCurve
   const markup = renderToStaticMarkup(
@@ -116,7 +116,37 @@ export async function renderCard(station: Station, now: Date, live = false): Pro
   // with no namespaced root ("document does not have a root node").
   const withNamespace = svgMatch[0].replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ')
   const subtitle = live ? 'Current conditions' : formatMoment(now, station.timezone)
-  const svg = withHeader(withEmbeddedFont(withNamespace), station.name, subtitle)
+  return withHeader(withEmbeddedFont(withNamespace), station.name, subtitle)
+}
+
+/**
+ * A card for a station whose curve we may not publish.
+ *
+ * The region rather than a moment as the subtitle: this card depicts no
+ * moment, so stamping one on it would claim a reading the image does not
+ * contain. It also makes the card identical for every instant URL, which is
+ * correct - there is nothing per-instant to draw.
+ *
+ * No background rect: `renderCard` already passes resvg a `background`,
+ * the same way `curveCard`'s SVG paints no ground of its own either.
+ */
+export function identityCard(station: ChsStation): string {
+  const ground =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" ` +
+    `viewBox="0 0 ${WIDTH} ${HEIGHT}">` +
+    `<text x="40" y="340" fill="#fcfcfc" fill-opacity="0.8" ` +
+    `style="font-family:'${FONT_FAMILY}';font-size:28px;font-weight:500">` +
+    `Predictions based on Canadian Hydrographic Service data</text>` +
+    `</svg>`
+  return withHeader(withEmbeddedFont(ground), station.name, station.region ?? '')
+}
+
+/**
+ * Renders a station's card as a 1200x630 PNG - the image behind both the
+ * canonical and instant OG card routes.
+ */
+export async function renderCard(station: Station, now: Date, live = false): Promise<Uint8Array<ArrayBuffer>> {
+  const svg = station.source === 'chs' ? identityCard(station) : curveCard(station, now, live)
   // `Resvg.async`, not `new Resvg`: init is a fire-and-forget side effect of
   // importing the package (see the top-of-file comment), so the first
   // request in a fresh isolate can otherwise race ahead of it being ready.

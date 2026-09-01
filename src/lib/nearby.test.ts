@@ -3,7 +3,8 @@ import { distanceNm, nearby } from './nearby'
 import type { Station } from './station'
 
 const at = (id: string, kind: Station['kind'], lat: number, lon: number): Station => ({
-  id, kind, slug: id, name: id, latitude: lat, longitude: lon, timezone: 'UTC', constituents: [],
+  id, kind, slug: id, name: id, latitude: lat, longitude: lon, timezone: 'UTC',
+  source: 'bundled', constituents: [],
 })
 
 describe('distanceNm', () => {

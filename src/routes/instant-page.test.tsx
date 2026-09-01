@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server'
 import { RouterProvider, createMemoryHistory, createRouter } from '@tanstack/react-router'
 import { dayLabel, hhmm } from '#/lib/format'
 import { findEvents } from '#/lib/predict'
-import type { Station } from '#/lib/station'
+import type { BundledStation } from '#/lib/station'
 
 /**
  * The instant URL must render ITS OWN moment.
@@ -21,15 +21,17 @@ import type { Station } from '#/lib/station'
  * route through the real route tree catches a nesting bug.
  */
 
-const DECEPTION: Station = {
+const DECEPTION: BundledStation = {
   id: 'noaa/PUG1701', kind: 'current', slug: 'deception-pass-narrows', name: 'Deception Pass (Narrows)',
   latitude: 48.4, longitude: -122.64, timezone: 'America/Los_Angeles',
+  source: 'bundled',
   offset: 0, floodDirection: 101.5, ebbDirection: 281.5,
   constituents: [{ name: 'M2', amplitude: 3.2, phase: 100 }, { name: 'K1', amplitude: 1.1, phase: 250 }],
 }
-const SEATTLE: Station = {
+const SEATTLE: BundledStation = {
   id: 'noaa/9447130', kind: 'tide', slug: 'seattle', name: 'SEATTLE (Madison St.), Elliott Bay',
   latitude: 47.6, longitude: -122.34, timezone: 'America/Los_Angeles',
+  source: 'bundled',
   constituents: [{ name: 'M2', amplitude: 3.487, phase: 10.8 }, { name: 'K1', amplitude: 2.625, phase: 300 }],
 }
 
@@ -61,7 +63,7 @@ async function body(url: string) {
  * The chart drops labels in the outer 7% of the window, where the fill has
  * faded out — so "the first slack" is not necessarily one that appears.
  */
-function labelledSlack(station: Station, instant: Date) {
+function labelledSlack(station: BundledStation, instant: Date) {
   const start = new Date(instant.getTime() - 6 * 3600_000)
   const span = 24 * 3600_000
   const slack = findEvents(station, start, 24).find((e) => {

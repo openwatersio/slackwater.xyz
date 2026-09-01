@@ -310,7 +310,7 @@ function Home() {
             2,765 tide stations
           </a>
           <a href="/stations/currents/" className="text-sw-paper underline underline-offset-4 hover:text-sw-leaf">
-            842 current stations
+            865 current stations
           </a>
         </div>
       </section>

@@ -7,7 +7,8 @@ import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type
 import currentBundle from '@openwaters/noaa-current-stations/currents.json' with { type: 'json' }
 import { stationsById } from '@neaps/tide-database'
 import tzLookup from 'tz-lookup'
-import type { Kind, Station } from './station'
+import { chsGates, curatedBySlug, REGISTRY_IDS } from './registry'
+import type { BundledStation, Kind, Station } from './station'
 
 /**
  * A station is buildable when a provider catalogue ships its data, which the id
@@ -55,6 +56,7 @@ export function loadCatalogue(): Station[] {
   const out: Station[] = []
 
   for (const kind of ['tide', 'current'] as Kind[]) {
+    const curated = curatedBySlug(kind)
     for (const [id, slug] of Object.entries(slugTable[kind] as Record<string, string>)) {
       if (!isBuildable(id)) continue
 
@@ -65,10 +67,14 @@ export function loadCatalogue(): Station[] {
         if (!r) throw new Error(`catalogue: no tide data for ${id}`)
         out.push({
           id, kind, slug,
-          name: cleanName(String(r.name)),
+          source: 'bundled',
+          // Curated identity wins. The provider row names the water whatever the
+          // provider calls it; the registry names it what a mariner calls it.
+          name: curated.get(slug)?.name ?? cleanName(String(r.name)),
           latitude: Number(r.latitude), longitude: Number(r.longitude),
-          timezone: String(r.timezone), region: r.region ? String(r.region) : undefined,
-          constituents: (r.harmonic_constituents as Station['constituents']).map((c) => ({
+          timezone: String(r.timezone),
+          region: curated.get(slug)?.region ?? (r.region ? String(r.region) : undefined),
+          constituents: (r.harmonic_constituents as BundledStation['constituents']).map((c) => ({
             ...c,
             amplitude: c.amplitude * FEET_PER_METRE,
           })),
@@ -83,10 +89,16 @@ export function loadCatalogue(): Station[] {
         // every current station's slack time seven-plus hours wrong.
         out.push({
           id, kind, slug,
-          name: cleanName(String(r.name)),
+          source: 'bundled',
+          // Curated identity wins. The provider row names the water whatever the
+          // provider calls it; the registry names it what a mariner calls it.
+          name: curated.get(slug)?.name ?? cleanName(String(r.name)),
           latitude, longitude,
           timezone: tzLookup(latitude, longitude),
-          constituents: r.constituents as Station['constituents'],
+          // The NOAA bundle carries no region field at all, so the registry is
+          // the only source and there is nothing to fall back to.
+          region: curated.get(slug)?.region,
+          constituents: r.constituents as BundledStation['constituents'],
           offset: Number(r.offset ?? 0),
           floodDirection: Number(r.floodDirection),
           ebbDirection: Number(r.ebbDirection),
@@ -95,5 +107,17 @@ export function loadCatalogue(): Station[] {
     }
   }
 
-  return out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  out.push(...chsGates())
+
+  // One row per slug. station-metadata merges duplicate identities by pointing
+  // both ids at one slug (4.1.2), so a slug can arrive twice. Prefer the id the
+  // registry names - that is the curated half in every merged pair - and fall
+  // back to first-seen so this is total rather than conditional.
+  const bySlug = new Map<string, Station>()
+  for (const s of out) {
+    const key = `${s.kind}/${s.slug}`
+    const held = bySlug.get(key)
+    if (!held || (!REGISTRY_IDS.has(held.id) && REGISTRY_IDS.has(s.id))) bySlug.set(key, s)
+  }
+  return [...bySlug.values()].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
 }

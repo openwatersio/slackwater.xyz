@@ -50,7 +50,12 @@ describe('prerendered station pages', () => {
     // app. A station page that renders the water and never offers the app is a
     // dead end, and one with no link home leaves 3,607 orphans with no internal
     // route back into the site. Both shipped missing once; this is the guard.
-    for (const path of ['currents/deception-pass-narrows', 'tides/boston']) {
+    //
+    // `currents/dodd-narrows` is here too: the CHS branch replaces the whole
+    // page body and the CTA for 23 gates, and before this was only covered by
+    // "the file exists" - not by "it still has a CTA and a way home".
+    const paths = ['currents/deception-pass-narrows', 'tides/boston', 'currents/dodd-narrows']
+    for (const path of paths) {
       const html = readFileSync(`${OUT}/${path}/index.html`, 'utf8')
       expect(html, `${path} has no TestFlight CTA`).toContain(
         'https://testflight.apple.com/join/',

@@ -8,18 +8,21 @@ currents across the US and Canada.
 ## What this is
 
 The marketing site — and, now, a page per station. It explains the app, points people at the
-beta, and prerenders a real computed curve at `/tides/<slug>` and `/currents/<slug>` for 3,607
-stations: the share-landing surface for anyone sent a link, and indexable content the site
-previously had none of.
+beta, and prerenders a page at `/tides/<slug>` and `/currents/<slug>` for 3,630 stations — a
+real computed curve for 3,607 of them, and identity only for 23 Canadian current gates: the
+share-landing surface for anyone sent a link, and indexable content the site previously had
+none of.
 
 The hero is not a screenshot. It computes a real current prediction for Deception Pass
 (Narrows) in your browser from bundled NOAA harmonic constituents, the same way every station
 page computes its own. A page whose argument is "correct, and it works with no signal" ought to
 demonstrate that rather than assert it.
 
-3,607, not the full catalogue. The missing 1,082 are Canadian (CHS) stations: no bundled
-constituents, predictions DFO's terms don't allow re-serving, and 1,048 of them have no
-published identity anywhere to build a page from. Tracked in [issue
+3,630 pages, not the full catalogue: 3,607 get a computed curve, and 23 Canadian (CHS) current
+gates get identity only — DFO's terms don't allow re-serving predictions, so those pages name
+the gate without claiming a curve. This work does not build the Canadian tide ports: identity
+is published for 10 of them (Victoria, Vancouver and eight more) and for none of the rest,
+plus `chs-arran-rapids`, excluded pending an owner decision. Tracked in [issue
 #17](https://github.com/openwatersio/slackwater.xyz/issues/17); those stations 404 rather than
 claim a curve nobody can compute.
 

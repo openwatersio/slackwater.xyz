@@ -47,8 +47,11 @@ export const Route = createRootRoute({
     ],
   }),
   shellComponent: RootDocument,
-  // 1,083 of the 4,690 known slugs 404 by design — every Canadian (CHS)
-  // station, `dodd-narrows` among them, which is the flagship share case.
+  // 1,056 of the 4,686 known slugs still 404 by design — Canadian (CHS) tide
+  // ports (identity is published for 10 of them, unbuilt for now; unpublished
+  // for the rest) plus `chs-arran-rapids`, a current gate excluded by name
+  // pending an owner decision. `dodd-narrows`, the former flagship share
+  // case, now resolves.
   // The router's default is a bare title, so the receiver of that link got a
   // blank page. Say what happened and give them a way onward.
   notFoundComponent: NotFound,
@@ -62,8 +65,7 @@ function NotFound() {
       </h1>
       <p className="mt-4 max-w-xl text-lg leading-snug text-sw-foam">
         There is no page here. If you followed a link to a station, that station isn't published
-        yet — the site covers 3,607 US stations, and the Canadian (CHS) ones have no predictions
-        it can compute or re-serve.
+        yet — the site covers 3,630 US and Canadian stations, with more on the way.
       </p>
       <p className="mt-6">
         <a className="text-sw-leaf underline underline-offset-4" href="/">

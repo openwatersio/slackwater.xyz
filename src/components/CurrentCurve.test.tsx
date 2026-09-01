@@ -1,11 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { CurrentCurve } from './CurrentCurve'
-import type { Station } from '#/lib/station'
+import type { BundledStation } from '#/lib/station'
 
-const DECEPTION: Station = {
+const DECEPTION: BundledStation = {
   id: 'noaa/PUG1701', kind: 'current', slug: 'deception-pass-narrows', name: 'Deception Pass (Narrows)',
   latitude: 48.4, longitude: -122.64, timezone: 'America/Los_Angeles',
+  source: 'bundled',
   offset: 0, floodDirection: 101.5, ebbDirection: 281.5,
   constituents: [{ name: 'M2', amplitude: 3.2, phase: 100 }, { name: 'K1', amplitude: 1.1, phase: 250 }],
 }
