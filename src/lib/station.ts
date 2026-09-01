@@ -24,6 +24,12 @@ export interface BundledStation extends StationIdentity {
   constituents: Constituent[]
   /** Datum or mean-flow offset applied to every prediction. */
   offset?: number
+  /**
+   * Tides only: the datum those heights are quoted against — "MLLW", "LAT",
+   * "LLWLT" and five others across the corpus. Carried so the page can name it:
+   * a height with no datum on it is a number, not a depth.
+   */
+  chartDatum?: string
   /** Currents only: the axis the signed velocity is measured along. */
   floodDirection?: number
   ebbDirection?: number

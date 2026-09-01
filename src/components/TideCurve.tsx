@@ -1,5 +1,5 @@
 import { useId, useMemo } from 'react'
-import { provenance } from '#/lib/copy'
+import { DATUM_NOTE, datumLine, provenance } from '#/lib/copy'
 import { dayLabel, height, hhmm } from '#/lib/format'
 import { predictSeries } from '#/lib/predict'
 import type { BundledStation } from '#/lib/station'
@@ -37,6 +37,8 @@ export function TideCurve({ station, start, hours, now, width: W = 1000, height:
   const maskId = `edges-${uid}`
   const fadeId = `fade-${uid}`
   const clipId = `plot-${uid}`
+
+  const datum = datumLine(station)
 
   const PAD_TOP = 34
   const PAD_BOTTOM = 44
@@ -141,6 +143,13 @@ export function TideCurve({ station, start, hours, now, width: W = 1000, height:
         </g>
       </svg>
 
+      {datum && (
+        <div className="mt-3">
+          <p className="text-sm text-sw-steel">{datum}</p>
+          <p className="mt-1 text-sm text-sw-steel/70">{DATUM_NOTE}</p>
+        </div>
+      )}
+
       <figcaption className="sr-only">{describe(station, high, low)}</figcaption>
     </figure>
   )
@@ -160,6 +169,9 @@ function describe(station: BundledStation, high: { time: Date; level: number }, 
   return (
     `Tide predictions for ${station.name}, ${provenance(station)}. ` +
     `High ${height(high.level)} feet on ${dayLabel(high.time, tz)} at ${hhmm(high.time, tz)}, ` +
-    `low ${height(low.level)} feet on ${dayLabel(low.time, tz)} at ${hhmm(low.time, tz)}.`
+    `low ${height(low.level)} feet on ${dayLabel(low.time, tz)} at ${hhmm(low.time, tz)}` +
+    // The datum belongs in the spoken form for the same reason it is on the
+    // page: a height quoted against nothing cannot be acted on.
+    (station.chartDatum ? `, above ${station.chartDatum}, the chart datum.` : '.')
   )
 }

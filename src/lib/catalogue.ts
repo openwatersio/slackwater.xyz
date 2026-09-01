@@ -36,13 +36,31 @@ const NOAA = 'noaa/'
  * and no renderer has to know what a provider chose. Labelling a metre "ft"
  * at the far end is wrong by 3.28x and looks entirely plausible.
  *
- * ponytail: heights remain MSL-relative (a constituent sum has no datum in
- * it) while every station's `chart_datum` is MLLW, which is why lows read
- * negative. That is a datum decision for the owner, not a units bug — the
- * `datums` field on each record carries the MSL-to-MLLW offset if it is ever
- * taken (Boston: MSL 2.66, MLLW 1.074, both metres).
+ * A constituent sum has no datum in it: it comes out relative to MSL, which is
+ * why every low used to read negative. `datumShift` below moves each station
+ * onto the datum its own charts are drawn to, at this same boundary and in the
+ * same unit, so no renderer has to know either.
  */
 const FEET_PER_METRE = 3.28084
+
+/**
+ * Metres from MSL down to this station's chart datum, in feet.
+ *
+ * Mirrors the app exactly (`tools/gen-tides.mjs`: `datums.MSL - datums[chart_datum]`),
+ * because the site and the app have to say the same number about the same water.
+ * `chart_datum` is per station and is not always MLLW — the corpus spans eight
+ * datums, and MLLW covers barely half of it.
+ *
+ * No datums shipped means no shift. Two stations are in that state and the app
+ * labels both STND: an invented offset would render to one decimal place and be
+ * indistinguishable on the page from a measured one.
+ */
+function datumShift(r: Record<string, unknown>): number {
+  const datums = r.datums as Record<string, number> | undefined
+  const chartDatum = String(r.chart_datum ?? '')
+  if (datums?.MSL == null || datums[chartDatum] == null) return 0
+  return (datums.MSL - datums[chartDatum]) * FEET_PER_METRE
+}
 
 function tideRecord(id: string): Record<string, unknown> | undefined {
   const db = stationsById as unknown
@@ -78,6 +96,8 @@ export function loadCatalogue(): Station[] {
             ...c,
             amplitude: c.amplitude * FEET_PER_METRE,
           })),
+          chartDatum: String(r.chart_datum ?? ''),
+          offset: datumShift(r),
         })
       } else {
         const r = currents.get(id)
