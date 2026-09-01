@@ -7,7 +7,8 @@ import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type
 import currentBundle from '@openwaters/noaa-current-stations/currents.json' with { type: 'json' }
 import { stationsById } from '@neaps/tide-database'
 import tzLookup from 'tz-lookup'
-import { chsGates, curatedBySlug, REGISTRY_IDS } from './registry'
+import { FEET_PER_METRE } from './format'
+import { chsStations, curatedBySlug, REGISTRY_IDS } from './registry'
 import type { BundledStation, Kind, Station } from './station'
 
 /**
@@ -41,7 +42,8 @@ const NOAA = 'noaa/'
  * onto the datum its own charts are drawn to, at this same boundary and in the
  * same unit, so no renderer has to know either.
  */
-const FEET_PER_METRE = 3.28084
+// The constant itself lives in `format.ts`: `iwls.ts` needs it too and may
+// not import this module.
 
 /**
  * Metres from MSL down to this station's chart datum, in feet.
@@ -127,7 +129,11 @@ export function loadCatalogue(): Station[] {
     }
   }
 
-  out.push(...chsGates())
+  // The Canadian gates, and the ten tide ports whose identity the registry
+  // publishes. Both carry no prediction: DFO's terms do not allow re-serving
+  // one, so the reader's own browser fetches it. The other 1,048 ports have
+  // identity nowhere published — see #17.
+  out.push(...chsStations('current'), ...chsStations('tide'))
 
   // One row per slug. station-metadata merges duplicate identities by pointing
   // both ids at one slug (4.1.2), so a slug can arrive twice. Prefer the id the

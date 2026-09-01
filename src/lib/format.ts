@@ -6,6 +6,17 @@
  * water clock — a gate transit happens on local time.
  */
 
+/**
+ * The site speaks feet; every provider we read publishes metres.
+ *
+ * Lives here rather than in `catalogue.ts` because there are two boundaries
+ * now, not one. The bundled corpus converts at build time; `iwls.ts` converts
+ * DFO's tide heights in the reader's browser, and it may not import the
+ * catalogue — `bundle-size.test.ts` fences that off. One constant, so the two
+ * paths cannot come to disagree about how long a metre is.
+ */
+export const FEET_PER_METRE = 3.28084
+
 /** "20:40" */
 export function hhmm(d: Date, timeZone: string): string {
   return d.toLocaleTimeString('en-CA', { timeZone, hour: '2-digit', minute: '2-digit', hour12: false })

@@ -63,25 +63,29 @@ export function curatedBySlug(kind: Kind): Map<string, Curated> {
 const EXCLUDED = new Set(['chs-arran-rapids'])
 
 /**
- * The Canadian current gates, from identity station-metadata already publishes.
+ * The Canadian stations of one kind, from identity station-metadata already
+ * publishes.
  *
- * No new package and no upstream release: all 24 gates are registry entries
- * with a curated name, region and corrected position. Only the timezone is
- * derived, from the position, the way the tide ports get theirs.
+ * No new package and no upstream release for either kind: all 24 gates and ten
+ * of the tide ports are registry entries with a curated name, region and
+ * corrected position. Only the timezone is derived, from the position.
+ *
+ * The other 1,048 CHS tide ports have identity nowhere published — that is the
+ * rest of #17 and needs an operator run against IWLS, not a change here.
  */
-export function chsGates(): ChsStation[] {
-  const table = slugTable.current as Record<string, string>
+export function chsStations(kind: Kind): ChsStation[] {
+  const table = slugTable[kind] as Record<string, string>
   const out: ChsStation[] = []
   for (const [id, entry] of Object.entries(entries)) {
-    if (entry.provider !== 'chs' || kindOf(entry) !== 'current') continue
+    if (entry.provider !== 'chs' || kindOf(entry) !== kind) continue
     if (EXCLUDED.has(id)) continue
     const slug = table[id]
-    // A gate with no published slug is a broken corpus, not one to skip: it
+    // A station with no published slug is a broken corpus, not one to skip: it
     // means the registry and the slug table disagree about what exists.
-    if (!slug) throw new Error(`registry: no published slug for gate ${id}`)
+    if (!slug) throw new Error(`registry: no published slug for CHS ${kind} station ${id}`)
     const [latitude, longitude] = entry.position
     out.push({
-      id, kind: 'current', slug, source: 'chs',
+      id, kind, slug, source: 'chs',
       name: entry.name,
       ...(entry.context ? { region: entry.context } : {}),
       // Carried through so the page knows not to offer a curve it cannot
