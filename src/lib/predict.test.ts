@@ -69,7 +69,7 @@ describe('findEvents', () => {
 
 describe('slackWindows', () => {
   const start = new Date('2026-09-01T00:00:00Z')
-  const windows = slackWindows(CURRENT, start, 24)
+  const windows = slackWindows(predictSeries(CURRENT, start, 24))
 
   it('opens and closes exactly where the curve meets the threshold', () => {
     expect(windows.length).toBeGreaterThan(0)
@@ -96,7 +96,7 @@ describe('slackWindows', () => {
     // can transit, and the chart draws to the frame either way.
     const w = windows[0]
     const mid = new Date((w.start.getTime() + w.end.getTime()) / 2)
-    const clipped = slackWindows(CURRENT, mid, 24)
+    const clipped = slackWindows(predictSeries(CURRENT, mid, 24))
     // The frame's first sample, not `mid` exactly — the predictor's timeline
     // snaps to its own 10-minute grid, so the frame edge is within one sample.
     expect(Math.abs(clipped[0].start.getTime() - mid.getTime())).toBeLessThanOrEqual(600_000)
@@ -123,6 +123,6 @@ describe('slackWindows', () => {
     const levels = predictSeries(CURRENT, start, 24).map((s) => s.level)
     const lull = { ...CURRENT, offset: -Math.min(...levels) + 0.2 }
     expect(Math.min(...predictSeries(lull, start, 24).map((s) => s.level))).toBeCloseTo(0.2, 6)
-    expect(slackWindows(lull, start, 24)).toEqual([])
+    expect(slackWindows(predictSeries(lull, start, 24))).toEqual([])
   })
 })
