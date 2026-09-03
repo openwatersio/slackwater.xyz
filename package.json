@@ -32,7 +32,7 @@
     "tz-lookup": "^6.1.25"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
+    "@types/node": "^26.4.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@types/tz-lookup": "^6.1.2",
