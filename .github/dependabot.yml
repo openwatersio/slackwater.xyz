@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # pnpm 11 refuses to install a release younger than about a day - its own
+    # default supply-chain gate - and works around it by writing the version
+    # into `minimumReleaseAgeExclude` in pnpm-workspace.yaml, which is where
+    # the two @openwaters pins there came from. Dependabot never edits that
+    # file, so a PR it raises the day of a release would fail `pnpm install`
+    # with nothing in the diff explaining why. Waiting clears the gate, and
+    # waiting is the point of the gate: a compromised release is usually
+    # yanked within days, and this site would rather miss it than install it.
+    cooldown:
+      default-days: 3
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
