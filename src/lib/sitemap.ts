@@ -19,10 +19,10 @@ const stationLoc = (s: Station) => `${ORIGIN}/${s.kind === 'tide' ? 'tides' : 'c
  * urlset rather than being tucked into the index — a urlset there is
  * invalid and Search Console rejects the whole file.
  */
-export function buildSitemaps(stations: Station[]): Record<string, string> {
+export function buildSitemaps(stations: Station[], extraStatic: string[] = []): Record<string, string> {
   const tides = stations.filter((s) => s.kind === 'tide').map(stationLoc)
   const currents = stations.filter((s) => s.kind === 'current').map(stationLoc)
-  const staticPages = ['/', '/support/', '/privacy/', '/stations/', '/stations/tides/', '/stations/currents/'].map(
+  const staticPages = ['/', '/support/', '/privacy/', '/stations/', '/stations/tides/', '/stations/currents/', ...extraStatic].map(
     (p) => `${ORIGIN}${p}`,
   )
 

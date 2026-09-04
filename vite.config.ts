@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
@@ -12,10 +12,19 @@ const catalogue = loadCatalogue()
 const stationPages = catalogue.map((s) => ({
   path: `/${s.kind === 'tide' ? 'tides' : 'currents'}/${s.slug}/`,
 }))
+// Comparison pages are parameterised routes too, so they need listing here for
+// the same reason the stations do. `src/lib/compare.ts` parses the same
+// frontmatter with import.meta.glob, which does not exist in this file's Node
+// context; reading the one `url:` line here is the whole duplication.
+const COMPARE_DIR = './src/content/compare'
+const COMPARE_PATHS = readdirSync(COMPARE_DIR).map(
+  (f) => new URL(readFileSync(`${COMPARE_DIR}/${f}`, 'utf8').match(/^url: (.+)$/m)![1]).pathname,
+)
+const comparePages = COMPARE_PATHS.map((path) => ({ path }))
 
 // Written straight into public/ so Vite's static copy ships them as
 // .output/public/sitemap*.xml — same mechanism as the old hand-written file.
-for (const [name, xml] of Object.entries(buildSitemaps(catalogue))) {
+for (const [name, xml] of Object.entries(buildSitemaps(catalogue, COMPARE_PATHS))) {
   writeFileSync(`./public/${name}`, xml)
 }
 
@@ -45,7 +54,7 @@ export default defineConfig({
       // in @tanstack/start-plugin-core) validates `prerender` against a schema
       // with no `pages` field, so nesting it there is silently dropped and the
       // build still reports success while emitting zero station pages.
-      pages: stationPages,
+      pages: [...stationPages, ...comparePages],
       prerender: {
         enabled: true,
         autoSubfolderIndex: true,
