@@ -68,7 +68,7 @@ shown. Paddlers report BC current stations are thin and a few sit on land.
 
 [Read the full comparison](/compare/slackwater-vs-ayetides/).
 
-**Best for:** worldwide coverage in one purchase; anyone who trusts the XTide tables.
+**Best for:** current stations outside North America, in one purchase; anyone who trusts the XTide tables.
 
 ## Tide Alert (NOAA)
 

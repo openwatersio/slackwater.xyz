@@ -20,8 +20,9 @@ If you already own AyeTides and it answers your questions, there is no reason to
 |---|---|---|
 | Price | $7.99 once, no IAP, no ads | Free core; optional paid lock screen add-on |
 | Shipping since | ~2010 | 2026, public beta |
-| Tides | 12,500+ locations worldwide | Worldwide |
+| Tides | 12,500+ locations worldwide, tides and/or currents | 2,775 stations worldwide |
 | Currents | Harmonic current stations, table of slack and max | Stations with slack time and duration, max flood/ebb speed and set, scrubbable curve |
+| Currents outside US and Canada | Some | None |
 | Canada currents | Sparse; some stations reported on land | 23 CHS gates from Salish Sea to Cape Breton, checked against CHS predictions |
 | Offline | Predictions yes; map and sharing online | Predictions and chart |
 | Data | XTide harmonics plus licensed station database | NOAA constituents bundled; CHS fitted on device; source and datum named per station |
@@ -69,9 +70,14 @@ then work offline.
 
 ## Coverage everywhere else
 
-AyeTides wins this outright. Its licensed station database reaches places Slackwater's
-open data does not. If you cruise outside North America, that matters and it is the
-honest reason to buy AyeTides.
+Both apps predict tides worldwide. Slackwater ships 2,775 tide stations, each one naming
+its source, datum and licence, from an open dataset that is maintained. AyeTides lists
+12,500 locations, tides and/or currents, and does not say per station where the
+constituents came from or when they were last updated.
+
+Where AyeTides genuinely has more is current stations outside the US and Canada.
+Slackwater's currents stop at the border on purpose: that is where it can check every
+station against the agencies' own predictions before it ships.
 
 ## Interface
 
@@ -89,7 +95,7 @@ open source, so the numbers can be checked by anyone.
 
 ## Who should pick which
 
-**AyeTides** if you sail outside the US and Canada, want it on your Watch, use iNavX or
+**AyeTides** if you need current stations outside the US and Canada, want it on your Watch, use iNavX or
 SEAiq, or want a finished product with a decade of updates behind it.
 
 **Slackwater** if you transit passes in BC or the Pacific Northwest, want the slack window
