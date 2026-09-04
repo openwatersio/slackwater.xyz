@@ -66,6 +66,8 @@ has real current stations, 12,500 locations worldwide. BC pilots use it. The int
 from another era and the current answer is a table you read rather than a window you are
 shown. Paddlers report BC current stations are thin and a few sit on land.
 
+[Read the full comparison](/compare/slackwater-vs-ayetides/).
+
 **Best for:** worldwide coverage in one purchase; anyone who trusts the XTide tables.
 
 ## Tide Alert (NOAA)
@@ -75,6 +77,8 @@ Watch. Now covers Canada, Mexico and Latin America, and favourite stations work 
 Currents are shown as speed over the tide chart with estimated slack windows, which is
 useful but is not a current station prediction. Full access is $19.99 a year, or $99.99
 for life.
+
+[Read the full comparison](/compare/slackwater-vs-tide-alert/).
 
 **Best for:** anyone who wants the phone to say "the tide is at 2 ft now" without opening it.
 
@@ -86,12 +90,16 @@ languages. Currents are one number in a data box, no stations, no slack. Widgets
 complications need Pro. Reviewers outside the US report datum and timing errors, and the
 app does not say where its data comes from.
 
+[Read the full comparison](/alternatives/tide-guide/).
+
 **Best for:** beach and surf conditions at a glance, on a Watch.
 
 ## Tides Near Me
 
 Open it and it shows the nearest station, rising or falling. That single interaction earned
 161K ratings. It is free with ads and has no offline claim. Currents are direction and timing, no speed curve.
+
+[Read the full comparison](/alternatives/tides-near-me/).
 
 **Best for:** "is it coming in or going out" on a beach with signal.
 
@@ -101,6 +109,8 @@ Currents-first, and the best picture of flow you can get on a phone: animated pa
 over a nautical chart, with a time scrubber and route analysis. Canadian stations arrived
 this summer. It streams everything, so it needs a connection, and the free tier is a
 three-hour window around now. No tides, no widgets, no Watch. Launched April 2026.
+
+[Read the full comparison](/compare/slackwater-vs-actual-currents/).
 
 **Best for:** seeing how a strait moves at a chosen hour, from the dock.
 
@@ -112,6 +122,13 @@ $19.99 a year. Reviews complain about the station picker. US only.
 **Best for:** US-only offline currents on a budget, if you can live with the interface.
 
 ## Which one
+
+Each app above has its own page with a side-by-side screenshot and the full table:
+[AyeTides](/compare/slackwater-vs-ayetides/) ·
+[Tide Alert](/compare/slackwater-vs-tide-alert/) ·
+[Tide Guide](/alternatives/tide-guide/) ·
+[Tides Near Me](/alternatives/tides-near-me/) ·
+[Actual Currents](/compare/slackwater-vs-actual-currents/).
 
 - **Transiting passes in BC or Washington:** Slackwater. Second choice AyeTides.
 - **Alerts on your wrist:** Tide Alert.
