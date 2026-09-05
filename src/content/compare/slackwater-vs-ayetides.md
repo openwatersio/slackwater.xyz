@@ -73,7 +73,9 @@ then work offline.
 Both apps predict tides worldwide. Slackwater ships 2,775 tide stations, each one naming
 its source, datum and licence, from an open dataset that is maintained. AyeTides lists
 12,500 locations, tides and/or currents, and does not say per station where the
-constituents came from or when they were last updated.
+constituents came from or when they were last updated. Much of that list outside North
+America appears to date from harmonic tables published before 2001, and cannot be
+refreshed from any live source.
 
 Where AyeTides genuinely has more is current stations outside the US and Canada.
 Slackwater's currents stop at the border on purpose: that is where it can check every
