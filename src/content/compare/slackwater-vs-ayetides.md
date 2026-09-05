@@ -23,7 +23,7 @@ If you already own AyeTides and it answers your questions, there is no reason to
 | Tides | 12,500+ locations worldwide, tides and/or currents | 2,775 stations worldwide |
 | Currents | Harmonic current stations, table of slack and max | Stations with slack time and duration, max flood/ebb speed and set, scrubbable curve |
 | Currents outside US and Canada | Some | None |
-| Canada currents | Sparse; some stations reported on land | 23 CHS gates from Salish Sea to Cape Breton, checked against CHS predictions |
+| Canada currents | Sparse; BC stations mostly placed to the nearest arc-minute | 23 CHS gates from Salish Sea to Cape Breton, checked against CHS predictions |
 | Offline | Predictions yes; map and sharing online | Predictions and chart |
 | Data | XTide harmonics plus licensed station database | NOAA constituents bundled; CHS fitted on device; source and datum named per station |
 | Widgets | Yes | Home free; lock screen paid |
@@ -59,7 +59,10 @@ each usable slack window. You read the window, not the table.
 ## Canada
 
 This is where the two part. AyeTides' BC current coverage is thin, and paddlers have
-reported stations placed on land. Slackwater's Canadian gates come from Canadian
+reported stations placed on land. That is measurable from AyeTides' own public station
+list: 351 of its 428 BC stations are positioned to the nearest arc-minute, and where one
+of those shares a name with a CHS station it sits a median 700 m from CHS's position,
+against 70 m for the stations with full-precision coordinates. Slackwater's Canadian gates come from Canadian
 Hydrographic Service predictions, fitted on the device and checked against CHS's
 published numbers before they ship. The list today is 23 gates from Active Pass and
 Seymour Narrows out to Cape Breton. A few sit in water the on-device model cannot fit,
