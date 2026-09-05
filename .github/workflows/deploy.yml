@@ -57,7 +57,7 @@ jobs:
       #
       # Nitro rewrites the root wrangler.jsonc into the deployable config; the
       # root file is the source and is not deployable on its own.
-      - uses: cloudflare/wrangler-action@v3
+      - uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           command: deploy -c .output/server/wrangler.json
