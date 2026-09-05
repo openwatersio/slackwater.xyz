@@ -341,6 +341,11 @@ function Home() {
           <a href="/stations/" className="underline underline-offset-4">
             Stations
           </a>
+          .{' '}
+          <a href="/compare/best-tide-and-current-apps-iphone/" className="underline underline-offset-4">
+            Compare
+          </a>
+          .{' '}
           <a href="/privacy/" className="underline underline-offset-4">
             Privacy
           </a>
