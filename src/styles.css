@@ -36,6 +36,17 @@
   --color-sw-sunrise: #f0d890;
   --color-sw-sunset: #c8a86a;
 
+  /* the app's graph inks — the curve fills and lines in CurveDrawing.swift.
+     Named after the Tailwind entries SN took them from. */
+  --color-sw-graph-line: #38bdf8;   /* sky-400: every curve fill */
+  --color-sw-graph-high: #2dd4bf;   /* teal-400: rising, and a high */
+  --color-sw-graph-low: #fbbf24;    /* amber-400: falling, a low, water below datum */
+
+  /* card chrome — SN.cardFill, SN.cardStroke, SN.shadow */
+  --color-sw-card-fill: #ffffff0d;    /* white at 5% */
+  --color-sw-card-stroke: #88b8682a;  /* leaf at 16% */
+  --color-sw-shadow: #001432;
+
   /* the current speed ramp — SN.speedRampStops, four stops: yellow at the
      comfort threshold, orange beyond it, red at the fast end. It never
      enters green, because green means slack. The six-stop inferno that
@@ -55,6 +66,13 @@
      don't load a webfont for a page that sells "no waiting". */
   --font-sans: ui-sans-serif, -apple-system, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", monospace;
+
+  /* Readings are SF Rounded in the app (ReadoutType). Native on Apple devices,
+     so it costs no download on a page that sells "no waiting". */
+  --font-rounded: ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+
+  /* SN.shadow at 24%, 12pt radius, 10pt down. A SwiftUI radius is about half a CSS blur. */
+  --shadow-card: 0 10px 24px color-mix(in srgb, var(--color-sw-shadow) 24%, transparent);
 }
 
 /* Dark-only, matching the app (.preferredColorScheme(.dark)). */
