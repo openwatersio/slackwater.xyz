@@ -1574,7 +1574,12 @@ import type { Station } from './station'
  * Every decision this makes lives in `scrub.ts`; what is here is the rAF loop.
  */
 export function useScrubIntro(station: Station, now: Date, live: boolean) {
-  const { from, to } = useMemo(() => introWindow(station, now), [station, now])
+  // Keyed on the hour, not the clock: `useLiveNow` hands over a fresh `now`
+  // every minute, and the nearest sunrise cannot move within an hour. Keying on
+  // `now` would re-run two Almanac event searches a minute — and hand `skyDays`
+  // fresh Date identities, re-running two more.
+  const hour = Math.floor(now.getTime() / 3600_000)
+  const { from, to } = useMemo(() => introWindow(station, now), [station, hour])
   const [elapsed, setElapsed] = useState(0)
 
   useEffect(() => {
