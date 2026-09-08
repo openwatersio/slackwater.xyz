@@ -31,6 +31,12 @@ describe('CurrentScrubStrip', () => {
     expect(render(FROM)).toMatch(/(fill|stroke)="#[0-9A-Fa-f]{6}"/)
   })
 
+  it('clips the fill in screen space, not in the panning curve’s space', () => {
+    // A clipPath referenced from inside the translated group pans with it and
+    // shears the fill off the trailing edge — invisible to a transform assertion.
+    expect(render(TO)).toMatch(/<g clip-path="url\(#above-[^)]+\)"><g transform="translate/)
+  })
+
   it('knows nothing about the landing page', () => {
     // The boundary the station pages depend on: no pill, no download, no intro.
     const html = render(FROM)
