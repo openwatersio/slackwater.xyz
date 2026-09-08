@@ -23,7 +23,7 @@ describe('ScrubHero', () => {
 
   it('keeps the station’s name attached to the water it describes', () => {
     expect(html).toContain('Deception Pass (Narrows)')
-    expect(html).toContain('/currents/deception-pass/')
+    expect(html).toContain('/currents/deception-pass-narrows/')
   })
 
   it('fills the viewport with a dynamic unit, not a static one', () => {

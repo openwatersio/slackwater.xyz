@@ -45,7 +45,7 @@ export function ScrubHero() {
       </div>
 
       <p className="absolute inset-x-0 bottom-0 px-5 pb-5 text-center font-mono text-[0.65rem] uppercase tracking-[0.14em] text-sw-foam/70">
-        <a href="/currents/deception-pass/" className="underline underline-offset-4">
+        <a href={`/currents/${HERO_STATION.slug}/`} className="underline underline-offset-4">
           {HERO_STATION.name}
         </a>
         {/* Gated on `live`: a time in the prerendered HTML is stale by however long ago the site was built. */}
