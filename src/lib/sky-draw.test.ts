@@ -45,10 +45,13 @@ describe('drawSky', () => {
     expect(fills(day)).toBeLessThan(6)
   })
 
-  it('never draws a star at zero alpha', () => {
-    const { ctx, alphas } = recorder()
+  it('fades stars through the ramp instead of drawing them at full strength', () => {
+    const { ctx, alphas, calls } = recorder()
     drawSky(ctx, at(new Date(SUNRISE.getTime() - 4 * 3600_000)), geo)
-    expect(alphas.every((a) => a > 0)).toBe(true)
+    // starOpacity caps at 0.7; anything above means the ramp was bypassed.
+    expect(Math.max(...alphas)).toBeLessThanOrEqual(0.7)
+    // The haze guard drops stars below the horizon, so not all 288 are drawn.
+    expect(calls.filter((c) => c === 'fill').length).toBeLessThan(288)
   })
 
   it('balances every save with a restore', () => {
