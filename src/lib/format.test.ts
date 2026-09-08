@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { height } from './format'
+import { chartTime, compass16, height } from './format'
 
 describe('height', () => {
   it('never renders a negative zero', () => {
@@ -19,5 +19,43 @@ describe('height', () => {
     expect(height(0)).toBe('0.0')
     expect(height(0.04)).toBe('0.0')
     expect(height(6.24)).toBe('6.2')
+  })
+})
+
+describe('chartTime', () => {
+  it('reads the way the app reads, twelve-hour and lowercase', () => {
+    // 14:42Z is 07:42 in Pacific daylight time.
+    expect(chartTime(new Date('2026-09-08T14:42:00Z'), 'America/Los_Angeles')).toBe('7:42am')
+  })
+
+  it('names both twelves without a leading zero', () => {
+    expect(chartTime(new Date('2026-09-08T07:15:00Z'), 'America/Los_Angeles')).toBe('12:15am')
+    expect(chartTime(new Date('2026-09-08T19:15:00Z'), 'America/Los_Angeles')).toBe('12:15pm')
+  })
+
+  it('leaves no space before the meridiem, whichever space the platform used', () => {
+    // Newer ICU emits U+202F rather than a plain space before AM/PM.
+    expect(chartTime(new Date('2026-09-08T14:42:00Z'), 'America/Los_Angeles')).not.toMatch(/\s/)
+  })
+})
+
+describe('compass16', () => {
+  it('names the sixteen points', () => {
+    expect(compass16(0)).toBe('N')
+    expect(compass16(22.5)).toBe('NNE')
+    expect(compass16(90)).toBe('E')
+    expect(compass16(180)).toBe('S')
+    expect(compass16(270)).toBe('W')
+    expect(compass16(292.5)).toBe('WNW')
+  })
+
+  it('wraps past north rather than running off the end', () => {
+    expect(compass16(350)).toBe('N')
+    expect(compass16(360)).toBe('N')
+    expect(compass16(720)).toBe('N')
+  })
+
+  it('takes a negative bearing', () => {
+    expect(compass16(-90)).toBe('W')
   })
 })

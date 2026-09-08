@@ -68,3 +68,27 @@ export function countdown(from: Date, to: Date): string {
   const minutes = Math.max(Math.floor((to.getTime() - from.getTime()) / 60_000), 0)
   return minutes < 60 ? `${minutes}m` : `${Math.floor(minutes / 60)}h ${minutes % 60}m`
 }
+
+/**
+ * "7:42am" — the app's `chartTime`, which pins `en_US_POSIX` so it is always
+ * twelve-hour. Deliberately not `hhmm`: this is the reading the app's lead card
+ * shows, and it reads the way the app reads it.
+ */
+export function chartTime(d: Date, timeZone: string): string {
+  return d
+    .toLocaleTimeString('en-US', { timeZone, hour: 'numeric', minute: '2-digit', hour12: true })
+    // Newer ICU separates the meridiem with U+202F, which `\s` matches and a literal space does not.
+    .replace(/\s/g, '')
+    .toLowerCase()
+}
+
+const POINTS_16 = [
+  'N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+  'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW',
+] as const
+
+/** The sixteen-point name for a bearing — `compass16` in the app. */
+export function compass16(deg: number): string {
+  const d = ((deg % 360) + 360) % 360
+  return POINTS_16[Math.round(d / 22.5) % 16]
+}
