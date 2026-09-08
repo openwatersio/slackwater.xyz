@@ -510,7 +510,7 @@ both clip paths and the nesting they needed with it."
 - Modify: `src/lib/format.ts`
 - Test: `src/components/CurrentScrubStrip.test.tsx`
 - Test: `src/components/ScrubHero.test.tsx`
-- Test: `src/lib/format.test.ts`
+- Test: `src/lib/scrub.test.ts`
 
 **Interfaces:**
 - Consumes: `<CurrentLead>` from Task 3.
@@ -548,7 +548,7 @@ In `src/components/ScrubHero.test.tsx`, add:
   })
 ```
 
-In `src/lib/format.test.ts`, delete the whole `describe('countdown', ...)` block.
+In `src/lib/scrub.test.ts` — **not** `format.test.ts`, which never had them — delete the whole `describe('countdown', ...)` block, and drop `countdown` from that file's import.
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
@@ -602,7 +602,7 @@ Remove the `countdown` function from `src/lib/format.ts`. It was added for the r
 - [ ] **Step 6: Run the tests to verify they pass**
 
 ```bash
-pnpm vitest run src/components/CurrentScrubStrip.test.tsx src/components/ScrubHero.test.tsx src/lib/format.test.ts
+pnpm vitest run src/components/CurrentScrubStrip.test.tsx src/components/ScrubHero.test.tsx src/lib/scrub.test.ts
 pnpm typecheck
 ```
 
@@ -611,7 +611,7 @@ Expected: all pass, and typecheck clean. A `noUnusedLocals` error here means a b
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/components/CurrentScrubStrip.tsx src/components/ScrubHero.tsx src/lib/format.ts src/components/CurrentScrubStrip.test.tsx src/components/ScrubHero.test.tsx src/lib/format.test.ts
+git add src/components/CurrentScrubStrip.tsx src/components/ScrubHero.tsx src/lib/format.ts src/components/CurrentScrubStrip.test.tsx src/components/ScrubHero.test.tsx src/lib/scrub.test.ts
 git commit -m "Show the set, and give the clock to the readout
 
 The hero reported a speed and a state with no direction at all. The app's lead
