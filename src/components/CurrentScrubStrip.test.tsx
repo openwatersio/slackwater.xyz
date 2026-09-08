@@ -32,10 +32,20 @@ describe('CurrentScrubStrip', () => {
     expect(render(FROM)).toContain('var(--color-sw-foam)')
   })
 
-  it('clips the fill in screen space, not in the panning curve’s space', () => {
-    // A clipPath referenced from inside the translated group pans with it and
-    // shears the fill off the trailing edge — invisible to a transform assertion.
-    expect(render(TO)).toMatch(/<g clip-path="url\(#above-[^)]+\)"><g transform="translate/)
+  it('fills from the app’s graph ink, clear at slack and intensifying outward', () => {
+    const html = render(FROM)
+    expect(html).toContain('var(--color-sw-graph-line)')
+    // Three stops: strong, clear at the midline, strong again.
+    expect(html).toMatch(/stop-opacity="0\.5"[\s\S]*stop-opacity="0"[\s\S]*stop-opacity="0\.5"/)
+  })
+
+  it('needs no clip, because one gradient spans the whole plot', () => {
+    expect(render(FROM)).not.toContain('clip-path')
+  })
+
+  it('no longer paints the fill with the speed ramp', () => {
+    // The ramp moved to the stroke in the app; a fill in ramp yellow is the old arrangement.
+    expect(render(FROM)).not.toContain('#f5c96b')
   })
 
   it('imports nothing the landing page owns', () => {
@@ -52,7 +62,7 @@ describe('CurrentScrubStrip', () => {
         <CurrentScrubStrip station={HERO_STATION} days={days} from={FROM} to={TO} scrubTime={FROM} seconds={0} live={false} />
       </>,
     )
-    const ids = [...both.matchAll(/id="flood-([^"]+)"/g)].map((m) => m[1])
+    const ids = [...both.matchAll(/id="fill-([^"]+)"/g)].map((m) => m[1])
     expect(ids).toHaveLength(2)
     expect(new Set(ids).size).toBe(2)
   })

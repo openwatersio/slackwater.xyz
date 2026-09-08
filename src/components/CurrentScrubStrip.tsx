@@ -4,13 +4,14 @@ import { SKY_HORIZON_OVERLAP } from '#/lib/sky'
 import { skyState } from '#/lib/sky-state'
 import type { SkyDays } from '#/lib/sky-state'
 import { findEvents, nextEvent, predictSeries, slackWindows } from '#/lib/predict'
-import { speedColor } from '#/lib/ramp'
 import { countdown } from '#/lib/format'
 import type { BundledStation } from '#/lib/station'
 
 /** SVG paint reads the tokens directly: this component never reaches resvg, and a literal would not follow the theme. */
 const CURVE_INK = 'var(--color-sw-foam)'
 const CENTERLINE_INK = 'var(--color-sw-foam)'
+/** `CurveStyle.fillOpacity`. */
+const FILL_OPACITY = 0.5
 
 /**
  * The box the strip draws in before it has measured itself — and what the
@@ -112,28 +113,16 @@ export function CurrentScrubStrip({
         <svg viewBox={`0 0 ${width} ${plot}`} className="h-full w-full" role="img"
           aria-label={live ? `Tidal current at ${station.name}, ${state.toLowerCase()}` : `Tidal current at ${station.name}`}>
           <defs>
-            <linearGradient id={`flood-${uid}`} gradientUnits="userSpaceOnUse" x1={0} x2={0} y1={plot / 2} y2={0}>
-              <stop offset="0" stopColor={speedColor(0)} stopOpacity="0.25" />
-              <stop offset="1" stopColor={speedColor(1)} stopOpacity="0.85" />
+            {/* The fill says only how far from slack the water is: the set carries
+                direction. Clear at zero, intensifying to either extreme. */}
+            <linearGradient id={`fill-${uid}`} gradientUnits="userSpaceOnUse" x1={0} x2={0} y1={0} y2={plot}>
+              <stop offset="0" stopColor="var(--color-sw-graph-line)" stopOpacity={FILL_OPACITY} />
+              <stop offset="0.5" stopColor="var(--color-sw-graph-line)" stopOpacity="0" />
+              <stop offset="1" stopColor="var(--color-sw-graph-line)" stopOpacity={FILL_OPACITY} />
             </linearGradient>
-            <linearGradient id={`ebb-${uid}`} gradientUnits="userSpaceOnUse" x1={0} x2={0} y1={plot / 2} y2={plot}>
-              <stop offset="0" stopColor={speedColor(0)} stopOpacity="0.25" />
-              <stop offset="1" stopColor={speedColor(1)} stopOpacity="0.85" />
-            </linearGradient>
-            {/* Each gradient only spans its own half, so each lobe is clipped to the half it belongs in. */}
-            <clipPath id={`above-${uid}`}><rect x={0} y={0} width={width} height={plot / 2} /></clipPath>
-            <clipPath id={`below-${uid}`}><rect x={0} y={plot / 2} width={width} height={plot / 2} /></clipPath>
           </defs>
-          {/* The clip sits OUTSIDE the pan. A clipPath referenced from inside the
-              translated group is resolved in that group's user space, so it pans
-              with the curve and shears the fill off the strip's trailing edge. */}
-          <g clipPath={`url(#above-${uid})`}>
-            <g transform={pan}><path d={area} fill={`url(#flood-${uid})`} /></g>
-          </g>
-          <g clipPath={`url(#below-${uid})`}>
-            <g transform={pan}><path d={area} fill={`url(#ebb-${uid})`} /></g>
-          </g>
           <g transform={pan}>
+            <path d={area} fill={`url(#fill-${uid})`} />
             <path d={path} fill="none" stroke={CURVE_INK} strokeWidth="2" />
           </g>
           <line x1={width / 2} x2={width / 2} y1={0} y2={plot} stroke={CENTERLINE_INK} strokeOpacity="0.5" />
