@@ -43,8 +43,10 @@
   --color-sw-graph-low: #fbbf24;    /* amber-400: falling, a low, water below datum */
 
   /* card chrome — SN.cardFill, SN.cardStroke, SN.shadow */
-  --color-sw-card-fill: #ffffff0d;    /* white at 5% */
-  --color-sw-card-stroke: #88b8682a;  /* leaf at 16% */
+  --color-sw-card-fill: #ffffff0d;  /* SN.cardFill — white at 5% */
+  /* SN.cardStroke is leaf.opacity(0.16), so it derives from leaf rather than
+     baking a rounded alpha byte that cannot follow a change to it. */
+  --color-sw-card-stroke: color-mix(in srgb, var(--color-sw-leaf) 16%, transparent);
   --color-sw-shadow: #001432;
 
   /* the current speed ramp — SN.speedRampStops, four stops: yellow at the

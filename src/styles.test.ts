@@ -12,9 +12,10 @@ describe("the app's tokens", () => {
 
   it('carries the card surface', () => {
     expect(css).toContain('--color-sw-card-fill: #ffffff0d')
-    expect(css).toContain('--color-sw-card-stroke: #88b8682a')
     expect(css).toContain('--color-sw-shadow: #001432')
-    expect(css).toMatch(/--shadow-card:\s*0 10px 24px/)
+    // Derived from the leaf token, not a hand-rounded alpha byte.
+    expect(css).toMatch(/--color-sw-card-stroke:\s*color-mix\(in srgb, var\(--color-sw-leaf\) 16%, transparent\)/)
+    expect(css).toMatch(/--shadow-card:\s*0 10px 24px color-mix\(in srgb, var\(--color-sw-shadow\) 24%, transparent\)/)
   })
 
   it("sets readings in the app's rounded face without loading a webfont", () => {
