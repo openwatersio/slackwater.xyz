@@ -425,7 +425,9 @@ The app fills a current curve with `graphLine` alone — clear at slack, intensi
 
 - [ ] **Step 1: Write the failing test**
 
-In `src/components/CurrentScrubStrip.test.tsx`, replace the test named `clips the fill in screen space, not in the panning curve’s space` and the one named `paints with attributes, not classes, so a rasteriser can render it` with these:
+In `src/components/CurrentScrubStrip.test.tsx`, delete the test named `clips the fill in screen space, not in the panning curve’s space` (the clip it guards is going away) and add these three. Leave `paints the curve from a theme token, not a literal hex` alone — it guards the stroke, not the fill.
+
+Also update the existing `gives two instances their own gradient ids` test: its regex matches `id="flood-…"`, and Step 3 renames that gradient to `fill-…`, so change the regex to `/id="fill-([^"]+)"/g` or the test breaks on a rename it should not care about.
 
 ```tsx
   it('fills from the app’s graph ink, clear at slack and intensifying outward', () => {
