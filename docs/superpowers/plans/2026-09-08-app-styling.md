@@ -58,9 +58,10 @@ describe('the app’s tokens', () => {
 
   it('carries the card surface', () => {
     expect(css).toContain('--color-sw-card-fill: #ffffff0d')
-    expect(css).toContain('--color-sw-card-stroke: #88b8682a')
     expect(css).toContain('--color-sw-shadow: #001432')
-    expect(css).toMatch(/--shadow-card:\s*0 10px 24px/)
+    // Derived from the leaf token, not a hand-rounded alpha byte.
+    expect(css).toMatch(/--color-sw-card-stroke:\s*color-mix\(in srgb, var\(--color-sw-leaf\) 16%, transparent\)/)
+    expect(css).toMatch(/--shadow-card:\s*0 10px 24px color-mix\(in srgb, var\(--color-sw-shadow\) 24%, transparent\)/)
   })
 
   it('sets readings in the app’s rounded face without loading a webfont', () => {
@@ -87,8 +88,10 @@ In `src/styles.css`, inside the existing `@theme { ... }` block, after the `--co
   --color-sw-graph-low: #fbbf24;    /* amber-400: falling, a low, water below datum */
 
   /* card chrome — SN.cardFill, SN.cardStroke, SN.shadow */
-  --color-sw-card-fill: #ffffff0d;    /* white at 5% */
-  --color-sw-card-stroke: #88b8682a;  /* leaf at 16% */
+  --color-sw-card-fill: #ffffff0d;  /* SN.cardFill — white at 5% */
+  /* SN.cardStroke is leaf.opacity(0.16), so it derives from leaf rather than
+     baking a rounded alpha byte that cannot follow a change to it. */
+  --color-sw-card-stroke: color-mix(in srgb, var(--color-sw-leaf) 16%, transparent);
   --color-sw-shadow: #001432;
 ```
 
