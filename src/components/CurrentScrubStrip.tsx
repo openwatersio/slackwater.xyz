@@ -136,7 +136,7 @@ export function CurrentScrubStrip({
         <div className="absolute inset-x-0 flex justify-center" style={{ bottom: plot + 12 }}>
           <CurrentLead
             level={level}
-            setDegrees={level > 0 ? (station.floodDirection ?? 0) : (station.ebbDirection ?? 0)}
+            setDegrees={level > 0 ? station.floodDirection : station.ebbDirection}
             slack={slack}
             at={scrubTime}
             timeZone={station.timezone}

@@ -41,4 +41,16 @@ describe('client bundle', () => {
       expect(src.includes('station-metadata/data'), f).toBe(false)
     }
   })
+
+  it('emits the app’s type and chrome utilities, not just their tokens', () => {
+    // A token in styles.css is not a utility in the stylesheet — v4 emits only
+    // what something uses, so this is the only check that the theme reached the page.
+    const css = readdirSync(ASSETS)
+      .filter((f) => f.endsWith('.css'))
+      .map((f) => readFileSync(`${ASSETS}/${f}`, 'utf8'))
+      .join('')
+    for (const utility of ['.font-rounded', '.shadow-card', '.border-sw-card-stroke', '.bg-sw-card-fill']) {
+      expect(css, utility).toContain(utility)
+    }
+  })
 })

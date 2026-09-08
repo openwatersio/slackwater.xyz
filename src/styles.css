@@ -36,11 +36,9 @@
   --color-sw-sunrise: #f0d890;
   --color-sw-sunset: #c8a86a;
 
-  /* the app's graph inks — the curve fills and lines in CurveDrawing.swift.
-     Named after the Tailwind entries SN took them from. */
+  /* the app's graph ink — the curve fill and line in CurveDrawing.swift.
+     Named after the Tailwind entry SN took it from. */
   --color-sw-graph-line: #38bdf8;   /* sky-400: every curve fill */
-  --color-sw-graph-high: #2dd4bf;   /* teal-400: rising, and a high */
-  --color-sw-graph-low: #fbbf24;    /* amber-400: falling, a low, water below datum */
 
   /* card chrome — SN.cardFill, SN.cardStroke, SN.shadow */
   --color-sw-card-fill: #ffffff0d;  /* SN.cardFill — white at 5% */

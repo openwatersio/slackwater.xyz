@@ -13,4 +13,8 @@ describe('the landing page’s surfaces', () => {
   it('leaves no card on the old radius', () => {
     expect(source).not.toContain('rounded-lg')
   })
+
+  it('gives both cards the app’s shadow', () => {
+    expect(source.match(/shadow-card/g)).toHaveLength(2)
+  })
 })

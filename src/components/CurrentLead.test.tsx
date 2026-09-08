@@ -50,6 +50,15 @@ describe('CurrentLead', () => {
     expect(html).not.toContain('WNW')
   })
 
+  it('points at nothing when the station publishes no set', () => {
+    const html = renderToStaticMarkup(
+      <CurrentLead level={-3.1} slack={false} at={AT} timeZone={TZ} />,
+    )
+    expect(html).toContain('Ebbing')
+    expect(html).not.toContain('rotate(')
+    expect(html).not.toMatch(/>(N|NNE|NE|ENE|E|ESE|SE|SSE|S|SSW|SW|WSW|W|WNW|NW|NNW)</)
+  })
+
   it('imports nothing the landing page owns', () => {
     const source = readFileSync(new URL('./CurrentLead.tsx', import.meta.url), 'utf8')
     for (const forbidden of ['HERO_STATION', 'TESTFLIGHT', 'use-scrub-intro', 'ScrubHero']) {

@@ -13,7 +13,9 @@ export function CurrentLead({
 }: {
   /** Signed knots; positive floods. */
   level: number
-  setDegrees: number
+  /** The set in degrees. Absent when the station publishes none — the app drops
+      its arrow rather than pointing at a bearing it does not have. */
+  setDegrees?: number
   slack: boolean
   at: Date
   timeZone: string
@@ -23,10 +25,12 @@ export function CurrentLead({
 
   return (
     <div className="flex flex-col items-center gap-1 text-white">
-      <p className="flex items-center gap-2 text-[0.8125rem] font-medium text-white/85">
-        {state}
+      <p className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-white/85">
+        <span className="font-medium">{state}</span>
         <span className={`flex items-center gap-1 ${phase}`}>
-          {slack ? <SlackGlyph /> : <><SetArrow deg={setDegrees} />{compass16(setDegrees)}</>}
+          {slack ? <SlackGlyph />
+            : setDegrees === undefined ? null
+            : <><SetArrow deg={setDegrees} />{compass16(setDegrees)}</>}
         </span>
       </p>
       <p className="font-rounded text-[2.75rem] font-medium leading-none tabular-nums">

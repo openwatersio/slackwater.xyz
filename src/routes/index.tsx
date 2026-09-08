@@ -116,7 +116,7 @@ function Home() {
             against those agencies&rsquo; own published predictions, and the deviations are
             written down:
           </p>
-          <dl className="grid gap-px overflow-hidden rounded-3xl border border-sw-card-stroke bg-white/10 sm:grid-cols-2">
+          <dl className="grid gap-px overflow-hidden rounded-3xl border border-sw-card-stroke bg-white/10 shadow-card sm:grid-cols-2">
             <div className="bg-sw-page p-4">
               <dt className="font-mono text-[0.65rem] uppercase tracking-[0.14em] text-sw-leaf">
                 Tides · Friday Harbor
