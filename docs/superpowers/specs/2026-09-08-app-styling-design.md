@@ -14,15 +14,9 @@ The app fills a current curve with `SN.graphLine` alone, and says why in `CurveD
 
 The speed ramp is not gone from the app, it moved. It now colours the **stroke** (`CurveDrawing.tideRateStops`), where a fast run climbs yellow to red toward its fastest point and back. Filling with the ramp, which is what this site does today, is the older arrangement.
 
-Three inks come across, named after the Tailwind entries the app took them from:
+One ink comes across here — `--color-sw-graph-line`, `#38bdf8` (sky-400), which the app uses for every curve fill and for the tide line under the ramp floor. `CurveStyle.fillOpacity` is `0.5`, and comes with it.
 
-| Token | Value | The app's use |
-|---|---|---|
-| `--color-sw-graph-line` | `#38bdf8` (sky-400) | every curve fill, and the tide line under the ramp floor |
-| `--color-sw-graph-high` | `#2dd4bf` (teal-400) | rising, and a high |
-| `--color-sw-graph-low` | `#fbbf24` (amber-400) | falling, a low, and the water below chart datum |
-
-`CurveStyle.fillOpacity` is `0.5`, and it comes across with them.
+The app's other two graph inks, `graphHigh` `#2dd4bf` (teal-400, rising and a high) and `graphLow` `#fbbf24` (amber-400, falling, a low, and the water below chart datum), arrive with the follow-up that consumes them. Shipping them here would put two tokens in the theme that nothing reads, and a token nothing reads has not earned its place.
 
 ## The rounded type
 
@@ -84,5 +78,9 @@ The two-gradient, clip-per-lobe arrangement the strip carries today goes away wi
 - Moving the speed ramp onto the stroke. It belongs with the curve components above.
 - The tide fill's datum crossing, for the same reason.
 - Anything below the card treatment on the landing page: copy, layout, the screenshots, the footer.
+- The app's `graphHigh` and `graphLow` inks, which arrive with the curve components that use them.
+- The lead's "Max flood" and "Max ebb" wording. The app names a max where the site says only Flooding or Ebbing; naming it needs the extremes from `findEvents`, which the readout no longer computes.
+
+One behavioural divergence worth recording, because it follows from an earlier decision rather than this one. The site's `slack` is membership in a `slackWindows` window, chosen so green means water that actually reverses. The app also treats anything inside its slack threshold as slack. So in a lull that dips under the threshold and builds back the way it came, the site draws the set arrow and the app draws its both-ways glyph. The site's reading is the more informative one there — the water is not reversing, and a set is real information — but it is a difference, and it is not the app's.
 
 Until the follow-up lands, the landing page's curve and a station page's curve disagree about how a current is drawn. That is the deliberate cost of splitting the work, and it is visible on the site.
