@@ -36,7 +36,9 @@ export function Sky({
   }, [state, width, height, seconds])
 
   return (
-    <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+    // Sized to the height it draws at: the canvas has no viewBox, so a CSS box
+    // taller than its backing store stretches the sky and moves the horizon.
+    <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height }} aria-hidden="true">
       <div
         className="absolute inset-0"
         style={{

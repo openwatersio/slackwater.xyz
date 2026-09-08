@@ -24,4 +24,8 @@ describe('Sky', () => {
     expect(html).toContain('<canvas')
     expect(html).not.toContain('<circle')
   })
+
+  it('takes the box it was told to draw in, so the horizon lands where the caller put it', () => {
+    expect(html).toMatch(/height:\s*300px/)
+  })
 })
