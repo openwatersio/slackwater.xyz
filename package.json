@@ -17,6 +17,7 @@
     "@cf-wasm/resvg": "0.4.0",
     "@neaps/tide-database": "^0.9.20260801",
     "@neaps/tide-predictor": "^0.11.0",
+    "@openwaters/almanac": "0.3.0",
     "@openwaters/noaa-current-stations": "^0.5.0",
     "@openwaters/station-metadata": "^4.1.2",
     "@tailwindcss/vite": "^4.1.18",
