@@ -31,4 +31,10 @@ describe('ScrubHero', () => {
   it('fills the viewport with a dynamic unit, not a static one', () => {
     expect(html).toContain('100dvh')
   })
+
+  it('leaves the clock to the readout, where the app puts it', () => {
+    // The caption keeps the station and the claim; the time belongs to the lead card.
+    expect(html).toContain('computed in this browser')
+    expect(html).not.toMatch(/\d{1,2}:\d{2}/)
+  })
 })

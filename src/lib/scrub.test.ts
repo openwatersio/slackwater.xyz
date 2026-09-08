@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { INTRO_DURATION_SECONDS, INTRO_HOLD_SECONDS, introProgress, introTime, introWindow } from './scrub'
-import { countdown } from './format'
 import { HERO_STATION } from './currents'
 
 describe('introWindow', () => {
@@ -51,18 +50,5 @@ describe('introTime', () => {
 
   it('lands exactly on the rest moment', () => {
     expect(introTime(from, to, INTRO_DURATION_SECONDS).toISOString()).toBe(to.toISOString())
-  })
-})
-
-describe('countdown', () => {
-  it('reads minutes under the hour and hours above it', () => {
-    const t = new Date('2026-09-08T12:00:00Z')
-    expect(countdown(t, new Date('2026-09-08T12:42:00Z'))).toBe('42m')
-    expect(countdown(t, new Date('2026-09-08T14:14:00Z'))).toBe('2h 14m')
-  })
-
-  it('floors at zero rather than counting backwards', () => {
-    const t = new Date('2026-09-08T12:00:00Z')
-    expect(countdown(t, new Date('2026-09-08T11:00:00Z'))).toBe('0m')
   })
 })

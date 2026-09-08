@@ -63,12 +63,6 @@ export function height(n: number): string {
   return s === '-0.0' ? '0.0' : s
 }
 
-/** "42m" / "2h 14m" until `to`, floored at zero. */
-export function countdown(from: Date, to: Date): string {
-  const minutes = Math.max(Math.floor((to.getTime() - from.getTime()) / 60_000), 0)
-  return minutes < 60 ? `${minutes}m` : `${Math.floor(minutes / 60)}h ${minutes % 60}m`
-}
-
 /**
  * "7:42am" — the app's `chartTime`, which pins `en_US_POSIX` so it is always
  * twelve-hour. Deliberately not `hhmm`: this is the reading the app's lead card

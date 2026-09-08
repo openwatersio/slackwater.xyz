@@ -3,8 +3,8 @@ import { Sky } from './Sky'
 import { SKY_HORIZON_OVERLAP } from '#/lib/sky'
 import { skyState } from '#/lib/sky-state'
 import type { SkyDays } from '#/lib/sky-state'
-import { findEvents, nextEvent, predictSeries, slackWindows } from '#/lib/predict'
-import { countdown } from '#/lib/format'
+import { predictSeries, slackWindows } from '#/lib/predict'
+import { CurrentLead } from './CurrentLead'
 import type { BundledStation } from '#/lib/station'
 
 /** SVG paint reads the tokens directly: this component never reaches resvg, and a literal would not follow the theme. */
@@ -72,13 +72,15 @@ export function CurrentScrubStrip({
 
   // The curve either side of the window, so panning never reaches an empty edge.
   const pad = (WINDOW_HOURS / 2) * 3600_000
-  const { path, area, x, events, windows } = useMemo(() => {
+  const { path, area, x, windows } = useMemo(() => {
     const start = new Date(from.getTime() - pad)
     const hours = (to.getTime() - from.getTime() + 2 * pad) / 3600_000
     const samples = predictSeries(station, start, hours)
     const peak = Math.max(...samples.map((s) => Math.abs(s.level))) || 1
     const perHour = width / WINDOW_HOURS
     const x = (t: Date) => ((t.getTime() - start.getTime()) / 3600_000) * perHour
+    // The fill's gradient is clear at `offset 0.5`, so zero MUST land on the
+    // plot's midline. Fitting the plot to the day's range would break that.
     const y = (level: number) => plot / 2 - (level / peak) * (plot / 2)
     const points = samples.map((s) => `${x(s.time).toFixed(2)},${y(s.level).toFixed(2)}`)
     return {
@@ -86,7 +88,6 @@ export function CurrentScrubStrip({
       windows: slackWindows(samples),
       path: `M${points.join('L')}`,
       area: `M${x(start).toFixed(2)},${y(0)}L${points.join('L')}L${x(samples.at(-1)!.time).toFixed(2)},${y(0)}Z`,
-      events: findEvents(station, start, hours),
     }
   }, [station, from, to, width, plot, pad])
 
@@ -95,7 +96,6 @@ export function CurrentScrubStrip({
   // bare threshold: a lull that dips under it and builds back the way it came
   // never reverses, and colouring it green would promise a transit that never opens.
   const slack = windows.some((w) => scrubTime >= w.start && scrubTime <= w.end)
-  const nextSlack = nextEvent(events.filter((e) => e.kind === 'slack'), scrubTime)
   const state = slack ? 'Slack' : level > 0 ? 'Flooding' : 'Ebbing'
   const pan = `translate(${(width / 2 - x(scrubTime)).toFixed(2)} 0)`
 
@@ -133,15 +133,14 @@ export function CurrentScrubStrip({
           block claims a reading "now" — stale by however long ago the site
           was built, and drifting further every day it isn't rebuilt. */}
       {live && (
-        <div className="absolute inset-x-0 flex flex-col items-center text-sw-foam"
-          style={{ bottom: plot + 12 }}>
-          <p className="text-4xl font-semibold text-sw-foam [font-variant-numeric:tabular-nums]">
-            {Math.abs(level).toFixed(1)}<span className="ml-1 text-xl font-normal">kn</span>
-          </p>
-          <p className={slack ? 'text-sw-go' : 'text-sw-foam'}>{state}</p>
-          {nextSlack ? (
-            <p className="text-sm text-sw-steel">Slack in {countdown(scrubTime, nextSlack.time)}</p>
-          ) : null}
+        <div className="absolute inset-x-0 flex justify-center" style={{ bottom: plot + 12 }}>
+          <CurrentLead
+            level={level}
+            setDegrees={level > 0 ? (station.floodDirection ?? 0) : (station.ebbDirection ?? 0)}
+            slack={slack}
+            at={scrubTime}
+            timeZone={station.timezone}
+          />
         </div>
       )}
     </div>

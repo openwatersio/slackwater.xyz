@@ -5,7 +5,6 @@ import { useScrubIntro } from '#/lib/use-scrub-intro'
 import { useLiveNow } from '#/lib/use-live-now'
 import { HERO_STATION } from '#/lib/currents'
 import { TESTFLIGHT } from '#/lib/links'
-import { hhmm } from '#/lib/format'
 
 export function ScrubHero() {
   const { now, live } = useLiveNow()
@@ -48,8 +47,6 @@ export function ScrubHero() {
         <a href={`/currents/${HERO_STATION.slug}/`} className="underline underline-offset-4">
           {HERO_STATION.name}
         </a>
-        {/* Gated on `live`: a time in the prerendered HTML is stale by however long ago the site was built. */}
-        {live ? <> · {hhmm(scrubTime, HERO_STATION.timezone)}</> : null}
         {' '}· computed in this browser
       </p>
     </section>

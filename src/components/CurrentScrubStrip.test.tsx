@@ -76,4 +76,20 @@ describe('CurrentScrubStrip', () => {
     // a fixed pixel height there leaves a band of bare page under the sky.
     expect(render(FROM)).toContain('height:calc(100% - 124px)')
   })
+
+  it('shows the set, which the reading is incomplete without', () => {
+    const live = renderToStaticMarkup(
+      <CurrentScrubStrip
+        station={HERO_STATION} days={days} from={FROM} to={TO}
+        scrubTime={FROM} seconds={0} live
+      />,
+    )
+    expect(live).toContain('rotate(')
+    expect(live).toMatch(/N|NNE|NE|ENE|E|ESE|SE|SSE|S|SSW|SW|WSW|W|WNW|NW|NNW/)
+  })
+
+  it('still says nothing about the present when it has no live clock', () => {
+    expect(render(FROM)).not.toMatch(/\d{1,2}:\d{2}/)
+    expect(render(FROM)).not.toMatch(/Ebbing|Flooding|Slack/i)
+  })
 })
