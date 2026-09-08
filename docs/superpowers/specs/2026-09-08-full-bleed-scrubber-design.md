@@ -84,7 +84,7 @@ The pill carries the page's single `<h1>`. The wordmark rule holds — one word,
 
 The readout mirrors the app's lead card and follows the scrub: speed and unit, Flooding, Ebbing or Slack, the set, and the countdown to the next slack.
 
-The caption reads `Deception Pass (Narrows) · 7:42 AM · computed in this browser`, with the station name linking to its own page. It is what keeps the hero's claim attached to a named body of water now that the pill has the name's position, and it doubles as the scroll cue.
+The caption reads `Deception Pass (Narrows) · 07:42 · computed in this browser`, with the station name linking to its own page. `hhmm` is 24-hour, and the href comes from the station's own slug rather than a second copy of it. It is what keeps the hero's claim attached to a named body of water now that the pill has the name's position, and it doubles as the scroll cue.
 
 ### The readout and the caption's clock are gated on `live`
 
@@ -159,9 +159,9 @@ Recorded here so the boundaries hold, and designed in their own spec:
 
 - `src/lib/sky.test.ts` asserts `skyPaint` at all five anchors and at midpoints between them, `starOpacity`'s clamp at 0.7, `skyOpacity`, `starHazeOpacity`, `moonGlareOpacity` at the touching and clear boundaries, and `skyPoint`'s mirroring in both hemispheres. Every expected value comes from `Theme.swift`.
 - `src/lib/sky-state.test.ts` asserts that `skyDays` returns the rise and set times a `HorizonSpan` needs across a multi-day window, and that `skyState` places the sun, the moon and the stars for a known time and place.
-- `src/lib/scrub.test.ts` asserts the rest target against the station's local sunrise, the night start, and the easing endpoints. `src/lib/use-scrub-intro.test.ts` asserts that the reduced-motion branch returns the rest frame without starting a loop, and that the loop stops at rest.
+- `src/lib/scrub.test.ts` asserts the rest target against the station's local sunrise, the night start, and the easing endpoints. `use-scrub-intro.ts` carries no test of its own: every decision it makes lives in `scrub.ts` and is tested there, and what remains is a `requestAnimationFrame` loop a node environment cannot run.
 - `src/components/CurrentScrubStrip.test.tsx` asserts that the strip renders from a station and a scrub time alone, with no reference to the pill, the intro, or anything else the landing page owns — the test that keeps the reuse boundary honest.
-- `src/components/ScrubHero.test.tsx` asserts that a server render carries no time string, that the pill holds the page's only `<h1>`, that the canvas is `aria-hidden`, and that the caption links to the station's page.
+- `src/components/ScrubHero.test.tsx` asserts that a server render carries no time string and no reading at all — not the height, not the state, not the countdown, since all three are claims about the present — that the pill holds the page's only `<h1>`, that the canvas is `aria-hidden`, and that the caption links to the station's page.
 - `pnpm test`, `pnpm typecheck`, and `pnpm build`, plus the existing budget in `src/lib/bundle-size.test.ts`.
 - The PR preview URL from `.github/workflows/preview.yml`, opened and looked at. A six-second animation is not signed off from a green test run.
 
