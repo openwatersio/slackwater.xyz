@@ -27,9 +27,6 @@ const TAU = Math.PI * 2
  * ramp is brightest, so the same range is fitted to the height on offer.
  */
 const SKY_VISIBLE_CEILING_DEG = 62
-/** Below these a body's whole symbol is under the horizon. Radii are pixels and the scale is pixels per degree, so the quotient is degrees. */
-const SUN_FLOOR_DEG = -SUN_DISC_RADIUS / SKY_ALTITUDE_SCALE
-const MOON_FLOOR_DEG = -(MOON_GLYPH_SIZE / 2) / SKY_ALTITUDE_SCALE
 /** The moon's own ink; the sky's colours are the gradient's, not the canvas's. */
 const MOON_INK = '#e6eeff'
 const STAR_INK = '#ffffff'
@@ -57,6 +54,11 @@ export function drawSky(
   const place = (p: { x: number; y: number }) => ({ x: p.x, y: height - (band - p.y) * stretch })
   const altitude = state.sun?.altDeg ?? -18
   const stars = starOpacity(altitude)
+  // A body is past the edge once its whole symbol is below the horizon. Radii
+  // are pixels and the drawn scale is `SKY_ALTITUDE_SCALE * stretch` pixels per
+  // degree, so the quotient is degrees.
+  const sunFloorDeg = -SUN_DISC_RADIUS / (SKY_ALTITUDE_SCALE * stretch)
+  const moonFloorDeg = -(MOON_GLYPH_SIZE / 2) / (SKY_ALTITUDE_SCALE * stretch)
 
   if (stars > 0) {
     for (const star of state.stars) {
@@ -70,7 +72,7 @@ export function drawSky(
   }
 
   // Below the horizon a body is past an edge, so nothing is drawn for it.
-  const sunPoint = state.sun && state.sun.altDeg > SUN_FLOOR_DEG
+  const sunPoint = state.sun && state.sun.altDeg > sunFloorDeg
     ? place(skyPoint({ azimuth: state.sun.azDeg, altitude: state.sun.altDeg, span: state.sunSpan, pad: SUN_DISC_RADIUS, ...size }))
     : undefined
   if (sunPoint) {
@@ -78,7 +80,7 @@ export function drawSky(
     disc(ctx, sunPoint.x, sunPoint.y, SUN_DISC_RADIUS, SUN_INK, 1)
   }
 
-  if (state.moon && state.illumination && state.moon.altDeg > MOON_FLOOR_DEG) {
+  if (state.moon && state.illumination && state.moon.altDeg > moonFloorDeg) {
     const point = place(skyPoint({
       azimuth: state.moon.azDeg, altitude: state.moon.altDeg, span: state.moonSpan,
       pad: MOON_GLYPH_SIZE / 2, ...size,

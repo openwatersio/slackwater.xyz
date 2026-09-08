@@ -13,13 +13,21 @@ import type { SkyState } from '#/lib/sky-state'
  * readout's job, not this one's.
  */
 export function Sky({
-  state, width, height, seconds,
+  state, width, height, seconds, cssHeight,
 }: {
   state: SkyState
   width: number
   height: number
   /** Wall-clock seconds, for the twinkle. */
   seconds: number
+  /**
+   * The wrapper's CSS height, if it differs from the numeric `height` the
+   * canvas draws at. Lets a caller size the box to its real layout (e.g. a
+   * `100dvh` section) before it has measured itself, without touching the
+   * canvas's own drawing scale — pre-hydration the canvas is blank anyway, so
+   * the two disagreeing costs nothing.
+   */
+  cssHeight?: string
 }) {
   const canvas = useRef<HTMLCanvasElement>(null)
 
@@ -38,7 +46,7 @@ export function Sky({
   return (
     // Sized to the height it draws at: the canvas has no viewBox, so a CSS box
     // taller than its backing store stretches the sky and moves the horizon.
-    <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height }} aria-hidden="true">
+    <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height: cssHeight ?? height }} aria-hidden="true">
       <div
         className="absolute inset-0"
         style={{

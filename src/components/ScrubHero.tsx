@@ -19,7 +19,7 @@ export function ScrubHero() {
   return (
     <section className="relative w-full overflow-hidden" style={{ height: '100dvh', minHeight: 560 }}>
       <CurrentScrubStrip station={HERO_STATION} days={days} from={from} to={to}
-        scrubTime={scrubTime} seconds={seconds} />
+        scrubTime={scrubTime} seconds={seconds} live={live} />
 
       <div className="absolute inset-x-0 top-0 flex justify-center px-5 pt-10 sm:pt-16">
         <div className="max-w-xl rounded-2xl border border-white/15 bg-sw-navy-deep/40 px-6 py-5 text-center backdrop-blur-sm">

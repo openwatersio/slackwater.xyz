@@ -8,13 +8,9 @@ import { speedColor } from '#/lib/ramp'
 import { countdown } from '#/lib/format'
 import type { BundledStation } from '#/lib/station'
 
-/**
- * SVG paint is literal because resvg cannot resolve Tailwind classes; a
- * class-styled chart rasterises blank. These are `--color-sw-foam` and
- * `--color-sw-paper` from `src/styles.css` — change them there and here together.
- */
-const CURVE_INK = '#e4f0e4'
-const CENTERLINE_INK = '#fcfcfc'
+/** SVG paint reads the tokens directly: this component never reaches resvg, and a literal would not follow the theme. */
+const CURVE_INK = 'var(--color-sw-foam)'
+const CENTERLINE_INK = 'var(--color-sw-foam)'
 
 /**
  * The box the strip draws in before it has measured itself — and what the
@@ -53,7 +49,7 @@ const PLOT_MIN = 140
 const PLOT_MAX = 220
 
 export function CurrentScrubStrip({
-  station, days, from, to, scrubTime, seconds,
+  station, days, from, to, scrubTime, seconds, live,
 }: {
   station: BundledStation
   days: SkyDays
@@ -62,6 +58,8 @@ export function CurrentScrubStrip({
   to: Date
   scrubTime: Date
   seconds: number
+  /** Is `scrubTime` actually now? A prerendered readout would freeze at build time and go stale. */
+  live: boolean
 }) {
   // Ids must be per-instance: two strips on one page would otherwise both
   // resolve to the first one's gradients, and the second would paint nothing.
@@ -103,7 +101,12 @@ export function CurrentScrubStrip({
   return (
     <div ref={frame} className="relative h-full w-full">
       <Sky state={skyState({ time: scrubTime, latitude: station.latitude, longitude: station.longitude, days })}
-        width={width} height={skyHeight} seconds={seconds} />
+        width={width} height={skyHeight} seconds={seconds}
+        // Percent of the frame, not the numeric `skyHeight`: server-side that
+        // number is FALLBACK_BOX's, leaving a band of bare page background
+        // between sky and curve in a 100dvh section before hydration measures
+        // the real box.
+        cssHeight={`calc(100% - ${plot - SKY_HORIZON_OVERLAP}px)`} />
 
       <div className="absolute inset-x-0 bottom-0" style={{ height: plot }}>
         <svg viewBox={`0 0 ${width} ${plot}`} className="h-full w-full" role="img"
@@ -137,16 +140,21 @@ export function CurrentScrubStrip({
         </svg>
       </div>
 
-      <div className="absolute inset-x-0 flex flex-col items-center text-sw-foam"
-        style={{ bottom: plot + 12 }}>
-        <p className="text-4xl font-semibold text-sw-foam [font-variant-numeric:tabular-nums]">
-          {Math.abs(level).toFixed(1)}<span className="ml-1 text-xl font-normal">kn</span>
-        </p>
-        <p className={slack ? 'text-sw-go' : 'text-sw-foam'}>{state}</p>
-        {nextSlack ? (
-          <p className="text-sm text-sw-steel">Slack in {countdown(scrubTime, nextSlack.time)}</p>
-        ) : null}
-      </div>
+      {/* Gated on `live`: a prerendered render freezes at build time, and this
+          block claims a reading "now" — stale by however long ago the site
+          was built, and drifting further every day it isn't rebuilt. */}
+      {live && (
+        <div className="absolute inset-x-0 flex flex-col items-center text-sw-foam"
+          style={{ bottom: plot + 12 }}>
+          <p className="text-4xl font-semibold text-sw-foam [font-variant-numeric:tabular-nums]">
+            {Math.abs(level).toFixed(1)}<span className="ml-1 text-xl font-normal">kn</span>
+          </p>
+          <p className={slack ? 'text-sw-go' : 'text-sw-foam'}>{state}</p>
+          {nextSlack ? (
+            <p className="text-sm text-sw-steel">Slack in {countdown(scrubTime, nextSlack.time)}</p>
+          ) : null}
+        </div>
+      )}
     </div>
   )
 }

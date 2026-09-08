@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { CurrentScrubStrip } from './CurrentScrubStrip'
@@ -13,7 +14,7 @@ const render = (scrubTime: Date) =>
   renderToStaticMarkup(
     <CurrentScrubStrip
       station={HERO_STATION} days={days} from={FROM} to={TO}
-      scrubTime={scrubTime} seconds={0}
+      scrubTime={scrubTime} seconds={0} live={false}
     />,
   )
 
@@ -27,8 +28,8 @@ describe('CurrentScrubStrip', () => {
     expect(at(render(FROM))).toBeGreaterThan(at(render(TO)))
   })
 
-  it('paints with attributes, not classes, so a rasteriser can render it', () => {
-    expect(render(FROM)).toMatch(/(fill|stroke)="#[0-9A-Fa-f]{6}"/)
+  it('paints the curve from a theme token, not a literal hex', () => {
+    expect(render(FROM)).toContain('var(--color-sw-foam)')
   })
 
   it('clips the fill in screen space, not in the panning curve’s space', () => {
@@ -37,10 +38,23 @@ describe('CurrentScrubStrip', () => {
     expect(render(TO)).toMatch(/<g clip-path="url\(#above-[^)]+\)"><g transform="translate/)
   })
 
-  it('knows nothing about the landing page', () => {
-    // The boundary the station pages depend on: no pill, no download, no intro.
-    const html = render(FROM)
-    expect(html).not.toMatch(/TestFlight|Slackwater|beta/i)
+  it('imports nothing the landing page owns', () => {
+    const source = readFileSync(new URL('./CurrentScrubStrip.tsx', import.meta.url), 'utf8')
+    for (const forbidden of ['HERO_STATION', 'TESTFLIGHT', 'use-scrub-intro', 'ScrubHero']) {
+      expect(source).not.toContain(forbidden)
+    }
+  })
+
+  it('gives two instances their own gradient ids', () => {
+    const both = renderToStaticMarkup(
+      <>
+        <CurrentScrubStrip station={HERO_STATION} days={days} from={FROM} to={TO} scrubTime={FROM} seconds={0} live={false} />
+        <CurrentScrubStrip station={HERO_STATION} days={days} from={FROM} to={TO} scrubTime={FROM} seconds={0} live={false} />
+      </>,
+    )
+    const ids = [...both.matchAll(/id="flood-([^"]+)"/g)].map((m) => m[1])
+    expect(ids).toHaveLength(2)
+    expect(new Set(ids).size).toBe(2)
   })
 
   it('names its own station for a reader who cannot see it', () => {

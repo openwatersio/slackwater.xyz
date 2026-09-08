@@ -5,10 +5,12 @@ import { ScrubHero } from './ScrubHero'
 const html = renderToStaticMarkup(<ScrubHero />)
 
 describe('ScrubHero', () => {
-  it('makes no claim about a clock before it has a real one', () => {
-    // The server render freezes at SERVER_NOW; a time in this HTML is stale by
-    // however long ago the site was built.
-    expect(html).not.toMatch(/\d{1,2}:\d{2}\s?(AM|PM)/)
+  it('makes no claim about the present before it has a real clock', () => {
+    // The server render freezes at SERVER_NOW, so any reading in this HTML is
+    // stale by however long ago the site was built.
+    expect(html).not.toMatch(/\d{1,2}:\d{2}/)
+    expect(html).not.toMatch(/Ebbing|Flooding|Slack in/)
+    expect(html).not.toMatch(/\d+\.\d+<\/p>|kn<\/span>/)
   })
 
   it('carries the page’s only heading, and the wordmark does not break', () => {

@@ -60,7 +60,9 @@ describe('skyState', () => {
     expect(atSunrise.illumination!.fraction).toBeCloseTo(0.084, 2)
   })
 
-  it('aims the moon’s terminator with a finite angle', () => {
-    expect(Number.isFinite(atSunrise.moonLightAngle)).toBe(true)
+  it('aims the moon’s terminator, and flips it across the equator', () => {
+    const south = skyState({ time: SUNRISE, latitude: -LAT, longitude: LON, days })
+    expect(atSunrise.moonLightAngle).not.toBe(0)
+    expect(atSunrise.moonLightAngle).not.toBeCloseTo(south.moonLightAngle, 6)
   })
 })
