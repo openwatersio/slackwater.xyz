@@ -25,10 +25,12 @@ describe('CurrentLead', () => {
     expect(html).toContain('kn')
   })
 
-  it('sets the reading in the rounded face with tabular digits', () => {
+  it('sets the reading in the rounded face, and only the reading', () => {
     const html = render(3.1)
     expect(html).toContain('font-rounded')
     expect(html).toContain('tabular-nums')
+    // ReadoutType.leadUnit carries no rounded design; the unit must step back out.
+    expect(html).toMatch(/<span class="[^"]*font-sans[^"]*">kn<\/span>/)
   })
 
   it('reads the time the way the app reads it', () => {

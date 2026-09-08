@@ -31,7 +31,9 @@ export function CurrentLead({
       </p>
       <p className="font-rounded text-[2.75rem] font-medium leading-none tabular-nums">
         {Math.abs(level).toFixed(1)}
-        <span className="ml-1 text-[1.375rem] font-light">kn</span>
+        {/* ReadoutType.leadUnit is `.title2.weight(.light)` with no rounded design,
+            so the unit steps back out of the face the value is set in. */}
+        <span className="ml-1 font-sans text-[1.375rem] font-light">kn</span>
       </p>
       <p className="text-xs tabular-nums">{chartTime(at, timeZone)}</p>
     </div>
