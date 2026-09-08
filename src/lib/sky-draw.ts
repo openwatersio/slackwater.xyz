@@ -20,6 +20,13 @@ export interface SkySurface {
 }
 
 const TAU = Math.PI * 2
+/**
+ * The app's sky band tops out near 62 degrees (186pt at three pixels per
+ * degree) and its bodies fill it. Drawing a taller band at the same scale
+ * would end the star field partway up, at a hard edge exactly where the haze
+ * ramp is brightest, so the same range is fitted to the height on offer.
+ */
+const SKY_VISIBLE_CEILING_DEG = 62
 /** Below these a body's whole symbol is under the horizon. Radii are pixels and the scale is pixels per degree, so the quotient is degrees. */
 const SUN_FLOOR_DEG = -SUN_DISC_RADIUS / SKY_ALTITUDE_SCALE
 const MOON_FLOOR_DEG = -(MOON_GLYPH_SIZE / 2) / SKY_ALTITUDE_SCALE
@@ -43,7 +50,11 @@ export function drawSky(
   geo: { width: number; height: number; seconds: number; reduceMotion: boolean },
 ): void {
   const { width, height, seconds, reduceMotion } = geo
-  const size = { width, height, latitude: state.latitude }
+  const band = SKY_VISIBLE_CEILING_DEG * SKY_ALTITUDE_SCALE
+  const stretch = height / band
+  const size = { width, height: band, latitude: state.latitude }
+  /** `skyPoint` places into the app's own band; the stretch fits that band to this one. */
+  const place = (p: { x: number; y: number }) => ({ x: p.x, y: height - (band - p.y) * stretch })
   const altitude = state.sun?.altDeg ?? -18
   const stars = starOpacity(altitude)
 
@@ -51,7 +62,7 @@ export function drawSky(
     for (const star of state.stars) {
       const haze = starHazeOpacity(star.altDeg)
       if (haze <= 0) continue
-      const point = skyPoint({ azimuth: star.azDeg, altitude: star.altDeg, span: state.sunSpan, ...size })
+      const point = place(skyPoint({ azimuth: star.azDeg, altitude: star.altDeg, span: state.sunSpan, ...size }))
       const radius = Math.max(0.5, 1.6 - 0.3 * star.magnitude)
       disc(ctx, point.x, point.y, radius, STAR_INK,
         stars * haze * starTwinkle(star.index, seconds, reduceMotion))
@@ -60,7 +71,7 @@ export function drawSky(
 
   // Below the horizon a body is past an edge, so nothing is drawn for it.
   const sunPoint = state.sun && state.sun.altDeg > SUN_FLOOR_DEG
-    ? skyPoint({ azimuth: state.sun.azDeg, altitude: state.sun.altDeg, span: state.sunSpan, pad: SUN_DISC_RADIUS, ...size })
+    ? place(skyPoint({ azimuth: state.sun.azDeg, altitude: state.sun.altDeg, span: state.sunSpan, pad: SUN_DISC_RADIUS, ...size }))
     : undefined
   if (sunPoint) {
     disc(ctx, sunPoint.x, sunPoint.y, SUN_GLOW_RADIUS, SUN_INK, 0.24)
@@ -68,10 +79,10 @@ export function drawSky(
   }
 
   if (state.moon && state.illumination && state.moon.altDeg > MOON_FLOOR_DEG) {
-    const point = skyPoint({
+    const point = place(skyPoint({
       azimuth: state.moon.azDeg, altitude: state.moon.altDeg, span: state.moonSpan,
       pad: MOON_GLYPH_SIZE / 2, ...size,
-    })
+    }))
     const glare = sunPoint ? Math.hypot(sunPoint.x - point.x, sunPoint.y - point.y) : Infinity
     const visible = moonGlareOpacity(glare)
     if (visible > 0) {
