@@ -110,7 +110,7 @@ export function CurrentScrubStrip({
 
       <div className="absolute inset-x-0 bottom-0" style={{ height: plot }}>
         <svg viewBox={`0 0 ${width} ${plot}`} className="h-full w-full" role="img"
-          aria-label={`Tidal current at ${station.name}, ${state.toLowerCase()}`}>
+          aria-label={live ? `Tidal current at ${station.name}, ${state.toLowerCase()}` : `Tidal current at ${station.name}`}>
           <defs>
             <linearGradient id={`flood-${uid}`} gradientUnits="userSpaceOnUse" x1={0} x2={0} y1={plot / 2} y2={0}>
               <stop offset="0" stopColor={speedColor(0)} stopOpacity="0.25" />

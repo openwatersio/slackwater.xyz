@@ -9,7 +9,7 @@ describe('ScrubHero', () => {
     // The server render freezes at SERVER_NOW, so any reading in this HTML is
     // stale by however long ago the site was built.
     expect(html).not.toMatch(/\d{1,2}:\d{2}/)
-    expect(html).not.toMatch(/Ebbing|Flooding|Slack in/)
+    expect(html).not.toMatch(/Ebbing|Flooding|Slack in/i)
     expect(html).not.toMatch(/\d+\.\d+<\/p>|kn<\/span>/)
   })
 

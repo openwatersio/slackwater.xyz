@@ -60,4 +60,10 @@ describe('CurrentScrubStrip', () => {
   it('names its own station for a reader who cannot see it', () => {
     expect(render(FROM)).toContain('Deception Pass (Narrows)')
   })
+
+  it('sizes the prerendered sky to the section, not to the fallback box', () => {
+    // Before measurement the fallback box is 620px tall inside a 100dvh section;
+    // a fixed pixel height there leaves a band of bare page under the sky.
+    expect(render(FROM)).toContain('height:calc(100% - 124px)')
+  })
 })
