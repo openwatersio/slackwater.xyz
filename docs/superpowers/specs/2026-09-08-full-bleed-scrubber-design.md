@@ -6,6 +6,8 @@ Where the app puts the station's name, this page puts a pill: the wordmark, the 
 
 This is the same argument the page has always made, made harder. The hero computes a real prediction for a real station from bundled harmonic constituents, and the sky over it is real astronomy for the visitor's own date. Nothing is fetched to draw either one.
 
+The landing page is the first consumer of these modules, not the only one. The 3,640 station pages take the same sky and the same scrub strip in a later spec, so the boundaries below are drawn for reuse even though only `ScrubHero` crosses them today.
+
 ## What the reader sees
 
 A single `100dvh` section, full-bleed, outside the `max-w-5xl` container that holds everything below it. `dvh` rather than `vh` because iOS Safari's toolbar changes the viewport height mid-scroll and `vh` does not follow it.
@@ -57,11 +59,13 @@ The app's `WindowEclipse` path — the copper umbra, the penumbral wash, the dim
 
 ## The scrub clock
 
-`src/lib/scrub.ts` builds the window on hydration. Today's local date at the station goes to Almanac's `sunEvents`; the scrub **rests at sunrise + 2h** and **starts at sunrise − 4h**.
+`introWindow` builds the window on hydration. Today's local date at the station goes to Almanac's `sunEvents`; the scrub **rests at sunrise + 2h** and **starts at sunrise − 4h**.
 
-Both bodies' rise and set azimuths come from one `sunEvents` and one `moonEvents` call covering the days the window spans, computed once. The app does the same, and its comment gives the reason: an event search costs roughly two orders of magnitude more than a position lookup, so doing one per frame is not an option.
+Both bodies' rise and set azimuths come from `skyDays`, which is one `sunEvents` and one `moonEvents` call covering the days the window spans, computed once. The app does the same, and its comment gives the reason: an event search costs roughly two orders of magnitude more than a position lookup, so doing one per frame is not an option. That cost is why `skyDays` and `skyState` are separate functions rather than one call that does everything.
 
-Timing is about 0.8 s held at night, so the star field registers before anything moves, then about 5 s eased to rest. It plays once and stops. The rAF loop genuinely ends: at rest the sun is up, `starOpacity` is zero, and there is nothing left to twinkle.
+`useScrubIntro` drives it: about 0.8 s held at night, so the star field registers before anything moves, then about 5 s eased to rest. It plays once and stops. The rAF loop genuinely ends — at rest the sun is up, `starOpacity` is zero, and there is nothing left to twinkle.
+
+The intro lives in the driver rather than in the strip. A station page scrubbing to the present has no use for a marketing opening, and a strip that assumed one would force it on every page that reused it.
 
 `prefers-reduced-motion: reduce` renders the rest frame immediately and never starts the loop, matching the app's `reduceMotion` handling.
 
@@ -85,16 +89,36 @@ So the readout and the caption's time render **only once `live` is true**. Befor
 
 The hero stays on Deception Pass (Narrows), which `src/data/hero-station.json` already bundles.
 
-Nothing structural depends on that choice, but a tide station is not purely a data swap. Colour is state and form is kind: a tide has no direction, no slack and no speed to ramp, so it needs the tide variant of both the strip's fill and the readout — height, Rising or Falling, and the countdown to the next high or low. The app defines both, and `TideCurve` and `CurrentCurve` are separate components here for the same reason. Budget the second variant if the station changes.
+Nothing structural depends on that choice, but a tide station is not purely a data swap. Colour is state and form is kind: a tide has no direction, no slack and no speed to ramp, so it needs the tide variant of both the strip's fill and the readout — height, Rising or Falling, and the countdown to the next high or low. `TideCurve` and `CurrentCurve` are separate components here for that reason, and `TideScrubStrip` is a sibling of `CurrentScrubStrip` for the same one. Only the current sibling is built here, because only a current station consumes it; the tide sibling arrives with the station pages.
+
+## Modules
+
+The split is by **cadence** and by **what is landing-page-only**. Anything that runs per frame is separated from anything that runs once per window, because that distinction is the whole performance argument; anything that mentions the pill or the download is kept out of the shared path.
+
+Pure, no React:
+
+- `src/lib/sky.ts` — the `Theme.swift` port described above. Stateless functions over numbers.
+- `src/lib/sky-state.ts` — `skyDays(latitude, longitude, from, to)` runs **once per window** and returns the sun's and moon's rise and set times, which are what `HorizonSpan` needs. `skyState({ time, latitude, longitude, days })` runs **once per frame** and returns the positions, the illumination, the placed stars and the paint. The port of the Swift `SkyState` initializer, and its comment about event searches costing two orders of magnitude more than position lookups is the reason these are two functions and not one.
+- `src/lib/scrub.ts` — `introWindow(station, date)` and the easing curve.
+
+Components:
+
+- `src/components/Sky.tsx` — the gradient and the canvas, given a `SkyState` and a horizon position. `aria-hidden`, decorative, reusable anywhere a sky is wanted.
+- `src/components/CurrentScrubStrip.tsx` — the sky, the panning curve, the centerline and the readout. **The unit the station pages reuse.** It knows a station and a scrub time and nothing about why the scrub time is what it is.
+- `src/components/ScrubHero.tsx` — `100dvh`, the pill, the caption, and the intro driver. Landing page only, and deliberately thin.
+
+Driver:
+
+- `src/lib/use-scrub-intro.ts` — the rAF loop, the reduced-motion branch, and the stop condition. Separate from the strip because a station page's scrub time comes from `useLiveNow` rather than from a marketing intro, and welding the intro into the shared component would force every station page to inherit it.
+
+The strip is a component rather than a path drawn inline in `ScrubHero`. `CurrentCurve` is not reused for it: that component draws axis labels, extremes, the datum line and a per-window aria description, none of which a panning strip wants, and a bare mode on it would be a flag that changes what the component fundamentally is.
 
 ## Files
 
 New:
 
-- `src/lib/sky.ts` and `src/lib/sky.test.ts`
-- `src/lib/scrub.ts` and `src/lib/scrub.test.ts`
-- `src/components/SkyCanvas.tsx`
-- `src/components/ScrubHero.tsx` and `src/components/ScrubHero.test.tsx`
+- `src/lib/sky.ts`, `src/lib/sky-state.ts`, `src/lib/scrub.ts`, `src/lib/use-scrub-intro.ts`, each with tests
+- `src/components/Sky.tsx`, `src/components/CurrentScrubStrip.tsx`, `src/components/ScrubHero.tsx`, the last two with tests
 - `src/data/stars.json`
 
 Changed:
@@ -105,12 +129,21 @@ Changed:
 
 `src/content/privacy.md` needs no change, and that is a finding rather than an omission: Almanac and `stars.json` are bundled, so the hero issues no network request and measures nothing.
 
-The strip's path is drawn inline in `ScrubHero` rather than through `CurrentCurve`. That component draws axis labels, extremes, the datum line, and a per-window aria description, none of which a panning strip wants; adding a bare mode would be a configuration knob with exactly one consumer. Split the strip out if `ScrubHero` passes about 250 lines.
+## What the station pages will need
+
+Recorded here so the boundaries hold, and designed in their own spec:
+
+- **The tide sibling.** `TideScrubStrip`, over the same `Sky` and the same centerline frame.
+- **The 33 CHS stations have no curve to pan.** They prerender no prediction, and 32 of them fetch IWLS in the visitor's own browser on load. The sky is unaffected — astronomy is not DFO's data, so it prerenders like anywhere else — which means those pages show a real sky and an empty plot until the fetch lands, alongside the Cancel button that already exists. That is a deliberate design question, not an edge case to discover.
+- **The bundle.** Almanac and `stars.json` reach every station page rather than one landing page. The budget in `src/lib/bundle-size.test.ts` is the check.
+- **Whatever the share-landing and indexing job needs.** The station pages exist to be linked and crawled; a scrub view must not cost them the content that makes them worth crawling.
 
 ## Verification
 
 - `src/lib/sky.test.ts` asserts `skyPaint` at all five anchors and at midpoints between them, `starOpacity`'s clamp at 0.7, `skyOpacity`, `starHazeOpacity`, `moonGlareOpacity` at the touching and clear boundaries, and `skyPoint`'s mirroring in both hemispheres. Every expected value comes from `Theme.swift`.
-- `src/lib/scrub.test.ts` asserts the rest target against the station's local sunrise, the night start, the easing endpoints, and that the reduced-motion path returns the rest frame without a loop.
+- `src/lib/sky-state.test.ts` asserts that `skyDays` returns the rise and set times a `HorizonSpan` needs across a multi-day window, and that `skyState` places the sun, the moon and the stars for a known time and place.
+- `src/lib/scrub.test.ts` asserts the rest target against the station's local sunrise, the night start, and the easing endpoints. `src/lib/use-scrub-intro.test.ts` asserts that the reduced-motion branch returns the rest frame without starting a loop, and that the loop stops at rest.
+- `src/components/CurrentScrubStrip.test.tsx` asserts that the strip renders from a station and a scrub time alone, with no reference to the pill, the intro, or anything else the landing page owns — the test that keeps the reuse boundary honest.
 - `src/components/ScrubHero.test.tsx` asserts that a server render carries no time string, that the pill holds the page's only `<h1>`, that the canvas is `aria-hidden`, and that the caption links to the station's page.
 - `pnpm test`, `pnpm typecheck`, and `pnpm build`, plus the existing budget in `src/lib/bundle-size.test.ts`.
 - The PR preview URL from `.github/workflows/preview.yml`, opened and looked at. A six-second animation is not signed off from a green test run.
@@ -122,3 +155,4 @@ The strip's path is drawn inline in `ScrubHero` rather than through `CurrentCurv
 - Eclipse rendering.
 - Pinning the hero under the sections below it.
 - Choosing a different station.
+- Adopting the strip on the station pages, and the tide sibling it needs. That is the next spec, written once this is running on a preview URL and has been looked at.
