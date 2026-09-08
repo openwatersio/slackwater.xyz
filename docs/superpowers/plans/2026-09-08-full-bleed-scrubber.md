@@ -799,6 +799,13 @@ export interface SkySurface {
 }
 
 const TAU = Math.PI * 2
+/**
+ * The app's sky band tops out near 62 degrees (186pt at three pixels per
+ * degree) and its bodies fill it. Drawing a taller band at the same scale
+ * would end the star field partway up, at a hard edge exactly where the haze
+ * ramp is brightest, so the same range is fitted to the height on offer.
+ */
+const SKY_VISIBLE_CEILING_DEG = 62
 /** Below these a body's whole symbol is under the horizon. Radii are pixels and the scale is pixels per degree, so the quotient is degrees. */
 const SUN_FLOOR_DEG = -SUN_DISC_RADIUS / SKY_ALTITUDE_SCALE
 const MOON_FLOOR_DEG = -(MOON_GLYPH_SIZE / 2) / SKY_ALTITUDE_SCALE
@@ -822,7 +829,11 @@ export function drawSky(
   geo: { width: number; height: number; seconds: number; reduceMotion: boolean },
 ): void {
   const { width, height, seconds, reduceMotion } = geo
-  const size = { width, height, latitude: state.latitude }
+  const band = SKY_VISIBLE_CEILING_DEG * SKY_ALTITUDE_SCALE
+  const stretch = height / band
+  const size = { width, height: band, latitude: state.latitude }
+  /** `skyPoint` places into the app's own band; the stretch fits that band to this one. */
+  const place = (p: { x: number; y: number }) => ({ x: p.x, y: height - (band - p.y) * stretch })
   const altitude = state.sun?.altDeg ?? -18
   const stars = starOpacity(altitude)
 
@@ -830,7 +841,7 @@ export function drawSky(
     for (const star of state.stars) {
       const haze = starHazeOpacity(star.altDeg)
       if (haze <= 0) continue
-      const point = skyPoint({ azimuth: star.azDeg, altitude: star.altDeg, span: state.sunSpan, ...size })
+      const point = place(skyPoint({ azimuth: star.azDeg, altitude: star.altDeg, span: state.sunSpan, ...size }))
       const radius = Math.max(0.5, 1.6 - 0.3 * star.magnitude)
       disc(ctx, point.x, point.y, radius, STAR_INK,
         stars * haze * starTwinkle(star.index, seconds, reduceMotion))
@@ -839,7 +850,7 @@ export function drawSky(
 
   // Below the horizon a body is past an edge, so nothing is drawn for it.
   const sunPoint = state.sun && state.sun.altDeg > SUN_FLOOR_DEG
-    ? skyPoint({ azimuth: state.sun.azDeg, altitude: state.sun.altDeg, span: state.sunSpan, pad: SUN_DISC_RADIUS, ...size })
+    ? place(skyPoint({ azimuth: state.sun.azDeg, altitude: state.sun.altDeg, span: state.sunSpan, pad: SUN_DISC_RADIUS, ...size }))
     : undefined
   if (sunPoint) {
     disc(ctx, sunPoint.x, sunPoint.y, SUN_GLOW_RADIUS, SUN_INK, 0.24)
@@ -847,10 +858,10 @@ export function drawSky(
   }
 
   if (state.moon && state.illumination && state.moon.altDeg > MOON_FLOOR_DEG) {
-    const point = skyPoint({
+    const point = place(skyPoint({
       azimuth: state.moon.azDeg, altitude: state.moon.altDeg, span: state.moonSpan,
       pad: MOON_GLYPH_SIZE / 2, ...size,
-    })
+    }))
     const glare = sunPoint ? Math.hypot(sunPoint.x - point.x, sunPoint.y - point.y) : Infinity
     const visible = moonGlareOpacity(glare)
     if (visible > 0) {
@@ -1299,12 +1310,12 @@ Expected: FAIL — `Failed to resolve import "./CurrentScrubStrip"`.
 Create `src/components/CurrentScrubStrip.tsx`:
 
 ```tsx
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Sky } from './Sky'
 import { SKY_HORIZON_OVERLAP } from '#/lib/sky'
 import { skyState } from '#/lib/sky-state'
 import type { SkyDays } from '#/lib/sky-state'
-import { SLACK_KNOTS, findEvents, nextEvent, predictSeries } from '#/lib/predict'
+import { SLACK_KNOTS, findEvents, nextEvent, predictSeries, slackWindows } from '#/lib/predict'
 import { speedColor } from '#/lib/ramp'
 import { countdown } from '#/lib/format'
 import type { BundledStation } from '#/lib/station'
@@ -1364,6 +1375,9 @@ export function CurrentScrubStrip({
   scrubTime: Date
   seconds: number
 }) {
+  // Ids must be per-instance: two strips on one page would otherwise both
+  // resolve to the first one's gradients, and the second would paint nothing.
+  const uid = useId().replace(/:/g, '')
   const frame = useRef<HTMLDivElement>(null)
   const { width, height } = useBox(frame)
   const plot = Math.min(PLOT_MAX, Math.max(PLOT_MIN, height * PLOT_FRACTION))
@@ -1371,7 +1385,7 @@ export function CurrentScrubStrip({
 
   // The curve either side of the window, so panning never reaches an empty edge.
   const pad = (WINDOW_HOURS / 2) * 3600_000
-  const { path, area, x, peak, events } = useMemo(() => {
+  const { path, area, x, events, windows } = useMemo(() => {
     const start = new Date(from.getTime() - pad)
     const hours = (to.getTime() - from.getTime() + 2 * pad) / 3600_000
     const samples = predictSeries(station, start, hours)
@@ -1382,7 +1396,7 @@ export function CurrentScrubStrip({
     const points = samples.map((s) => `${x(s.time).toFixed(2)},${y(s.level).toFixed(2)}`)
     return {
       x,
-      peak,
+      windows: slackWindows(samples),
       path: `M${points.join('L')}`,
       area: `M${x(start).toFixed(2)},${y(0)}L${points.join('L')}L${x(samples.at(-1)!.time).toFixed(2)},${y(0)}Z`,
       events: findEvents(station, start, hours),
@@ -1390,7 +1404,10 @@ export function CurrentScrubStrip({
   }, [station, from, to, width, plot, pad])
 
   const level = levelAt(station, scrubTime)
-  const slack = Math.abs(level) < SLACK_KNOTS
+  // Green is slack and only slack, so it follows `slackWindows` rather than the
+  // bare threshold: a lull that dips under it and builds back the way it came
+  // never reverses, and colouring it green would promise a transit that never opens.
+  const slack = windows.some((w) => scrubTime >= w.start && scrubTime <= w.end)
   const nextSlack = nextEvent(events.filter((e) => e.kind === 'slack'), scrubTime)
   const state = slack ? 'Slack' : level > 0 ? 'Flooding' : 'Ebbing'
 
@@ -1403,26 +1420,30 @@ export function CurrentScrubStrip({
         <svg viewBox={`0 0 ${width} ${plot}`} className="h-full w-full" role="img"
           aria-label={`Tidal current at ${station.name}, ${state.toLowerCase()}`}>
           <defs>
-            <linearGradient id="scrub-flood" gradientUnits="userSpaceOnUse" x1={0} x2={0} y1={plot / 2} y2={0}>
+            <linearGradient id={`flood-${uid}`} gradientUnits="userSpaceOnUse" x1={0} x2={0} y1={plot / 2} y2={0}>
               <stop offset="0" stopColor={speedColor(0)} stopOpacity="0.25" />
               <stop offset="1" stopColor={speedColor(1)} stopOpacity="0.85" />
             </linearGradient>
-            <linearGradient id="scrub-ebb" gradientUnits="userSpaceOnUse" x1={0} x2={0} y1={plot / 2} y2={plot}>
+            <linearGradient id={`ebb-${uid}`} gradientUnits="userSpaceOnUse" x1={0} x2={0} y1={plot / 2} y2={plot}>
               <stop offset="0" stopColor={speedColor(0)} stopOpacity="0.25" />
               <stop offset="1" stopColor={speedColor(1)} stopOpacity="0.85" />
             </linearGradient>
+            {/* Each gradient only spans its own half, so each lobe is clipped to the half it belongs in. */}
+            <clipPath id={`above-${uid}`}><rect x={0} y={0} width={width} height={plot / 2} /></clipPath>
+            <clipPath id={`below-${uid}`}><rect x={0} y={plot / 2} width={width} height={plot / 2} /></clipPath>
           </defs>
           <g transform={`translate(${(width / 2 - x(scrubTime)).toFixed(2)} 0)`}>
-            <path d={area} fill="url(#scrub-flood)" />
+            <path d={area} fill={`url(#flood-${uid})`} clipPath={`url(#above-${uid})`} />
+            <path d={area} fill={`url(#ebb-${uid})`} clipPath={`url(#below-${uid})`} />
             <path d={path} fill="none" stroke={CURVE_INK} strokeWidth="2" />
           </g>
           <line x1={width / 2} x2={width / 2} y1={0} y2={plot} stroke={CENTERLINE_INK} strokeOpacity="0.5" />
         </svg>
       </div>
 
-      <div className="absolute inset-x-0 flex flex-col items-center text-sw-paper"
+      <div className="absolute inset-x-0 flex flex-col items-center text-sw-foam"
         style={{ bottom: plot + 12 }}>
-        <p className="text-4xl font-semibold [font-variant-numeric:tabular-nums]">
+        <p className="text-4xl font-semibold text-sw-foam [font-variant-numeric:tabular-nums]">
           {Math.abs(level).toFixed(1)}<span className="ml-1 text-xl font-normal">kn</span>
         </p>
         <p className={slack ? 'text-sw-go' : 'text-sw-foam'}>{state}</p>
@@ -1434,9 +1455,9 @@ export function CurrentScrubStrip({
   )
 }
 
-/** The exact level under the centerline, not the nearest 10-minute sample. */
+/** The level under the centerline, to the second — the curve's own grid is ten minutes. */
 function levelAt(station: BundledStation, at: Date): number {
-  const [sample] = predictSeries(station, at, 1 / 60, 60)
+  const [sample] = predictSeries(station, at, 1 / 3600, 1)
   return sample?.level ?? 0
 }
 ```
