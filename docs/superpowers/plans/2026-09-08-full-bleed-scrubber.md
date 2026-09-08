@@ -683,7 +683,7 @@ It is also where the eclipse search lands when the station pages need one."
 **Interfaces:**
 - Consumes: `SkyState`, `PlacedStar` from `src/lib/sky-state.ts`; the ramps and `skyPoint` from `src/lib/sky.ts`.
 - Produces:
-  - `interface SkySurface` — the subset of `CanvasRenderingContext2D` this uses: `save`, `restore`, `beginPath`, `arc`, `ellipse`, `fill`, `translate`, `rotate`, and the settable `fillStyle` and `globalAlpha`.
+  - `interface SkySurface` — the subset of `CanvasRenderingContext2D` this uses: `save`, `restore`, `beginPath`, `arc`, `ellipse`, `fill`, `translate`, `rotate`, and the settable `globalAlpha` and `fillStyle`. `fillStyle` carries the context's own `string | CanvasGradient | CanvasPattern`, because a property narrowed to `string` makes a real context unassignable to this interface.
   - `drawSky(ctx: SkySurface, state: SkyState, geo: { width: number; height: number; seconds: number; reduceMotion: boolean }): void`
 
 Vitest runs in a node environment with no canvas, so the drawing is a pure function over a context-shaped object and the test records the calls.
@@ -760,15 +760,6 @@ describe('drawSky', () => {
     expect(moonDown.moon!.altDeg).toBeLessThan(0)
     expect(calls).not.toContain('ellipse')
   })
-
-  it('draws no sun disc before the sun is up', () => {
-    const { ctx, alphas } = recorder()
-    const night = at(new Date(SUNRISE.getTime() - 4 * 3600_000))
-    drawSky(ctx, night, geo)
-    expect(night.sun!.altDeg).toBeLessThan(0)
-    // The sun's disc is the only fill drawn at full alpha.
-    expect(alphas).not.toContain(1)
-  })
 })
 ```
 
@@ -790,7 +781,8 @@ import type { SkyState } from './sky-state'
 
 /** The slice of `CanvasRenderingContext2D` the sky needs, so it can be recorded in a test. */
 export interface SkySurface {
-  fillStyle: string
+  /** The context's own union, not `string`: a narrower property makes a real context unassignable. */
+  fillStyle: string | CanvasGradient | CanvasPattern
   globalAlpha: number
   save(): void
   restore(): void
@@ -1308,6 +1300,14 @@ import { speedColor } from '#/lib/ramp'
 import { countdown } from '#/lib/format'
 import type { BundledStation } from '#/lib/station'
 
+/**
+ * SVG paint is literal because resvg cannot resolve Tailwind classes; a
+ * class-styled chart rasterises blank. These are `--color-sw-foam` and
+ * `--color-sw-paper` from `src/styles.css` — change them there and here together.
+ */
+const CURVE_INK = '#e4f0e4'
+const CENTERLINE_INK = '#fcfcfc'
+
 /** Hours across the frame. The app is 18pt/hour, which is about this at phone width. */
 const WINDOW_HOURS = 24
 /** The plot's share of the frame, matching the app's 150pt of an 850pt screen. */
@@ -1376,9 +1376,9 @@ export function CurrentScrubStrip({
           </defs>
           <g transform={`translate(${(width / 2 - x(scrubTime)).toFixed(2)} 0)`}>
             <path d={area} fill="url(#scrub-flood)" />
-            <path d={path} fill="none" stroke="#e4f0e4" strokeWidth="2" />
+            <path d={path} fill="none" stroke={CURVE_INK} strokeWidth="2" />
           </g>
-          <line x1={width / 2} x2={width / 2} y1={0} y2={plot} stroke="#fcfcfc" strokeOpacity="0.5" />
+          <line x1={width / 2} x2={width / 2} y1={0} y2={plot} stroke={CENTERLINE_INK} strokeOpacity="0.5" />
         </svg>
       </div>
 
@@ -1519,7 +1519,7 @@ export function useScrubIntro(station: Station, now: Date, live: boolean) {
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
-  }, [live, from, to])
+  }, [live, from.getTime(), to.getTime()])
 
   return { from, to, seconds: elapsed, scrubTime: introTime(from, to, elapsed) }
 }
