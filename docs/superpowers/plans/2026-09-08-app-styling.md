@@ -4,7 +4,7 @@
 
 **Goal:** Bring the app's graph inks, rounded reading type and card treatment across to the site, and rebuild the hero's readout as the app's own lead card.
 
-**Architecture:** Six tasks, each ending on a green test and a commit. Tokens land first because everything else reads them; the two formatters follow; then the readout component, the strip's fill, the card treatment, and a full verification pass. The two shared curve components are deliberately untouched — they feed 3,640 station pages and every OG card, and belong to a follow-up.
+**Architecture:** Seven tasks, each ending on a green test and a commit, the last verifying the whole. Tokens land first because everything else reads them; the two formatters follow; then the readout component, the strip's fill, the card treatment, and a full verification pass. The two shared curve components are deliberately untouched — they feed 3,640 station pages and every OG card, and belong to a follow-up.
 
 **Tech Stack:** TanStack Start + React 19, Tailwind v4 (`@theme` tokens in `src/styles.css`), vitest in a node environment with `renderToStaticMarkup` for components.
 
