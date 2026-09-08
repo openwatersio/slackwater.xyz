@@ -561,7 +561,19 @@ In `src/lib/scrub.test.ts` — **not** `format.test.ts`, which never had them �
 Run: `pnpm vitest run src/components/CurrentScrubStrip.test.tsx`
 Expected: FAIL on the set assertion — no rotation is rendered.
 
-- [ ] **Step 3: Render the lead card in the strip**
+- [ ] **Step 3: State the invariant the fill depends on**
+
+The fill's gradient runs `y1=0 → y2=plot` with its clear stop at `offset 0.5`, which is only correct because `y` maps every level about `plot / 2`. Nothing says so, and a future change to that mapping — auto-fitting the plot to the day's range, as the app does — would misalign the gradient with no failing test. Add the precondition above the `y` definition inside the `useMemo`:
+
+```tsx
+    // The fill's gradient is clear at `offset 0.5`, so zero MUST land on the
+    // plot's midline. Fitting the plot to the day's range would break that.
+    const y = (level: number) => plot / 2 - (level / peak) * (plot / 2)
+```
+
+Keep the expression itself exactly as it is; this step adds only the comment.
+
+- [ ] **Step 4: Render the lead card in the strip**
 
 In `src/components/CurrentScrubStrip.tsx`:
 
@@ -588,7 +600,7 @@ Replace the whole readout `<div>` with:
         </div>
 ```
 
-- [ ] **Step 4: Take the clock out of the caption**
+- [ ] **Step 5: Take the clock out of the caption**
 
 In `src/components/ScrubHero.tsx`, remove the `hhmm` import and the gated time fragment from the caption, leaving the station link and the claim:
 
@@ -601,11 +613,11 @@ In `src/components/ScrubHero.tsx`, remove the `hhmm` import and the gated time f
       </p>
 ```
 
-- [ ] **Step 5: Delete `countdown`, which now has no caller**
+- [ ] **Step 6: Delete `countdown`, which now has no caller**
 
 Remove the `countdown` function from `src/lib/format.ts`. It was added for the readout this task replaces; the follow-up can add it back in three lines if a station page wants it.
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [ ] **Step 7: Run the tests to verify they pass**
 
 ```bash
 pnpm vitest run src/components/CurrentScrubStrip.test.tsx src/components/ScrubHero.test.tsx src/lib/scrub.test.ts
@@ -614,7 +626,7 @@ pnpm typecheck
 
 Expected: all pass, and typecheck clean. A `noUnusedLocals` error here means a binding the readout used is still declared — delete it rather than referencing it.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add src/components/CurrentScrubStrip.tsx src/components/ScrubHero.tsx src/lib/format.ts src/components/CurrentScrubStrip.test.tsx src/components/ScrubHero.test.tsx src/lib/scrub.test.ts
