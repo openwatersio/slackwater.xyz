@@ -92,19 +92,19 @@ In `src/styles.css`, inside the existing `@theme { ... }` block, after the `--co
   --color-sw-shadow: #001432;
 ```
 
-And, after the `--font-rounded` line, the card's shadow as a token so no component carries the literal:
-
-```css
-  /* SN.shadow at 24%, 12pt radius, 10pt down. A SwiftUI radius is about half a CSS blur. */
-  --shadow-card: 0 10px 24px color-mix(in srgb, var(--color-sw-shadow) 24%, transparent);
-```
-
-Then, immediately after the existing `--font-mono` line, add:
+Then, immediately after the existing `--font-mono` line, add the rounded face:
 
 ```css
   /* Readings are SF Rounded in the app (ReadoutType). Native on Apple devices,
      so it costs no download on a page that sells "no waiting". */
   --font-rounded: ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+```
+
+Then, as the last entry in the `@theme` block, the card's shadow as a token so no component carries the literal:
+
+```css
+  /* SN.shadow at 24%, 12pt radius, 10pt down. A SwiftUI radius is about half a CSS blur. */
+  --shadow-card: 0 10px 24px color-mix(in srgb, var(--color-sw-shadow) 24%, transparent);
 ```
 
 - [ ] **Step 4: Run the test to verify it passes**
