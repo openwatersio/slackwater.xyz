@@ -754,11 +754,27 @@ print('h1:', h.count('<h1'), '| clock:', re.findall(r'\d{1,2}:\d{2}[ap]m', h))
 
 Expected: every `gone` item gone from the hero, every `here` item present, exactly one `<h1>`, and no `h:mma` clock in the prerender. `Ebbing`, `Flooding` and `Slack` appear in the screenshot alt text below the fold — check the reported position is below the "Currents, not just tides" heading before treating a hit as a leak.
 
-- [ ] **Step 3: Report what could not be checked**
+- [ ] **Step 3: Confirm the new utilities actually generated**
+
+Tailwind v4 emits only the utilities something uses, so a token existing in `styles.css` does not mean `shadow-card` or `font-rounded` reached the stylesheet. Nothing checked that until now.
+
+```bash
+python3 -c "
+import glob
+css = ''.join(open(f).read() for f in glob.glob('.output/public/assets/*.css'))
+for u in ['.font-rounded', '.shadow-card', '.border-sw-card-stroke', '.bg-sw-card-fill']:
+    print(('ok   ' if u in css else 'MISS '), u)
+print('graph ink var defined:', '--color-sw-graph-line' in css)
+"
+```
+
+Expected: every utility present. A `MISS` on `.shadow-card` means `--shadow-*` is not the namespace this Tailwind version uses for box shadows — report it rather than papering over it with an arbitrary value, because that would put a literal colour back into a component.
+
+- [ ] **Step 4: Report what could not be checked**
 
 There is no browser in this environment. Do not claim to have looked at the page. Report explicitly that the rounded face, the fill's new colour, the set arrow's bearing and the card treatment are unverified visually, and that they need the PR preview URL.
 
-- [ ] **Step 4: Commit nothing**
+- [ ] **Step 5: Commit nothing**
 
 This task produces no commit. Report the results.
 
