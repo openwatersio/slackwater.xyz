@@ -51,9 +51,16 @@ Ported: `skyPaint` and its five altitude anchors, `skyOpacity`, `starOpacity`, `
 
 The two agree on `skyPaint`; `skyColor.ts` uses the same five anchors. They disagree on projection, and the app wins.
 
-### Eclipses are out of scope
+### Eclipses are deferred, and the seam is held open
 
-The app's `WindowEclipse` path — the copper umbra, the penumbral wash, the dimming it drives through the gradient — is real machinery, and the chance an eclipse is underway during the specific rest moment on the visit date is negligible. It is not ported.
+The app's `WindowEclipse` path — the copper umbra, the penumbral wash, the dimming both drive through the gradient — is not ported here. The chance one is underway at the landing page's rest moment is negligible, and the landing page is the only consumer today.
+
+It is deferred rather than declined. An eclipse is one of the things a station page exists to be shared for, so the station-page spec ports it, and two decisions in this design are what keep that cheap:
+
+- **`Sky.tsx` takes the whole `SkyState`, never spread props.** `SkyBackdrop` does the same (`let sky: SkyState`). Eclipse support then adds fields to one object rather than threading new arguments through every caller. This is the single structural choice that decides whether eclipses are a small change or a wide one.
+- **The eclipse search belongs in `skyDays`, not `skyState`.** `Theme.swift` is explicit that searching for an eclipse per scrub frame costs orders of magnitude more than the position lookups, which is why its `SkyState` receives an already-found array. `skyDays` is already the once-per-window function, so it is where the search lands.
+
+When it arrives: `skyState` gains the Swift's own defaulted `eclipses` argument, `SkyState` gains `shadow` and `wash`, and `Sky.tsx`'s moon draw reads them for the copper core and the dimmed halo. Nothing in this design has to move. No placeholder argument is added now — an always-empty parameter reads as working support for something that does not exist.
 
 `moonLightAngle` **is** ported. It is about eight lines of trigonometry, and a crescent pointing the wrong way at dawn reads as a bug.
 
@@ -134,6 +141,7 @@ Changed:
 Recorded here so the boundaries hold, and designed in their own spec:
 
 - **The tide sibling.** `TideScrubStrip`, over the same `Sky` and the same centerline frame.
+- **Eclipses.** They are a reason a station page gets shared, so they ship with the station pages. The seam is described above; the search goes in `skyDays`.
 - **The 33 CHS stations have no curve to pan.** They prerender no prediction, and 32 of them fetch IWLS in the visitor's own browser on load. The sky is unaffected — astronomy is not DFO's data, so it prerenders like anywhere else — which means those pages show a real sky and an empty plot until the fetch lands, alongside the Cancel button that already exists. That is a deliberate design question, not an edge case to discover.
 - **The bundle.** Almanac and `stars.json` reach every station page rather than one landing page. The budget in `src/lib/bundle-size.test.ts` is the check.
 - **Whatever the share-landing and indexing job needs.** The station pages exist to be linked and crawled; a scrub view must not cost them the content that makes them worth crawling.
@@ -152,7 +160,7 @@ Recorded here so the boundaries hold, and designed in their own spec:
 
 - Interactivity of any kind. No dragging, no tapping, no scroll-driven scrubbing.
 - Replaying the scrub.
-- Eclipse rendering.
+- Eclipse rendering. Deferred to the station pages, not declined — the seam is held open above.
 - Pinning the hero under the sections below it.
 - Choosing a different station.
 - Adopting the strip on the station pages, and the tide sibling it needs. That is the next spec, written once this is running on a preview URL and has been looked at.
