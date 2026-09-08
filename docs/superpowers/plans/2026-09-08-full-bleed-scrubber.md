@@ -445,11 +445,13 @@ const LAT = 48.40618896484375
 const LON = -122.64
 const FROM = new Date('2026-09-08T00:00:00Z')
 const TO = new Date('2026-09-10T00:00:00Z')
-const SUNRISE = new Date('2026-09-08T13:38:01Z')
+const days = skyDays(LAT, LON, FROM, TO)
+// The rise Almanac itself reports, not a literal: `span` selects the last rise
+// at or before the moment, and a literal truncated to the second falls before
+// the real crossing, so the span it is meant to find comes back undefined.
+const SUNRISE = days.sunRises[0]
 
 describe('skyDays', () => {
-  const days = skyDays(LAT, LON, FROM, TO)
-
   it('finds both bodies rising and setting across the window', () => {
     expect(days.sunRises.length).toBeGreaterThanOrEqual(2)
     expect(days.sunSets.length).toBeGreaterThanOrEqual(1)
@@ -467,7 +469,6 @@ describe('skyDays', () => {
 })
 
 describe('skyState', () => {
-  const days = skyDays(LAT, LON, FROM, TO)
   const atSunrise = skyState({ time: SUNRISE, latitude: LAT, longitude: LON, days })
   const atNight = skyState({
     time: new Date(SUNRISE.getTime() - 4 * 3600_000), latitude: LAT, longitude: LON, days,
