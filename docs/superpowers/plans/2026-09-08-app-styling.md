@@ -285,10 +285,12 @@ describe('CurrentLead', () => {
     expect(html).toContain('kn')
   })
 
-  it('sets the reading in the rounded face with tabular digits', () => {
+  it('sets the reading in the rounded face, and only the reading', () => {
     const html = render(3.1)
     expect(html).toContain('font-rounded')
     expect(html).toContain('tabular-nums')
+    // ReadoutType.leadUnit carries no rounded design; the unit must step back out.
+    expect(html).toMatch(/<span class="[^"]*font-sans[^"]*">kn<\/span>/)
   })
 
   it('reads the time the way the app reads it', () => {
@@ -360,7 +362,9 @@ export function CurrentLead({
       </p>
       <p className="font-rounded text-[2.75rem] font-medium leading-none tabular-nums">
         {Math.abs(level).toFixed(1)}
-        <span className="ml-1 text-[1.375rem] font-light">kn</span>
+        {/* ReadoutType.leadUnit is `.title2.weight(.light)` with no rounded design,
+            so the unit steps back out of the face the value is set in. */}
+        <span className="ml-1 font-sans text-[1.375rem] font-light">kn</span>
       </p>
       <p className="text-xs tabular-nums">{chartTime(at, timeZone)}</p>
     </div>
