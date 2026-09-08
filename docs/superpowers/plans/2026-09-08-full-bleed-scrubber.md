@@ -1288,6 +1288,12 @@ describe('CurrentScrubStrip', () => {
     expect(render(FROM)).toMatch(/(fill|stroke)="#[0-9A-Fa-f]{6}"/)
   })
 
+  it('clips the fill in screen space, not in the panning curve’s space', () => {
+    // A clipPath referenced from inside the translated group pans with it and
+    // shears the fill off the trailing edge — invisible to a transform assertion.
+    expect(render(TO)).toMatch(/<g clip-path="url\(#above-[^)]+\)"><g transform="translate/)
+  })
+
   it('knows nothing about the landing page', () => {
     // The boundary the station pages depend on: no pill, no download, no intro.
     const html = render(FROM)
@@ -1315,7 +1321,7 @@ import { Sky } from './Sky'
 import { SKY_HORIZON_OVERLAP } from '#/lib/sky'
 import { skyState } from '#/lib/sky-state'
 import type { SkyDays } from '#/lib/sky-state'
-import { SLACK_KNOTS, findEvents, nextEvent, predictSeries, slackWindows } from '#/lib/predict'
+import { findEvents, nextEvent, predictSeries, slackWindows } from '#/lib/predict'
 import { speedColor } from '#/lib/ramp'
 import { countdown } from '#/lib/format'
 import type { BundledStation } from '#/lib/station'
@@ -1410,6 +1416,7 @@ export function CurrentScrubStrip({
   const slack = windows.some((w) => scrubTime >= w.start && scrubTime <= w.end)
   const nextSlack = nextEvent(events.filter((e) => e.kind === 'slack'), scrubTime)
   const state = slack ? 'Slack' : level > 0 ? 'Flooding' : 'Ebbing'
+  const pan = `translate(${(width / 2 - x(scrubTime)).toFixed(2)} 0)`
 
   return (
     <div ref={frame} className="relative h-full w-full">
@@ -1432,9 +1439,16 @@ export function CurrentScrubStrip({
             <clipPath id={`above-${uid}`}><rect x={0} y={0} width={width} height={plot / 2} /></clipPath>
             <clipPath id={`below-${uid}`}><rect x={0} y={plot / 2} width={width} height={plot / 2} /></clipPath>
           </defs>
-          <g transform={`translate(${(width / 2 - x(scrubTime)).toFixed(2)} 0)`}>
-            <path d={area} fill={`url(#flood-${uid})`} clipPath={`url(#above-${uid})`} />
-            <path d={area} fill={`url(#ebb-${uid})`} clipPath={`url(#below-${uid})`} />
+          {/* The clip sits OUTSIDE the pan. A clipPath referenced from inside the
+              translated group is resolved in that group's user space, so it pans
+              with the curve and shears the fill off the strip's trailing edge. */}
+          <g clipPath={`url(#above-${uid})`}>
+            <g transform={pan}><path d={area} fill={`url(#flood-${uid})`} /></g>
+          </g>
+          <g clipPath={`url(#below-${uid})`}>
+            <g transform={pan}><path d={area} fill={`url(#ebb-${uid})`} /></g>
+          </g>
+          <g transform={pan}>
             <path d={path} fill="none" stroke={CURVE_INK} strokeWidth="2" />
           </g>
           <line x1={width / 2} x2={width / 2} y1={0} y2={plot} stroke={CENTERLINE_INK} strokeOpacity="0.5" />
