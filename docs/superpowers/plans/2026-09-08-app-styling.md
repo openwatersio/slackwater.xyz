@@ -535,7 +535,10 @@ In `src/components/CurrentScrubStrip.test.tsx`, add:
       />,
     )
     expect(live).toContain('rotate(')
-    expect(live).toMatch(/N|NNE|NE|ENE|E|ESE|SE|SSE|S|SSW|SW|WSW|W|WNW|NW|NNW/)
+    // The station's own set, not a loose alternation: "Deception Pass (Narrows)"
+    // contains an N, so a sixteen-way regex passes on the station name alone.
+    // Flood sets 101.5 degrees (ESE), ebb 281.5 (WNW).
+    expect(live).toMatch(/>(ESE|WNW)</)
   })
 
   it('still says nothing about the present when it has no live clock', () => {
@@ -556,7 +559,7 @@ In `src/components/ScrubHero.test.tsx`, add:
 
 In `src/lib/scrub.test.ts` — **not** `format.test.ts`, which never had them — delete the whole `describe('countdown', ...)` block, and drop `countdown` from that file's import.
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [ ] **Step 3: Run the tests to verify they fail**
 
 Run: `pnpm vitest run src/components/CurrentScrubStrip.test.tsx`
 Expected: FAIL on the set assertion — no rotation is rendered.
@@ -655,7 +658,16 @@ countdown goes with the line that used it."
 
 Three surfaces take the app's card, and no others: the hero's pill, the validation stat grid, and "The deal". The footer's top rule is a rule, not a card.
 
-- [ ] **Step 1: Write the failing tests**
+- [ ] **Step 1: Tighten a weak assertion left over from Task 5**
+
+In `src/components/CurrentScrubStrip.test.tsx`, the `shows the set` test matches a sixteen-way alternation of compass points. The station name contains an `N` and sits in the SVG's `aria-label` on every render, so that half of the test passes whether or not a compass point renders at all. Replace that one line with the station's own two sets — flood 101.5 degrees is ESE, ebb 281.5 is WNW:
+
+```tsx
+    // The station's own set, not a loose alternation: the station name contains an N.
+    expect(live).toMatch(/>(ESE|WNW)</)
+```
+
+- [ ] **Step 2: Write the failing tests**
 
 Add to `src/components/ScrubHero.test.tsx`:
 
@@ -687,12 +699,12 @@ describe('the landing page’s surfaces', () => {
 })
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [ ] **Step 3: Run the tests to verify they fail**
 
 Run: `pnpm vitest run src/routes/index-chrome.test.ts src/components/ScrubHero.test.tsx`
 Expected: FAIL — `rounded-3xl` appears zero times.
 
-- [ ] **Step 3: Restyle the pill**
+- [ ] **Step 4: Restyle the pill**
 
 In `src/components/ScrubHero.tsx`, change the pill's wrapper class to:
 
@@ -702,7 +714,7 @@ In `src/components/ScrubHero.tsx`, change the pill's wrapper class to:
 
 The fill stays `bg-sw-navy-deep/40` rather than becoming `bg-sw-card-fill`: the app's cards sit on a fixed dark ground, and this one sits over a sky that runs from night to noon, where white at 5% would leave the wordmark unreadable at the bright end.
 
-- [ ] **Step 4: Restyle the two sections**
+- [ ] **Step 5: Restyle the two sections**
 
 In `src/routes/index.tsx`, line 119, change the stat grid's class to:
 
@@ -718,7 +730,7 @@ At line 226, change "The deal" section's class to:
       <section className="mt-20 rounded-3xl border border-sw-card-stroke bg-sw-card-fill p-6 shadow-card sm:mt-28 sm:p-8">
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [ ] **Step 6: Run the tests to verify they pass**
 
 ```bash
 pnpm vitest run src/routes/index-chrome.test.ts src/components/ScrubHero.test.tsx
@@ -726,10 +738,10 @@ pnpm vitest run src/routes/index-chrome.test.ts src/components/ScrubHero.test.ts
 
 Expected: PASS. If the `rounded-lg` assertion still fails, another element on the page carries it — find it and decide whether it is one of the three surfaces before changing it.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/components/ScrubHero.tsx src/routes/index.tsx src/routes/index-chrome.test.ts src/components/ScrubHero.test.tsx
+git add src/components/ScrubHero.tsx src/routes/index.tsx src/routes/index-chrome.test.ts src/components/CurrentScrubStrip.test.tsx src/components/ScrubHero.test.tsx
 git commit -m "Give the page's cards the app's corner, hairline and shadow
 
 Three surfaces take it and no others: the pill, the validation grid and the
