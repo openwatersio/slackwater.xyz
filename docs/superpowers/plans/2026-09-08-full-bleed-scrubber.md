@@ -909,7 +909,7 @@ body drawn below the horizon, every save balanced by a restore."
 
 **Interfaces:**
 - Consumes: `SkyState` from `src/lib/sky-state.ts`; `drawSky` from `src/lib/sky-draw.ts`.
-- Produces: `<Sky state={SkyState} width={number} height={height} seconds={number} />` — a positioned block containing the gradient and the canvas.
+- Produces: `<Sky state={SkyState} width={number} height={number} seconds={number} />` — a block sized to `height` in CSS pixels, containing the gradient and the canvas. Its box must equal the size it draws at, or the sky stretches.
 
 The gradient is a DOM element with an inline `background` so it server-renders; only the bodies need the canvas. That is what gives a reader who has not run JavaScript a real night sky rather than a blank rectangle.
 
@@ -943,6 +943,10 @@ describe('Sky', () => {
   it('leaves the bodies to the canvas rather than inventing DOM for them', () => {
     expect(html).toContain('<canvas')
     expect(html).not.toContain('<circle')
+  })
+
+  it('takes the box it was told to draw in, so the horizon lands where the caller put it', () => {
+    expect(html).toMatch(/height:\s*300px/)
   })
 })
 ```
@@ -995,7 +999,9 @@ export function Sky({
   }, [state, width, height, seconds])
 
   return (
-    <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+    // Sized to the height it draws at: the canvas has no viewBox, so a CSS box
+    // taller than its backing store stretches the sky and moves the horizon.
+    <div className="absolute inset-x-0 top-0 overflow-hidden" style={{ height }} aria-hidden="true">
       <div
         className="absolute inset-0"
         style={{
@@ -1229,7 +1235,7 @@ within twelve hours either side there is exactly one, and it is the station's."
 
 **Interfaces:**
 - Consumes: `Sky` from `src/components/Sky.tsx`; `SkyDays`, `skyState` from `src/lib/sky-state.ts`; `SKY_HORIZON_OVERLAP` from `src/lib/sky.ts`; `predictSeries`, `findEvents`, `nextEvent`, `SLACK_KNOTS` from `src/lib/predict.ts`; `speedColor` from `src/lib/ramp.ts`; `countdown` from `src/lib/format.ts`.
-- Produces: `<CurrentScrubStrip station={BundledStation} days={SkyDays} from={Date} to={Date} scrubTime={Date} width={number} height={number} seconds={number} />`
+- Produces: `<CurrentScrubStrip station={BundledStation} days={SkyDays} from={Date} to={Date} scrubTime={Date} seconds={number} />` — it measures its own box with a `ResizeObserver` and falls back to 900×620 for the server render.
 
 This is the unit the station pages reuse. It knows a station and a scrub time and **nothing** about why the scrub time is what it is — no pill, no intro, no download.
 
@@ -1248,11 +1254,12 @@ const FROM = new Date('2026-09-08T09:38:00Z')
 const TO = new Date('2026-09-08T15:38:00Z')
 const days = skyDays(HERO_STATION.latitude, HERO_STATION.longitude, FROM, TO)
 
+// A server render has no layout, so the strip draws in FALLBACK_BOX here.
 const render = (scrubTime: Date) =>
   renderToStaticMarkup(
     <CurrentScrubStrip
       station={HERO_STATION} days={days} from={FROM} to={TO}
-      scrubTime={scrubTime} width={800} height={480} seconds={0}
+      scrubTime={scrubTime} seconds={0}
     />,
   )
 
@@ -1292,7 +1299,7 @@ Expected: FAIL — `Failed to resolve import "./CurrentScrubStrip"`.
 Create `src/components/CurrentScrubStrip.tsx`:
 
 ```tsx
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Sky } from './Sky'
 import { SKY_HORIZON_OVERLAP } from '#/lib/sky'
 import { skyState } from '#/lib/sky-state'
@@ -1310,6 +1317,35 @@ import type { BundledStation } from '#/lib/station'
 const CURVE_INK = '#e4f0e4'
 const CENTERLINE_INK = '#fcfcfc'
 
+/**
+ * The box the strip draws in before it has measured itself — and what the
+ * prerender uses, since a server render has no layout to measure.
+ */
+const FALLBACK_BOX = { width: 900, height: 620 }
+
+/**
+ * The strip's own rendered size in CSS pixels.
+ *
+ * The app reads this from a `GeometryReader` for the same reason: the sky is a
+ * projection into whatever box it has, not a fixed-aspect illustration, so
+ * drawing at invented dimensions and letting CSS stretch the result puts the
+ * horizon in the wrong place.
+ */
+function useBox(ref: React.RefObject<HTMLDivElement | null>) {
+  const [box, setBox] = useState(FALLBACK_BOX)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect
+      if (width > 0 && height > 0) setBox({ width, height })
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [ref])
+  return box
+}
+
 /** Hours across the frame. The app is 18pt/hour, which is about this at phone width. */
 const WINDOW_HOURS = 24
 /** The plot's share of the frame, matching the app's 150pt of an 850pt screen. */
@@ -1318,7 +1354,7 @@ const PLOT_MIN = 140
 const PLOT_MAX = 220
 
 export function CurrentScrubStrip({
-  station, days, from, to, scrubTime, width, height, seconds,
+  station, days, from, to, scrubTime, seconds,
 }: {
   station: BundledStation
   days: SkyDays
@@ -1326,10 +1362,10 @@ export function CurrentScrubStrip({
   from: Date
   to: Date
   scrubTime: Date
-  width: number
-  height: number
   seconds: number
 }) {
+  const frame = useRef<HTMLDivElement>(null)
+  const { width, height } = useBox(frame)
   const plot = Math.min(PLOT_MAX, Math.max(PLOT_MIN, height * PLOT_FRACTION))
   const skyHeight = height - plot + SKY_HORIZON_OVERLAP
 
@@ -1359,7 +1395,7 @@ export function CurrentScrubStrip({
   const state = slack ? 'Slack' : level > 0 ? 'Flooding' : 'Ebbing'
 
   return (
-    <div className="relative h-full w-full">
+    <div ref={frame} className="relative h-full w-full">
       <Sky state={skyState({ time: scrubTime, latitude: station.latitude, longitude: station.longitude, days })}
         width={width} height={skyHeight} seconds={seconds} />
 
@@ -1541,10 +1577,6 @@ import { HERO_STATION } from '#/lib/currents'
 import { TESTFLIGHT } from '#/lib/links'
 import { hhmm } from '#/lib/format'
 
-/** The viewBox the strip is drawn in. SVG scales it; type stays readable. */
-const FRAME_WIDTH = 900
-const FRAME_HEIGHT = 620
-
 export function ScrubHero() {
   const { now, live } = useLiveNow()
   const { from, to, scrubTime, seconds } = useScrubIntro(HERO_STATION, now, live)
@@ -1557,7 +1589,7 @@ export function ScrubHero() {
   return (
     <section className="relative w-full overflow-hidden" style={{ height: '100dvh', minHeight: 560 }}>
       <CurrentScrubStrip station={HERO_STATION} days={days} from={from} to={to}
-        scrubTime={scrubTime} width={FRAME_WIDTH} height={FRAME_HEIGHT} seconds={seconds} />
+        scrubTime={scrubTime} seconds={seconds} />
 
       <div className="absolute inset-x-0 top-0 flex justify-center px-5 pt-10 sm:pt-16">
         <div className="max-w-xl rounded-2xl border border-white/15 bg-sw-navy-deep/40 px-6 py-5 text-center backdrop-blur-sm">
