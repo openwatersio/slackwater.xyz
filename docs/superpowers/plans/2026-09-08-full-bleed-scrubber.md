@@ -741,10 +741,13 @@ describe('drawSky', () => {
     expect(fills(day)).toBeLessThan(6)
   })
 
-  it('never draws a star at zero alpha', () => {
-    const { ctx, alphas } = recorder()
+  it('fades stars through the ramp instead of drawing them at full strength', () => {
+    const { ctx, alphas, calls } = recorder()
     drawSky(ctx, at(new Date(SUNRISE.getTime() - 4 * 3600_000)), geo)
-    expect(alphas.every((a) => a > 0)).toBe(true)
+    // starOpacity caps at 0.7; anything above means the ramp was bypassed.
+    expect(Math.max(...alphas)).toBeLessThanOrEqual(0.7)
+    // The haze guard drops stars below the horizon, so not all 288 are drawn.
+    expect(calls.filter((c) => c === 'fill').length).toBeLessThan(288)
   })
 
   it('balances every save with a restore', () => {
@@ -775,7 +778,7 @@ Create `src/lib/sky-draw.ts`:
 
 ```ts
 import {
-  MOON_GLYPH_SIZE, SUN_DISC_RADIUS, SUN_GLOW_RADIUS,
+  MOON_GLYPH_SIZE, SKY_ALTITUDE_SCALE, SUN_DISC_RADIUS, SUN_GLOW_RADIUS,
   moonGlareOpacity, moonGlowRadius, skyPoint, starHazeOpacity, starOpacity, starTwinkle,
 } from './sky'
 import type { SkyState } from './sky-state'
@@ -796,6 +799,9 @@ export interface SkySurface {
 }
 
 const TAU = Math.PI * 2
+/** Below these a body's whole symbol is under the horizon. Radii are pixels and the scale is pixels per degree, so the quotient is degrees. */
+const SUN_FLOOR_DEG = -SUN_DISC_RADIUS / SKY_ALTITUDE_SCALE
+const MOON_FLOOR_DEG = -(MOON_GLYPH_SIZE / 2) / SKY_ALTITUDE_SCALE
 /** The moon's own ink; the sky's colours are the gradient's, not the canvas's. */
 const MOON_INK = '#e6eeff'
 const STAR_INK = '#ffffff'
@@ -832,7 +838,7 @@ export function drawSky(
   }
 
   // Below the horizon a body is past an edge, so nothing is drawn for it.
-  const sunPoint = state.sun && state.sun.altDeg > -SUN_DISC_RADIUS / 3
+  const sunPoint = state.sun && state.sun.altDeg > SUN_FLOOR_DEG
     ? skyPoint({ azimuth: state.sun.azDeg, altitude: state.sun.altDeg, span: state.sunSpan, pad: SUN_DISC_RADIUS, ...size })
     : undefined
   if (sunPoint) {
@@ -840,7 +846,7 @@ export function drawSky(
     disc(ctx, sunPoint.x, sunPoint.y, SUN_DISC_RADIUS, SUN_INK, 1)
   }
 
-  if (state.moon && state.illumination && state.moon.altDeg > -MOON_GLYPH_SIZE / 6) {
+  if (state.moon && state.illumination && state.moon.altDeg > MOON_FLOOR_DEG) {
     const point = skyPoint({
       azimuth: state.moon.azDeg, altitude: state.moon.altDeg, span: state.moonSpan,
       pad: MOON_GLYPH_SIZE / 2, ...size,
@@ -857,11 +863,7 @@ export function drawSky(
   ctx.globalAlpha = 1
 }
 
-/**
- * The lit region as a disc masked by the terminator. The terminator is a
- * half-ellipse on the limb's own axis whose width is `r · |1 − 2·fraction|`,
- * and `rotate` aims the lit limb at the sun.
- */
+/** `rotate` aims the lit limb at the sun; without it a dawn crescent points the wrong way. */
 function drawMoonGlyph(
   ctx: SkySurface, cx: number, cy: number, fraction: number, lightAngle: number, alpha: number,
 ) {
@@ -873,8 +875,7 @@ function drawMoonGlyph(
   ctx.rotate(lightAngle)
   ctx.beginPath()
   ctx.arc(0, 0, r, -Math.PI / 2, Math.PI / 2)
-  // Bows toward the lit limb below half phase and away from it above, so the
-  // sweep flips at exactly the quarters.
+  // Non-obvious: the sweep flips at exactly the quarters, where the terminator's bow reverses.
   ctx.ellipse(0, 0, r * Math.abs(1 - 2 * fraction), r, 0, Math.PI / 2, -Math.PI / 2, fraction < 0.5)
   ctx.fill()
   ctx.restore()
