@@ -32,6 +32,11 @@ describe('ScrubHero', () => {
     expect(html).toContain('100dvh')
   })
 
+  it('gives the pill the app’s card corner and hairline', () => {
+    expect(html).toContain('rounded-3xl')
+    expect(html).toContain('border-sw-card-stroke')
+  })
+
   it('leaves the clock to the readout, where the app puts it', () => {
     // The caption keeps the station and the claim; the time belongs to the lead card.
     expect(html).toContain('computed in this browser')

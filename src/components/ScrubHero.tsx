@@ -21,7 +21,7 @@ export function ScrubHero() {
         scrubTime={scrubTime} seconds={seconds} live={live} />
 
       <div className="absolute inset-x-0 top-0 flex justify-center px-5 pt-10 sm:pt-16">
-        <div className="max-w-xl rounded-2xl border border-white/15 bg-sw-navy-deep/40 px-6 py-5 text-center backdrop-blur-sm">
+        <div className="max-w-xl rounded-3xl border border-sw-card-stroke bg-sw-navy-deep/40 px-6 py-5 text-center shadow-card backdrop-blur-sm">
           <h1 className="whitespace-nowrap text-4xl font-semibold tracking-tight text-sw-paper sm:text-5xl">
             Slackwater
           </h1>

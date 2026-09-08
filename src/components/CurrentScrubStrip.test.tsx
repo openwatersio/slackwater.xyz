@@ -85,7 +85,8 @@ describe('CurrentScrubStrip', () => {
       />,
     )
     expect(live).toContain('rotate(')
-    expect(live).toMatch(/N|NNE|NE|ENE|E|ESE|SE|SSE|S|SSW|SW|WSW|W|WNW|NW|NNW/)
+    // The station's own set, not a loose alternation: the station name contains an N.
+    expect(live).toMatch(/>(ESE|WNW)</)
   })
 
   it('still says nothing about the present when it has no live clock', () => {
