@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { drawSky } from './sky-draw'
-import { SUN_DISC_RADIUS } from './sky'
+import { MOON_GLYPH_SIZE, SUN_DISC_RADIUS } from './sky'
 import { skyDays, skyState } from './sky-state'
 import type { SkySurface } from './sky-draw'
 
@@ -93,6 +93,17 @@ describe('drawSky', () => {
     expect(Math.max(...tall.arcs)).toBeCloseTo(Math.max(...short.arcs) * 4, 0)
     expect(short.arcs).toContain(SUN_DISC_RADIUS)
     expect(tall.arcs).toContain(SUN_DISC_RADIUS * 4)
+  })
+
+  it('draws the moon on its own dark limb, not as a floating sliver', () => {
+    const { ctx, arcs } = recorder()
+    // Near a new moon the lit region is a thin crescent; the limb disc is what
+    // makes it read as a moon at all.
+    const state = at(new Date(SUNRISE.getTime() + 3 * 3600_000))
+    expect(state.illumination!.fraction).toBeLessThan(0.15)
+    drawSky(ctx, state, geo)
+    const stretch = geo.height / (62 * 3)
+    expect(arcs).toContain((MOON_GLYPH_SIZE / 2) * stretch)
   })
 
   it('draws no moon while the moon is below the horizon', () => {

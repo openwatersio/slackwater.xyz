@@ -31,6 +31,11 @@ const SKY_VISIBLE_CEILING_DEG = 62
 /** The moon's own inks; the sky's colours are the gradient's, not the canvas's. */
 const MOON_INK = '#e6eeff'
 const MOON_HALO_INK = '#cfe0ff'
+/** `SN.moonLimb`, shown at 0.18 — the disc the lit region sits on. */
+const MOON_LIMB_INK = '#00122c'
+const MOON_LIMB_ALPHA = 0.92 * 0.18
+/** The lit region is `SN.foam`, not the glow's ink. */
+const MOON_LIT_INK = '#e4f0e4'
 const STAR_INK = '#ffffff'
 const SUN_INK = '#f0c860'
 /** `SkyBackdrop` blurs the sun's glow by this much before compositing it. */
@@ -107,13 +112,14 @@ export function drawSky(
     ? place(skyPoint({ azimuth: state.sun.azDeg, altitude: state.sun.altDeg, span: state.sunSpan, pad: SUN_DISC_RADIUS * stretch, ...size }))
     : undefined
   if (sunPoint) {
-    // The blur spreads the disc's edge either way, so the drawn glow reaches
-    // past the app's radius and holds full strength inside it.
-    const reach = (SUN_GLOW_RADIUS + SUN_GLOW_BLUR) * stretch
-    const plateau = (SUN_GLOW_RADIUS - SUN_GLOW_BLUR) / (SUN_GLOW_RADIUS + SUN_GLOW_BLUR)
+    // A Gaussian of this radius still carries weight three deviations out, so
+    // the glow reaches well past the app's disc and fades rather than stopping.
+    const reach = (SUN_GLOW_RADIUS + 3 * SUN_GLOW_BLUR) * stretch
+    const plateau = (SUN_GLOW_RADIUS - SUN_GLOW_BLUR) / (SUN_GLOW_RADIUS + 3 * SUN_GLOW_BLUR)
     glow(ctx, sunPoint.x, sunPoint.y, reach, [
       [0, withAlpha(SUN_INK, 0.24)],
       [plateau, withAlpha(SUN_INK, 0.24)],
+      [0.55, withAlpha(SUN_INK, 0.10)],
       [1, withAlpha(SUN_INK, 0)],
     ], 1)
     disc(ctx, sunPoint.x, sunPoint.y, SUN_DISC_RADIUS * stretch, SUN_INK, 1)
@@ -140,7 +146,8 @@ export function drawSky(
         [0.45, withAlpha(MOON_HALO_INK, 0.28 * lit)],
         [1, withAlpha(MOON_HALO_INK, 0)],
       ], visible)
-      drawMoonGlyph(ctx, point.x, point.y, fraction, state.moonLightAngle, visible, MOON_GLYPH_SIZE * stretch)
+      drawMoonGlyph(ctx, point.x, point.y, fraction, state.moonLightAngle, visible,
+        MOON_GLYPH_SIZE * stretch, stretch)
     }
   }
   ctx.globalAlpha = 1
@@ -149,12 +156,17 @@ export function drawSky(
 /** `rotate` aims the lit limb at the sun; without it a dawn crescent points the wrong way. */
 function drawMoonGlyph(
   ctx: SkySurface, cx: number, cy: number, fraction: number, lightAngle: number, alpha: number,
-  size: number,
+  size: number, stretch: number,
 ) {
-  const r = size / 2
+  // The whole disc, under the lit region: without it a thin crescent reads as a
+  // floating sliver instead of a moon.
+  disc(ctx, cx, cy, size / 2, MOON_LIMB_INK, alpha * MOON_LIMB_ALPHA)
+
+  // The app insets the lit path a point inside the limb.
+  const r = size / 2 - stretch
   ctx.save()
   ctx.globalAlpha = alpha
-  ctx.fillStyle = MOON_INK
+  ctx.fillStyle = MOON_LIT_INK
   ctx.translate(cx, cy)
   ctx.rotate(lightAngle)
   ctx.beginPath()
