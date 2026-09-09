@@ -124,12 +124,18 @@ export function drawSky(
       azimuth: state.moon.azDeg, altitude: state.moon.altDeg, span: state.moonSpan,
       pad: (MOON_GLYPH_SIZE / 2) * stretch, ...size,
     }))
-    const glare = sunPoint ? Math.hypot(sunPoint.x - point.x, sunPoint.y - point.y) : Infinity
+    // Back into the app's points before comparing: `moonGlareOpacity`'s
+    // thresholds are its own radii, and both symbols carry the stretch.
+    const glare = sunPoint ? Math.hypot(sunPoint.x - point.x, sunPoint.y - point.y) / stretch : Infinity
     const visible = moonGlareOpacity(glare)
     if (visible > 0) {
       const fraction = state.illumination.fraction
       const lit = 0.1 + fraction * 0.66
-      glow(ctx, point.x, point.y, moonGlowRadius(fraction) * stretch, [
+      // The app pushes the glow four points sunward, so the lit limb reads brighter.
+      const toSun = state.moonLightAngle
+      const glowX = point.x + 4 * stretch * Math.cos(toSun)
+      const glowY = point.y + 4 * stretch * Math.sin(toSun)
+      glow(ctx, glowX, glowY, moonGlowRadius(fraction) * stretch, [
         [0, withAlpha(MOON_INK, 0.95 * lit)],
         [0.45, withAlpha(MOON_HALO_INK, 0.28 * lit)],
         [1, withAlpha(MOON_HALO_INK, 0)],

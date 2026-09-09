@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { drawSky } from './sky-draw'
+import { SUN_DISC_RADIUS } from './sky'
 import { skyDays, skyState } from './sky-state'
 import type { SkySurface } from './sky-draw'
 
@@ -55,7 +56,12 @@ describe('drawSky', () => {
 
   it('fades stars through the ramp instead of drawing them at full strength', () => {
     const { ctx, alphas, calls } = recorder()
-    drawSky(ctx, at(new Date(SUNRISE.getTime() - 4 * 3600_000)), geo)
+    const night = at(new Date(SUNRISE.getTime() - 4 * 3600_000))
+    // Only stars are drawn here, which is what makes the cap below meaningful:
+    // a body's glow carries its own alpha and would swamp it.
+    expect(night.sun!.altDeg).toBeLessThan(-6)
+    expect(night.moon!.altDeg).toBeLessThan(0)
+    drawSky(ctx, night, geo)
     // starOpacity caps at 0.7; anything above means the ramp was bypassed.
     expect(Math.max(...alphas)).toBeLessThanOrEqual(0.7)
     // The haze guard drops stars below the horizon, so not all 288 are drawn.
@@ -82,7 +88,11 @@ describe('drawSky', () => {
     // 186px is the app's own band at three pixels per degree; 744 is four of it.
     drawSky(short.ctx, state, { ...geo, height: 186 })
     drawSky(tall.ctx, state, { ...geo, height: 744 })
+    // The widest arc is the glow's reach; the disc is checked by name, since a
+    // glow that scaled while the disc did not would satisfy the first alone.
     expect(Math.max(...tall.arcs)).toBeCloseTo(Math.max(...short.arcs) * 4, 0)
+    expect(short.arcs).toContain(SUN_DISC_RADIUS)
+    expect(tall.arcs).toContain(SUN_DISC_RADIUS * 4)
   })
 
   it('draws no moon while the moon is below the horizon', () => {
