@@ -11,22 +11,30 @@ const SUNRISE = new Date('2026-09-08T13:38:01Z')
 function recorder() {
   const calls: string[] = []
   const alphas: number[] = []
+  const arcs: number[] = []
   const ctx = {
     fillStyle: '',
     globalAlpha: 1,
     save: () => calls.push('save'),
     restore: () => calls.push('restore'),
     beginPath: () => calls.push('beginPath'),
-    arc: () => calls.push('arc'),
+    arc: (_x: number, _y: number, r: number) => {
+      calls.push('arc')
+      arcs.push(r)
+    },
     ellipse: () => calls.push('ellipse'),
     translate: () => calls.push('translate'),
     rotate: () => calls.push('rotate'),
+    createRadialGradient: () => {
+      calls.push('gradient')
+      return { addColorStop: () => {} } as CanvasGradient
+    },
     fill: () => {
       calls.push('fill')
       alphas.push(ctx.globalAlpha)
     },
   } as SkySurface & { globalAlpha: number }
-  return { ctx, calls, alphas }
+  return { ctx, calls, alphas, arcs }
 }
 
 const geo = { width: 400, height: 300, seconds: 0, reduceMotion: true }
@@ -58,6 +66,23 @@ describe('drawSky', () => {
     const { ctx, calls } = recorder()
     drawSky(ctx, at(SUNRISE), geo)
     expect(calls.filter((c) => c === 'save')).toHaveLength(calls.filter((c) => c === 'restore').length)
+  })
+
+  it('gives the bodies a soft glow rather than a flat ring', () => {
+    const { ctx, calls } = recorder()
+    // Mid-morning: the sun is well up and the moon is still above the horizon.
+    drawSky(ctx, at(new Date(SUNRISE.getTime() + 3 * 3600_000)), geo)
+    expect(calls.filter((c) => c === 'gradient').length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('scales the bodies with the band, so the sun is not a dot in a tall sky', () => {
+    const state = at(new Date(SUNRISE.getTime() + 3 * 3600_000))
+    const short = recorder()
+    const tall = recorder()
+    // 186px is the app's own band at three pixels per degree; 744 is four of it.
+    drawSky(short.ctx, state, { ...geo, height: 186 })
+    drawSky(tall.ctx, state, { ...geo, height: 744 })
+    expect(Math.max(...tall.arcs)).toBeCloseTo(Math.max(...short.arcs) * 4, 0)
   })
 
   it('draws no moon while the moon is below the horizon', () => {

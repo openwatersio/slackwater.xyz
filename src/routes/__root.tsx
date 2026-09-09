@@ -6,7 +6,7 @@ export const SITE_TITLE = 'Slackwater — Tides & Currents'
 
 /** Shared by the meta description, og:description and the JSON-LD. */
 export const SITE_DESCRIPTION =
-  'All tide and current predictions, offline on your phone. Works on the water, on the beach, in the anchorage — no bars and nothing to load.'
+  'Tides & currents, always offline and free. Works on the water, on the beach, in the anchorage — no bars and nothing to load.'
 
 export const Route = createRootRoute({
   head: () => ({

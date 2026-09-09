@@ -26,7 +26,7 @@ export function ScrubHero() {
             Slackwater
           </h1>
           <p className="mt-3 text-lg leading-snug text-sw-foam">
-            All tide and current predictions, offline on your phone.
+            Tides &amp; currents, always offline and free.
           </p>
           <div className="mt-5">
             {TESTFLIGHT ? (
