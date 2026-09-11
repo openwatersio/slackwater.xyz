@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
 
 /**
- * The moment every server render freezes at.
+ * The moment every server render freezes at: the build clock.
  *
- * A literal, not `new Date()`: the latter would bake build time into all
- * 5,624 prerendered pages AND differ between server and client, which is a
- * hydration mismatch. Module scope so its identity is stable across renders —
- * it is read, never mutated.
+ * `__BUILD_NOW__` is one ISO timestamp injected by Vite's `define` (see
+ * vite.config.ts), so the server and client bundles read the same instant —
+ * `new Date()` at module scope would evaluate separately in each, and the
+ * difference is a hydration mismatch. The value is as old as the deploy, which
+ * the nightly rebuild in .github/workflows/deploy.yml keeps under a day.
+ * Module scope so its identity is stable across renders — it is read, never
+ * mutated.
  */
-const SERVER_NOW = new Date('2026-08-21T12:00:00Z')
+export const SERVER_NOW = new Date(__BUILD_NOW__)
 
 /**
  * The clock, and whether it is the real one yet.
