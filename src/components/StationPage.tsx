@@ -6,7 +6,7 @@ import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
 import { TESTFLIGHT } from '#/lib/links'
 import type { StationRow } from '#/lib/catalogue-server'
 import type { Sample, StationEvent } from '#/lib/predict'
-import type { ChsStation, Station } from '#/lib/station'
+import { stationPath, type ChsStation, type Station } from '#/lib/station'
 
 /**
  * One Canadian station's day, once DFO has sent it back.
@@ -257,7 +257,6 @@ function ChsGate({
  */
 function Nearby({ station, rows }: { station: Station; rows: StationRow[] }) {
   if (!rows.length) return null
-  const base = station.kind === 'tide' ? '/tides/' : '/currents/'
   const all = station.kind === 'tide' ? '/stations/tides/' : '/stations/currents/'
   return (
     <section className="mt-12">
@@ -265,7 +264,7 @@ function Nearby({ station, rows }: { station: Station; rows: StationRow[] }) {
       <ul className="mt-3 grid gap-x-6 gap-y-1 sm:grid-cols-2">
         {rows.map((r) => (
           <li key={r.slug}>
-            <a href={`${base}${r.slug}/`} className="text-sw-paper/90 hover:text-sw-leaf">
+            <a href={stationPath(station.kind, r.slug)} className="text-sw-paper/90 hover:text-sw-leaf">
               {r.name}
             </a>
           </li>

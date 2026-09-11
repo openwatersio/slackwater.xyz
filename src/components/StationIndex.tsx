@@ -1,5 +1,5 @@
 import type { StationRow } from '#/lib/catalogue-server'
-import type { Kind } from '#/lib/station'
+import { stationPath, type Kind } from '#/lib/station'
 
 /** Stations with no region of their own, gathered at the end rather than dropped. */
 const UNPLACED = 'Elsewhere'
@@ -87,12 +87,11 @@ export function StationIndex({ kind, rows }: { kind: Kind; rows: StationRow[] })
 }
 
 function List({ kind, rows }: { kind: Kind; rows: StationRow[] }) {
-  const base = kind === 'tide' ? '/tides/' : '/currents/'
   return (
     <ul className="mt-3 grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
       {rows.map((r) => (
         <li key={r.slug}>
-          <a href={`${base}${r.slug}/`} className="text-sw-paper/90 hover:text-sw-leaf">
+          <a href={stationPath(kind, r.slug)} className="text-sw-paper/90 hover:text-sw-leaf">
             {r.name}
           </a>
         </li>

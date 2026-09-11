@@ -88,6 +88,9 @@ export function chsStations(kind: Kind): ChsStation[] {
       id, kind, slug, source: 'chs',
       name: entry.name,
       ...(entry.context ? { region: entry.context } : {}),
+      // Every CHS station is Canadian by definition of the provider. The
+      // registry publishes no subdivision, so there is no state to carry.
+      country: 'Canada',
       // Carried through so the page knows not to offer a curve it cannot
       // fetch: a derived gate has no CHS current station, and resolving its
       // position would land on real water 47 km away down another inlet.

@@ -121,6 +121,34 @@ describe('loadCatalogue', () => {
     expect(bp?.region).toBe('Saturna & Patos Islands')
   })
 
+  it('places a station in a country, and a US one in its state', () => {
+    // `state` is the provider's own subdivision code, which is a two-letter one
+    // only where the provider publishes one. Canadian rows carry GeoNames
+    // numerics ("02") — a heading reading "02" is worse than no heading, so
+    // they get no state at all rather than a code no reader can place.
+    const seattle = all.find((s) => s.kind === 'tide' && s.slug === 'seattle')
+    expect(seattle?.country).toBe('United States')
+    expect(seattle?.state).toBe('WA')
+
+    const canadian = all.find((s) => s.kind === 'tide' && s.slug === 'jim-creek')
+    expect(canadian?.country).toBe('Canada')
+    expect(canadian?.state).toBeUndefined()
+
+    // A few Canadian rows carry a stray US code ("MI" on the Ontario side of
+    // the Detroit River). A state that contradicts the country is no state.
+    const stray = all.find((s) => s.kind === 'tide' && s.country === 'Canada' && /^[A-Z]{2}$/.test(String(s.state)))
+    expect(stray).toBeUndefined()
+
+    // The NOAA current bundle carries neither field, so the country is the one
+    // fact the corpus itself establishes.
+    const pass = all.find((s) => s.kind === 'current' && s.id === 'noaa/PUG1701')
+    expect(pass?.country).toBe('United States')
+
+    // CHS identity comes from the registry, which publishes no country field.
+    const chs = all.find((s) => s.source === 'chs')
+    expect(chs?.country).toBe('Canada')
+  })
+
   it('collapses a merged pair to one row', () => {
     // station-metadata 4.1.2 points both ids of a merged pair at one slug. Only
     // one half is buildable today, so this passes before the dedupe exists - it
