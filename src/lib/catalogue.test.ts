@@ -136,13 +136,20 @@ describe('loadCatalogue', () => {
 
     // A few Canadian rows carry a stray US code ("MI" on the Ontario side of
     // the Detroit River). A state that contradicts the country is no state.
-    const stray = all.find((s) => s.kind === 'tide' && s.country === 'Canada' && /^[A-Z]{2}$/.test(String(s.state)))
+    const stray = all.find((s) => s.source === 'bundled' && s.country === 'Canada' && s.state !== undefined)
     expect(stray).toBeUndefined()
 
     // The NOAA current bundle carries neither field, so the country is the one
     // fact the corpus itself establishes.
     const pass = all.find((s) => s.kind === 'current' && s.id === 'noaa/PUG1701')
     expect(pass?.country).toBe('United States')
+
+    // A CHS port on this coast is in British Columbia; one on the other coast
+    // gets no province rather than a wrong one.
+    const victoria = all.find((s) => s.id === 'chs-victoria')
+    expect(victoria?.state).toBe('BC')
+    const brasdor = all.find((s) => s.id === 'chs-great-bras-dor')
+    expect(brasdor?.state).toBeUndefined()
 
     // CHS identity comes from the registry, which publishes no country field.
     const chs = all.find((s) => s.source === 'chs')

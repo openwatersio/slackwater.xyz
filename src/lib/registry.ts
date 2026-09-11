@@ -89,8 +89,13 @@ export function chsStations(kind: Kind): ChsStation[] {
       name: entry.name,
       ...(entry.context ? { region: entry.context } : {}),
       // Every CHS station is Canadian by definition of the provider. The
-      // registry publishes no subdivision, so there is no state to carry.
+      // registry publishes no subdivision, but the query this page competes
+      // for is "tides victoria bc", so the province has to be in the title.
+      // ponytail: west of the Rockies and south of 60° is British Columbia for
+      // every station in this curated set; the unified station database
+      // supplies a real region_code and retires this line.
       country: 'Canada',
+      ...(entry.position[1] < -114 && entry.position[0] < 60 ? { state: 'BC' } : {}),
       // Carried through so the page knows not to offer a curve it cannot
       // fetch: a derived gate has no CHS current station, and resolving its
       // position would land on real water 47 km away down another inlet.
