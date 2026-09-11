@@ -146,15 +146,35 @@ function Home() {
           <p className="mt-4 text-sm text-sw-steel">Free. Open source. No account, no ads.</p>
         </div>
 
-        {/* The shot runs taller than the hero, so it is clipped and faded into
-            the page rather than scaled down: the readout, the countdown to the
-            low and the curve are what sell it, and they all sit in the top half. */}
+        {/* The recording runs taller than the hero, so it is clipped and faded
+            into the page. The day poster remains when motion is reduced or
+            autoplay is unavailable. */}
         <div className="mx-auto h-[540px] w-full max-w-[360px] overflow-hidden [mask-image:linear-gradient(to_bottom,black_65%,transparent)] sm:h-[640px]">
-          <Shot
-            src="/shots/tides-night.webp"
-            alt="Friday Harbor in the app at 11:30pm under a starry sky with a full moon: falling to 1.7 feet, the low 5 minutes later, a 5.2 foot range, and the week's highs and lows listed underneath."
-            eager
-          />
+          <figure className="@container m-0">
+            <video
+              autoPlay
+              muted
+              playsInline
+              preload="metadata"
+              poster="/shots/tides-day.webp"
+              width={780}
+              height={1694}
+              aria-label="Friday Harbor in Slackwater scrubbing from afternoon into a full-moon night."
+              className="w-full rounded-[min(3rem,13cqw)] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
+            >
+              <source
+                src="/shots/tides-day-to-night.mp4"
+                type="video/mp4"
+                media="(prefers-reduced-motion: no-preference)"
+              />
+              <img
+                src="/shots/tides-night.webp"
+                alt="Friday Harbor in Slackwater at 11:30pm under a starry sky with a full moon."
+                width={780}
+                height={1695}
+              />
+            </video>
+          </figure>
         </div>
       </header>
 
