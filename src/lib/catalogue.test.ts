@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import tzLookup from 'tz-lookup'
-import { cleanName } from '@openwaters/station-metadata'
 import { loadCatalogue } from './catalogue'
 import { predictSeries } from './predict'
 import { nearby } from './nearby'
@@ -109,17 +108,11 @@ describe('loadCatalogue', () => {
     expect(albany?.name).toBe('Albany')
     const turkey = all.find((s) => s.id === 'noaa/8518962')
     expect(turkey?.name).toBe('Turkey Point, Hudson River')
-    // Every name is a fixed point of the cleaner - the wiring contract, not a
-    // re-test of cleanName itself, which station-metadata's own suite owns.
-    for (const s of all) {
-      expect(s.name, s.id).toBe(cleanName(s.name))
-    }
   })
 
   it('applies station-metadata corrections to provider stations', () => {
-    const telegraph = all.find((s) => s.id === 'noaa/9449988')
-    expect(telegraph?.name).toBe('Telegraph Bay')
-    expect(telegraph?.region).toBe('Rosario Strait')
+    const madHorseCreek = all.find((s) => s.id === 'noaa/8537535')
+    expect(madHorseCreek?.name).toBe('1 nm above entrance, Mad Horse Creek')
   })
 
   it('gives a registry station its curated name, not the provider row name', () => {

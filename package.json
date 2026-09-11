@@ -18,7 +18,7 @@
     "@neaps/tide-database": "^0.9.20260907",
     "@neaps/tide-predictor": "^0.11.0",
     "@openwaters/noaa-current-stations": "^0.5.0",
-    "@openwaters/station-metadata": "^5.3.1",
+    "@openwaters/station-metadata": "^5.3.2",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-router": "^1.170.34",
     "@tanstack/react-start": "^1.168.51",
