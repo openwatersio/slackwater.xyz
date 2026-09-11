@@ -252,7 +252,7 @@ function ChsGate({
 /**
  * Neighbouring stations, which are the question a reader actually has next:
  * the water at the next headland, not the same water again. Also the only
- * thing linking station pages to each other — without it all 3,607 are
+ * thing linking station pages to each other — without it all 5,624 are
  * reachable from the sitemap and nothing else.
  */
 function Nearby({ station, rows }: { station: Station; rows: StationRow[] }) {
@@ -285,7 +285,7 @@ function Nearby({ station, rows }: { station: Station; rows: StationRow[] }) {
  * so every station page has to offer the app. Kept honest against what ships —
  * tides are worldwide, currents are not (see the corpus split in the catalogue).
  *
- * The home link is not decoration: without it all 3,607 station pages are
+ * The home link is not decoration: without it all 5,624 station pages are
  * orphans with no internal link back into the site.
  */
 function Cta({ station }: { station: Station }) {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
  * The moment every server render freezes at.
  *
  * A literal, not `new Date()`: the latter would bake build time into all
- * 3,607 prerendered pages AND differ between server and client, which is a
+ * 5,624 prerendered pages AND differ between server and client, which is a
  * hydration mismatch. Module scope so its identity is stable across renders —
  * it is read, never mutated.
  */

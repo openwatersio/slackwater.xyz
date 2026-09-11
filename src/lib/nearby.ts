@@ -30,7 +30,7 @@ export function distanceNm(a: Positioned, b: Positioned): number {
 export function nearby(station: Station, all: Station[], k = 6): Station[] {
   // Top-k by insertion rather than sorting every candidate: this runs once per
   // station while building the whole neighbour map, so the difference between
-  // O(n) and O(n log n) per station is real at 3,607 stations.
+  // O(n) and O(n log n) per station is real at 5,624 stations.
   const best: { s: Station; d: number }[] = []
   for (const s of all) {
     if (s.kind !== station.kind || s.id === station.id) continue
@@ -49,7 +49,7 @@ export function nearby(station: Station, all: Station[], k = 6): Station[] {
  *
  * Built once and reused, NOT recomputed per page. Doing it per render spread
  * the whole catalogue into a fresh array and ranked it again for each of the
- * 3,607 prerendered pages, which pushed page renders past three seconds and
+ * 5,624 prerendered pages, which pushed page renders past three seconds and
  * broke the prerender's Worker connections outright on CI.
  *
  * ponytail: still O(n^2) distance calculations, ~13M for the current corpus,

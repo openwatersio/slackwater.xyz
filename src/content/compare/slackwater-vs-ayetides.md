@@ -20,7 +20,7 @@ If you already own AyeTides and it answers your questions, there is no reason to
 |---|---|---|
 | Price | $7.99 once, no IAP, no ads | Free core; optional paid lock screen add-on |
 | Shipping since | ~2010 | 2026, public beta |
-| Tides | 12,500+ locations worldwide, tides and/or currents | 2,775 stations worldwide |
+| Tides | 12,500+ locations worldwide, tides and/or currents | 4,792 stations worldwide |
 | Currents | Harmonic current stations, table of slack and max | Stations with slack time and duration, max flood/ebb speed and set, scrubbable curve |
 | Currents outside US and Canada | Some | None |
 | Canada currents | Sparse; BC stations mostly placed to the nearest arc-minute | 23 CHS gates from Salish Sea to Cape Breton, checked against CHS predictions |
@@ -73,7 +73,7 @@ then work offline.
 
 ## Coverage everywhere else
 
-Both apps predict tides worldwide. Slackwater ships 2,775 tide stations, each one naming
+Both apps predict tides worldwide. Slackwater ships 4,792 tide stations, each one naming
 its source, datum and licence, from an open dataset that is maintained. AyeTides lists
 12,500 locations, tides and/or currents, and does not say per station where the
 constituents came from or when they were last updated. Two in three of its stations

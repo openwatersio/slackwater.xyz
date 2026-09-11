@@ -38,7 +38,7 @@ export interface StationRow {
  * Every station of one kind, for the browse index.
  *
  * Deliberately NOT `Station[]`: the full record carries the harmonic
- * constituents, and 2,775 of those serialised into a page's loader data would
+ * constituents, and 4,792 of those serialised into a page's loader data would
  * put the tide database back on the wire that `stationBySlug` exists to keep it
  * off. Three fields per station is the whole payload.
  */
@@ -61,7 +61,7 @@ export const stationList = createServerFn({ method: 'GET' })
  * The nearest stations of the same kind, for the "Nearby" list on a station page.
  *
  * The neighbour map is built once on first use and reused for every page after.
- * Ranking the catalogue per request instead put every one of the 3,607
+ * Ranking the catalogue per request instead put every one of the 5,624
  * prerendered renders past three seconds and broke the prerender outright.
  */
 const neighbours = (() => {
