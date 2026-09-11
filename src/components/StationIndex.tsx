@@ -27,7 +27,7 @@ const isPlace = (region: string) => !/^\d+$/.test(region)
  * A quarter is the line: below it, region data is too thin to be worth the
  * extra furniture and the page stays one flat list (currents, at 2.8%
  * placed); at or above it, region carries enough of the corpus that
- * grouping earns its place (tides, at 94.8% placed).
+ * grouping earns its place (tides, at 95.9% placed).
  */
 const PLACED_SHARE_TO_GROUP = 0.25
 
@@ -48,8 +48,8 @@ function group(rows: StationRow[]): [string, StationRow[]][] {
 /**
  * Every station of one kind, on one page.
  *
- * One page rather than a page per region: the regions are a long tail — 237 of
- * the 461 hold a single station — so a route per region would mint hundreds of
+ * One page rather than a page per region: the regions are a long tail — 286 of
+ * the 542 hold a single station — so a route per region would mint hundreds of
  * pages carrying one link each, which is the thin-content problem the corpus
  * already has to answer for.
  *

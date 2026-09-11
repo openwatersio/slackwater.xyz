@@ -34,7 +34,7 @@ describe('chsStations for the current gates', () => {
     const dodd = chsStations('current').find((g) => g.id === 'chs-dodd-narrows')
     expect(dodd?.name).toBe('Dodd Narrows')
     expect(dodd?.slug).toBe('dodd-narrows')
-    expect(dodd?.region).toBe('Nanaimo')
+    expect(dodd?.region).toBe('Northumberland Channel')
     expect(dodd?.timezone).toBe('America/Vancouver')
   })
 })

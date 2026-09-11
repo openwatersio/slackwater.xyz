@@ -301,7 +301,7 @@ function Home() {
           Every station has its own page, so a link you send works for someone who hasn&rsquo;t
           installed anything:{' '}
           <a href="/stations/tides/" className="underline underline-offset-4">
-            2,775 tide stations
+            4,792 tide stations
           </a>{' '}
           and{' '}
           <a href="/stations/currents/" className="underline underline-offset-4">

@@ -20,7 +20,7 @@ export interface StationEvent {
  * Predictors are built per station and cached by id.
  *
  * The previous shape bound one predictor to one bundled station at module
- * scope, which is why every export here now takes a station: a page for 3,607
+ * scope, which is why every export here now takes a station: a page for 5,624
  * stations cannot share one. The cache keeps a hot station cheap without making
  * the module stateful in a way that leaks across stations - the key is the id,
  * so two stations can never collide.

@@ -104,6 +104,14 @@ export function loadCatalogue(): Station[] {
       } else {
         const r = currents.get(id)
         if (!r) throw new Error(`catalogue: no current data for ${id}`)
+        // A subordinate station carries no constituents of its own: NOAA
+        // publishes it as time offsets and flood/ebb speed ratios reduced
+        // against a reference station, and `predict.ts` sums constituents.
+        // Building one anyway produces a page with a head and no body, which
+        // is what 1,692 of these did the first time the slug table grew to
+        // include them. The reduction is a prediction the site does not do
+        // yet, so the station does not get a page yet — see #80.
+        if (!r.constituents) continue
         const latitude = Number(r.latitude)
         const longitude = Number(r.longitude)
         // The current bundle carries no timezone field at all - derive one from

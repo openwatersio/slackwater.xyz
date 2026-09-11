@@ -8,8 +8,8 @@ currents across the US and Canada.
 ## What this is
 
 The marketing site — and, now, a page per station. It explains the app, points people at the
-beta, and prerenders a page at `/tides/<slug>` and `/currents/<slug>` for 3,640 stations — a
-real computed curve for 3,607 of them, and identity only for 33 Canadian ones: the
+beta, and prerenders a page at `/tides/<slug>` and `/currents/<slug>` for 5,657 stations — a
+real computed curve for 5,624 of them, and identity only for 33 Canadian ones: the
 share-landing surface for anyone sent a link, and indexable content the site previously had
 none of.
 
@@ -19,7 +19,7 @@ in your browser from bundled NOAA harmonic constituents, the same way the app do
 argument is "correct, and it works with no signal" demonstrates that on every station rather than
 asserting it.
 
-3,640 pages, not the full catalogue: 3,607 get a computed curve, and 33 Canadian (CHS)
+5,657 pages, not the full catalogue: 5,624 get a computed curve, and 33 Canadian (CHS)
 stations — 23 current gates and 10 tide ports — get identity only. DFO's terms don't allow
 re-serving predictions, so nothing about those 33 is prerendered; the reader's own browser
 fetches DFO's published numbers and draws them. This work builds 10 of the 1,058 Canadian

@@ -9,9 +9,18 @@ describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
   it('yields every station whose data ships on npm, plus the CHS gates and ports', () => {
-    expect(all.length).toBe(3640)
-    expect(all.filter((s) => s.kind === 'tide').length).toBe(2775)
+    expect(all.length).toBe(5657)
+    expect(all.filter((s) => s.kind === 'tide').length).toBe(4792)
     expect(all.filter((s) => s.kind === 'current').length).toBe(865)
+  })
+
+  it('skips the subordinate current stations it cannot predict', () => {
+    // NOAA's subordinate stations are a reduction against a reference station,
+    // not constituents, and `predict.ts` sums constituents. Built anyway they
+    // prerender to a head with no body. The slug table names 1,692 of them; a
+    // count above zero here means blank pages shipped (#80).
+    const blank = all.filter((s) => s.source === 'bundled' && !s.constituents?.length)
+    expect(blank).toHaveLength(0)
   })
 
   it('builds the ten CHS tide ports whose identity IS published, and no more', () => {

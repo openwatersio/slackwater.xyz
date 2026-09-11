@@ -11,14 +11,14 @@ private repos stay out of it.
 ## This was a one-page site
 
 One page, one job used to constrain almost every decision: turn a reader into an install, and
-nothing got to exist unless it served that. It's now a landing page plus 3,640 prerendered
+nothing got to exist unless it served that. It's now a landing page plus 5,657 prerendered
 station pages at `/tides/<slug>` and `/currents/<slug>`. The constraint didn't relax — a second
 page finally earned it. The station corpus is both the thing a reader shares a link to instead
 of describing what the water's doing, and the indexable content the site had none of before. A
 referral route and a web client still haven't earned their place, which is why neither exists.
 
 - **Reach for less, more than ever.** A dependency, an abstraction, or a build step needs to
-  earn its place on a site whose pitch is that it loads instantly. 3,640 pages multiply the cost
+  earn its place on a site whose pitch is that it loads instantly. 5,657 pages multiply the cost
   of anything that doesn't.
 - **Don't build the referral route or the web client** because you noticed they're missing.
   They're missing on purpose — the station corpus earning its place doesn't change the case for
@@ -29,7 +29,14 @@ referral route and a web client still haven't earned their place, which is why n
   none — the reader's own browser fetches DFO's published predictions, and nothing about them is
   ever re-served by us. See below. If you touch `predict.ts`,
   `src/lib/ramp.ts` or `src/lib/iwls.ts`, a test comes with it.
-- **The corpus is 3,640 pages of 4,686 distinct waters, not all of them.** 33 Canadian (CHS)
+- **A station the site cannot predict does not get a page.** NOAA publishes 1,705 subordinate
+  current stations — no constituents of their own, just time offsets and flood/ebb speed ratios
+  reduced against a reference station — and `@openwaters/noaa-current-stations` ships every one
+  of them. `predict.ts` sums constituents, so a subordinate station prerenders to a head with no
+  body: 3.7 KB where a real page is 20 KB. `catalogue.ts` skips them by name of that fact, and
+  the skip stays until the reduction exists (#80). Deleting it because 1,692 currents look
+  missing puts 1,692 blank pages back on the site.
+- **The corpus is 5,657 pages of 8,097 distinct waters, not all of them.** 33 Canadian (CHS)
   stations build from published registry identity, with no prediction in the page — DFO's terms
   don't allow re-serving predictions for them. That is 23 current gates and 10 tide ports. On
   32 of them the visitor's own browser fetches DFO's numbers from `api-iwls.dfo-mpo.gc.ca` when
