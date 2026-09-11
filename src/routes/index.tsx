@@ -4,6 +4,7 @@ import { Shot } from '#/components/Shot'
 import { SITE_DESCRIPTION } from '#/routes/__root'
 
 const CANONICAL = 'https://slackwater.xyz/'
+const SOURCE = 'https://github.com/openwatersio/slackwater-ios'
 
 export const Route = createFileRoute('/')({
   head: () => ({
@@ -50,15 +51,33 @@ function Cta() {
   )
 }
 
-/** A feature: a heading and two paragraphs beside one shot. `flip` puts the
- *  shot on the left so consecutive features alternate down the page. */
+function Heading({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="text-2xl font-semibold leading-tight tracking-tight text-sw-paper sm:text-3xl">
+      {children}
+    </h2>
+  )
+}
+
+/** The paragraphs under a heading: the first carries the claim, the rest are
+ *  quieter. */
+function Prose({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mt-4 space-y-3 text-lg leading-relaxed text-sw-foam [&>p+p]:text-base [&>p+p]:text-sw-steel">
+      {children}
+    </div>
+  )
+}
+
+/** A feature: a heading and its prose beside one shot. `flip` puts the shot
+ *  on the left so consecutive features alternate down the page. */
 function Feature({
   title,
   children,
   shot,
   flip,
 }: {
-  title: string
+  title: React.ReactNode
   children: React.ReactNode
   shot: React.ReactNode
   flip?: boolean
@@ -70,12 +89,8 @@ function Feature({
       }`}
     >
       <div className="max-w-xl">
-        <h2 className="text-2xl font-semibold leading-tight tracking-tight text-sw-paper sm:text-3xl">
-          {title}
-        </h2>
-        <div className="mt-4 space-y-3 text-lg leading-relaxed text-sw-foam [&>p+p]:text-base [&>p+p]:text-sw-steel">
-          {children}
-        </div>
+        <Heading>{title}</Heading>
+        <Prose>{children}</Prose>
       </div>
       <div className={`mx-auto w-full max-w-[320px] ${flip ? 'sm:order-first' : ''}`}>{shot}</div>
     </section>
@@ -94,34 +109,33 @@ function Home() {
       <header className="mt-12 grid gap-12 sm:mt-16 lg:grid-cols-[1fr_360px] lg:items-center lg:gap-20">
         <div>
           <h1 className="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight text-sw-paper sm:text-6xl">
-            Know when the pass goes slack.
+            Tides on your phone, offline and free.
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-snug text-sw-foam sm:text-xl">
-            Tide and current predictions computed on your phone and checked against the
-            agencies&rsquo; own tables. No signal needed, nothing to load.
+            Tide predictions for stations worldwide, computed on the phone and checked against
+            the agencies&rsquo; own tables. No signal needed, nothing to load. Currents too,
+            across the US and Canada.
           </p>
           <div className="mt-8">
             <Cta />
           </div>
-          <p className="mt-4 text-sm text-sw-steel">Free. No account, no ads.</p>
+          <p className="mt-4 text-sm text-sw-steel">Free. Open source. No account, no ads.</p>
         </div>
 
         {/* The shot runs taller than the hero, so it is clipped and faded into
-            the page rather than scaled down: the readout, the slack countdown
-            and the curve are what sell it, and they all sit in the top half. */}
+            the page rather than scaled down: the readout, the countdown to the
+            low and the curve are what sell it, and they all sit in the top half. */}
         <div className="mx-auto h-[540px] w-full max-w-[360px] overflow-hidden [mask-image:linear-gradient(to_bottom,black_65%,transparent)] sm:h-[640px]">
           <Shot
-            src="/shots/currents-sunrise.webp"
-            alt="Deception Pass (Narrows) in the app at sunrise: ebbing at 5.8 knots to the west-north-west, slack 2 hours 50 minutes later, the sun rising at the left edge of the curve and a 5.3 knot flood coming at 12:40pm."
+            src="/shots/tides-night.webp"
+            alt="Friday Harbor in the app at 11:30pm under a starry sky with a full moon: falling to 1.7 feet, the low 5 minutes later, a 5.2 foot range, and the week's highs and lows listed underneath."
             eager
           />
         </div>
       </header>
 
       <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
-        <h2 className="text-2xl font-semibold leading-tight tracking-tight text-sw-paper sm:text-3xl">
-          Checked against the agencies&rsquo; own predictions.
-        </h2>
+        <Heading>Checked against the agencies&rsquo; own predictions.</Heading>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-sw-foam">
           Harmonic constituents published by NOAA and the Canadian Hydrographic Service, summed
           on your phone rather than fetched from anyone&rsquo;s server. The engine is validated
@@ -153,52 +167,51 @@ function Home() {
       </section>
 
       <Feature
-        title="Heights are the easy half."
+        title="Scrub to the hour you care about."
         shot={
           <Shot
-            src="/shots/currents-day.webp"
-            alt="Deception Pass (Narrows) in the app at 1:00pm: flooding at 5.2 knots to the east-south-east, slack 2 hours 37 minutes later, a next max of 7.2 knots ebbing at 6:30pm, and the week's floods, slacks and ebbs listed underneath."
-            caption="Deception Pass flooding at 5.2 knots. Slack is 2 hours 37 minutes away, and the ebb behind it peaks at 7.2."
+            src="/shots/tides-day.webp"
+            alt="Friday Harbor in the app at 1:00pm under a daytime sky: rising through 3.1 feet, high 4 hours 31 minutes later, a 4.7 foot range, sunrise at 7:04am and sunset at 7:01pm marked on the axis."
+            caption="Friday Harbor at 1:00pm, rising through 3.1 feet toward a 6.9 foot high. Sunrise and sunset sit on the axis, and the moon shows its phase."
           />
         }
       >
         <p>
-          The harder question is the current. When does the pass go slack, how long does it stay
-          that way, and how hard is it running at max?
+          Drag the timeline and the whole screen follows it: the height at that minute, whether
+          it is rising or falling, the range for the day, and the sky overhead.
         </p>
         <p>
-          Slackwater answers with the speed and set right now, the time to the next slack, and a
-          week of maxes and slacks underneath. Most tide apps skip currents, or bury a number
-          with no direction and no window.
+          A week of highs and lows sits underneath, so working out tomorrow&rsquo;s departure
+          does not mean doing arithmetic on a printed table.
         </p>
       </Feature>
 
       <section className="mt-24">
         <div className="max-w-xl">
-          <h2 className="text-2xl font-semibold leading-tight tracking-tight text-sw-paper sm:text-3xl">
-            Scrub to the hour you care about.
-          </h2>
-          <div className="mt-4 space-y-3 text-lg leading-relaxed text-sw-foam [&>p+p]:text-base [&>p+p]:text-sw-steel">
+          <Heading>Currents too, with direction and slack.</Heading>
+          <Prose>
             <p>
-              Drag the timeline and the whole screen follows it: the height at that minute, whether
-              it is rising or falling, the range for the day, and the sky overhead.
+              Heights are the easy half. The harder question at a pass is the current: when it
+              goes slack, how long it stays that way, and how hard it runs at max. Slackwater
+              gives the speed and set right now, the time to the next slack, and a week of maxes
+              underneath.
             </p>
             <p>
-              Friday Harbor, twice on the same day. Sunrise and sunset sit on the axis, and the
-              moon shows its phase.
+              Deception Pass on one day: ebbing west-north-west at sunrise, flooding
+              east-south-east by noon.
             </p>
-          </div>
+          </Prose>
         </div>
         <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-4 sm:gap-8">
           <Shot
-            src="/shots/tides-day.webp"
-            alt="Friday Harbor in the app at 1:00pm under a daytime sky: rising through 3.1 feet, high 4 hours 31 minutes later, a 4.7 foot range, sunrise at 7:04am and sunset at 7:01pm marked on the axis."
-            caption="1:00pm, rising through 3.1 feet toward a 6.9 foot high."
+            src="/shots/currents-sunrise.webp"
+            alt="Deception Pass (Narrows) in the app at sunrise: ebbing at 5.8 knots to the west-north-west, slack 2 hours 50 minutes later, the sun rising at the left edge of the curve and a 5.3 knot flood coming at 12:40pm."
+            caption="7:10am, ebbing at 5.8 knots. Slack is 2 hours 50 minutes away."
           />
           <Shot
-            src="/shots/tides-night.webp"
-            alt="Friday Harbor in the app at 11:30pm under a starry sky with a full moon: falling to 1.7 feet, the low 5 minutes later, a 5.2 foot range."
-            caption="11:30pm, five minutes from the low, under a full moon."
+            src="/shots/currents-day.webp"
+            alt="Deception Pass (Narrows) in the app at 1:00pm: flooding at 5.2 knots to the east-south-east, slack 2 hours 37 minutes later, a next max of 7.2 knots ebbing at 6:30pm, and the week's floods, slacks and ebbs listed underneath."
+            caption="1:00pm, flooding at 5.2 knots. The ebb behind it peaks at 7.2."
           />
         </div>
       </section>
@@ -222,7 +235,7 @@ function Home() {
       </Feature>
 
       <Feature
-        title="No spinner. No &ldquo;no internet connection.&rdquo;"
+        title={<>No spinner. No &ldquo;no internet connection.&rdquo;</>}
         shot={
           <Shot
             src="/shots/map.webp"
@@ -232,24 +245,26 @@ function Home() {
         }
       >
         <p>
-          Thousands of US and Canadian stations ship inside the app. Predictions are deterministic
-          astronomy, not a live feed, so the answer is already on the phone before you leave the
-          dock.
+          Thousands of stations ship inside the app. Predictions are deterministic astronomy,
+          not a live feed, so the answer is already on the phone before you leave the dock.
         </p>
         <p>Tides run worldwide, currents across the US and Canada.</p>
       </Feature>
 
       <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
-        <h2 className="text-2xl font-semibold leading-tight tracking-tight text-sw-paper sm:text-3xl">
-          Free, no account, no ads.
-        </h2>
+        <Heading>Free, open source, no account, no ads.</Heading>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-sw-foam">
           The core is free and stays free: every station, every date, the curves, the slack
           times, offline. Nothing tracked, nothing sold. It does not need a server, so it does
           not need to earn one.
         </p>
         <p className="mt-3 max-w-2xl text-sw-steel">
-          Built by sailors who run these passes. The app exists because we needed it.
+          The app is{' '}
+          <a href={SOURCE} className="underline underline-offset-4 hover:text-sw-foam">
+            open source under the GPL
+          </a>
+          , on an open prediction engine. Built by sailors who run these passes; the app exists
+          because we needed it.
         </p>
         <div className="mt-8">
           <Cta />
@@ -293,6 +308,10 @@ function Home() {
           .{' '}
           <a href="/support/" className="underline underline-offset-4">
             Support
+          </a>
+          .{' '}
+          <a href={SOURCE} className="underline underline-offset-4">
+            Source
           </a>
           .
         </p>
