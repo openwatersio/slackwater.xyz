@@ -3,6 +3,7 @@
 // tide database and the current bundle, and TanStack loaders are isomorphic, so
 // one careless import ships megabytes to every visitor. Task 4 asserts that.
 import { cleanName } from '@openwaters/station-metadata'
+import corrections from '@openwaters/station-metadata/data/corrections.json' with { type: 'json' }
 import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type: 'json' }
 import currentBundle from '@openwaters/noaa-current-stations/currents.json' with { type: 'json' }
 import { stationsById } from '@neaps/tide-database'
@@ -28,6 +29,7 @@ export function isBuildable(id: string): boolean {
 
 /** The current bundle keys stations by bare NOAA id; the slug table prefixes them. */
 const NOAA = 'noaa/'
+const overrides = corrections as Record<string, { name?: string; context?: string }>
 
 /**
  * `@neaps/tide-database` ships tide amplitudes in METRES (Boston M2 = 1.371,
@@ -85,15 +87,19 @@ export function loadCatalogue(): Station[] {
         // A slug with no data is a broken corpus, not a station to skip: it
         // means the slug table and the data package disagree about what exists.
         if (!r) throw new Error(`catalogue: no tide data for ${id}`)
+        const override = overrides[id]
         out.push({
           id, kind, slug,
           source: 'bundled',
           // Curated identity wins. The provider row names the water whatever the
           // provider calls it; the registry names it what a mariner calls it.
-          name: curated.get(slug)?.name ?? cleanName(String(r.name)),
+          name: curated.get(slug)?.name ?? override?.name ?? cleanName(String(r.name)),
           latitude: Number(r.latitude), longitude: Number(r.longitude),
           timezone: String(r.timezone),
-          region: curated.get(slug)?.region ?? (r.region ? String(r.region) : undefined),
+          region:
+            curated.get(slug)?.region ??
+            override?.context ??
+            (r.region ? String(r.region) : undefined),
           constituents: (r.harmonic_constituents as BundledStation['constituents']).map((c) => ({
             ...c,
             amplitude: c.amplitude * FEET_PER_METRE,
@@ -112,6 +118,7 @@ export function loadCatalogue(): Station[] {
         // include them. The reduction is a prediction the site does not do
         // yet, so the station does not get a page yet — see #80.
         if (!r.constituents) continue
+        const override = overrides[id]
         const latitude = Number(r.latitude)
         const longitude = Number(r.longitude)
         // The current bundle carries no timezone field at all - derive one from
@@ -122,12 +129,12 @@ export function loadCatalogue(): Station[] {
           source: 'bundled',
           // Curated identity wins. The provider row names the water whatever the
           // provider calls it; the registry names it what a mariner calls it.
-          name: curated.get(slug)?.name ?? cleanName(String(r.name)),
+          name: curated.get(slug)?.name ?? override?.name ?? cleanName(String(r.name)),
           latitude, longitude,
           timezone: tzLookup(latitude, longitude),
           // The NOAA bundle carries no region field at all, so the registry is
           // the only source and there is nothing to fall back to.
-          region: curated.get(slug)?.region,
+          region: curated.get(slug)?.region ?? override?.context,
           constituents: r.constituents as BundledStation['constituents'],
           offset: Number(r.offset ?? 0),
           floodDirection: Number(r.floodDirection),

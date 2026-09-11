@@ -116,6 +116,12 @@ describe('loadCatalogue', () => {
     }
   })
 
+  it('applies station-metadata corrections to provider stations', () => {
+    const telegraph = all.find((s) => s.id === 'noaa/9449988')
+    expect(telegraph?.name).toBe('Telegraph Bay')
+    expect(telegraph?.region).toBe('Rosario Strait')
+  })
+
   it('gives a registry station its curated name, not the provider row name', () => {
     const bp = all.find((s) => s.kind === 'current' && s.slug === 'boundary-pass')
     expect(bp?.name).toBe('Boundary Pass')
