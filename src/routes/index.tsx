@@ -109,12 +109,11 @@ function Home() {
       <header className="mt-12 grid gap-12 sm:mt-16 lg:grid-cols-[1fr_360px] lg:items-center lg:gap-20">
         <div>
           <h1 className="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight text-sw-paper sm:text-6xl">
-            Tides on your phone, offline and free.
+            The tide and currents app that works with no signal.
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-snug text-sw-foam sm:text-xl">
-            Tide predictions for stations worldwide, computed on the phone and checked against
-            the agencies&rsquo; own tables. No signal needed, nothing to load. Currents too,
-            across the US and Canada.
+            Tides worldwide and currents across the US and Canada, computed on your phone and
+            checked against the agencies&rsquo; own tables. Nothing to load.
           </p>
           <div className="mt-8">
             <Cta />
@@ -246,7 +245,7 @@ function Home() {
       >
         <p>
           Thousands of stations ship inside the app. Predictions are deterministic astronomy,
-          not a live feed, so the answer is already on the phone before you leave the dock.
+          not a live feed, so the answer is already on the phone wherever you open it.
         </p>
         <p>Tides run worldwide, currents across the US and Canada.</p>
       </Feature>
