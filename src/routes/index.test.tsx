@@ -22,6 +22,8 @@ describe('landing page', () => {
   })
 
   it('computes nothing in the page', () => {
-    expect(html).not.toContain('<svg')
+    // Icons are SVG too; a curve is the only SVG that would mean a prediction ran.
+    const withoutIcons = html.replace(/<svg[^>]*class="lucide[^>]*>[\s\S]*?<\/svg>/g, '')
+    expect(withoutIcons).not.toContain('<svg')
   })
 })

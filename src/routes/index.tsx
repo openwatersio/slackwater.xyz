@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { WifiOff } from 'lucide-react'
 import { TESTFLIGHT } from '#/lib/links'
 import { Shot } from '#/components/Shot'
 import { SITE_DESCRIPTION } from '#/routes/__root'
@@ -109,7 +110,8 @@ function Home() {
       <header className="mt-12 grid gap-12 sm:mt-16 lg:grid-cols-[1fr_360px] lg:items-center lg:gap-20">
         <div>
           <h1 className="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight text-sw-paper sm:text-6xl">
-            The tide and currents app that works with no signal.
+            The tide and currents app that works with no signal{' '}
+            <WifiOff aria-hidden className="inline-block size-[0.7em] align-[-0.05em] text-sw-steel" strokeWidth={2.25} />
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-snug text-sw-foam sm:text-xl">
             Tides worldwide, currents across the US and Canada. Every station, every date,
