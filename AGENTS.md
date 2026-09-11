@@ -24,8 +24,8 @@ referral route and a web client still haven't earned their place, which is why n
   They're missing on purpose — the station corpus earning its place doesn't change the case for
   either of them.
 - **The site claims correctness, station by station.** Every page that draws a curve runs a
-  real prediction from `src/lib/predict.ts` against bundled constituents; the hero on `/` is one
-  more instance of that, not a separate demo. The Canadian stations ship no curve and prerender
+  real prediction from `src/lib/predict.ts` against bundled constituents. The landing page draws
+  none: it is the app's screenshots, and claims only what they show. The Canadian stations ship no curve and prerender
   none — the reader's own browser fetches DFO's published predictions, and nothing about them is
   ever re-served by us. See below. If you touch `predict.ts`,
   `src/lib/ramp.ts` or `src/lib/iwls.ts`, a test comes with it.

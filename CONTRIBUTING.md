@@ -28,7 +28,7 @@ pnpm deploy     # build, then wrangler deploy with nitro's generated config
 | `src/components/` | Presentational React. No data fetching. |
 | `src/content/privacy.md` | The privacy policy, rendered at `/privacy` and served raw at `/privacy.md`. |
 | `src/styles.css` | Colour tokens. Components reference these, never a literal hex. |
-| `src/data/` | Bundled harmonic constituents for the hero station. |
+| `src/data/` | Bundled harmonic constituents for Deception Pass, the fixture `currents.test.ts` checks `predict.ts` against. |
 | `wrangler.jsonc` | Worker *source* config. Not the deployable one — see the gotchas. |
 
 ## Testing

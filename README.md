@@ -13,10 +13,11 @@ real computed curve for 3,607 of them, and identity only for 33 Canadian ones: t
 share-landing surface for anyone sent a link, and indexable content the site previously had
 none of.
 
-The hero is not a screenshot. It computes a real current prediction for Deception Pass
-(Narrows) in your browser from bundled NOAA harmonic constituents, the same way every station
-page computes its own. A page whose argument is "correct, and it works with no signal" ought to
-demonstrate that rather than assert it.
+The landing page is the app's own screenshots around one call to action — real output from
+`slackwater-ios`'s screenshot walk, not mockups. Every station page computes a real prediction
+in your browser from bundled NOAA harmonic constituents, the same way the app does. A site whose
+argument is "correct, and it works with no signal" demonstrates that on every station rather than
+asserting it.
 
 3,640 pages, not the full catalogue: 3,607 get a computed curve, and 33 Canadian (CHS)
 stations — 23 current gates and 10 tide ports — get identity only. DFO's terms don't allow
@@ -39,8 +40,8 @@ Slackwater is two separate things, and confusing them is the easiest mistake to 
 
 A third surface, `web.slackwater.xyz`, was reserved early as a demo for people who wouldn't
 install an app but just wanted an answer now — it never got a DNS record. The station pages
-turned out to be that surface: instant, indexable, computing the same curve in the browser the
-hero always did. There is no web client, and no plan to build one.
+turned out to be that surface: instant, indexable, computing the same curve in the browser that
+the app computes on the phone. There is no web client, and no plan to build one.
 
 ## How it's built
 
@@ -57,8 +58,9 @@ endpoint are same-origin. No cookies, no persistent identifier, nothing stored o
 
 ## Design rules
 
-Every page **matches the app in look and data, not in depth** — the hero and the station pages
-render the same computed curve the app does, but none of them are the app.
+Every page **matches the app in look and data, not in depth** — the station pages render the
+same computed curve the app does, and the landing page shows the app itself, but none of them
+are the app.
 
 - **Dark only**, because the app is. A light theme is wanted eventually, so colour goes through
   the tokens in `src/styles.css` and never a literal hex in a component.

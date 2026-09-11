@@ -1,17 +1,37 @@
 /** A device screenshot. Real app output, not a mockup — these come from the
- *  UI-test screenshot walk that also generates the App Store sets. */
-export function Shot({ src, alt, caption }: { src: string; alt: string; caption: string }) {
+ *  UI-test screenshot walk that also generates the App Store sets. 780px wide,
+ *  2× for the widest slot on the page.
+ *
+ *  The corner is the phone's own: an iPhone's display radius is about 13% of
+ *  its width, so the figure is a container and the radius follows its width
+ *  down to the two-up pair on a phone, capped where a 360px slot would read as
+ *  a real device. */
+export function Shot({
+  src,
+  alt,
+  caption,
+  eager,
+}: {
+  src: string
+  alt: string
+  caption?: string
+  /** The hero shot is above the fold; everything else waits its turn. */
+  eager?: boolean
+}) {
   return (
-    <figure className="m-0">
+    <figure className="@container m-0">
       <img
         src={src}
         alt={alt}
-        loading="lazy"
-        width={390}
-        height={846}
-        className="w-full rounded-xl border border-white/10"
+        loading={eager ? 'eager' : 'lazy'}
+        fetchPriority={eager ? 'high' : undefined}
+        width={780}
+        height={1695}
+        className="w-full rounded-[min(3rem,13cqw)] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
       />
-      <figcaption className="mt-3 text-sm leading-relaxed text-sw-steel">{caption}</figcaption>
+      {caption && (
+        <figcaption className="mt-4 text-sm leading-relaxed text-sw-steel">{caption}</figcaption>
+      )}
     </figure>
   )
 }
