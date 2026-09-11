@@ -3,6 +3,7 @@ import { renderToString } from 'react-dom/server'
 import { RouterProvider, createMemoryHistory, createRouter } from '@tanstack/react-router'
 import { dayLabel, hhmm } from '#/lib/format'
 import { findEvents } from '#/lib/predict'
+import { SERVER_NOW } from '#/lib/use-live-now'
 import type { BundledStation } from '#/lib/station'
 
 /**
@@ -98,12 +99,12 @@ describe('the instant URL renders its own moment', () => {
   })
 
   it('does not render the canonical page instead', async () => {
-    // The canonical page freezes at 2026-08-21 for the server render. If the
-    // instant route stops mounting again, that date is what comes back.
+    // The canonical page freezes at the build clock for the server render. If
+    // the instant route stops mounting again, that date is what comes back.
     const a = await body(`/currents/deception-pass-narrows/${CHRISTMAS}`)
     const canonical = await body('/currents/deception-pass-narrows')
     expect(a).not.toBe(canonical)
-    expect(a).not.toContain('Aug 2026')
+    expect(canonical).toContain(dayLabel(SERVER_NOW, DECEPTION.timezone))
   })
 
   it('404s a malformed instant rather than rendering some other moment', async () => {

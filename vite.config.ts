@@ -46,6 +46,10 @@ mkdirSync(PRERENDER_ASSETS, { recursive: true })
 // build script rather than inline config, so it stays put across nitro betas.
 export default defineConfig({
   resolve: { tsconfigPaths: true },
+  // One clock for the whole build, so the server and client bundles agree on it
+  // and every prerendered page is dated the day it was built. Freshness comes
+  // from the nightly rebuild in .github/workflows/deploy.yml.
+  define: { __BUILD_NOW__: JSON.stringify(new Date().toISOString()) },
   plugins: [
     tailwindcss(),
     tanstackStart({

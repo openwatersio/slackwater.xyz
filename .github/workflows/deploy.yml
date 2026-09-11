@@ -12,6 +12,11 @@ name: Deploy
 on:
   push:
     branches: [main]
+  # Every prerendered page is dated the build clock (`__BUILD_NOW__`), so an
+  # undeployed day is a day of stale dates for every reader without JS. 09:15
+  # UTC is after midnight Pacific year round.
+  schedule:
+    - cron: '15 9 * * *'
   # Manual re-publish, for a rollback or after rotating the token.
   workflow_dispatch:
 

@@ -37,6 +37,9 @@ if (!BUILT) {
 }
 
 export default defineConfig({
+  // Mirrors vite.config.ts: `__BUILD_NOW__` is a build-time define, so without
+  // it here every module reading the build clock throws under test.
+  define: { __BUILD_NOW__: JSON.stringify(new Date().toISOString()) },
   test: {
     environment: 'node',
     include: ['src/**/*.test.{ts,tsx}'],
