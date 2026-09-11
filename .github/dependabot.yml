@@ -14,7 +14,18 @@ updates:
     # yanked within days, and this site would rather miss it than install it.
     cooldown:
       default-days: 3
+    # One PR a week for everything, not one per package. Nine open PRs is nine
+    # lockfiles that each conflict with the last one merged; a single branch
+    # resolves once and gets one `pnpm build` to prove it.
+    groups:
+      npm:
+        patterns:
+          - '*'
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    groups:
+      github-actions:
+        patterns:
+          - '*'
