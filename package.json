@@ -23,6 +23,7 @@
     "@tanstack/react-router": "^1.170.34",
     "@tanstack/react-start": "^1.168.51",
     "@tanstack/router-plugin": "^1.168.36",
+    "leaflet": "^1.9.4",
     "marked": "^18.0.12",
     "nitro": "3.0.260522-beta",
     "react": "^19.2.0",
@@ -31,6 +32,7 @@
     "tz-lookup": "^6.1.25"
   },
   "devDependencies": {
+    "@types/leaflet": "^1.9.22",
     "@types/node": "^26.5.1",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.3.0",
