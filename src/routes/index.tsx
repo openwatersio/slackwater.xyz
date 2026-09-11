@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { WifiOff } from 'lucide-react'
 import { TESTFLIGHT } from '#/lib/links'
 import { Shot } from '#/components/Shot'
 import { SITE_DESCRIPTION } from '#/routes/__root'
@@ -36,6 +35,30 @@ export const Route = createFileRoute('/')({
   }),
   component: Home,
 })
+
+/** Lucide's wifi-off (ISC), inlined: one glyph is not worth a dependency. */
+function NoSignal({ className }: { className: string }) {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.25}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M12 20h.01" />
+      <path d="M8.5 16.429a5 5 0 0 1 7 0" />
+      <path d="M5 12.859a10 10 0 0 1 5.17-2.69" />
+      <path d="M19 12.859a10 10 0 0 0-2.007-1.523" />
+      <path d="M2 8.82a15 15 0 0 1 4.177-2.643" />
+      <path d="M22 8.82a15 15 0 0 0-11.288-3.764" />
+      <path d="m2 2 20 20" />
+    </svg>
+  )
+}
 
 function Cta() {
   return TESTFLIGHT ? (
@@ -110,8 +133,8 @@ function Home() {
       <header className="mt-12 grid gap-12 sm:mt-16 lg:grid-cols-[1fr_360px] lg:items-center lg:gap-20">
         <div>
           <h1 className="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight text-sw-paper sm:text-6xl">
-            The tide and currents app that works with no signal{' '}
-            <WifiOff aria-hidden className="inline-block size-[0.7em] align-[-0.05em] text-sw-steel" strokeWidth={2.25} />
+            The tide and currents app that works without signal{' '}
+            <NoSignal className="inline-block size-[0.7em] align-[-0.05em] text-sw-steel" />
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-snug text-sw-foam sm:text-xl">
             Tides worldwide, currents across the US and Canada. Every station, every date,
