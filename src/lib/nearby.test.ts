@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { distanceNm, nearby } from './nearby'
+import { bearing, distanceNm, nearby } from './nearby'
+import { compass16 } from './format'
 import type { Station } from './station'
 
 const at = (id: string, kind: Station['kind'], lat: number, lon: number): Station => ({
@@ -35,5 +36,32 @@ describe('nearby', () => {
 
   it('honours k', () => {
     expect(nearby(all[0], all, 1).map((s) => s.id)).toEqual(['close'])
+  })
+})
+
+describe('bearing', () => {
+  const SEATTLE = { latitude: 47.6062, longitude: -122.3321 }
+  const VICTORIA = { latitude: 48.4284, longitude: -123.3656 }
+
+  it('reads the great-circle course, not a compass rose guess', () => {
+    // Victoria is up and left of Seattle: northwest, and far enough west of
+    // due NW that a flat-earth atan2 on raw degrees — which ignores the
+    // cos(latitude) squeeze on longitude — reads about 309 instead.
+    expect(bearing(SEATTLE, VICTORIA)).toBeCloseTo(320.3, 1)
+    expect(compass16(bearing(SEATTLE, VICTORIA))).toBe('NW')
+  })
+
+  it('calls due north zero and due south 180', () => {
+    const here = { latitude: 48, longitude: -123 }
+    expect(bearing(here, { latitude: 49, longitude: -123 })).toBeCloseTo(0, 6)
+    expect(bearing(here, { latitude: 47, longitude: -123 })).toBeCloseTo(180, 6)
+  })
+
+  it('stays inside 0-360 rather than going negative to the west', () => {
+    // atan2 returns -90 for due west; a bearing of -90 renders as a compass
+    // point off the end of the sixteen.
+    const b = bearing({ latitude: 0, longitude: 0 }, { latitude: 0, longitude: -1 })
+    expect(b).toBeCloseTo(270, 6)
+    expect(b).toBeGreaterThanOrEqual(0)
   })
 })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { datumLine, pageDescription, provenance } from './copy'
+import { datumLine, pageDescription, pageTitle, placeLine, provenance } from './copy'
 import type { BundledStation, ChsStation } from './station'
 
 const bundled = {
@@ -37,9 +37,44 @@ describe('provenance', () => {
   })
 })
 
+describe('pageTitle', () => {
+  it('leads with the station and the query words, then the place', () => {
+    const victoria = { ...bundled, kind: 'tide', name: 'Victoria', state: 'BC', country: 'Canada' } as const
+    expect(pageTitle(victoria)).toBe('Victoria tide times & tide chart — BC, Canada')
+    expect(pageTitle({ ...bundled, country: 'United States' })).toBe(
+      'Deception Pass tidal currents & slack water — United States',
+    )
+  })
+
+  it('falls back to the water context when there is no country', () => {
+    expect(pageTitle({ ...bundled, region: 'Puget Sound' })).toBe(
+      'Deception Pass tidal currents & slack water — Puget Sound',
+    )
+    expect(pageTitle(bundled)).toBe('Deception Pass tidal currents & slack water')
+  })
+})
+
+describe('placeLine', () => {
+  it('reads context, then subdivision and country', () => {
+    expect(placeLine({ ...bundled, region: 'Inner Harbour', state: 'BC', country: 'Canada' })).toBe(
+      'Inner Harbour · BC, Canada',
+    )
+    expect(placeLine({ ...chs, country: 'Canada' })).toBe('Nanaimo · Canada')
+    expect(placeLine(bundled)).toBeUndefined()
+  })
+})
+
 describe('pageDescription', () => {
   it('promises predictions only where the page has them', () => {
-    expect(pageDescription(bundled)).toMatch(/Slack water and maximum flood and ebb/)
+    expect(pageDescription(bundled)).toMatch(/slack water and maximum flood and ebb/i)
+    expect(pageDescription(bundled)).toMatch(/7-day/)
+  })
+
+  it('names the place, which is what the query carries', () => {
+    expect(pageDescription({ ...bundled, kind: 'tide', name: 'Victoria', state: 'BC', country: 'Canada' })).toBe(
+      "Tide times and tide chart for Victoria, BC, Canada: today's and tomorrow's high and low water, " +
+        'a 7-day tide table, sunrise and sunset, and nearby stations.',
+    )
   })
 
   it('promises no predictions on an identity-only page', () => {

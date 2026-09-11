@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { loadCatalogue } from './catalogue'
-import { neighbourMap } from './nearby'
+import { bearing, distanceNm, neighbourMap } from './nearby'
 import type { Kind, Station } from './station'
 
 /**
@@ -55,12 +55,8 @@ export const stationList = createServerFn({ method: 'GET' })
  * The nearest stations of the same kind, for the "Nearby" list on a station page.
  *
  * Server-side for the same reason as everything else here: answering it needs
- * the whole catalogue in memory, and the page needs only six names.
- */
-/**
- * The nearest stations of the same kind, for the "Nearby" list on a station page.
- *
- * The neighbour map is built once on first use and reused for every page after.
+ * the whole catalogue in memory, and the page needs only six names. The
+ * neighbour map is built once on first use and reused for every page after.
  * Ranking the catalogue per request instead put every one of the 5,624
  * prerendered renders past three seconds and broke the prerender outright.
  */
@@ -69,17 +65,37 @@ const neighbours = (() => {
   return () => (cache ??= neighbourMap([...index().values()]))
 })()
 
-const toRow = (s: Station): StationRow => ({
-  slug: s.slug,
-  name: s.name,
-  ...(s.region ? { region: s.region } : {}),
-})
+/**
+ * A neighbour carries its position and its leg from the page's station.
+ *
+ * Only the nearby list is widened, NOT `StationRow`: `stationList` serialises
+ * every station of a kind into the browse index's loader data, and four more
+ * numbers each is the whole payload growing by more than half for fields that
+ * page never renders.
+ */
+export interface NearbyRow extends StationRow {
+  latitude: number
+  longitude: number
+  /** Great-circle distance from the page's station, nautical miles. */
+  nm: number
+  /** Initial course FROM the page's station TO this one, degrees true. */
+  bearing: number
+}
 
 export const nearbyStations = createServerFn({ method: 'GET' })
   .validator((data: { kind: Kind; slug: string }) => data)
-  .handler(({ data }): StationRow[] => {
+  .handler(({ data }): NearbyRow[] => {
     const station = index().get(`${data.kind}/${data.slug}`)
-    return station ? (neighbours().get(station.id) ?? []).map(toRow) : []
+    if (!station) return []
+    return (neighbours().get(station.id) ?? []).map((s) => ({
+      slug: s.slug,
+      name: s.name,
+      ...(s.region ? { region: s.region } : {}),
+      latitude: s.latitude,
+      longitude: s.longitude,
+      nm: distanceNm(station, s),
+      bearing: bearing(station, s),
+    }))
   })
 
 export const stationBySlug = createServerFn({ method: 'GET' })

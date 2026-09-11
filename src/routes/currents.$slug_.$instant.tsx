@@ -1,10 +1,12 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { StationPage } from '#/components/StationPage'
 import { nearbyStations, stationBySlug } from '#/lib/catalogue-server'
-import { ogImageAlt, pageDescription } from '#/lib/copy'
+import { ogImageAlt, pageDescription, pageTitle } from '#/lib/copy'
+import { stationPath } from '#/lib/station'
 import { parseInstant } from './instant-url'
 
-const CANONICAL = 'https://slackwater.xyz/currents/'
+const ORIGIN = 'https://slackwater.xyz'
+const canonical = (slug: string) => ORIGIN + stationPath('current', slug)
 
 // `$slug_`, with the trailing underscore, and NOT `$slug`.
 //
@@ -33,20 +35,20 @@ export const Route = createFileRoute('/currents/$slug_/$instant')({
   head: ({ loaderData, params }) => {
     const s = loaderData?.station
     if (!s) return {}
-    const title = `${s.name} — tidal currents`
+    const title = pageTitle(s)
     const description = pageDescription(s)
     const alt = ogImageAlt(s)
     return {
       // Points at the bare station URL, not this instant URL: the instant
       // space is unbounded, so treating each shared moment as its own
       // canonical page would turn every link into an indexable near-duplicate.
-      links: [{ rel: 'canonical', href: `${CANONICAL}${s.slug}/` }],
+      links: [{ rel: 'canonical', href: canonical(s.slug) }],
       meta: [
         { title },
         { name: 'description', content: description },
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
-        { property: 'og:url', content: `${CANONICAL}${s.slug}/${params.instant}` },
+        { property: 'og:url', content: `${canonical(s.slug)}${params.instant}` },
         {
           property: 'og:image',
           content: `https://slackwater.xyz/og/currents/${s.slug}/${params.instant}.png`,
