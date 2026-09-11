@@ -8,7 +8,9 @@
 #
 # Uses the same CLOUDFLARE_API_TOKEN secret as Deploy. Secrets aren't exposed to
 # pull_request runs from forks, so this job fails on one — outside contributions
-# aren't sought here (README.md).
+# aren't sought here (README.md). Dependabot runs are restricted the same way and
+# get their own secret store, so the upload is skipped for them rather than run
+# with an empty token; see the step.
 name: Preview
 
 on:
@@ -58,8 +60,16 @@ jobs:
 
       # Not wrangler-action: this needs the alias URL back out, and grepping the
       # command is less indirection than parsing the action's outputs.
+      # Dependabot's runs read Dependabot's secrets, not the repository's, so
+      # CLOUDFLARE_API_TOKEN arrives empty and wrangler stops on it — a red
+      # check on a green build. The fix is not to copy the token into that
+      # store: a dependency PR is the one place where `pnpm install` runs code
+      # this repo has not seen, and the cooldown in dependabot.yml exists
+      # because we would rather miss a release than install it. A bump is
+      # reviewed by its diff and its build; there is nothing to look at.
       - name: Upload preview version
         id: upload
+        if: github.actor != 'dependabot[bot]'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           PR: ${{ github.event.pull_request.number }}
@@ -79,6 +89,7 @@ jobs:
           echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment the preview URL
+        if: github.actor != 'dependabot[bot]'
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
