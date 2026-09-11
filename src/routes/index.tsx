@@ -112,8 +112,8 @@ function Home() {
             The tide and currents app that works with no signal.
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-snug text-sw-foam sm:text-xl">
-            Tides worldwide and currents across the US and Canada, computed on your phone and
-            checked against the agencies&rsquo; own tables. Nothing to load.
+            Tides worldwide, currents across the US and Canada. Every station, every date,
+            already on your phone.
           </p>
           <div className="mt-8">
             <Cta />
@@ -244,10 +244,11 @@ function Home() {
         }
       >
         <p>
-          Thousands of stations ship inside the app. Predictions are deterministic astronomy,
-          not a live feed, so the answer is already on the phone wherever you open it.
+          Nothing is cached and nothing expires. The predictions are made on the phone from the
+          same published data the printed tables use, so every station and every date is there
+          with no connection.
         </p>
-        <p>Tides run worldwide, currents across the US and Canada.</p>
+        <p>Thousands of stations ship inside the app.</p>
       </Feature>
 
       <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
