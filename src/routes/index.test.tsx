@@ -18,6 +18,19 @@ describe('landing page', () => {
     for (const src of srcs) expect(existsSync(`public${src}`), src).toBe(true)
   })
 
+  it('plays a one-shot hero recording only when motion is allowed', () => {
+    const hero = html.match(/<video[\s\S]*?<\/video>/)?.[0]
+
+    expect(hero).toContain('autoPlay=""')
+    expect(hero).toContain('muted=""')
+    expect(hero).toContain('playsInline=""')
+    expect(hero).toContain('poster="/shots/tides-day.webp"')
+    expect(hero).toContain('src="/shots/tides-day-to-night.mp4"')
+    expect(hero).toContain('media="(prefers-reduced-motion: no-preference)"')
+    expect(hero).toContain('src="/shots/tides-night.webp"')
+    expect(hero).not.toContain('loop=""')
+  })
+
   it('points the call to action at the public beta', () => {
     expect(html).toContain(`href="${TESTFLIGHT}"`)
   })
