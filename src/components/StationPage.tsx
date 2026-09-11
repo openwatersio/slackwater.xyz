@@ -441,7 +441,7 @@ function Nearby({ station, rows }: { station: Station; rows: NearbyRow[] }) {
         {rows.map((r) => (
           <li key={r.slug} className="flex items-baseline justify-between gap-3">
             <span>
-              <a href={stationPath(station.kind, r.slug)} className="text-sw-paper/90 hover:text-sw-leaf">
+              <a href={stationPath(station.kind, r.slug)} className="text-sw-paper/90 underline underline-offset-4 decoration-sw-steel/40 hover:text-sw-leaf">
                 {r.name}
               </a>
               {r.region && <span className="ml-2 text-sm text-sw-steel">{r.region}</span>}
