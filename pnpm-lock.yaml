@@ -19,6 +19,9 @@ importers:
       '@neaps/tide-predictor':
         specifier: ^0.11.0
         version: 0.11.0
+      '@openwaters/almanac':
+        specifier: 0.3.0
+        version: 0.3.0
       '@openwaters/noaa-current-stations':
         specifier: ^0.5.0
         version: 0.5.0
@@ -573,6 +576,9 @@ packages:
   '@oozcitak/util@10.0.0':
     resolution: {integrity: sha512-hAX0pT/73190NLqBPPWSdBVGtbY6VOhWYK3qqHqtXQ1gK7kS2yz4+ivsN07hpJ6I3aeMtKP6J6npsEKOAzuTLA==}
     engines: {node: '>=20.0'}
+
+  '@openwaters/almanac@0.3.0':
+    resolution: {integrity: sha512-QXqCCpVAqgATgKnRtp5POB5YgMCLVIODN7c5PkTVnkqrG0pwQQjx6Mx5D95Pg37+vZy1ivpGZnAvD0plH61CSA==}
 
   '@openwaters/noaa-current-stations@0.5.0':
     resolution: {integrity: sha512-Rlj2+bbwZhfQvyCojy7baadClEEnzJt2xtyQ0JZaiZUPt40lHb72Icd2AURfCW4WqES59LtRcJNOcoW2DNAznQ==}
@@ -2224,6 +2230,8 @@ snapshots:
       '@oozcitak/util': 10.0.0
 
   '@oozcitak/util@10.0.0': {}
+
+  '@openwaters/almanac@0.3.0': {}
 
   '@openwaters/noaa-current-stations@0.5.0': {}
 

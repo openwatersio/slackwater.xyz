@@ -62,7 +62,10 @@ describe('the nearby map', () => {
       // Without this the loop below can pass by matching nothing at all.
       expect(preloaded.length, `${p} preloads no modules`).toBeGreaterThan(0)
       for (const href of preloaded) {
-        const src = readFileSync(`.output/public${href}`, 'utf8')
+        // A chunk may NAME the leaflet chunk — that is the dynamic import
+        // doing its job — but must not CONTAIN it. Strip the file references
+        // and anything left that says leaflet is leaflet's own code.
+        const src = readFileSync(`.output/public${href}`, 'utf8').replace(/leaflet-[\w-]+\.(?:js|css)/g, '')
         expect(src.includes('leaflet'), `${href}, preloaded by ${p}`).toBe(false)
       }
     }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { StationPage } from './StationPage'
-import type { ChsStation } from '#/lib/station'
+import type { BundledStation, ChsStation } from '#/lib/station'
 
 const dodd = {
   id: 'chs-dodd-narrows', kind: 'current', slug: 'dodd-narrows', name: 'Dodd Narrows',
@@ -136,5 +136,78 @@ describe('StationPage for a CHS tide port', () => {
   it('claims no computation and no offline capability', () => {
     expect(html).not.toMatch(/comput/i)
     expect(html).not.toMatch(/offline/i)
+  })
+})
+
+describe('StationPage for a bundled tide station', () => {
+  const seattle: BundledStation = {
+    id: 'noaa/9447130', kind: 'tide', slug: 'seattle', name: 'Seattle',
+    latitude: 47.6, longitude: -122.34, timezone: 'America/Los_Angeles',
+    source: 'bundled', chartDatum: 'MLLW', state: 'WA', country: 'United States',
+    constituents: [{ name: 'M2', amplitude: 3.487, phase: 10.8 }, { name: 'K1', amplitude: 2.625, phase: 300 }],
+  }
+  const now = new Date('2026-09-11T20:00:00Z')
+  const nearby = [
+    { slug: 'tacoma', name: 'Tacoma', latitude: 47.27, longitude: -122.41, nm: 20.1, bearing: 190 },
+  ]
+  const html = renderToStaticMarkup(<StationPage station={seattle} now={now} nearby={nearby} />)
+  const live = renderToStaticMarkup(<StationPage station={seattle} now={now} live nearby={nearby} />)
+
+  it('leads with the query: the station, the words, the place', () => {
+    expect(html).toContain('<h1')
+    expect(html).toContain('Seattle tide times &amp; tide chart — WA, United States')
+  })
+
+  it('walks a breadcrumb of real pages, home first', () => {
+    expect(html).toMatch(/<nav aria-label="Breadcrumb"/)
+    expect(html).toMatch(/<a href="\/"/)
+    expect(html).toMatch(/<a href="\/stations\/tides\/"/)
+  })
+
+  it("answers first, dated, in HTML that is true whenever it is read", () => {
+    // The day's turns in order, on the station's own calendar.
+    const answer = html.match(/<p class="mt-6[^"]*">(.*?)<\/p>/)![1]
+    expect(answer).toMatch(/^<span[^>]*>Fri 11 Sep 2026<\/span>/)
+    expect(answer).toMatch(/High \d+\.\d ft at (<[^>]+>)?\d\d:\d\d/)
+    expect(answer).toMatch(/Low -?\d+\.\d ft at (<[^>]+>)?\d\d:\d\d/)
+    expect(html).not.toMatch(/in \d+[hm]\b/)
+    expect(html).not.toMatch(/Rising|Falling/)
+  })
+
+  it('reads the water now only once the clock is live', () => {
+    expect(live).toMatch(/Rising|Falling/)
+    expect(live).toMatch(/(High|Low) in \d+(h \d+)?m/)
+  })
+
+  it('carries today and tomorrow, both in the HTML, on two radio tabs', () => {
+    expect(html.match(/type="radio"/g)).toHaveLength(2)
+    expect(html.match(/<path[^>]+d="M[\d.,\-L\s]+"/g)!.length).toBeGreaterThanOrEqual(2)
+    // Dates, not "Today": a prerender's today is the build day.
+    expect(html).toContain('Fri 11 Sep 2026')
+    expect(html).toContain('Sat 12 Sep 2026')
+    expect(html).not.toMatch(/>Today</)
+    expect(live).toMatch(/>Today</)
+    expect(live).toMatch(/>Tomorrow</)
+  })
+
+  it('tables a week of highs and lows, grouped by day', () => {
+    expect(html).toContain('<table')
+    expect(html).toContain('Tide times for the next 7 days')
+    for (let d = 11; d <= 17; d++) expect(html).toContain(`${d} Sep 2026`)
+  })
+
+  it('states the datum under Station facts, not under the curve', () => {
+    expect(html).toContain('Station facts')
+    expect(html).toContain('MLLW datum')
+    expect(html).toMatch(/A negative height means there is that much less water/)
+    expect(html.match(/MLLW datum/g)).toHaveLength(1)
+    expect(html).toContain('47.6000° N, 122.3400° W')
+  })
+
+  it('links each neighbour with its leg, and leaves the map to the browser', () => {
+    expect(html).toMatch(/<a href="\/tides\/tacoma\/"[^>]*>Tacoma<\/a>/)
+    expect(html).toContain('20.1 nm S')
+    expect(html).not.toContain('leaflet')
+    expect(html).not.toContain('tile.openstreetmap.org')
   })
 })

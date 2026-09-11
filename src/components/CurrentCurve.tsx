@@ -1,5 +1,6 @@
 import { useId, useMemo } from 'react'
 import { provenance } from '#/lib/copy'
+import { fadeStops } from '#/lib/fade'
 import { dayLabel, hhmm } from '#/lib/format'
 import { speedColor } from '#/lib/ramp'
 import {
@@ -53,18 +54,6 @@ interface Common {
   height?: number
   /** Drop the in-chart slack times, keeping only the peaks. */
   sparse?: boolean
-  /**
-   * Is `now` actually now? Only a hydrated client can say yes.
-   *
-   * The "next slack, in 30m" line is a claim about the present, and a
-   * prerendered page makes it against a frozen build-time clock — a reading
-   * that is days old and drifting, in the one place a reader without JS
-   * (crawler, unfurl scraper) sees it. False here, that line does not render
-   * server-side; the client re-renders it after hydration against the real
-   * clock. Instant pages never set it: they show one fixed shared moment,
-   * and "in 30m" from a moment that may be in the past is simply wrong.
-   */
-  live?: boolean
 }
 
 /**
@@ -107,7 +96,6 @@ export function CurrentCurve(props: Props) {
     width: W = 1000,
     height: H = 320,
     sparse = false,
-    live = false,
   } = props
   // Unique per instance. The page renders this twice — a phone version and a
   // desktop one, one of them display:none — and shared element ids make the
@@ -151,7 +139,6 @@ export function CurrentCurve(props: Props) {
     // changed. The two fetched arrays are set once and never mutated.
   }, [station, props.samples, props.events, start, hours])
 
-  const next = nextEvent(events, now)
   // The fill fades out over the outer 6% at each end, so a label landing there
   // annotates a curve the reader can barely see and looks clipped. Drop it —
   // the window edge is arbitrary anyway.
@@ -201,10 +188,9 @@ export function CurrentCurve(props: Props) {
           {/* WHITE, not black: an SVG mask is luminance-based, so black hides
               and white reveals. Black stops here erase the entire curve. */}
           <linearGradient id={fadeId} x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0" stopColor="#fff" stopOpacity="0" />
-            <stop offset="0.06" stopColor="#fff" stopOpacity="1" />
-            <stop offset="0.94" stopColor="#fff" stopOpacity="1" />
-            <stop offset="1" stopColor="#fff" stopOpacity="0" />
+            {fadeStops(x(now) / W).map((s, i) => (
+              <stop key={i} offset={s.offset} stopColor="#fff" stopOpacity={s.opacity} />
+            ))}
           </linearGradient>
           <mask id={maskId}>
             <rect x="0" y="0" width={W} height={H} fill={`url(#${fadeId})`} />
@@ -329,26 +315,8 @@ export function CurrentCurve(props: Props) {
 
       <figcaption className="sr-only">{describe(station, events, now)}</figcaption>
 
-      {live && next && (
-        <p className="mt-6 text-lg">
-          <span className="font-mono text-[0.7rem] uppercase tracking-[0.16em] text-sw-leaf">
-            Next {next.kind === 'slack' ? 'slack' : `max ${next.kind}`}
-          </span>
-          <br />
-          <span className="[font-variant-numeric:tabular-nums] text-sw-paper">
-            {hhmm(next.time, station.timezone)}
-          </span>
-          <span className="text-sw-steel"> · in {until(next.time, now)}</span>
-        </p>
-      )}
     </figure>
   )
-}
-
-function until(then: Date, now: Date) {
-  const mins = Math.max(0, Math.round((then.getTime() - now.getTime()) / 60_000))
-  const h = Math.floor(mins / 60)
-  return h ? `${h}h ${mins % 60}m` : `${mins}m`
 }
 
 /**

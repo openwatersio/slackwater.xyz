@@ -1,7 +1,8 @@
 import { useId, useMemo } from 'react'
-import { DATUM_NOTE, datumLine, provenance } from '#/lib/copy'
+import { provenance } from '#/lib/copy'
+import { fadeStops } from '#/lib/fade'
 import { dayLabel, height, hhmm } from '#/lib/format'
-import { predictSeries } from '#/lib/predict'
+import { predictSeries, tideExtremes } from '#/lib/predict'
 import type { Sample } from '#/lib/predict'
 import type { BundledStation, ChsStation, Station } from '#/lib/station'
 
@@ -58,11 +59,9 @@ export function TideCurve(props: Props) {
   const fadeId = `fade-${uid}`
   const clipId = `plot-${uid}`
 
-  const datum = datumLine(station)
-
   const PAD_TOP = 34
   const PAD_BOTTOM = 44
-  const { path, area, x, yOf, high, low } = useMemo(() => {
+  const { path, area, x, yOf, high, low, extremes } = useMemo(() => {
     const samples = props.samples ?? predictSeries(props.station, start, hours)
     const levels = samples.map((s) => s.level)
     const max = Math.max(...levels)
@@ -80,6 +79,13 @@ export function TideCurve(props: Props) {
     // has no published anything, so its extremes are the curve's own.
     const high = props.high ?? samples.reduce((best, s) => (s.level > best.level ? s : best))
     const low = props.low ?? samples.reduce((best, s) => (s.level < best.level ? s : best))
+    // Every turn in the window, not just the day's highest and lowest: a
+    // semidiurnal day has two of each, and a reader planning the afternoon
+    // needs the afternoon's. DFO publishes one pair per fetch, so a Canadian
+    // curve labels that pair.
+    const extremes = props.samples
+      ? [{ time: high.time, level: high.level, high: true }, { time: low.time, level: low.level, high: false }]
+      : tideExtremes(props.station, start, hours)
 
     return {
       yOf: y,
@@ -88,6 +94,7 @@ export function TideCurve(props: Props) {
       x,
       high,
       low,
+      extremes,
     }
     // `props` itself would be a new object every render, and this page ticks:
     // the whole path would be rebuilt once a minute for a curve that has not
@@ -115,10 +122,9 @@ export function TideCurve(props: Props) {
           {/* WHITE, not black: an SVG mask is luminance-based, so black hides
               and white reveals. Black stops here erase the entire curve. */}
           <linearGradient id={fadeId} x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0" stopColor="#fff" stopOpacity="0" />
-            <stop offset="0.06" stopColor="#fff" stopOpacity="1" />
-            <stop offset="0.94" stopColor="#fff" stopOpacity="1" />
-            <stop offset="1" stopColor="#fff" stopOpacity="0" />
+            {fadeStops(x(now) / W).map((s, i) => (
+              <stop key={i} offset={s.offset} stopColor="#fff" stopOpacity={s.opacity} />
+            ))}
           </linearGradient>
           <mask id={maskId}>
             <rect x="0" y="0" width={W} height={H} fill={`url(#${fadeId})`} />
@@ -131,13 +137,13 @@ export function TideCurve(props: Props) {
             <path d={path} fill="none" stroke="#DFEEE0" strokeWidth={2.2} strokeLinejoin="round" />
           </g>
 
-          {/* High and low — a dot and a number, no ramp, no slack. */}
-          {[high, low].map((e) => (
+          {/* Highs and lows — a dot and a number, no ramp, no slack. */}
+          {extremes.map((e) => (
             <g key={e.time.getTime()}>
               <circle cx={x(e.time)} cy={yOf(e.level)} r={4} fill="#E4F0E4" />
               <text
                 x={x(e.time)}
-                y={yOf(e.level) + (e === high ? -14 : 22)}
+                y={yOf(e.level) + (e.high ? -14 : 22)}
                 textAnchor="middle"
                 fill="#E4F0E4"
                 className="font-mono text-[15px] font-semibold [font-variant-numeric:tabular-nums]"
@@ -167,13 +173,6 @@ export function TideCurve(props: Props) {
           </g>
         </g>
       </svg>
-
-      {datum && (
-        <div className="mt-3">
-          <p className="text-sm text-sw-steel">{datum}</p>
-          <p className="mt-1 text-sm text-sw-steel/70">{DATUM_NOTE}</p>
-        </div>
-      )}
 
       <figcaption className="sr-only">{describe(station, high, low)}</figcaption>
     </figure>

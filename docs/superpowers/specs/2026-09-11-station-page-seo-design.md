@@ -30,15 +30,15 @@ The 33 CHS ports prerender identity only; the reader's browser fetches the day f
 
 ## The day strip
 
-The strip is the app's scrub view held still on one station-local day: the sky over the curve, the app's inks, the app's readout. There is no centreline and nothing to drag. Time runs left to right from midnight to midnight; the sky is painted for the moment the page is about — now on today's strip, this time tomorrow on the other.
+The strip is the app's scrub view held still on one station-local day: the curve, the app's inks, the app's readout. There is no centreline and nothing to drag. Time runs left to right from midnight to midnight. The sky the app paints over its curve is not here; when the landing page's sky modules land on `main`, the strip takes them the same way the hero does.
 
-`DayStrip` composes the modules the landing page hero already uses — `Sky`, `TideCurve` or `CurrentCurve`, `CurrentLead` — rather than generalising `CurrentScrubStrip`, which would need a no-centreline mode, a sky time separate from the scrub time, an arbitrary now position, event and day rows it does not draw, and a tide sibling. The composer is smaller than that set of switches, and it leaves the hero's only consumer alone.
+`DayStrip` composes `TideCurve` or `CurrentCurve` with a lead reading and a day row. It is a composer, not a third curve: the curves already draw the highs, lows, slacks, maxima and the now line, and the strip adds only what a whole day needs around them.
 
 The box has a fixed height so the page does not shift when the canvas paints. Day boundaries come from `dayStart` in `src/lib/format.ts`, which resolves station-local midnight through `Intl`, so a DST day is 23 or 25 hours wide and the curve fits it.
 
 Past is faded to 35% on the curve, the way the app fades it, by two stops in the existing edge-fade gradient at the now position. Tomorrow's strip has no now position inside its window, so nothing fades.
 
-Sunrise and sunset sit in a day row under the plot, at their true x, in the sunrise and sunset inks. Event times — highs and lows, or slacks — sit in their own row above it.
+Sunrise and sunset sit in a day row under the plot, at their true x, in the sunrise and sunset inks. They come from `@openwaters/almanac`, computed for the station's own position; a polar day or night has no row.
 
 ## Structured data
 
@@ -61,7 +61,7 @@ The reader's browser fetches tiles from openstreetmap.org when the map appears; 
 
 ## Eclipses
 
-The strip is built to host a future `/eclipse/<slug>/` page without changes to its shape. `dayStart` is a prop, not derived inside, so an eclipse page passes the eclipse night and paints the sky at greatest eclipse. The day row is where the app draws its eclipse glyph. The search itself — `nextLunarEclipse` and `lunarEclipseVisibility` from `@openwaters/almanac` — belongs in `skyDays`, once per window, never per frame; and `Sky` takes the whole `SkyState`, so the umbra and penumbral wash become fields on it rather than new props at every call site. Almanac covers lunar eclipses only; solar is off its roadmap until a consumer needs the geoid work.
+The strip is built to host a future `/eclipse/<slug>/` page without changes to its shape. `start` is a prop, not derived inside, so an eclipse page passes the eclipse night. The day row is where the app draws its eclipse glyph, and where this strip would. The search itself — `nextLunarEclipse` and `lunarEclipseVisibility` from `@openwaters/almanac` — runs once per window, never per render. Almanac covers lunar eclipses only; solar is off its roadmap until a consumer needs the geoid work.
 
 ## Out of scope
 
