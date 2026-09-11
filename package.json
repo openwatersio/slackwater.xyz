@@ -15,15 +15,15 @@
   },
   "dependencies": {
     "@cf-wasm/resvg": "0.4.0",
-    "@neaps/tide-database": "^0.9.20260801",
+    "@neaps/tide-database": "^0.9.20260907",
     "@neaps/tide-predictor": "^0.11.0",
     "@openwaters/noaa-current-stations": "^0.5.0",
     "@openwaters/station-metadata": "^4.1.2",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-router": "^1.170.34",
     "@tanstack/react-start": "^1.168.51",
-    "@tanstack/router-plugin": "^1.132.0",
-    "marked": "^18.0.11",
+    "@tanstack/router-plugin": "^1.168.36",
+    "marked": "^18.0.12",
     "nitro": "3.0.260522-beta",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -39,6 +39,6 @@
     "typescript": "^6.0.2",
     "vite": "8.2.2",
     "vitest": "^4.1.5",
-    "wrangler": "^4.125.0"
+    "wrangler": "^4.129.1"
   }
 }
