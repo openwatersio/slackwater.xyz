@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { existsSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { Route as RootRoute } from './__root'
 import { Route } from './index'
 import { TESTFLIGHT } from '#/lib/links'
 
@@ -25,5 +26,15 @@ describe('landing page', () => {
     // Icons are SVG too; a curve is the only SVG that would mean a prediction ran.
     const withoutIcons = html.replace(/<svg aria-hidden[^>]*>[\s\S]*?<\/svg>/g, '')
     expect(withoutIcons).not.toContain('<svg')
+  })
+})
+
+describe('landing page social card', () => {
+  it('says what the app is in one line', async () => {
+    const head = await RootRoute.options.head?.({} as never)
+    expect(head?.meta).toContainEqual({
+      property: 'og:title',
+      content: 'A free tides & currents app that works offline.',
+    })
   })
 })

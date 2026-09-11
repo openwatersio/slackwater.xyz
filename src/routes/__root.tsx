@@ -1,7 +1,6 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import appCss from '../styles.css?url'
 
-/** Shared by the <title>, og:title and the app's JSON-LD. */
 export const SITE_TITLE = 'Slackwater — Tides & Currents'
 
 /** Shared by the meta description, og:description and the JSON-LD. */
@@ -21,7 +20,7 @@ export const Route = createRootRoute({
       // property; every route sets its own og:url next to its canonical.
       { property: 'og:type', content: 'website' },
       { property: 'og:site_name', content: 'Slackwater' },
-      { property: 'og:title', content: SITE_TITLE },
+      { property: 'og:title', content: 'A free tides & currents app that works offline.' },
       { property: 'og:description', content: SITE_DESCRIPTION },
       { property: 'og:image', content: 'https://slackwater.xyz/og.png' },
       { property: 'og:image:width', content: '1200' },
@@ -29,7 +28,7 @@ export const Route = createRootRoute({
       {
         property: 'og:image:alt',
         content:
-          'The Slackwater mark: a tide curve crossing the datum line, with the slack marker on the crossing.',
+          'Slackwater showing Friday Harbor at low tide under a full moon, with the tide curve below.',
       },
       // Twitter falls back to the og: tags for everything but the card type.
       { name: 'twitter:card', content: 'summary_large_image' },
