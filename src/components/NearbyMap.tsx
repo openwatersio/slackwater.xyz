@@ -47,8 +47,11 @@ export function NearbyMap({
       // Colour comes from the tokens, read off the element, rather than hexes
       // copied into a component that a light theme would then have to find.
       const token = (name: string) => getComputedStyle(el).getPropertyValue(name).trim() || 'currentColor'
+      // The basemap is light, so the pins take the chart's ink rather than
+      // the page's: foam vanishes on OSM's paper, chart-ink does not.
       const here = token('--color-sw-leaf')
-      const other = token('--color-sw-foam')
+      const other = token('--color-sw-flood')
+      const ink = token('--color-sw-chart-ink')
       map = L.map(el, { scrollWheelZoom: false, keyboard: false, attributionControl: true })
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution:
@@ -58,10 +61,10 @@ export function NearbyMap({
       const dot = (p: { latitude: number; longitude: number }, radius: number, colour: string) =>
         L.circleMarker([p.latitude, p.longitude], {
           radius,
-          color: colour,
-          weight: 1,
+          color: ink,
+          weight: 1.5,
           fillColor: colour,
-          fillOpacity: 0.85,
+          fillOpacity: 0.9,
         }).addTo(map!)
       for (const r of rows) {
         dot(r, 7, other)
