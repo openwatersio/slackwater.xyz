@@ -14,11 +14,20 @@ updates:
     # yanked within days, and this site would rather miss it than install it.
     cooldown:
       default-days: 3
-    # One PR a week for everything, not one per package. Nine open PRs is nine
-    # lockfiles that each conflict with the last one merged; a single branch
+    # One PR a week for the routine bumps, not one per package. Nine open PRs is
+    # nine lockfiles that each conflict with the last one merged; a single branch
     # resolves once and gets one `pnpm build` to prove it.
+    #
+    # Majors stay out of it and arrive one at a time. The first grouped run put
+    # `station-metadata` 4 -> 5 in with wrangler and marked, and that major is not
+    # a bump: it takes the corpus from 3,640 pages to 7,349 and renames station
+    # contexts, which is a week of copy and a prerender-cost decision, not a merge.
+    # A grouped PR that always fails is a grouped PR nobody reads.
     groups:
       npm:
+        update-types:
+          - minor
+          - patch
         patterns:
           - '*'
   - package-ecosystem: github-actions
