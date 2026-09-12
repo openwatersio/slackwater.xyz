@@ -28,3 +28,9 @@ it('starts and ends a passing-orbits transition exactly at its inputs', () => {
   expect(transitionSky(from, to, 0)).toEqual(from)
   expect(transitionSky(from, to, 1)).toEqual(to)
 })
+
+it('sends the outgoing moon off-screen during a night-to-light transition', () => {
+  const moon = transitionSky(stylizedSky('night'), stylizedSky('light'), 0.5).moon
+  expect(moon).toBeDefined()
+  expect(moon?.x).toBeCloseTo(0.335)
+})

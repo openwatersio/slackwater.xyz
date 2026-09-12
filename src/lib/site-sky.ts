@@ -67,7 +67,7 @@ export function transitionSky(from: SkyFrame, to: SkyFrame, progress: number): S
   return {
     paint: { top: mix(from.paint.top, to.paint.top, amount), bottom: mix(from.paint.bottom, to.paint.bottom, amount) },
     sun: transitionBody(from.sun, to.sun, amount),
-    moon: to.moon ? transitionBody(from.moon, to.moon, amount) : undefined,
+    moon: transitionBody(from.moon, to.moon, amount),
   }
 }
 
