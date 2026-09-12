@@ -4,6 +4,15 @@ import { locationSky, skyPaint, stylizedSky, transitionSky } from './site-sky'
 const observer = { latitude: 48.4284, longitude: -123.3656 }
 
 describe('skyPaint', () => {
+  it.each([
+    [5, '#2d65a7', '#dbc2ad'],
+    [-3, '#213862', '#c37661'],
+    [-9, '#111d3d', '#5c3a5b'],
+    [-15, '#080d20', '#1b1d3b'],
+  ] as const)('interpolates the adjacent anchors at %s degrees', (altitude, top, bottom) => {
+    expect(skyPaint(altitude)).toEqual({ top, bottom })
+  })
+
   it('uses the five approved solar anchors', () => {
     expect(skyPaint(10)).toEqual({ top: '#2f7fd4', bottom: '#bde3fb' })
     expect(skyPaint(0)).toEqual({ top: '#2b4a7a', bottom: '#f8a15f' })

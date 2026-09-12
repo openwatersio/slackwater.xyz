@@ -23,8 +23,8 @@ export function skyPaint(altitude: number): SkyPaint {
   const last = SKY_ANCHORS.at(-1)!
   if (altitude >= first.altitude) return { top: first.top, bottom: first.bottom }
   if (altitude <= last.altitude) return { top: last.top, bottom: last.bottom }
-  const upper = SKY_ANCHORS.find((anchor) => altitude >= anchor.altitude)!
-  const lower = SKY_ANCHORS[SKY_ANCHORS.indexOf(upper) + 1]!
+  const lower = SKY_ANCHORS.find((anchor) => altitude >= anchor.altitude)!
+  const upper = SKY_ANCHORS[SKY_ANCHORS.indexOf(lower) - 1]!
   const progress = (upper.altitude - altitude) / (upper.altitude - lower.altitude)
   return { top: mix(upper.top, lower.top, progress), bottom: mix(upper.bottom, lower.bottom, progress) }
 }
