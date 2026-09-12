@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { predictSeries, findEvents, slackWindows, SLACK_KNOTS } from './predict'
+import { predictSeries, findEvents, slackWindows, tideExtremes, SLACK_KNOTS } from './predict'
 import type { BundledStation } from './station'
 
 const CURRENT: BundledStation = {
@@ -124,5 +124,36 @@ describe('slackWindows', () => {
     const lull = { ...CURRENT, offset: -Math.min(...levels) + 0.2 }
     expect(Math.min(...predictSeries(lull, start, 24).map((s) => s.level))).toBeCloseTo(0.2, 6)
     expect(slackWindows(predictSeries(lull, start, 24))).toEqual([])
+  })
+})
+
+describe('tideExtremes', () => {
+  // Two days, so the alternation has to survive more than one tidal cycle.
+  const extremes = tideExtremes(TIDE, new Date('2026-09-01T00:00:00Z'), 48)
+
+  it('alternates high and low', () => {
+    // A run of two highs would mean a plateau was read as a turn, which is the
+    // failure `findEvents`' sign filter causes when it is pointed at a tide.
+    expect(extremes.length).toBeGreaterThan(3)
+    for (let i = 1; i < extremes.length; i++) {
+      expect(extremes[i].high, `${i}`).toBe(!extremes[i - 1].high)
+    }
+  })
+
+  it('returns them in time order', () => {
+    const times = extremes.map((e) => e.time.getTime())
+    expect(times).toEqual([...times].sort((a, b) => a - b))
+  })
+
+  it('keeps the extremes the current-only sign filter would drop', () => {
+    // `findEvents` filters `high ? level > 0 : level < 0`, which is right for a
+    // signed velocity and wrong for a height above datum. Lift the whole curve
+    // clear of datum — what a real station's `datumShift` does — and every low
+    // is positive, so that filter would leave nothing but highs.
+    const above = { ...TIDE, offset: 9 }
+    const lifted = tideExtremes(above, new Date('2026-09-01T00:00:00Z'), 48)
+    expect(lifted.every((e) => e.level > 0)).toBe(true)
+    expect(lifted.some((e) => !e.high)).toBe(true)
+    expect(findEvents(above, new Date('2026-09-01T00:00:00Z'), 48).some((e) => e.kind === 'ebb')).toBe(false)
   })
 })

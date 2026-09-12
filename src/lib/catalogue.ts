@@ -31,6 +31,9 @@ export function isBuildable(id: string): boolean {
 const NOAA = 'noaa/'
 const overrides = corrections as Record<string, { name?: string; context?: string }>
 
+/** A provider `region` that is a subdivision code rather than a GeoNames numeric. */
+const SUBDIVISION = /^[A-Z]{2}$/
+
 /**
  * `@neaps/tide-database` ships tide amplitudes in METRES (Boston M2 = 1.371,
  * a 9.5 ft range once summed) — the current bundle is already in knots. The
@@ -100,6 +103,16 @@ export function loadCatalogue(): Station[] {
             curated.get(slug)?.region ??
             override?.context ??
             (r.region ? String(r.region) : undefined),
+          ...(r.country ? { country: String(r.country) } : {}),
+          // The provider's `region` is a USPS code on US rows and a GeoNames
+          // numeric ("02") on Canadian ones — and a few Canadian rows carry a
+          // stray US code (Amherstburg, Ontario is "MI"). Only a US row's
+          // letter code is a subdivision a reader can trust, so only that
+          // becomes `state`; the hierarchy migration gets the rest from the
+          // unified station database.
+          ...(r.country === 'United States' && SUBDIVISION.test(String(r.region ?? ''))
+            ? { state: String(r.region) }
+            : {}),
           constituents: (r.harmonic_constituents as BundledStation['constituents']).map((c) => ({
             ...c,
             amplitude: c.amplitude * FEET_PER_METRE,
@@ -135,6 +148,10 @@ export function loadCatalogue(): Station[] {
           // The NOAA bundle carries no region field at all, so the registry is
           // the only source and there is nothing to fall back to.
           region: curated.get(slug)?.region ?? override?.context,
+          // The NOAA bundle carries no country or subdivision either. Every
+          // station in it is a US one, which is what makes the constant
+          // honest rather than a default.
+          country: 'United States',
           constituents: r.constituents as BundledStation['constituents'],
           offset: Number(r.offset ?? 0),
           floodDirection: Number(r.floodDirection),

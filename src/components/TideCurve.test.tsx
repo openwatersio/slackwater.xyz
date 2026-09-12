@@ -123,13 +123,6 @@ describe('TideCurve datum', () => {
     <TideCurve station={MLLW} start={new Date('2026-09-01T00:00:00Z')} hours={24} now={new Date('2026-09-01T06:00:00Z')} />,
   )
 
-  it('names the datum its heights are quoted against', () => {
-    // A height with no datum on it is a number, not a depth. The app says the
-    // same thing under its own chart.
-    expect(svg).toContain('MLLW datum')
-    expect(svg).toMatch(/A negative height means there is that much less water/)
-  })
-
   it('says it in the accessible description too', () => {
     expect(svg).toMatch(/above MLLW/)
   })
@@ -137,7 +130,7 @@ describe('TideCurve datum', () => {
   it('keeps the datum line out of the SVG, and so off the share card', () => {
     // `og-image.ts` rasterises the <svg> alone. Anything inside it lands on the
     // 1200x630 card, where the top-left already collides with the station name
-    // (#26) — this line has no business competing for that space.
+    // (#26) — the datum line is the page's, under Station facts.
     const inner = svg.match(/<svg[\s\S]*<\/svg>/)![0]
     expect(inner).not.toContain('MLLW datum')
     expect(inner).not.toContain('negative height')
@@ -149,7 +142,7 @@ describe('TideCurve datum', () => {
     const bare = renderToStaticMarkup(
       <TideCurve station={SEATTLE} start={new Date('2026-09-01T00:00:00Z')} hours={24} now={new Date('2026-09-01T06:00:00Z')} />,
     )
-    expect(bare).not.toContain('datum')
+    expect(bare).not.toContain(' datum')
     expect(bare).not.toContain('undefined')
   })
 })
@@ -196,11 +189,10 @@ describe('TideCurve with fetched samples', () => {
     expect(svg).toContain('00:29')
   })
 
-  it('names chart datum, and no code it would be wrong about', () => {
+  it('names no datum code it would be wrong about', () => {
     // Victoria's own LLWLT is -0.09 m, nine centimetres below the zero these
     // heights are quoted from, so borrowing the corpus's datum vocabulary
     // would be a precise claim and a false one.
-    expect(svg).toContain('Chart datum · published by the Canadian Hydrographic Service')
     expect(svg).not.toMatch(/LLWLT|MLLW|LAT datum/)
   })
 

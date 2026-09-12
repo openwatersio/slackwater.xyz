@@ -43,6 +43,8 @@ slackwater.xyz counts visits using Plausible Analytics, a privacy-focused analyt
 - **Retention**: the aggregate counts are kept indefinitely. No personal information is retained.
 - **Choices**: the analytics script is served from slackwater.xyz itself rather than a third-party domain, so blocking `slackwater.xyz/js/script.js` in your browser or content blocker stops it. Because it sets no cookies or similar storage and retains no personal information, we do not present a consent banner.
 
+When the map of nearby stations at the foot of a station page scrolls into view, your browser requests map tiles directly from `openstreetmap.org`, which receives the information normally sent with an internet request, such as an IP address, and nothing about you from us.
+
 ### Canadian predictions on station pages
 
 The page we serve for a Canadian tidal current gate or tide port carries no predictions at all. When you open one, your browser requests them directly from the Canadian Hydrographic Service at `api-iwls.dfo-mpo.gc.ca` and draws the chart from what comes back.

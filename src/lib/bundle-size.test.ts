@@ -42,3 +42,42 @@ describe('client bundle', () => {
     }
   })
 })
+
+describe('the nearby map', () => {
+  // The two pages the rest of the suite reads, one of each kind.
+  const PAGES = ['currents/deception-pass-narrows', 'tides/seattle']
+  const page = (p: string) => readFileSync(`.output/public/${p}/index.html`, 'utf8')
+
+  it('keeps leaflet out of every chunk a station page preloads', () => {
+    // Leaflet is imported inside an effect, behind an IntersectionObserver, so
+    // it must land in its own chunk that the page never asks for up front. A
+    // static import — or a helper that reaches it from module scope — folds it
+    // into the route chunk, which would both cost every reader the download
+    // and break the prerender outright, since Leaflet touches `window` when it
+    // is evaluated.
+    for (const p of PAGES) {
+      const preloaded = [...page(p).matchAll(/<link[^>]*\brel="modulepreload"[^>]*>/g)]
+        .map((m) => m[0].match(/href="([^"]+)"/)?.[1])
+        .filter((href): href is string => !!href)
+      // Without this the loop below can pass by matching nothing at all.
+      expect(preloaded.length, `${p} preloads no modules`).toBeGreaterThan(0)
+      for (const href of preloaded) {
+        // A chunk may NAME the leaflet chunk — that is the dynamic import
+        // doing its job — but must not CONTAIN it. Strip the file references
+        // and anything left that says leaflet is leaflet's own code.
+        const src = readFileSync(`.output/public${href}`, 'utf8').replace(/leaflet-[\w-]+\.(?:js|css)/g, '')
+        expect(src.includes('leaflet'), `${href}, preloaded by ${p}`).toBe(false)
+      }
+    }
+  })
+
+  it('asks openstreetmap.org for nothing until a reader scrolls to the map', () => {
+    // The served HTML naming a tile URL would have every crawler, unfurl
+    // scraper and reader who never reaches the bottom of the page fetching
+    // tiles — and would make the sentence in `src/content/privacy.md`, which
+    // says the request happens when the map scrolls into view, false.
+    for (const p of PAGES) {
+      expect(page(p), p).not.toContain('tile.openstreetmap.org')
+    }
+  })
+})

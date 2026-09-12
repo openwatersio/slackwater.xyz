@@ -52,20 +52,15 @@ describe('CurrentCurve times', () => {
     expect(svg).not.toContain('this device')
   })
 
-  it('makes no claim about the present unless the clock is real', () => {
-    // The "next X, in 30m" line is a claim about now, and a prerendered page
-    // makes it against a frozen build-time clock — stale the day it ships and
-    // drifting after that. It renders only for a hydrated client.
+  it('makes no claim about the present', () => {
+    // "Next slack, in 30m" is a claim about now, and this curve is prerendered
+    // against a build clock. The claim belongs to DayStrip's lead, which is
+    // gated on a live clock; the curve itself never makes it.
     const at = { station: DECEPTION, start: new Date('2026-08-30T00:00:00-07:00'), hours: 24 }
     const now = new Date('2026-08-30T14:30:00-07:00')
     const server = renderToStaticMarkup(<CurrentCurve {...at} now={now} />)
     expect(server).not.toMatch(/in \d+[hm]/)
     expect(server).not.toContain('Next')
-
-    const hydrated = renderToStaticMarkup(<CurrentCurve {...at} now={now} live />)
-    expect(hydrated).toContain('Next')
-    expect(hydrated).toMatch(/in \d+[hm]/)
-    expect(hydrated).toContain('>16:47<')
   })
 })
 

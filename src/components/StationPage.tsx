@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
-import { CurrentCurve } from './CurrentCurve'
-import { TideCurve } from './TideCurve'
-import { dayLabel } from '#/lib/format'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { DayStrip, type Fetched } from './DayStrip'
+import { NearbyMap } from './NearbyMap'
+import { DATUM_NOTE, datumLine, pageTitle, placeLine } from '#/lib/copy'
+import { compass16, dayLabel, dayStart, height, hhmm } from '#/lib/format'
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
 import { TESTFLIGHT } from '#/lib/links'
-import type { StationRow } from '#/lib/catalogue-server'
-import type { Sample, StationEvent } from '#/lib/predict'
-import type { ChsStation, Station } from '#/lib/station'
+import type { NearbyRow } from '#/lib/catalogue-server'
+import { findEvents, tideExtremes } from '#/lib/predict'
+import { stationPath, type BundledStation, type ChsStation, type Station } from '#/lib/station'
 
 /**
  * One Canadian station's day, once DFO has sent it back.
@@ -21,10 +22,7 @@ import type { ChsStation, Station } from '#/lib/station'
  * fixed day; a clock that keeps moving would slide the frame off the end of it
  * and, worse, date the page differently from the water it drew.
  */
-type Curve = { at: Date } & (
-  | { kind: 'current'; samples: Sample[]; events: StationEvent[] }
-  | { kind: 'tide'; samples: Sample[]; high: Sample; low: Sample }
-)
+type Curve = { at: Date } & Fetched
 
 /**
  * How far before `now` a chart begins — six hours behind, eighteen ahead.
@@ -55,7 +53,7 @@ interface Props {
    */
   settled?: boolean
   /** Nearest stations of the same kind. Empty is fine — the section hides. */
-  nearby?: StationRow[]
+  nearby?: NearbyRow[]
 }
 
 /**
@@ -64,6 +62,9 @@ interface Props {
  * The canonical and instant routes differ in their loader, canonical link and
  * card, not in what they draw, so the page itself lives here rather than in
  * four near-identical copies that can drift apart.
+ *
+ * Order is the argument: the answer to the query first, the two day strips,
+ * the app, then everything a reader or a crawler goes on to want.
  */
 export function StationPage({ station, now, live = false, settled = live, nearby = [] }: Props) {
   // Held here rather than in `ChsGate` because the subtitle is here: a page
@@ -75,49 +76,224 @@ export function StationPage({ station, now, live = false, settled = live, nearby
   // itself. `now` keeps ticking underneath, which is what the NOW marker and
   // the countdown want.
   const at = curve?.at ?? now
-  const start = startOf(at)
   // The date, always, in the station's own zone — but only where there is a
   // chart to date. The chart speaks in bare `hh:mm`, and a shared link can
   // point at any day — without a date a receiver cannot tell which day's
   // water they are looking at. A CHS page draws no chart, so there is
   // nothing for a date to disambiguate: on a prerender `now` is the fixed
   // build clock, and printing it would read as the freshness of information
-  // that is not there. Joined with the region rather than sitting in its own
-  // element so that a station with no region (most current stations: the
-  // NOAA bundle carries no region field) renders one line instead of one
-  // line and an empty <p>.
-  // ... and a Canadian page once it draws one, for exactly the same reason: a
-  // shared link can point at any day, and a bare `hh:mm` cannot say which.
+  // that is not there.
   const date = station.source === 'bundled' || curve ? dayLabel(at, station.timezone) : undefined
-  const subtitle = [station.region, date].filter(Boolean).join(' · ')
+  const subtitle = [placeLine(station), date].filter(Boolean).join(' · ')
   return (
-    <main className="mx-auto max-w-3xl px-5 pb-24 pt-10 sm:px-6 sm:pt-20">
-      <h1 className="text-4xl font-semibold tracking-tight text-sw-paper sm:text-5xl">
-        {station.name}
+    <main className="mx-auto max-w-3xl px-5 pb-24 pt-8 sm:px-6 sm:pt-14">
+      <Breadcrumb station={station} />
+      <h1 className="mt-4 text-3xl font-semibold tracking-tight text-sw-paper sm:text-5xl">
+        {pageTitle(station)}
       </h1>
       <p className="mt-3 text-sw-steel">{subtitle}</p>
+      {station.source === 'bundled' && <Answer station={station} at={at} />}
       {station.source === 'chs' ? (
         !curve ? (
           <ChsGate station={station} now={now} settled={settled} hours={24} onCurve={setCurve} />
-        ) : curve.kind === 'tide' ? (
-          <TideCurve
-            station={station} start={start} hours={24} now={now}
-            samples={curve.samples} high={curve.high} low={curve.low}
-          />
         ) : (
-          <CurrentCurve
-            station={station} start={start} hours={24} now={now} live={live}
-            samples={curve.samples} events={curve.events}
-          />
+          <div className="mt-8">
+            <DayStrip station={station} fetched={curve} start={startOf(at)} hours={24} now={now} live={live} />
+          </div>
         )
-      ) : station.kind === 'tide' ? (
-        <TideCurve station={station} start={start} hours={24} now={now} />
       ) : (
-        <CurrentCurve station={station} start={start} hours={24} now={now} live={live} />
+        <DayTabs station={station} at={at} now={now} live={live} />
       )}
-      <Nearby station={station} rows={nearby} />
       <Cta station={station} />
+      {station.source === 'bundled' && <WeekTable station={station} at={at} />}
+      <Facts station={station} />
+      <Nearby station={station} rows={nearby} />
     </main>
+  )
+}
+
+/**
+ * Real pages only. The country and region crumbs arrive with the geographic
+ * hierarchy; until then a crumb pointing nowhere would be a broken link in the
+ * one place search engines read links most carefully. `json-ld.ts` emits the
+ * same three items — keep them in step.
+ */
+function Breadcrumb({ station }: { station: Station }) {
+  const tide = station.kind === 'tide'
+  return (
+    <nav aria-label="Breadcrumb" className="text-sm text-sw-steel">
+      <ol className="flex flex-wrap gap-x-2">
+        <li><a href="/" className="hover:text-sw-paper">Slackwater</a></li>
+        <li aria-hidden="true">›</li>
+        <li>
+          <a href={tide ? '/stations/tides/' : '/stations/currents/'} className="hover:text-sw-paper">
+            {tide ? 'Tide stations' : 'Current stations'}
+          </a>
+        </li>
+        <li aria-hidden="true">›</li>
+        <li aria-current="page" className="text-sw-foam">{station.name}</li>
+      </ol>
+    </nav>
+  )
+}
+
+/** The station-local day `at` falls in, and the ones after it. */
+function days(at: Date, timeZone: string, count: number): Date[] {
+  return Array.from({ length: count + 1 }, (_, i) => dayStart(at, timeZone, i))
+}
+const hoursBetween = (a: Date, b: Date) => (b.getTime() - a.getTime()) / 3600_000
+
+/**
+ * The day's turns, in order, as one sentence — for a tide, its highs and lows;
+ * for a current, its slacks and maxima.
+ */
+function turns(station: BundledStation, from: Date, to: Date) {
+  const tz = station.timezone
+  return (station.kind === 'tide'
+    ? tideExtremes(station, from, hoursBetween(from, to)).map((e) => ({
+        time: e.time,
+        what: e.high ? 'High' : 'Low',
+        value: `${height(e.level)} ft`,
+      }))
+    : findEvents(station, from, hoursBetween(from, to)).map((e) => ({
+        time: e.time,
+        what: e.kind === 'slack' ? 'Slack' : `Max ${e.kind}`,
+        value: e.kind === 'slack' ? undefined : `${Math.abs(e.level).toFixed(1)} kn`,
+      }))
+  ).map((t) => ({ ...t, hhmm: hhmm(t.time, tz) }))
+}
+
+/**
+ * The answer, dated, in one line that is true in prerendered HTML: it names a
+ * day and that day's water, and claims nothing about the present.
+ */
+function Answer({ station, at }: { station: BundledStation; at: Date }) {
+  const [today, tomorrow] = days(at, station.timezone, 1)
+  const day = useMemo(() => turns(station, today, tomorrow), [station, today.getTime()])
+  if (!day.length) return null
+  return (
+    <p className="mt-6 text-lg leading-relaxed text-sw-foam">
+      <span className="text-sw-steel">{dayLabel(today, station.timezone)}</span>
+      {day.map((t) => (
+        <span key={t.time.getTime()}>
+          <span className="text-sw-steel"> · </span>
+          {t.what}{t.value ? ` ${t.value}` : ''} at <span className="tabular-nums">{t.hhmm}</span>
+        </span>
+      ))}
+    </p>
+  )
+}
+
+/**
+ * Today and tomorrow, both in the HTML, switched by two radio inputs styled
+ * as tabs. No script runs the switch — it works before hydration and in a
+ * crawler — and there is one URL, so the canonical stays clean.
+ *
+ * The words "Today" and "Tomorrow" only when the clock is the reader's own:
+ * a prerender's today is the build day, and an instant page is one fixed
+ * moment, so both show dates instead.
+ */
+function DayTabs({ station, at, now, live }: { station: BundledStation; at: Date; now: Date; live: boolean }) {
+  const tz = station.timezone
+  const [d0, d1, d2] = days(at, tz, 2)
+  const label = (day: Date, word: string) => (live ? word : dayLabel(day, tz))
+  const tab = 'inline-block cursor-pointer rounded-full px-3 py-1 text-sm text-sw-steel hover:text-sw-foam'
+  return (
+    <div className="mt-8">
+      <input type="radio" name="day" id="day-0" className="peer/d0 sr-only" defaultChecked />
+      <input type="radio" name="day" id="day-1" className="peer/d1 sr-only" />
+      <label htmlFor="day-0" className={`${tab} peer-checked/d0:bg-white/10 peer-checked/d0:text-sw-paper peer-focus-visible/d0:ring-2`}>
+        {label(d0, 'Today')}
+      </label>
+      <label htmlFor="day-1" className={`${tab} ml-1 peer-checked/d1:bg-white/10 peer-checked/d1:text-sw-paper peer-focus-visible/d1:ring-2`}>
+        {label(d1, 'Tomorrow')}
+      </label>
+      <section className="mt-4 hidden peer-checked/d0:block" aria-label={dayLabel(d0, tz)}>
+        <DayStrip station={station} start={d0} hours={hoursBetween(d0, d1)} now={now} live={live} />
+      </section>
+      <section className="mt-4 hidden peer-checked/d1:block" aria-label={dayLabel(d1, tz)}>
+        <DayStrip station={station} start={d1} hours={hoursBetween(d1, d2)} now={now} live={live} />
+      </section>
+    </div>
+  )
+}
+
+/**
+ * Seven days of turns, visible rather than tabbed: this is the page's
+ * long-tail content, and text a crawler has to toggle for carries less weight.
+ */
+function WeekTable({ station, at }: { station: BundledStation; at: Date }) {
+  const tz = station.timezone
+  const week = days(at, tz, 7)
+  const rows = useMemo(() => turns(station, week[0], week[7]), [station, week[0].getTime()])
+  const tide = station.kind === 'tide'
+  let lastDay = ''
+  return (
+    <section className="mt-14">
+      <h2 className="text-xl font-semibold text-sw-paper">
+        {tide ? 'Tide times for the next 7 days' : 'Slack water and maximums for the next 7 days'}
+      </h2>
+      <table className="mt-4 w-full text-sm">
+        <thead className="text-left text-xs uppercase tracking-wider text-sw-leaf">
+          <tr>
+            <th className="py-2 pr-3 font-medium">Day</th>
+            <th className="py-2 pr-3 font-medium">{tide ? 'Tide' : 'Current'}</th>
+            <th className="py-2 pr-3 font-medium">Time</th>
+            <th className="py-2 font-medium">{tide ? 'Height' : 'Speed'}</th>
+          </tr>
+        </thead>
+        <tbody className="tabular-nums">
+          {rows.map((t) => {
+            const day = dayLabel(t.time, tz)
+            const first = day !== lastDay
+            lastDay = day
+            return (
+              <tr key={t.time.getTime()} className={first ? 'border-t border-sw-steel/20' : ''}>
+                <td className="py-1.5 pr-3 text-sw-steel">{first ? day : ''}</td>
+                <td className="py-1.5 pr-3">{t.what}</td>
+                <td className="py-1.5 pr-3">{t.hhmm}</td>
+                <td className="py-1.5">{t.value ?? ''}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </section>
+  )
+}
+
+/**
+ * What a reader who came for the numbers wants next: where exactly, against
+ * what, in whose time, from whom. A Canadian page names no datum here — see
+ * `datumLine` — and no mechanism, see `ChsGate`.
+ */
+function Facts({ station }: { station: Station }) {
+  const bundled = station.source === 'bundled'
+  const datum = bundled && station.kind === 'tide' ? datumLine(station) : undefined
+  const position =
+    `${Math.abs(station.latitude).toFixed(4)}° ${station.latitude >= 0 ? 'N' : 'S'}, ` +
+    `${Math.abs(station.longitude).toFixed(4)}° ${station.longitude >= 0 ? 'E' : 'W'}`
+  const where = [station.state, station.country].filter(Boolean).join(', ')
+  const rows: [string, string | undefined][] = [
+    ['Position', position],
+    ['Time zone', station.timezone],
+    ['Datum', datum],
+    ['Source', bundled ? (station.kind === 'tide' ? 'Harmonic constituents from the tide database' : 'NOAA harmonic constituents') : 'Canadian Hydrographic Service'],
+    [station.state ? 'Region' : 'Country', where || undefined],
+  ]
+  return (
+    <section className="mt-14">
+      <h2 className="text-xl font-semibold text-sw-paper">Station facts</h2>
+      <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
+        {rows.map(([k, v]) => v && (
+          <div key={k} className="contents">
+            <dt className="text-sw-steel">{k}</dt>
+            <dd className="text-sw-foam">{v}</dd>
+          </div>
+        ))}
+      </dl>
+      {datum && <p className="mt-3 text-sm text-sw-steel/70">{DATUM_NOTE}</p>}
+    </section>
   )
 }
 
@@ -255,22 +431,31 @@ function ChsGate({
  * thing linking station pages to each other — without it all 5,624 are
  * reachable from the sitemap and nothing else.
  */
-function Nearby({ station, rows }: { station: Station; rows: StationRow[] }) {
+function Nearby({ station, rows }: { station: Station; rows: NearbyRow[] }) {
   if (!rows.length) return null
-  const base = station.kind === 'tide' ? '/tides/' : '/currents/'
   const all = station.kind === 'tide' ? '/stations/tides/' : '/stations/currents/'
   return (
-    <section className="mt-12">
-      <h2 className="text-sm font-medium uppercase tracking-wider text-sw-leaf">Nearby</h2>
-      <ul className="mt-3 grid gap-x-6 gap-y-1 sm:grid-cols-2">
+    <section className="mt-14">
+      <h2 className="text-xl font-semibold text-sw-paper">Nearby</h2>
+      <ul className="mt-4 grid gap-x-6 gap-y-2 sm:grid-cols-2">
         {rows.map((r) => (
-          <li key={r.slug}>
-            <a href={`${base}${r.slug}/`} className="text-sw-paper/90 hover:text-sw-leaf">
-              {r.name}
-            </a>
+          <li key={r.slug} className="flex items-baseline justify-between gap-3">
+            <span>
+              <a href={stationPath(station.kind, r.slug)} className="text-sw-paper/90 underline underline-offset-4 decoration-sw-steel/40 hover:text-sw-leaf">
+                {r.name}
+              </a>
+              {r.region && <span className="ml-2 text-sm text-sw-steel">{r.region}</span>}
+            </span>
+            <span className="whitespace-nowrap text-sm tabular-nums text-sw-steel">
+              {r.nm.toFixed(1)} nm {compass16(r.bearing)}
+            </span>
           </li>
         ))}
       </ul>
+      <NearbyMap
+        station={station}
+        rows={rows.map((r) => ({ name: r.name, latitude: r.latitude, longitude: r.longitude, href: stationPath(station.kind, r.slug) }))}
+      />
       <p className="mt-4">
         <a href={all} className="text-sw-steel underline underline-offset-4 hover:text-sw-paper">
           All {station.kind === 'tide' ? 'tide' : 'current'} stations

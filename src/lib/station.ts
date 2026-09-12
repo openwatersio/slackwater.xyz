@@ -16,6 +16,24 @@ interface StationIdentity {
   longitude: number
   timezone: string
   region?: string
+  /** The country the station sits in, as its provider names it. */
+  country?: string
+  /**
+   * The first-level subdivision code as `@neaps/tide-database` publishes it —
+   * `WA`, `BC`. Only set where the provider publishes a code a reader can
+   * place: Canadian rows carry GeoNames numerics ("02") and get none.
+   * `region` stays the curated water-body context, which is a different thing.
+   */
+  state?: string
+}
+
+/**
+ * The single place a station URL is built, so the planned move to a geographic
+ * hierarchy (`/tides/us/wa/seattle/`) is one function plus a redirect table
+ * rather than a hunt through every route, component and sitemap.
+ */
+export function stationPath(kind: Kind, slug: string): string {
+  return `/${kind === 'tide' ? 'tides' : 'currents'}/${slug}/`
 }
 
 /** Constituents ship with the page; the curve is synthesised at build time. */

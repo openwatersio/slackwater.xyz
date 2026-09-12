@@ -53,14 +53,46 @@ export const DATUM_NOTE =
   'Heights are measured above chart datum. A negative height means there is that much less water than the charted depth shows.'
 
 /**
+ * Where the station is, as the query would say it: `BC, Canada`, `United
+ * States`. Abbreviated subdivision because that is what a searcher types and
+ * what fits a title; the country in full because the codes are not
+ * self-explaining outside their own country. Falls back to the curated water
+ * context so a station with no country still has a place.
+ */
+function place(station: Station): string | undefined {
+  const parts = [station.state, station.country].filter(Boolean)
+  return parts.length ? parts.join(', ') : station.region
+}
+
+/**
+ * The `<title>` and `<h1>`: station, then the words the query carries, then
+ * the place. "Victoria tide times & tide chart — BC, Canada" is what a reader
+ * searching "tides victoria bc" is looking for, in the order they look.
+ */
+export function pageTitle(station: Station): string {
+  const what = station.kind === 'tide' ? 'tide times & tide chart' : 'tidal currents & slack water'
+  const where = place(station)
+  return where ? `${station.name} ${what} — ${where}` : `${station.name} ${what}`
+}
+
+/**
+ * The line under the heading: the water, then the jurisdiction. The context
+ * says which water; the subdivision and country say where in the world.
+ */
+export function placeLine(station: Station): string | undefined {
+  const parts = [station.region, [station.state, station.country].filter(Boolean).join(', ')].filter(Boolean)
+  return parts.length ? parts.join(' · ') : undefined
+}
+
+/**
  * The page's meta description — a whole sentence, because the subject changes
  * and not just the trailing clause.
  *
- * A bundled page carries a curve, so it may promise slack water and maxima. A
- * CHS page carries identity and nothing else, so it must promise identity and
- * nothing else: substituting only the provenance clause would leave it
- * advertising results the page does not contain, in the text a shared unfurl
- * shows.
+ * A bundled page carries two days and a week of table, so it may promise
+ * them. A CHS page carries identity and nothing else, so it must promise
+ * identity and nothing else: substituting only the provenance clause would
+ * leave it advertising results the page does not contain, in the text a
+ * shared unfurl shows.
  */
 export function pageDescription(station: Station): string {
   if (station.source === 'chs') {
@@ -68,9 +100,13 @@ export function pageDescription(station: Station): string {
     return `Station information for ${where}. Predictions are based on Canadian ` +
       `Hydrographic Service data and are available in the Slackwater app.`
   }
+  const where = place(station)
+  const name = where ? `${station.name}, ${where}` : station.name
   return station.kind === 'tide'
-    ? `Tide heights and the next high and low for ${station.name}, ${provenance(station)}.`
-    : `Slack water and maximum flood and ebb for ${station.name}, ${provenance(station)}.`
+    ? `Tide times and tide chart for ${name}: today's and tomorrow's high and low water, ` +
+      `a 7-day tide table, sunrise and sunset, and nearby stations.`
+    : `Slack water and maximum flood and ebb for ${name}: today's and tomorrow's ` +
+      `tidal current, a 7-day table of slack and maximum, and nearby stations.`
 }
 
 /**

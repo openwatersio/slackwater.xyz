@@ -62,3 +62,69 @@ export function height(n: number): string {
   const s = n.toFixed(1)
   return s === '-0.0' ? '0.0' : s
 }
+
+/**
+ * "7:42am" — the app's `chartTime`, which pins `en_US_POSIX` so it is always
+ * twelve-hour. Deliberately not `hhmm`: this is the reading the app's lead card
+ * shows, and it reads the way the app reads it.
+ */
+export function chartTime(d: Date, timeZone: string): string {
+  return d
+    .toLocaleTimeString('en-US', { timeZone, hour: 'numeric', minute: '2-digit', hour12: true })
+    // Newer ICU separates the meridiem with U+202F, which `\s` matches and a literal space does not.
+    .replace(/\s/g, '')
+    .toLowerCase()
+}
+
+const POINTS_16 = [
+  'N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+  'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW',
+] as const
+
+/** The sixteen-point name for a bearing — `compass16` in the app. */
+export function compass16(deg: number): string {
+  const d = ((deg % 360) + 360) % 360
+  return POINTS_16[Math.round(d / 22.5) % 16]
+}
+
+/**
+ * What the wall clock in `timeZone` reads at instant `t`, minus UTC, in ms.
+ *
+ * `Intl` will not hand out a zone's offset as a number, so this reads the
+ * formatted wall clock back through `Date.UTC` and takes the difference. That
+ * also makes it right for zones on a half or quarter hour, which a table of
+ * whole hours would not be.
+ */
+function zoneOffsetMs(t: number, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).formatToParts(new Date(t))
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value)
+  return (
+    Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second')) - t
+  )
+}
+
+/**
+ * The instant midnight begins in the station's own zone, `offsetDays` days on.
+ *
+ * The offset is applied to the local calendar date, NOT as a multiple of 24
+ * hours: on the day a zone springs forward the next midnight is 23 hours away,
+ * and every window built by adding 86,400,000 ms lands an hour into the wrong
+ * day for the rest of the season.
+ */
+export function dayStart(d: Date, timeZone: string, offsetDays = 0): Date {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone, year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(d)
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value)
+  const wall = Date.UTC(get('year'), get('month') - 1, get('day') + offsetDays)
+  // Two passes: the offset at the guess can differ from the offset at the
+  // answer when a transition falls between them, and the second pass reads it
+  // at an instant already inside the right side of the boundary.
+  const guess = wall - zoneOffsetMs(wall, timeZone)
+  return new Date(wall - zoneOffsetMs(guess, timeZone))
+}

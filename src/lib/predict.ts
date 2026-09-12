@@ -177,3 +177,30 @@ export function slackWindows(timeline: Sample[], threshold = SLACK_KNOTS): Slack
   if (from && turned) windows.push({ start: from, end: timeline[timeline.length - 1].time })
   return windows
 }
+
+export interface TideExtreme {
+  time: Date
+  /** Feet above the station's chart datum — the predictor's `offset` already carries `datumShift`. */
+  level: number
+  high: boolean
+}
+
+/**
+ * The day's highs and lows, in time order.
+ *
+ * Deliberately NOT `findEvents`: that one filters `high ? level > 0 : level < 0`,
+ * which is correct for a signed velocity and wrong for a height. A tide station
+ * whose curve never crosses datum would lose every low, and one below datum
+ * would lose every high — so the two cannot share an implementation.
+ */
+export function tideExtremes(station: BundledStation, start: Date, hours: number): TideExtreme[] {
+  const end = new Date(start.getTime() + hours * 3600_000)
+  return predictorFor(station)
+    .getExtremesPrediction({ start, end })
+    .map((e: { high: boolean; level: number; time: number | Date }) => ({
+      time: new Date(e.time),
+      level: e.level,
+      high: e.high,
+    }))
+    .sort((a: TideExtreme, b: TideExtreme) => a.time.getTime() - b.time.getTime())
+}

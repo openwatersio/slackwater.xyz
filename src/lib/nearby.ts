@@ -61,3 +61,19 @@ export function neighbourMap(all: Station[], k = 6): Map<string, Station[]> {
   for (const s of all) map.set(s.id, nearby(s, all, k))
   return map
 }
+
+/**
+ * Initial great-circle course from `a` to `b`, degrees clockwise from true north.
+ *
+ * Initial, not rhumb: over the tens of miles a "Nearby" list spans the two agree
+ * to well under the 22.5 degrees `compass16` rounds to, and this is the one the
+ * distance above is already measured along.
+ */
+export function bearing(a: Positioned, b: Positioned): number {
+  const dLon = rad(b.longitude - a.longitude)
+  const y = Math.sin(dLon) * Math.cos(rad(b.latitude))
+  const x =
+    Math.cos(rad(a.latitude)) * Math.sin(rad(b.latitude)) -
+    Math.sin(rad(a.latitude)) * Math.cos(rad(b.latitude)) * Math.cos(dLon)
+  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360
+}
