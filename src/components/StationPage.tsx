@@ -219,30 +219,32 @@ function TideDayPager({
     if (live && sameDay) return ['Yesterday', 'Today', 'Tomorrow'][offset + 1]
     return dayLabel(dayStart(selectedAt, tz, offset), tz)
   }
-  const button = 'min-w-0 flex-1 rounded-full px-2 py-2 text-sm hover:text-sw-foam focus-visible:ring-2 focus-visible:ring-sw-foam'
+  const button = 'min-w-0 rounded-full px-2 py-2 text-sm hover:text-sw-foam focus-visible:ring-2 focus-visible:ring-sw-foam'
   return (
     <div className="mt-8">
-      {live && !trackingNow && (
-        <div className="mb-2 flex justify-end">
-          <button type="button" onClick={onNow} className="rounded-full px-3 py-1 text-sm text-sw-steel hover:text-sw-foam">
-            Now
-          </button>
-        </div>
-      )}
-      <nav aria-label="Choose tide day" className="flex items-center gap-1">
+      <nav aria-label="Choose tide day" className="grid grid-cols-3 items-center gap-x-1">
         {[-1, 0, 1].map((offset) => (
           <button
             key={offset}
             type="button"
             aria-current={offset === 0 ? 'date' : undefined}
             onClick={() => offset && onCommit(shiftLocalDay(selectedAt, tz, offset))}
-            className={`${button} ${offset === 0 ? 'bg-white/10 text-sw-paper' : 'text-sw-steel'}`}
+            className={`${button} row-start-1 ${offset === 0 ? 'bg-white/10 text-sw-paper' : 'text-sw-steel'}`}
           >
             {offset < 0 && <span aria-hidden="true">‹ </span>}
             {label(offset)}
             {offset > 0 && <span aria-hidden="true"> ›</span>}
           </button>
         ))}
+        {live && !trackingNow && (
+          <button
+            type="button"
+            onClick={onNow}
+            className={`row-start-2 mt-1 rounded-full px-3 py-1 text-sm text-sw-steel hover:text-sw-foam ${actualNow < selectedAt ? 'col-start-1 justify-self-end' : 'col-start-3 justify-self-start'}`}
+          >
+            Now
+          </button>
+        )}
       </nav>
       <section className="mt-4" aria-label={dayLabel(day, tz)}>
         <DayStrip
