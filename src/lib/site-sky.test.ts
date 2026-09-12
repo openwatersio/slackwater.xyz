@@ -30,6 +30,14 @@ it('draws the literal daytime sun through a west-coast sunset', () => {
   expect(frame.sun).toBeDefined()
 })
 
+it('draws a sun whose rise was before UTC midnight', () => {
+  const frame = locationSky(
+    { latitude: 35.6762, longitude: 139.6503 },
+    new Date('2026-09-12T00:30:00Z'),
+  )
+  expect(frame.sun).toBeDefined()
+})
+
 it('starts and ends a passing-orbits transition exactly at its inputs', () => {
   const from = stylizedSky('night')
   const to = stylizedSky('light')
