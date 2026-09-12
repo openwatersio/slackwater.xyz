@@ -223,7 +223,7 @@ Expected: FAIL because the modules do not exist.
 
 - [ ] **Step 3: Implement the five-anchor interpolation and two sky sources**
 
-Define `SkyFrame` with `paint`, optional sun, and optional moon. Keep coordinates normalized from 0 to 1. `stylizedSky` returns the fixed 72%/18% body. `locationSky` searches a 48-hour event window once per observer/day, projects rise-to-set progress across the width, maps altitude above the horizon into the upper 82% of the viewport, hides the daytime moon, and hides every body Almanac places below the horizon. Catch Almanac range errors and return the night paint with no body.
+Define `SkyFrame` with `paint`, optional sun, and optional moon. Keep coordinates normalized from 0 to 1. `stylizedSky` returns the fixed 72%/18% body. `locationSky` searches a 48-hour event window once per observer/day, projects rise-to-set progress across the width, maps altitude above the horizon into the upper 0.5–1% of the viewport, hides the daytime moon, and hides every body Almanac places below the horizon. Catch Almanac range errors and return the night paint with no body.
 
 Use these exact paint anchors:
 

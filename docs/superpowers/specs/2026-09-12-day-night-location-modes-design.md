@@ -29,7 +29,7 @@ Almanac's solar altitude decides the appearance: the sun above the horizon is Li
 
 Live Auto station pages and Your location pages update the body's position and resolved appearance from a minute clock. Auto on instant station pages remains fixed until the selected URL time changes. The root reads the initial station and optional instant from TanStack's active route matches. `StationPage` then publishes the exact moment it displays through the theme context, including client-side tide scrubbing that updates the URL without rerunning a loader. Auto listens for system colour-scheme changes on non-station pages. Every resolved day/night change uses the same transition as a manual choice.
 
-A saved Your location preference renders the Night baseline first. After hydration, every page requests fresh browser coordinates; browsers with an existing grant can answer without another prompt. Failure clears the unavailable preference and leaves Night.
+A saved Your location preference renders the Night ground without a placeholder body while browser coordinates are pending. After hydration, every page requests fresh browser coordinates; browsers with an existing grant can answer without another prompt. Failure clears the unavailable preference and leaves Night.
 
 ## Colour
 
@@ -59,7 +59,7 @@ The document's `theme-color` meta value follows the resolved page ground so brow
 
 One fixed, pointer-transparent canvas spans the viewport. The body owns the page ground; the canvas sits above that ground and below a positioned content wrapper, with the orbital control above both. It draws the sun and moon, with Almanac supplying their positions for Auto on station pages and for Your location, but no star catalogue, weather, clouds, or additional scenery. The sky never changes document layout.
 
-Manual Light and Night, and Auto on non-station pages, are deliberately stylized: the active body rests at 72% of the viewport width and 18% of its height. Light uses the sun; Night uses a full moon. Literal modes use the relevant observer and time. Their projection maps each body's rise-to-set span across the viewport and its altitude above the horizon. A body below the horizon is outside the frame.
+Manual Light and Night, and Auto on non-station pages, are deliberately stylized: the active body rests at 72% of the viewport width and 18% of its height. Light uses the sun; Night uses a full moon. Location-based modes use the relevant observer and time. Their projection maps each body's rise-to-set span across the viewport, while altitude moves its artwork within the upper 0.5–1% of the viewport; the top edge clips part of the disc so it stays clear of page content without moving the layout. A body below the horizon is outside the frame.
 
 The canvas background interpolates through five solar-altitude anchors: daylight at `10°` (`#2f7fd4` → `#bde3fb`), horizon at `0°` (`#2b4a7a` → `#f8a15f`), civil twilight at `−6°` (`#17264a` → `#8d4a63`), nautical twilight at `−12°` (`#0b1430` → `#2a2a52`), and night at `−18°` (`#04060f` → `#0b1023`). The gradient fades into the page ground rather than replacing it.
 

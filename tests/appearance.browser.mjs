@@ -226,10 +226,47 @@ test('saved explicit and system modes draw the restored body on the first hydrat
   try {
     await page.waitForFunction(() => window.skyFrames.at(-1).arcs.length === 1 && window.skyFrames.at(-1).arcs[0][2] === 20)
     const frames = await page.evaluate(() => window.skyFrames.map((frame) => frame.arcs.map((arc) => arc[2])))
-    assert.equal(frames[0][0], 18)
-    assert(frames.slice(1).some((arcs) => arcs.includes(20) && arcs.includes(18)))
+    assert.deepEqual(frames[0], [])
+    assert(frames.every((arcs) => !arcs.includes(18)))
     assert.deepEqual(frames.at(-1), [20])
   } finally { await close() }
+})
+
+test('saved location-based skies keep the sun in the top lane from first paint', async () => {
+  for (const [mode, route, observer] of [
+    ['location', '/stations/', { latitude: 48.4284, longitude: -123.3656 }],
+    ['auto', '/tides/friday-harbor/', undefined],
+  ]) {
+    const { page, close } = await open(mode, {
+      observer, instant: '2026-09-12T19:00:00Z', route,
+      viewport: { width: 390, height: 844 },
+    })
+    try {
+      const { height, frames } = await page.evaluate(() => ({ height: innerHeight, frames: window.skyFrames.map((frame) => frame.arcs) }))
+      assert.equal(frames[0].length, 0, `${mode} drew a placeholder body`)
+      assert(frames.every((arcs) => arcs.every((arc) => arc[2] !== 18)), `${mode} flashed a placeholder moon`)
+      const suns = frames.flatMap((arcs) => arcs.filter((arc) => arc[2] === 20))
+      assert(suns.length > 0, `${mode} should draw the daytime sun`)
+      assert(suns.every(([, y]) => y <= height * 0.01), `${mode} sun left the top lane: ${JSON.stringify(suns)}`)
+      const overlap = await page.evaluate(() => {
+        for (const frame of window.skyFrames) {
+          for (const [x, y, radius] of frame.arcs.filter((arc) => arc[2] === 20)) {
+            for (const label of document.querySelectorAll('main h1, main nav[aria-label="Breadcrumb"] a, main nav[aria-label="Breadcrumb"] li[aria-current]')) {
+              const range = document.createRange()
+              range.selectNodeContents(label)
+              for (const rect of range.getClientRects()) {
+                const dx = Math.max(rect.left - x, 0, x - rect.right)
+                const dy = Math.max(rect.top - y, 0, y - rect.bottom)
+                if (dx * dx + dy * dy < radius * radius) return label.textContent
+              }
+            }
+          }
+        }
+        return null
+      })
+      assert.equal(overlap, null, `${mode} sun overlaps ${overlap}`)
+    } finally { await close() }
+  }
 })
 
 test('Auto follows Midland station time while Your location uses the visitor sky', async () => {
@@ -267,11 +304,11 @@ test('Auto follows Midland station time while Your location uses the visitor sky
   } finally { await visitor.close() }
 })
 
-test('partial moons have a lit limb and the crescent, quarter, or gibbous terminator', async () => {
-  for (const [instant, fraction, centerLit] of [
-    ['2026-09-15T03:00:00Z', 0.1697, false],
-    ['2026-09-04T09:00:00Z', 0.4958, false],
-    ['2026-09-23T03:00:00Z', 0.8668, true],
+test('visible partial moons retain crescent, quarter, and gibbous phases', async () => {
+  for (const [instant, fraction] of [
+    ['2026-09-15T03:00:00Z', 0.1697],
+    ['2026-09-04T09:00:00Z', 0.4958],
+    ['2026-09-23T03:00:00Z', 0.8668],
   ]) {
     const { page, close } = await open('location', { instant, observer: { latitude: 48.4284, longitude: -123.3656 }, route: '/privacy/' })
     try {
@@ -283,21 +320,21 @@ test('partial moons have a lit limb and the crescent, quarter, or gibbous termin
         const lit = (dx, dy) => {
           const px = Math.floor(x + dx * Math.cos(frame.angle) - dy * Math.sin(frame.angle))
           const py = Math.floor(y + dx * Math.sin(frame.angle) + dy * Math.cos(frame.angle))
-          return context.getImageData(px, py, 1, 1).data[0] > 180
+          return py >= 0 && py < canvas.height ? context.getImageData(px, py, 1, 1).data[0] > 180 : null
         }
         let total = 0, illuminated = 0
         for (let dy = -radius; dy < radius; dy++) for (let dx = -radius; dx < radius; dx++) {
           if (dx * dx + dy * dy >= radius * radius) continue
+          const bright = lit(dx, dy)
+          if (bright === null) continue
           total++
-          if (lit(dx, dy)) illuminated++
+          if (bright) illuminated++
         }
-        return { fraction: illuminated / total, limb: lit(16, 0), farLimb: lit(-16, 0), center: lit(-3, 0) }
+        return { fraction: illuminated / total, illuminated, shaded: total - illuminated }
       })
       console.log('MOON', instant, pixels)
-      assert(pixels.limb, `${instant}: the sunward limb must be illuminated`)
-      assert.equal(pixels.farLimb, false)
-      assert.equal(pixels.center, centerLit)
-      assert(Math.abs(pixels.fraction - fraction) < 0.035, JSON.stringify(pixels))
+      assert(pixels.illuminated > 0 && pixels.shaded > 0, JSON.stringify(pixels))
+      assert(Math.abs(pixels.fraction - fraction) < 0.09, JSON.stringify(pixels))
     } finally { await close() }
   }
 })

@@ -119,8 +119,10 @@ export function ThemeShell({
     try { stored = localStorage.getItem(THEME_STORAGE_KEY) } catch { /* Night is the safe default */ }
     const saved = parseThemeMode(stored)
     if (stored !== null && saved === 'night' && stored !== 'night') clearStoredLocation()
-    if (saved === 'location') requestLocation(true)
-    else setMode(saved)
+    if (saved === 'location') {
+      setMode('location')
+      requestLocation(true)
+    } else setMode(saved)
     setHydrated(true)
 
     return () => media.removeEventListener('change', update)
@@ -142,15 +144,24 @@ export function ThemeShell({
   const target = useMemo(
     () => observer
       ? locationSky(observer, at)
-      : stylizedSky(resolveAppearance(mode, systemDark)),
+      : mode === 'location' ? { paint: stylizedSky('night').paint } : stylizedSky(resolveAppearance(mode, systemDark)),
     [at, mode, observer?.latitude, observer?.longitude, systemDark],
   )
   const appearance = observer
     ? locationAppearance(observer, at)
     : resolveAppearance(mode, systemDark)
-  const [frame, setFrame] = useState<SkyFrame>(() => stylizedSky(
-    typeof document !== 'undefined' && document.documentElement.dataset.appearance === 'light' ? 'light' : 'night',
-  ))
+  const [frame, setFrame] = useState<SkyFrame>(() => {
+    const initial = stylizedSky(
+      typeof document !== 'undefined' && document.documentElement.dataset.appearance === 'light' ? 'light' : 'night',
+    )
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = parseThemeMode(localStorage.getItem(THEME_STORAGE_KEY))
+        if (saved === 'location' || (saved === 'auto' && subject.observer)) return { paint: initial.paint }
+      }
+    } catch { /* unavailable storage keeps the Night baseline */ }
+    return initial
+  })
   const frameRef = useRef(frame)
 
   useEffect(() => {

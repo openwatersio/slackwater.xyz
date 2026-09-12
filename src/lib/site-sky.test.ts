@@ -49,6 +49,16 @@ it('draws a sun whose rise was before UTC midnight', () => {
 })
 
 it.each([
+  ['sun', '2026-09-12T17:06:00Z'],
+  ['moon', '2026-09-01T06:00:00Z'],
+] as const)('keeps the location %s in the top sky lane', (body, instant) => {
+  const position = locationSky(observer, new Date(instant))[body]
+  expect(position).toBeDefined()
+  expect(position!.y).toBeGreaterThanOrEqual(0.005)
+  expect(position!.y).toBeLessThanOrEqual(0.01)
+})
+
+it.each([
   ['2026-09-01T06:00:00Z', { latitude: 48.4284, longitude: -123.3656 }, -1, 1],
   ['2026-09-18T03:00:00Z', { latitude: 48.4284, longitude: -123.3656 }, 1, 1],
   ['2026-09-20T09:00:00Z', { latitude: -33.8688, longitude: 151.2093 }, -1, -1],
@@ -77,7 +87,8 @@ it.each([
   expect(position).toBeDefined()
   expect(position!.x).toBeGreaterThan(0)
   expect(position!.x).toBeLessThan(1)
-  expect(position!.y).toBeCloseTo(0.82 * (1 - altitude / 90))
+  expect(position!.y).toBeGreaterThanOrEqual(0.005)
+  expect(position!.y).toBeLessThanOrEqual(0.01)
   const later = locationSky(observer, new Date(at.getTime() + 60 * 60_000))[body]
   expect(later!.x).not.toBeCloseTo(position!.x)
 })
@@ -96,6 +107,14 @@ it('sends the outgoing moon off-screen during a night-to-light transition', () =
   expect(moon?.y).toBeLessThanOrEqual(0.07)
   const sun = transitionSky(stylizedSky('night'), stylizedSky('light'), 0.5).sun
   expect(sun?.y).toBeLessThanOrEqual(0.07)
+})
+
+it('keeps a high arc when the incoming sun uses the top sky lane', () => {
+  const to = locationSky(observer, new Date('2026-09-12T19:00:00Z'))
+  const halfway = transitionSky(stylizedSky('night'), to, 0.5)
+  expect(halfway.sun).toBeDefined()
+  expect(halfway.sun!.y).toBeLessThan(to.sun!.y)
+  expect(halfway.sun!.y).toBeLessThanOrEqual(0)
 })
 
 it('arcs a large same-body move above tide controls but leaves minute drift direct', () => {
