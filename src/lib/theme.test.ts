@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { runInNewContext } from 'node:vm'
 import {
   PREPAINT_THEME_SCRIPT,
   parseThemeMode,
@@ -44,4 +45,20 @@ it('shares the storage key and supported values with the pre-paint script', () =
   expect(PREPAINT_THEME_SCRIPT).toContain('slackwater-theme')
   expect(PREPAINT_THEME_SCRIPT).toContain('prefers-color-scheme: dark')
   expect(PREPAINT_THEME_SCRIPT).toContain('data-appearance')
+})
+
+it('preserves the active Location appearance when a URL update reruns the pre-paint script', () => {
+  const attributes = new Map<string, string>()
+  const context = {
+    document: { documentElement: {
+      hasAttribute: (key: string) => attributes.has(key),
+      setAttribute: (key: string, value: string) => attributes.set(key, value),
+    } },
+    localStorage: { getItem: () => 'location' },
+  }
+  runInNewContext(PREPAINT_THEME_SCRIPT, context)
+  expect(attributes.get('data-appearance')).toBe('night')
+  attributes.set('data-appearance', 'light')
+  runInNewContext(PREPAINT_THEME_SCRIPT, context)
+  expect(attributes.get('data-appearance')).toBe('light')
 })

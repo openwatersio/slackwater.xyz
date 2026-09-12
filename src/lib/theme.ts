@@ -36,4 +36,4 @@ export function subjectFromMatches(matches: readonly { loaderData?: unknown }[])
   return {}
 }
 
-export const PREPAINT_THEME_SCRIPT = `(()=>{try{const k='slackwater-theme',m=localStorage.getItem(k);let a='night';if(m==='light')a='light';else if(m==='auto')a=matchMedia('(prefers-color-scheme: dark)').matches?'night':'light';document.documentElement.setAttribute('data-appearance',a)}catch{}})()`
+export const PREPAINT_THEME_SCRIPT = `(()=>{try{if(document.documentElement.hasAttribute('data-appearance'))return;const k='slackwater-theme',m=localStorage.getItem(k);let a='night';if(m==='light')a='light';else if(m==='auto')a=matchMedia('(prefers-color-scheme: dark)').matches?'night':'light';document.documentElement.setAttribute('data-appearance',a)}catch{}})()`
