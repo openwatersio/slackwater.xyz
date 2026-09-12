@@ -90,6 +90,21 @@ describe('TideCurve', () => {
       />,
     )
     expect(selected).toContain('data-marker="actual-now"')
+    expect(selected).toContain('<title>Now at 5:00am</title>')
+    expect(selected).toMatch(/<stop offset="0\.5" stop-color="#fff" stop-opacity="0\.35"/)
+  })
+
+  it('recognises polar daylight when the sun never crosses the horizon', () => {
+    const tromso = { ...SEATTLE, id: 'polar', latitude: 69.65, longitude: 18.96, timezone: 'Europe/Oslo' }
+    const summer = renderToStaticMarkup(
+      <TideCurve
+        station={tromso}
+        start={new Date('2026-06-21T00:00:00Z')}
+        hours={24}
+        now={new Date('2026-06-21T12:00:00Z')}
+      />,
+    )
+    expect(summer).toContain('data-shade="daylight"')
   })
 
   it('exposes the whole interactive chart as a keyboard-accessible time slider', () => {
@@ -106,6 +121,8 @@ describe('TideCurve', () => {
     expect(interactive).toMatch(/role="slider"/)
     expect(interactive).toMatch(/tabindex="0"/)
     expect(interactive).toContain('aria-valuetext="11:00pm"')
+    expect(interactive).toContain('touch-pan-y')
+    expect(interactive).not.toContain('touch-none')
   })
 })
 

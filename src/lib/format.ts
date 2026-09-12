@@ -142,5 +142,9 @@ export function shiftLocalDay(d: Date, timeZone: string, offsetDays: number): Da
     get('hour'), get('minute'), get('second'), d.getMilliseconds(),
   )
   const guess = wall - zoneOffsetMs(wall, timeZone)
-  return new Date(wall - zoneOffsetMs(guess, timeZone))
+  const result = new Date(wall - zoneOffsetMs(guess, timeZone))
+  const observedWall = result.getTime() + zoneOffsetMs(result.getTime(), timeZone)
+  // A skipped spring-forward time has no exact instant. Carry it through the
+  // gap (02:30 → 03:30) instead of silently moving the selection backward.
+  return observedWall === wall ? result : new Date(result.getTime() + wall - observedWall)
 }

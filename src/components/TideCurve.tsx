@@ -1,5 +1,5 @@
 import { useId, useMemo } from 'react'
-import { sunEvents } from '@openwaters/almanac'
+import { sunAltAz, sunEvents } from '@openwaters/almanac'
 import { provenance } from '#/lib/copy'
 import { fadeStops } from '#/lib/fade'
 import { chartTime, dayLabel, height, hhmm } from '#/lib/format'
@@ -124,6 +124,13 @@ export function TideCurve(props: Props) {
         latitudeDeg: station.latitude,
         longitudeDeg: station.longitude,
       }).filter((event) => event.kind === 'rise' || event.kind === 'set')
+      if (!events.length) {
+        const noon = new Date((start.getTime() + end.getTime()) / 2)
+        return sunAltAz(noon, {
+          latitudeDeg: station.latitude,
+          longitudeDeg: station.longitude,
+        }).altDeg > 0 ? [[start, end] as [Date, Date]] : []
+      }
       const spans: Array<[Date, Date]> = []
       let rise = events[0]?.kind === 'set' ? start : undefined
       for (const event of events) {
@@ -157,7 +164,7 @@ export function TideCurve(props: Props) {
   return (
     <figure className="m-0">
       <div
-        className={onSelect ? 'cursor-ew-resize touch-none' : undefined}
+        className={onSelect ? 'cursor-ew-resize touch-pan-y' : undefined}
         role={onSelect ? 'slider' : undefined}
         tabIndex={onSelect ? 0 : undefined}
         aria-label={onSelect ? 'Selected tide time' : undefined}
@@ -179,6 +186,11 @@ export function TideCurve(props: Props) {
           event.currentTarget.releasePointerCapture(event.pointerId)
           onSelect(at)
           onCommit?.(at)
+        } : undefined}
+        onPointerCancel={onSelect ? (event) => {
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId)
+          }
         } : undefined}
         onKeyDown={onSelect ? (event) => {
           const at = event.key === 'Home'
@@ -218,7 +230,7 @@ export function TideCurve(props: Props) {
           {/* WHITE, not black: an SVG mask is luminance-based, so black hides
               and white reveals. Black stops here erase the entire curve. */}
           <linearGradient id={fadeId} x1="0" x2="1" y1="0" y2="0">
-            {fadeStops(x(now) / W).map((s, i) => (
+            {fadeStops(x(actualNow ?? now) / W).map((s, i) => (
               <stop key={i} offset={s.offset} stopColor="#fff" stopOpacity={s.opacity} />
             ))}
           </linearGradient>
@@ -282,8 +294,9 @@ export function TideCurve(props: Props) {
               r={3.5}
               fill="#E4F0E4"
               data-marker="actual-now"
-              aria-hidden="true"
-            />
+            >
+              <title>{`Now at ${chartTime(actualNow!, station.timezone)}`}</title>
+            </circle>
           )}
 
           {/* The selected instant. Steel, not leaf: green belongs to slack. */}
