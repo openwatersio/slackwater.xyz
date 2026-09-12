@@ -196,6 +196,24 @@ describe('StationPage for a bundled tide station', () => {
     expect(shared).toMatch(/>Now<\/button>/)
   })
 
+  it('puts Now below the dates, on the side it lies in', () => {
+    const pager = (selectedAt: Date) => renderToStaticMarkup(
+      <StationPage
+        station={seattle}
+        now={new Date('2026-09-12T22:00:00Z')}
+        selectedAt={selectedAt}
+        live
+      />,
+    ).match(/<nav aria-label="Choose tide day"[\s\S]*?<\/nav>/)![0]
+
+    const past = pager(new Date('2026-09-11T20:00:00Z'))
+    expect(past.match(/<button/g)).toHaveLength(4)
+    expect(past).toMatch(/Sat 12 Sep 2026[\s\S]*col-start-3[^>]*>Now<\/button>/)
+
+    const future = pager(new Date('2026-09-13T20:00:00Z'))
+    expect(future).toMatch(/Mon 14 Sep 2026[\s\S]*col-start-1[^>]*>Now<\/button>/)
+  })
+
   it('tables a week of highs and lows, grouped by day', () => {
     expect(html).toContain('<table')
     expect(html).toContain('Tide times for the next 7 days')
