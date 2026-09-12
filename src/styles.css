@@ -84,6 +84,17 @@ body {
   transition: background-color 700ms;
 }
 
+.site-content {
+  /* A one-pixel ground halo keeps letters readable where a celestial body passes behind them. */
+  text-shadow: -1px -1px 0 var(--color-sw-page), 0 -1px 0 var(--color-sw-page), 1px -1px 0 var(--color-sw-page),
+    -1px 0 0 var(--color-sw-page), 1px 0 0 var(--color-sw-page),
+    -1px 1px 0 var(--color-sw-page), 0 1px 0 var(--color-sw-page), 1px 1px 0 var(--color-sw-page);
+}
+
+.site-content :is(svg, .bg-sw-leaf) {
+  text-shadow: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   body {
     transition: none;

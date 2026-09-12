@@ -1,4 +1,4 @@
-import { moonAltAz, moonEvents, moonIllumination, sunAltAz, sunEvents } from '@openwaters/almanac'
+import { moonAltAz, moonEvents, moonIllumination, sunAltAz, sunEvents, type AltAz } from '@openwaters/almanac'
 import type { Appearance, Observer } from './theme'
 
 export interface SkyPaint { top: string; bottom: string }
@@ -42,16 +42,19 @@ export function locationSky(observer: Observer, at: Date): SkyFrame {
     const moon = moonAltAz(at, almanacObserver)
     const events = eventsFor(observer, at, almanacObserver)
     const frame: SkyFrame = { paint: skyPaint(sun.altDeg) }
-    if (sun.altDeg >= 0) frame.sun = bodyAt(sun.altDeg, events.sun, at)
+    if (sun.altDeg >= 0) frame.sun = bodyAt(sun, events.sun, at)
     if (sun.altDeg < 0 && moon.altDeg >= 0) {
-      const body = bodyAt(moon.altDeg, events.moon, at)
-      if (body) {
-        const illumination = moonIllumination(at)
-        frame.moon = {
-          ...body,
-          fraction: illumination.fraction,
-          lightAngle: Math.atan2(sun.altDeg - moon.altDeg, sun.azDeg - moon.azDeg),
-        }
+      const illumination = moonIllumination(at)
+      const sunAltitude = sun.altDeg * Math.PI / 180
+      const moonAltitude = moon.altDeg * Math.PI / 180
+      const azimuth = (sun.azDeg - moon.azDeg) * Math.PI / 180
+      // Project sunlight onto the moon's tangent plane; canvas y points down.
+      const right = Math.cos(sunAltitude) * Math.sin(azimuth)
+      const up = Math.sin(sunAltitude) * Math.cos(moonAltitude) - Math.cos(sunAltitude) * Math.sin(moonAltitude) * Math.cos(azimuth)
+      frame.moon = {
+        ...bodyAt(moon, events.moon, at),
+        fraction: illumination.fraction,
+        lightAngle: Math.atan2(-up, right),
       }
     }
     return frame
@@ -86,13 +89,15 @@ function eventsFor(observer: Observer, at: Date, almanacObserver: { latitudeDeg:
   return events
 }
 
-function bodyAt(altitude: number, events: RiseSet[], at: Date): SkyBody | undefined {
+function bodyAt({ altDeg, azDeg }: AltAz, events: RiseSet[], at: Date): SkyBody {
   const rise = [...events].reverse().find((event) => event.kind === 'rise' && event.time <= at)
   const set = events.find((event) => event.kind === 'set' && event.time > at)
-  if (!rise || !set) return undefined
   return {
-    x: clamp((at.getTime() - rise.time.getTime()) / (set.time.getTime() - rise.time.getTime())),
-    y: 0.82 * (1 - clamp(altitude / 90)),
+    // Circumpolar bodies use their east-west projection when the event window has no bracket.
+    x: rise && set
+      ? clamp((at.getTime() - rise.time.getTime()) / (set.time.getTime() - rise.time.getTime()))
+      : 0.5 - 0.45 * Math.sin(azDeg * Math.PI / 180) * Math.cos(altDeg * Math.PI / 180),
+    y: 0.82 * (1 - clamp(altDeg / 90)),
   }
 }
 

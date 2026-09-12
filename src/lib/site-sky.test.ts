@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { moonAltAz, moonEvents, sunAltAz, sunEvents } from '@openwaters/almanac'
 import { locationSky, skyPaint, stylizedSky, transitionSky } from './site-sky'
 
 const observer = { latitude: 48.4284, longitude: -123.3656 }
@@ -45,6 +46,40 @@ it('draws a sun whose rise was before UTC midnight', () => {
     new Date('2026-09-12T00:30:00Z'),
   )
   expect(frame.sun).toBeDefined()
+})
+
+it.each([
+  ['2026-09-01T06:00:00Z', { latitude: 48.4284, longitude: -123.3656 }, -1, 1],
+  ['2026-09-18T03:00:00Z', { latitude: 48.4284, longitude: -123.3656 }, 1, 1],
+  ['2026-09-20T09:00:00Z', { latitude: -33.8688, longitude: 151.2093 }, -1, -1],
+] as const)('points the lunar limb toward the sun across north and the zenith at %s', (instant, observer, right, down) => {
+  const moon = locationSky(observer, new Date(instant)).moon
+  expect(moon).toBeDefined()
+  expect(Math.sign(Math.cos(moon!.lightAngle))).toBe(right)
+  expect(Math.sign(Math.sin(moon!.lightAngle))).toBe(down)
+})
+
+it.each([
+  ['sun', '2026-06-21T12:00:00Z'],
+  ['moon', '2026-12-22T00:00:00Z'],
+] as const)('keeps the circumpolar %s visible without rise/set events', (body, instant) => {
+  const observer = { latitude: 69.6492, longitude: 18.9553 }
+  const almanacObserver = { latitudeDeg: observer.latitude, longitudeDeg: observer.longitude }
+  const at = new Date(instant)
+  const start = new Date(at)
+  start.setUTCHours(-24, 0, 0, 0)
+  const end = new Date(start.getTime() + 72 * 60 * 60_000)
+  const events = body === 'sun' ? sunEvents(start, end, almanacObserver).filter((event) => event.kind === 'rise' || event.kind === 'set') : moonEvents(start, end, almanacObserver)
+  const altitude = (body === 'sun' ? sunAltAz : moonAltAz)(at, almanacObserver).altDeg
+  expect(events).toEqual([])
+  expect(altitude).toBeGreaterThan(0)
+  const position = locationSky(observer, at)[body]
+  expect(position).toBeDefined()
+  expect(position!.x).toBeGreaterThan(0)
+  expect(position!.x).toBeLessThan(1)
+  expect(position!.y).toBeCloseTo(0.82 * (1 - altitude / 90))
+  const later = locationSky(observer, new Date(at.getTime() + 60 * 60_000))[body]
+  expect(later!.x).not.toBeCloseTo(position!.x)
 })
 
 it('starts and ends a passing-orbits transition exactly at its inputs', () => {

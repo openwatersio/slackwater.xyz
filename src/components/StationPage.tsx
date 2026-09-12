@@ -537,7 +537,7 @@ function Cta({ station }: { station: Station }) {
         {TESTFLIGHT ? (
           <a
             href={TESTFLIGHT}
-            className="rounded-md bg-sw-leaf px-5 py-3 font-medium text-sw-navy-deep transition hover:bg-sw-leaf/90"
+            className="rounded-md bg-sw-leaf px-5 py-3 font-medium text-sw-page transition hover:bg-sw-leaf/95"
           >
             Get the beta on TestFlight
           </a>

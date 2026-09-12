@@ -64,7 +64,7 @@ function Cta() {
   return TESTFLIGHT ? (
     <a
       href={TESTFLIGHT}
-      className="inline-block rounded-full bg-sw-leaf px-6 py-3 font-medium text-sw-navy-deep transition hover:bg-sw-leaf/90"
+      className="inline-block rounded-full bg-sw-leaf px-6 py-3 font-medium text-sw-page transition hover:bg-sw-leaf/95"
     >
       Get the beta on TestFlight
     </a>

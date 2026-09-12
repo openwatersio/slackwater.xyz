@@ -151,7 +151,9 @@ export function ThemeShell({
   const appearance = mode === 'location' && observer
     ? locationAppearance(observer, at)
     : resolveAppearance(mode, systemDark)
-  const [frame, setFrame] = useState<SkyFrame>(() => stylizedSky('night'))
+  const [frame, setFrame] = useState<SkyFrame>(() => stylizedSky(
+    typeof document !== 'undefined' && document.documentElement.dataset.appearance === 'light' ? 'light' : 'night',
+  ))
   const frameRef = useRef(frame)
 
   useEffect(() => {
@@ -162,6 +164,7 @@ export function ThemeShell({
   }, [appearance, hydrated])
 
   useEffect(() => {
+    if (!hydrated) return
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
       frameRef.current = target
       setFrame(target)
@@ -180,7 +183,7 @@ export function ThemeShell({
     }
     animation = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(animation)
-  }, [target])
+  }, [hydrated, target])
 
   const choose = (event: ChangeEvent<HTMLInputElement>) => {
     const next = parseThemeMode(event.currentTarget.value)
@@ -201,7 +204,7 @@ export function ThemeShell({
   return (
     <ThemeSubjectContext.Provider value={publishSubject}>
       <SiteSky frame={frame} />
-      <div className="relative z-10">{children}</div>
+      <div className="site-content relative z-10">{children}</div>
       <div className="fixed right-4 top-4 z-20">
         <button
           type="button"

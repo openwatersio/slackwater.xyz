@@ -30,8 +30,10 @@ function drawFrame(canvas: HTMLCanvasElement, frame: SkyFrame) {
   context.setTransform(ratio, 0, 0, ratio, 0, 0)
   context.clearRect(0, 0, width, height)
   const paint = context.createLinearGradient(0, 0, 0, height)
-  paint.addColorStop(0, frame.paint.top)
-  paint.addColorStop(1, frame.paint.bottom)
+  // Keep the page ground behind text while the sky's anchor hues fade out.
+  paint.addColorStop(0, `${frame.paint.top}1f`)
+  paint.addColorStop(0.45, `${frame.paint.bottom}14`)
+  paint.addColorStop(1, `${frame.paint.bottom}00`)
   context.fillStyle = paint
   context.fillRect(0, 0, width, height)
   if (frame.sun) drawSun(context, frame.sun.x * width, frame.sun.y * height)
@@ -42,7 +44,7 @@ function drawSun(context: CanvasRenderingContext2D, x: number, y: number) {
   const sun = token('--color-sw-sun')
   const glow = context.createRadialGradient(x, y, 0, x, y, 72)
   glow.addColorStop(0, sun)
-  glow.addColorStop(1, 'transparent')
+  glow.addColorStop(1, `${sun}00`)
   context.fillStyle = glow
   context.fillRect(x - 72, y - 72, 144, 144)
   context.fillStyle = sun
@@ -63,7 +65,11 @@ function drawMoon(context: CanvasRenderingContext2D, x: number, y: number, fract
   context.rotate(lightAngle)
   context.fillStyle = token('--color-sw-foam')
   context.beginPath()
-  context.ellipse(0, 0, radius * fraction, radius, 0, 0, Math.PI * 2)
+  context.arc(0, 0, radius, -Math.PI / 2, Math.PI / 2)
+  // The terminator crosses the center at quarter moon and bends to the far limb at full.
+  if (fraction === 0.5) context.lineTo(0, -radius)
+  else context.ellipse(0, 0, radius * Math.abs(1 - 2 * fraction), radius, 0, Math.PI / 2, -Math.PI / 2, fraction < 0.5)
+  context.closePath()
   context.fill()
   context.restore()
 }
