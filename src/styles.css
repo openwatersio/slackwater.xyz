@@ -12,12 +12,15 @@
    else. Direction is one signed colourblind-safe axis, blue↔amber.
    ───────────────────────────────────────────────────────────── */
 @theme {
-  /* grounds — the app is dark-only, and so is this page */
+  /* grounds */
   --color-sw-navy-deep: #00183c;
   --color-sw-canvas: #05122a;
   --color-sw-canvas-glow: #0a2140;
   --color-sw-page: #00121f;
   --color-sw-night: #00101f;
+  --color-sw-surface: #ffffff0d;
+  --color-sw-rule: #ffffff1a;
+  --color-sw-shadow: #00143299;
 
   /* ink */
   --color-sw-paper: #fcfcfc;   /* the wordmark, and only the wordmark */
@@ -57,7 +60,32 @@
   --font-mono: ui-monospace, "SF Mono", monospace;
 }
 
-/* Dark-only, matching the app (.preferredColorScheme(.dark)). */
 html {
   color-scheme: dark;
+}
+
+html[data-appearance="light"] {
+  --color-sw-page: #eef6f3;
+  --color-sw-paper: #082437;
+  --color-sw-foam: #153f4f;
+  --color-sw-steel: #3f6573;
+  --color-sw-leaf: #4b732f;
+  --color-sw-go: #4b732f;
+  --color-sw-flood: #276f9d;
+  --color-sw-ebb: #9b5900;
+  --color-sw-amber: #b33c2c;
+  --color-sw-surface: #ffffffb3;
+  --color-sw-rule: #08243724;
+  --color-sw-shadow: #6f8c952e;
+  color-scheme: light;
+}
+
+body {
+  transition: background-color 700ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
 }

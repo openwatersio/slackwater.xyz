@@ -236,7 +236,7 @@ function StationDayPager({
             type="button"
             aria-current={offset === 0 ? 'date' : undefined}
             onClick={() => offset && onCommit(shiftLocalDay(selectedAt, tz, offset))}
-            className={`${button} row-start-1 ${offset === 0 ? 'bg-white/10 text-sw-paper' : 'text-sw-steel'}`}
+            className={`${button} row-start-1 ${offset === 0 ? 'bg-sw-surface text-sw-paper' : 'text-sw-steel'}`}
           >
             {offset < 0 && <span aria-hidden="true">‹ </span>}
             {label(offset)}
