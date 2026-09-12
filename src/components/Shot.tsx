@@ -11,24 +11,34 @@ export function Shot({
   alt,
   caption,
   eager,
+  crop,
 }: {
   src: string
   alt: string
   caption?: string
   /** The hero shot is above the fold; everything else waits its turn. */
   eager?: boolean
+  crop?: boolean
 }) {
+  const image = (
+    <img
+      src={src}
+      alt={alt}
+      loading={eager ? 'eager' : 'lazy'}
+      fetchPriority={eager ? 'high' : undefined}
+      width={780}
+      height={1695}
+      className="w-full rounded-[min(3rem,13cqw)] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
+    />
+  )
+
   return (
     <figure className="@container m-0">
-      <img
-        src={src}
-        alt={alt}
-        loading={eager ? 'eager' : 'lazy'}
-        fetchPriority={eager ? 'high' : undefined}
-        width={780}
-        height={1695}
-        className="w-full rounded-[min(3rem,13cqw)] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
-      />
+      {crop ? (
+        <div className="h-[178cqw] max-h-[640px] overflow-hidden [mask-image:linear-gradient(to_bottom,black_65%,transparent)]">
+          {image}
+        </div>
+      ) : image}
       {caption && (
         <figcaption className="mt-4 text-sm leading-relaxed text-sw-steel">{caption}</figcaption>
       )}
