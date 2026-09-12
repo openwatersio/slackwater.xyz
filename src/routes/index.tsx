@@ -217,6 +217,7 @@ function Home() {
             src="/shots/tides-day.webp"
             alt="Friday Harbor in the app at 1:00pm under a daytime sky: rising through 3.1 feet, high 4 hours 31 minutes later, a 4.7 foot range, sunrise at 7:04am and sunset at 7:01pm marked on the axis."
             caption="Friday Harbor at 1:00pm, rising through 3.1 feet toward a 6.9 foot high. Sunrise and sunset sit on the axis, and the moon shows its phase."
+            crop
           />
         }
       >
@@ -251,11 +252,13 @@ function Home() {
             src="/shots/currents-sunrise.webp"
             alt="Deception Pass (Narrows) in the app at sunrise: ebbing at 5.8 knots to the west-north-west, slack 2 hours 50 minutes later, the sun rising at the left edge of the curve and a 5.3 knot flood coming at 12:40pm."
             caption="7:10am, ebbing at 5.8 knots. Slack is 2 hours 50 minutes away."
+            crop
           />
           <Shot
             src="/shots/currents-day.webp"
             alt="Deception Pass (Narrows) in the app at 1:00pm: flooding at 5.2 knots to the east-south-east, slack 2 hours 37 minutes later, a next max of 7.2 knots ebbing at 6:30pm, and the week's floods, slacks and ebbs listed underneath."
             caption="1:00pm, flooding at 5.2 knots. The ebb behind it peaks at 7.2."
+            crop
           />
         </div>
       </section>
@@ -268,6 +271,7 @@ function Home() {
             src="/shots/list.webp"
             alt="The app's list located at Friday Harbor: the harbour's tide on top at 6.8 feet and falling, Point George's current under it at 0.5 knots and slack, then favourites Port Townsend and Deception Pass, each with its curve for the day."
             caption="Located at Friday Harbor: the harbour's tide on top, the nearest pass under it, favourites below."
+            crop
           />
         }
       >
@@ -285,6 +289,7 @@ function Home() {
             src="/shots/map.webp"
             alt="The app's map of the Salish Sea from Squamish down to Tacoma, covered in stations: blue squares for tides, orange circles for currents."
             caption="The Salish Sea from Squamish to Tacoma. Squares are tide stations, circles are currents."
+            crop
           />
         }
       >
