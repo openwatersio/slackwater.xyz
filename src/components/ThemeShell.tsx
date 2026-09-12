@@ -40,6 +40,13 @@ export function locationAppearance(observer: Observer, at: Date): Appearance {
   }
 }
 
+export function startLiveClock(update: (at: Date) => void) {
+  const tick = () => update(new Date())
+  tick()
+  const timer = setInterval(tick, 60_000)
+  return () => clearInterval(timer)
+}
+
 export function useThemeSubject() {
   return useContext(ThemeSubjectContext)
 }
@@ -131,8 +138,7 @@ export function ThemeShell({
 
   useEffect(() => {
     if (mode !== 'location' || !observer || subject.instant) return
-    const timer = window.setInterval(() => setClock(new Date()), 60_000)
-    return () => window.clearInterval(timer)
+    return startLiveClock(setClock)
   }, [mode, observer, subject.instant])
 
   const at = subject.instant ?? clock
