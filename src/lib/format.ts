@@ -128,3 +128,23 @@ export function dayStart(d: Date, timeZone: string, offsetDays = 0): Date {
   const guess = wall - zoneOffsetMs(wall, timeZone)
   return new Date(wall - zoneOffsetMs(guess, timeZone))
 }
+
+/** Move on the station's calendar without changing the selected wall-clock time. */
+export function shiftLocalDay(d: Date, timeZone: string, offsetDays: number): Date {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).formatToParts(d)
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((part) => part.type === type)?.value)
+  const wall = Date.UTC(
+    get('year'), get('month') - 1, get('day') + offsetDays,
+    get('hour'), get('minute'), get('second'), d.getMilliseconds(),
+  )
+  const guess = wall - zoneOffsetMs(wall, timeZone)
+  const result = new Date(wall - zoneOffsetMs(guess, timeZone))
+  const observedWall = result.getTime() + zoneOffsetMs(result.getTime(), timeZone)
+  // A skipped spring-forward time has no exact instant. Carry it through the
+  // gap (02:30 → 03:30) instead of silently moving the selection backward.
+  return observedWall === wall ? result : new Date(result.getTime() + wall - observedWall)
+}

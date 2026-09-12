@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chartTime, compass16, dayStart, height } from './format'
+import { chartTime, compass16, dayStart, height, shiftLocalDay } from './format'
 
 describe('height', () => {
   it('never renders a negative zero', () => {
@@ -88,5 +88,25 @@ describe('dayStart', () => {
       '2026-09-08T12:00:00.000Z',
     )
     expect(hours(dayStart(new Date('2026-09-08T23:00:00Z'), 'Pacific/Auckland'), dayStart(new Date('2026-09-08T23:00:00Z'), 'Pacific/Auckland', 1))).toBe(24)
+  })
+})
+
+describe('shiftLocalDay', () => {
+  it('preserves the station-local clock time across a daylight-saving boundary', () => {
+    expect(
+      shiftLocalDay(new Date('2026-03-07T18:30:00Z'), 'America/Los_Angeles', 1).toISOString(),
+    ).toBe('2026-03-08T17:30:00.000Z')
+  })
+
+  it('moves a nonexistent spring-forward time to the first matching clock time after the gap', () => {
+    expect(
+      shiftLocalDay(new Date('2026-03-07T10:30:00Z'), 'America/Los_Angeles', 1).toISOString(),
+    ).toBe('2026-03-08T10:30:00.000Z')
+  })
+
+  it('chooses the earlier occurrence of a repeated fall-back time', () => {
+    expect(
+      shiftLocalDay(new Date('2026-10-31T08:30:00Z'), 'America/Los_Angeles', 1).toISOString(),
+    ).toBe('2026-11-01T08:30:00.000Z')
   })
 })

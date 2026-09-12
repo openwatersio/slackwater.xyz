@@ -64,9 +64,15 @@ function place(station: Station): string | undefined {
   return parts.length ? parts.join(', ') : station.region
 }
 
+/** The concise visible heading; search phrasing stays in `pageTitle`. */
+export function stationHeading(station: Station): string {
+  const where = place(station)
+  return where ? `${station.name} — ${where}` : station.name
+}
+
 /**
- * The `<title>` and `<h1>`: station, then the words the query carries, then
- * the place. "Victoria tide times & tide chart — BC, Canada" is what a reader
+ * The search `<title>`: station, then the words the query carries, then the
+ * place. "Victoria tide times & tide chart — BC, Canada" is what a reader
  * searching "tides victoria bc" is looking for, in the order they look.
  */
 export function pageTitle(station: Station): string {

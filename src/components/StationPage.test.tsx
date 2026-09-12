@@ -153,9 +153,10 @@ describe('StationPage for a bundled tide station', () => {
   const html = renderToStaticMarkup(<StationPage station={seattle} now={now} nearby={nearby} />)
   const live = renderToStaticMarkup(<StationPage station={seattle} now={now} live nearby={nearby} />)
 
-  it('leads with the query: the station, the words, the place', () => {
-    expect(html).toContain('<h1')
-    expect(html).toContain('Seattle tide times &amp; tide chart — WA, United States')
+  it('keeps the visible heading short while the page title carries the search query', () => {
+    expect(html).toMatch(/<h1[^>]*>Seattle — WA, United States<\/h1>/)
+    expect(html).toContain('Tide times &amp; tide chart')
+    expect(html).not.toMatch(/<h1[^>]*>[^<]*tide times/i)
   })
 
   it('walks a breadcrumb of real pages, home first', () => {
@@ -164,30 +165,35 @@ describe('StationPage for a bundled tide station', () => {
     expect(html).toMatch(/<a href="\/stations\/tides\/"/)
   })
 
-  it("answers first, dated, in HTML that is true whenever it is read", () => {
-    // The day's turns in order, on the station's own calendar.
-    const answer = html.match(/<p class="mt-6[^"]*">(.*?)<\/p>/)![1]
-    expect(answer).toMatch(/^<span[^>]*>Fri 11 Sep 2026<\/span>/)
-    expect(answer).toMatch(/High \d+\.\d ft at (<[^>]+>)?\d\d:\d\d/)
-    expect(answer).toMatch(/Low -?\d+\.\d ft at (<[^>]+>)?\d\d:\d\d/)
-    expect(html).not.toMatch(/in \d+[hm]\b/)
-    expect(html).not.toMatch(/Rising|Falling/)
-  })
-
   it('reads the water now only once the clock is live', () => {
     expect(live).toMatch(/Rising|Falling/)
-    expect(live).toMatch(/(High|Low) in \d+(h \d+)?m/)
+    expect(live).toMatch(/(High|Low) at \d{1,2}:\d{2}(am|pm)/)
   })
 
-  it('carries today and tomorrow, both in the HTML, on two radio tabs', () => {
-    expect(html.match(/type="radio"/g)).toHaveLength(2)
-    expect(html.match(/<path[^>]+d="M[\d.,\-L\s]+"/g)!.length).toBeGreaterThanOrEqual(2)
-    // Dates, not "Today": a prerender's today is the build day.
-    expect(html).toContain('Fri 11 Sep 2026')
-    expect(html).toContain('Sat 12 Sep 2026')
-    expect(html).not.toMatch(/>Today</)
+  it('pages yesterday, the selected day and tomorrow around one visible curve', () => {
+    const pager = html.match(/<nav aria-label="Choose tide day"[\s\S]*?<\/nav>/)![0]
+    expect(pager.match(/<button/g)).toHaveLength(3)
+    expect(pager).toContain('Thu 10 Sep 2026')
+    expect(pager).toContain('Fri 11 Sep 2026')
+    expect(pager).toContain('Sat 12 Sep 2026')
+    expect(live).toMatch(/>Yesterday</)
     expect(live).toMatch(/>Today</)
     expect(live).toMatch(/>Tomorrow</)
+  })
+
+  it('keeps a shared selection separate from actual now', () => {
+    const shared = renderToStaticMarkup(
+      <StationPage
+        station={seattle}
+        now={new Date('2026-09-12T22:00:00Z')}
+        selectedAt={now}
+        live
+        nearby={nearby}
+      />,
+    )
+    expect(shared).toMatch(/aria-current="date"[^>]*>Fri 11 Sep 2026<\/button>/)
+    expect(shared).toContain('aria-valuetext="1:00pm"')
+    expect(shared).toMatch(/>Now<\/button>/)
   })
 
   it('tables a week of highs and lows, grouped by day', () => {
