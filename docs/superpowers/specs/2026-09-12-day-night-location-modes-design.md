@@ -26,11 +26,11 @@ Location mode chooses its observer in this order:
 
 Browser coordinates are used in memory, never stored or sent to Slackwater. A successful choice stores only `location` as the preference, so a later visit requests fresh coordinates. If the request is denied or fails while choosing the mode, the page keeps the previous mode and does not save Location. If a saved Location preference cannot reacquire coordinates on a later visit, the page resolves to Night and clears that unavailable preference.
 
-A canonical station page uses the live clock. An instant station URL uses the parsed instant already returned by its route loader. The sky therefore describes the same station and moment as its curve and readout.
+A canonical station page uses the live clock. An instant station URL begins with the parsed instant returned by its route loader, then follows the station page's selected moment when the reader scrubs the tide curve and the URL is replaced in place. The sky therefore describes the same station and moment as its curve, readout, and shareable URL.
 
 Almanac's solar altitude decides the appearance: the sun above the horizon is Light; the sun below it is Night. The moon is drawn at night only when Almanac places it above the horizon, and its illuminated fraction and orientation come from Almanac.
 
-Live Location pages update the body's position and resolved appearance from a minute clock. Instant pages remain fixed at their URL time. The root reads the station and optional instant from TanStack's active route matches; an instant is the exact `Date` already parsed by the route, while a canonical station sky uses its own minute tick alongside the page's minute clock. Auto listens for system colour-scheme changes. Every resolved day/night change uses the same transition as a manual choice.
+Live Location pages update the body's position and resolved appearance from a minute clock. Instant pages remain fixed until their selected URL time changes. The root reads the initial station and optional instant from TanStack's active route matches. `StationPage` then publishes the exact moment it displays through the theme context, including client-side tide scrubbing that updates the URL without rerunning a loader. Auto listens for system colour-scheme changes. Every resolved day/night change uses the same transition as a manual choice.
 
 A saved Location preference renders the Night baseline first. After hydration, a station page resolves from its loader data and animates to daylight when appropriate. A non-station page requests fresh browser coordinates; browsers with an existing grant can answer without another prompt. Failure clears the unavailable preference and leaves Night.
 
@@ -79,7 +79,7 @@ A new choice cancels the active transition and starts from the currently rendere
 
 ## Implementation shape
 
-A root-level theme component owns the saved mode, resolved appearance, route observer and route time. It reads optional `station` and `instant` values from TanStack's active matches. The station loaders already return those values, so station routes do not duplicate theme logic. Non-station routes contribute no observer and use browser location only for Location mode.
+A root-level theme component owns the saved mode, resolved appearance, route observer and route time. It reads optional `station` and `instant` values from TanStack's active matches for the initial render, and provides one context setter that `StationPage` uses to keep the subject synchronized with its displayed time. Station routes do not duplicate theme resolution; they only publish their existing station and selected moment. Non-station routes contribute no observer and use browser location only for Location mode.
 
 Pure functions resolve:
 

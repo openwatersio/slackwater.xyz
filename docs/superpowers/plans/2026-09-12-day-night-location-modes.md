@@ -4,7 +4,7 @@
 
 **Goal:** Give every Slackwater route persistent Auto, Light, Night, and location-aware appearances with an animated Almanac sky.
 
-**Architecture:** Pure functions resolve saved mode, route subject, appearance, sky paint, and body placement. One root React component handles browser storage, system preference, geolocation, the minute clock, and the short canvas transition; CSS tokens recolor the site. Station loader data supplies coordinates and fixed URL instants without route-specific theme code.
+**Architecture:** Pure functions resolve saved mode, route subject, appearance, sky paint, and body placement. One root React component handles browser storage, system preference, geolocation, the minute clock, and the short canvas transition; CSS tokens recolor the site. Station loader data supplies the initial coordinates and URL instant, while `StationPage` publishes its displayed moment so tide scrubbing keeps the sky and shareable URL synchronized.
 
 **Tech Stack:** React 19, TanStack Start/Router, Tailwind CSS 4, `@openwaters/almanac`, Canvas 2D, Vitest, browser `localStorage`, `matchMedia`, Geolocation, and Popover APIs.
 
@@ -17,6 +17,7 @@
 - No stored coordinates: persist only `slackwater-theme` with `auto`, `light`, `night`, or `location`.
 - Default to Night when the preference is missing, invalid, or unavailable.
 - Station coordinates beat browser coordinates; instant station URLs beat the live clock.
+- A tide page's client-side selected moment beats its initial loader instant after scrubbing.
 - Location is literal: daylight follows solar altitude, and a moon below the horizon is not drawn.
 - The approved control is the orbital button; the approved motion is Passing orbits at 700 milliseconds; the approved Light palette is sea glass.
 - Preserve reduced-motion behavior, keyboard access, WCAG AA contrast, deterministic social cards, and the current meanings of every state colour.
@@ -270,11 +271,12 @@ rtk git commit -m "Draw the site sky"
 **Files:**
 - Create: `src/components/ThemeShell.tsx`
 - Create: `src/components/ThemeShell.test.tsx`
+- Modify: `src/components/StationPage.tsx`
 - Modify: `src/routes/__root.tsx`
 
 **Interfaces:**
 - Consumes: every Task 1 interface, `locationSky`, `stylizedSky`, and `transitionSky` from Task 2, `useMatches` from TanStack Router, and `SiteSky`.
-- Produces: `<ThemeShell>{children}</ThemeShell>` as the single whole-site owner.
+- Produces: `<ThemeShell>{children}</ThemeShell>` as the single whole-site owner and `useThemeSubject` for station pages to publish the moment they already display.
 
 - [ ] **Step 1: Write the failing markup test**
 
@@ -314,6 +316,8 @@ Expected: FAIL because `ThemeShell` does not exist.
 7. Tick live location state once per minute; keep instant routes fixed.
 8. Set `document.documentElement.dataset.appearance`, `colorScheme`, and the `theme-color` meta content.
 9. Animate an appearance change with one cancellable `requestAnimationFrame` loop over 700 milliseconds; skip it under reduced motion.
+
+Expose a minimal context setter through `useThemeSubject`. `StationPage` calls it with the station latitude, longitude, and its current `at` value. This value must update when tide scrubbing changes the selected moment and URL through `history.replaceState`, because TanStack loader data does not rerun for that in-place URL change. Clear the published subject when the station page unmounts.
 
 The control uses the native Popover API and ordinary radios:
 
@@ -362,7 +366,7 @@ Expected: both commands PASS.
 - [ ] **Step 6: Commit the controller**
 
 ```bash
-rtk git add src/components/ThemeShell.tsx src/components/ThemeShell.test.tsx src/routes/__root.tsx
+rtk git add src/components/ThemeShell.tsx src/components/ThemeShell.test.tsx src/components/StationPage.tsx src/routes/__root.tsx
 rtk git commit -m "Let readers choose the sky"
 ```
 
@@ -378,7 +382,7 @@ rtk git commit -m "Let readers choose the sky"
 - Modify: `src/routes/support.tsx`
 - Modify: `src/components/ComparePage.tsx`
 - Modify: `src/components/Shot.tsx`
-- Modify: `src/components/StationPage.tsx`
+- Modify: `src/components/DayStrip.tsx`
 
 **Interfaces:**
 - Consumes: `data-appearance` from `ThemeShell`.
@@ -452,7 +456,7 @@ Expected: both commands PASS.
 - [ ] **Step 6: Commit the palette sweep**
 
 ```bash
-rtk git add src/styles.css src/styles.test.ts src/routes/index.tsx src/routes/privacy.tsx src/routes/support.tsx src/components/ComparePage.tsx src/components/Shot.tsx src/components/StationPage.tsx
+rtk git add src/styles.css src/styles.test.ts src/routes/index.tsx src/routes/privacy.tsx src/routes/support.tsx src/components/ComparePage.tsx src/components/Shot.tsx src/components/DayStrip.tsx
 rtk git commit -m "Give the site a daylight palette"
 ```
 
@@ -515,6 +519,8 @@ Check desktop and phone widths for:
 - `/privacy/` using browser geolocation only after Location is selected.
 
 For each representative page, verify the orbital popover by keyboard, Auto system changes, manual modes, Location behavior, theme-colour meta value, 700 millisecond Passing orbits motion, literal moonless behavior, and the instant sky's fixed time. Repeat one transition with reduced motion enabled and confirm it is immediate. Capture desktop and phone screenshots showing Night and sea-glass Light.
+
+On the tide instant page, scrub to a different moment and verify the sky follows the selected moment while the URL updates in place.
 
 - [ ] **Step 5: Commit documentation and any visual fixes**
 
