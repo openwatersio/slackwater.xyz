@@ -10,7 +10,7 @@ it('renders the orbital button and four labelled modes', () => {
   expect(html).toContain('Auto (system)')
   expect(html).toContain('Light')
   expect(html).toContain('Night')
-  expect(html).toContain('Location')
+  expect(html).toContain('Your location')
   expect(html).toContain('popover')
   expect(html).toContain('Water')
 })
@@ -24,6 +24,8 @@ it('starts at night on the server even for a station route', () => {
   expect(html).toContain('Theme: Night')
   expect(html).toContain('☾')
   expect(html).not.toContain('☀︎')
+  expect(html).toContain('Auto (station location)')
+  expect(html).toContain('Your location')
 })
 
 it('resolves Location appearance from solar altitude, not body visibility', () => {

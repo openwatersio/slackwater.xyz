@@ -69,8 +69,7 @@ export function ThemeShell({
   const locationRequest = useRef(0)
   const locating = useRef(false)
   const subject = publishedSubject ?? routeSubject
-  const observer = subject.observer ?? browserObserver
-  const initialObserver = useRef(routeSubject.observer).current
+  const observer = mode === 'auto' ? subject.observer : mode === 'location' ? browserObserver : undefined
 
   const store = useCallback((value: ThemeMode) => {
     try { localStorage.setItem(THEME_STORAGE_KEY, value) } catch { /* preference stays in memory */ }
@@ -120,35 +119,33 @@ export function ThemeShell({
     try { stored = localStorage.getItem(THEME_STORAGE_KEY) } catch { /* Night is the safe default */ }
     const saved = parseThemeMode(stored)
     if (stored !== null && saved === 'night' && stored !== 'night') clearStoredLocation()
-    if (saved === 'location' && !initialObserver) requestLocation(true)
+    if (saved === 'location') requestLocation(true)
     else setMode(saved)
     setHydrated(true)
 
     return () => media.removeEventListener('change', update)
-  }, [clearStoredLocation, initialObserver, requestLocation])
+  }, [clearStoredLocation, requestLocation])
 
   useEffect(() => {
-    if (subject.observer && locating.current) {
-      locationRequest.current += 1
-      locating.current = false
-    } else if (mode === 'location' && !observer) {
+    if (mode === 'location' && !browserObserver) {
       requestLocation(true)
     }
-  }, [mode, observer, requestLocation, subject.observer])
+  }, [mode, browserObserver, requestLocation])
 
   useEffect(() => {
-    if (mode !== 'location' || !observer || subject.instant) return
+    if (mode === 'location' && browserObserver) return startLiveClock(setClock)
+    if (mode !== 'auto' || !subject.observer || subject.instant) return
     return startLiveClock(setClock)
-  }, [mode, observer, subject.instant])
+  }, [mode, browserObserver, subject.observer, subject.instant])
 
-  const at = subject.instant ?? clock
+  const at = mode === 'auto' ? subject.instant ?? clock : clock
   const target = useMemo(
-    () => mode === 'location' && observer
+    () => observer
       ? locationSky(observer, at)
       : stylizedSky(resolveAppearance(mode, systemDark)),
     [at, mode, observer?.latitude, observer?.longitude, systemDark],
   )
-  const appearance = mode === 'location' && observer
+  const appearance = observer
     ? locationAppearance(observer, at)
     : resolveAppearance(mode, systemDark)
   const [frame, setFrame] = useState<SkyFrame>(() => stylizedSky(
@@ -188,7 +185,7 @@ export function ThemeShell({
   const choose = (event: ChangeEvent<HTMLInputElement>) => {
     const next = parseThemeMode(event.currentTarget.value)
     setError(undefined)
-    if (next === 'location' && !observer) {
+    if (next === 'location' && !browserObserver) {
       requestLocation(false)
       return
     }
@@ -199,7 +196,10 @@ export function ThemeShell({
   }
 
   const title = (value: ThemeMode | Appearance) => value[0].toUpperCase() + value.slice(1)
-  const label = mode === appearance ? title(mode) : `${title(mode)} (${title(appearance)})`
+  const sourceLabel = mode === 'auto'
+    ? subject.observer ? 'Auto, station location' : 'Auto, system'
+    : mode === 'location' ? 'Your location' : title(mode)
+  const label = mode === appearance ? sourceLabel : `${sourceLabel} (${title(appearance)})`
 
   return (
     <ThemeSubjectContext.Provider value={publishSubject}>
@@ -220,7 +220,7 @@ export function ThemeShell({
             {modes.map((value) => (
               <label key={value} className="flex cursor-pointer items-center gap-2 py-1">
                 <input type="radio" name="theme" value={value} checked={mode === value} onChange={choose} />
-                {value === 'auto' ? 'Auto (system)' : title(value)}
+                {value === 'auto' ? subject.observer ? 'Auto (station location)' : 'Auto (system)' : value === 'location' ? 'Your location' : title(value)}
               </label>
             ))}
             {error && <p role="alert" className="mt-2 text-sm">{error}</p>}

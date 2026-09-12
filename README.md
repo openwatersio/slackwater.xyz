@@ -60,7 +60,7 @@ Every page **matches the app in look and data, not in depth** — the station pa
 same computed curve the app does, and the landing page shows the app itself, but none of them
 are the app.
 
-- **Four appearance modes: Auto, Light, Night, and Location.** Night is the default; Light uses a sea-glass palette. Auto follows the system appearance. Location follows the sun and moon at the station's published coordinates on station pages, using the selected time for a shared or scrubbed tide chart and the live clock otherwise. Other pages ask for browser location when Location is chosen. Colours use the shared dark/light tokens in `src/styles.css`.
+- **Four appearance modes: Auto, Light, Night, and Your location.** Night is the default; Light uses a sea-glass palette. Auto follows each station's published coordinates and selected chart time on station pages, and the system appearance elsewhere. Your location asks for browser coordinates and follows the visitor's current sky on every page, including station pages. Colours use the shared dark/light tokens in `src/styles.css`.
 - **System font.** A page selling "no spinner, nothing to load" should not block on a webfont.
 - **Colour is state, form is kind.** Green is slack and only slack; direction is a single
   signed blue/amber axis; steel means unknown. Nothing is ever coloured by what it *is*.

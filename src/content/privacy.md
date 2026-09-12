@@ -60,9 +60,9 @@ Links to TestFlight and other websites take you to services governed by their ow
 
 ## Website appearance
 
-The site stores your chosen appearance mode (`Auto`, `Light`, `Night`, or `Location`) in your browser. It does not store coordinates.
+The site stores your chosen appearance mode (`Auto`, `Light`, `Night`, or `Your location`) in your browser. It does not store coordinates.
 
-On a tide or current station page, Location uses that station's published coordinates. On other pages, choosing Location asks your browser for your current position. The position stays in your browser and is not sent to Slackwater or its analytics provider.
+On a tide or current station page, Auto uses that station's published coordinates and the time selected on the page; it does not request your position. On other pages, Auto follows your system appearance. Choosing Your location on any page asks your browser for your current position. The position stays in your browser and is not sent to Slackwater or its analytics provider.
 
 ## Sharing and service providers
 

@@ -177,7 +177,7 @@ test('saved explicit and system modes draw the restored body on the first hydrat
       assert(frames.every((arcs) => arcs.length && arcs.every((r) => r === radius)), `${mode}/${system}: ${JSON.stringify(frames)}`)
     } finally { await close() }
   }
-  const { page, close } = await open('location', { instant: '2026-09-12T19:00:00Z', route: '/tides/friday-harbor/' })
+  const { page, close } = await open('auto', { instant: '2026-09-12T19:00:00Z', route: '/tides/friday-harbor/' })
   try {
     await page.waitForFunction(() => window.skyFrames.at(-1).arcs.length === 1 && window.skyFrames.at(-1).arcs[0][2] === 20)
     const frames = await page.evaluate(() => window.skyFrames.map((frame) => frame.arcs.map((arc) => arc[2])))
@@ -185,6 +185,41 @@ test('saved explicit and system modes draw the restored body on the first hydrat
     assert(frames.slice(1).some((arcs) => arcs.includes(20) && arcs.includes(18)))
     assert.deepEqual(frames.at(-1), [20])
   } finally { await close() }
+})
+
+test('Auto follows Midland station time while Your location uses the visitor sky', async () => {
+  const noon = '2026-09-12T19:00:00Z'
+  const midnight = '2026-09-12T04:00:00Z'
+  const day = await open('auto', { system: 'dark', instant: noon, route: '/tides/midland/' })
+  try {
+    assert.equal(await day.page.locator('html').getAttribute('data-appearance'), 'light')
+    assert.match(await day.page.locator('[popoverTarget]').getAttribute('aria-label'), /Auto.*Light/)
+    assert(await day.page.evaluate(() => window.skyFrames.at(-1).arcs.some((arc) => arc[2] === 20)))
+    await day.page.locator('[popoverTarget]').click()
+    assert.equal(await day.page.locator('label:has(input[value="auto"])').innerText(), 'Auto (station location)')
+    assert.equal(await day.page.locator('label:has(input[value="location"])').innerText(), 'Your location')
+  } finally { await day.close() }
+
+  const night = await open('auto', { system: 'light', instant: midnight, route: '/tides/midland/' })
+  try {
+    assert.equal(await night.page.locator('html').getAttribute('data-appearance'), 'night')
+  } finally { await night.close() }
+
+  const shared = await open('auto', {
+    system: 'dark', instant: midnight, route: '/tides/midland/2026-09-12T15:00-04:00',
+  })
+  try {
+    assert.equal(await shared.page.locator('html').getAttribute('data-appearance'), 'light')
+  } finally { await shared.close() }
+
+  const visitor = await open('location', {
+    system: 'light', instant: noon, route: '/tides/midland/',
+    observer: { latitude: 35.6762, longitude: 139.6503 },
+  })
+  try {
+    assert.equal(await visitor.page.locator('html').getAttribute('data-appearance'), 'night')
+    assert.match(await visitor.page.locator('[popoverTarget]').getAttribute('aria-label'), /Your location.*Night/)
+  } finally { await visitor.close() }
 })
 
 test('partial moons have a lit limb and the crescent, quarter, or gibbous terminator', async () => {

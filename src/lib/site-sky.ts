@@ -102,10 +102,20 @@ function bodyAt({ altDeg, azDeg }: AltAz, events: RiseSet[], at: Date): SkyBody 
 }
 
 function transitionBody<T extends SkyBody>(from: T | undefined, to: T | undefined, progress: number): T | undefined {
-  if (from && to) return { ...to, x: from.x + (to.x - from.x) * progress, y: from.y + (to.y - from.y) * progress }
-  if (from) return { ...from, x: from.x + (-0.05 - from.x) * progress }
-  if (to) return { ...to, x: 1.05 + (to.x - 1.05) * progress }
+  if (from && to) {
+    const y = Math.abs(from.x - to.x) > 0.08 || Math.abs(from.y - to.y) > 0.08
+      ? arcY(from.y, to.y, progress)
+      : from.y + (to.y - from.y) * progress
+    return { ...to, x: from.x + (to.x - from.x) * progress, y }
+  }
+  if (from) return { ...from, x: from.x + (-0.05 - from.x) * progress, y: arcY(from.y, from.y, progress) }
+  if (to) return { ...to, x: 1.05 + (to.x - 1.05) * progress, y: arcY(to.y, to.y, progress) }
   return undefined
+}
+
+function arcY(from: number, to: number, progress: number) {
+  const midpoint = (from + to) / 2
+  return from + (to - from) * progress - 4 * progress * (1 - progress) * (midpoint - Math.min(0.07, midpoint))
 }
 
 function isRiseSet(event: ReturnType<typeof sunEvents>[number]): event is RiseSet {

@@ -93,4 +93,15 @@ it('sends the outgoing moon off-screen during a night-to-light transition', () =
   const moon = transitionSky(stylizedSky('night'), stylizedSky('light'), 0.5).moon
   expect(moon).toBeDefined()
   expect(moon?.x).toBeCloseTo(0.335)
+  expect(moon?.y).toBeLessThanOrEqual(0.07)
+  const sun = transitionSky(stylizedSky('night'), stylizedSky('light'), 0.5).sun
+  expect(sun?.y).toBeLessThanOrEqual(0.07)
+})
+
+it('arcs a large same-body move above tide controls but leaves minute drift direct', () => {
+  const from = { ...stylizedSky('light'), sun: { x: 0.2, y: 0.4 } }
+  const far = { ...stylizedSky('light'), sun: { x: 0.8, y: 0.3 } }
+  const near = { ...stylizedSky('light'), sun: { x: 0.21, y: 0.39 } }
+  expect(transitionSky(from, far, 0.5).sun?.y).toBeLessThanOrEqual(0.07)
+  expect(transitionSky(from, near, 0.5).sun?.y).toBeCloseTo(0.395)
 })

@@ -16,7 +16,7 @@
 - Add no dependency.
 - No stored coordinates: persist only `slackwater-theme` with `auto`, `light`, `night`, or `location`.
 - Default to Night when the preference is missing, invalid, or unavailable.
-- Station coordinates beat browser coordinates; instant station URLs beat the live clock.
+- Auto uses station coordinates and selected URL time on station pages, and system appearance elsewhere; Your location uses browser coordinates and the live clock on every page.
 - A tide page's client-side selected moment beats its initial loader instant after scrubbing.
 - Location is literal: daylight follows solar altitude, and a moon below the horizon is not drawn.
 - The approved control is the orbital button; the approved motion is Passing orbits at 700 milliseconds; the approved Light palette is sea glass.
@@ -237,7 +237,7 @@ const SKY_ANCHORS = [
 ] as const
 ```
 
-`transitionSky(from, to, progress)` clamps progress, returns the exact inputs at 0 and 1, sends the outgoing body toward `x = -0.05`, brings the incoming body from `x = 1.05`, and mixes the two paint colours. If the target has no literal moon, interpolate only the outgoing sun and paint.
+`transitionSky(from, to, progress)` clamps progress, returns the exact inputs at 0 and 1, sends the outgoing body toward `x = -0.05` in a high arc, brings the incoming body from `x = 1.05` in a high arc, and mixes the two paint colours. Large same-body moves also arc; minute drift stays direct. If the target has no literal moon, interpolate only the outgoing sun and paint.
 
 - [ ] **Step 4: Draw the frame on one fixed canvas**
 
@@ -291,7 +291,7 @@ it('renders the orbital button and four labelled modes', () => {
   expect(html).toContain('Auto (system)')
   expect(html).toContain('Light')
   expect(html).toContain('Night')
-  expect(html).toContain('Location')
+  expect(html).toContain('Your location')
   expect(html).toContain('popover')
   expect(html).toContain('Water')
 })
@@ -310,10 +310,10 @@ Expected: FAIL because `ThemeShell` does not exist.
 1. Read and validate `slackwater-theme`.
 2. Subscribe to `matchMedia('(prefers-color-scheme: dark)')`.
 3. Read station coordinates and optional instant from active matches.
-4. For a saved Location on a non-station page, request fresh coordinates immediately.
-5. When a reader selects Location without station coordinates, request once and save the mode only after success.
+4. For a saved Your location preference on any page, request fresh coordinates immediately.
+5. When a reader selects Your location without browser coordinates, request once and save the mode only after success.
 6. On geolocation failure, keep the current selection during an attempted change; for an unavailable saved Location, clear storage and use Night.
-7. Tick live location state once per minute; keep instant routes fixed.
+7. Tick Your location and live Auto station state once per minute; keep Auto instant station routes fixed.
 8. Set `document.documentElement.dataset.appearance`, `colorScheme`, and the `theme-color` meta content.
 9. Animate an appearance change with one cancellable `requestAnimationFrame` loop over 700 milliseconds; skip it under reduced motion.
 
@@ -331,7 +331,7 @@ The control uses the native Popover API and ordinary radios:
     {(['auto', 'light', 'night', 'location'] as const).map((value) => (
       <label key={value}>
         <input type="radio" name="theme" value={value} checked={mode === value} onChange={choose} />
-        {value === 'auto' ? 'Auto (system)' : value[0].toUpperCase() + value.slice(1)}
+        {value === 'auto' ? station ? 'Auto (station location)' : 'Auto (system)' : value === 'location' ? 'Your location' : value[0].toUpperCase() + value.slice(1)}
       </label>
     ))}
     {error && <p role="alert">{error}</p>}
@@ -481,14 +481,14 @@ Add a Website appearance section to `src/content/privacy.md` stating:
 ```md
 ## Website appearance
 
-The site stores your chosen appearance mode (`Auto`, `Light`, `Night`, or `Location`) in your browser. It does not store coordinates.
+The site stores your chosen appearance mode (`Auto`, `Light`, `Night`, or `Your location`) in your browser. It does not store coordinates.
 
-On a tide or current station page, Location uses that station's published coordinates. On other pages, choosing Location asks your browser for your current position. The position stays in your browser and is not sent to Slackwater or its analytics provider.
+On a tide or current station page, Auto uses that station's published coordinates and the selected time. On other pages, Auto follows your system appearance. Choosing Your location on any page asks your browser for your current position. The position stays in your browser and is not sent to Slackwater or its analytics provider.
 ```
 
 - [ ] **Step 2: Update current-state repository guidance**
 
-In `README.md`, replace the Dark-only design rule with the four modes, Night default, sea-glass Light palette, and literal station Location behavior. In `AGENTS.md`, replace the statement that a light theme is only wanted with the rule that all colours use shared dark/light tokens and theme-sensitive literal colour utilities are prohibited.
+In `README.md`, describe the four modes, Night default, sea-glass Light palette, station sky under Auto, and visitor sky under Your location. In `AGENTS.md`, keep the rule that all colours use shared dark/light tokens and theme-sensitive literal colour utilities are prohibited.
 
 - [ ] **Step 3: Run the complete verification floor**
 
