@@ -25,7 +25,7 @@ export const Route = createFileRoute('/privacy')({
 function PrivacyPolicy() {
   return (
     <main className="mx-auto max-w-3xl px-5 pb-24 pt-10 sm:px-6 sm:pt-20">
-      <nav className="flex justify-between font-mono text-xs uppercase tracking-[0.14em] text-sw-leaf">
+      <nav className="flex justify-between pe-14 font-mono text-xs uppercase tracking-[0.14em] text-sw-leaf sm:pe-0">
         <a href="/" className="hover:underline">
           ← Slackwater
         </a>
