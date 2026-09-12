@@ -76,8 +76,8 @@ function eventsFor(observer: Observer, at: Date, almanacObserver: { latitudeDeg:
   const key = `${observer.latitude},${observer.longitude},${day.getTime()}`
   const cached = eventsByDay.get(key)
   if (cached) return cached
-  const start = new Date(day.getTime() - 24 * 60 * 60 * 1000)
-  const end = new Date(day.getTime() + 24 * 60 * 60 * 1000)
+  const start = day
+  const end = new Date(day.getTime() + 48 * 60 * 60 * 1000)
   const events = {
     sun: sunEvents(start, end, almanacObserver).filter(isRiseSet),
     moon: moonEvents(start, end, almanacObserver),

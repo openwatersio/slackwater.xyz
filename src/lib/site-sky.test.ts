@@ -22,6 +22,14 @@ it('draws only the literal nighttime body', () => {
   expect(moonless.moon).toBeUndefined()
 })
 
+it('draws the literal daytime sun through a west-coast sunset', () => {
+  const frame = locationSky(
+    { latitude: 47.6062, longitude: -122.3321 },
+    new Date('2026-09-12T17:06:00Z'),
+  )
+  expect(frame.sun).toBeDefined()
+})
+
 it('starts and ends a passing-orbits transition exactly at its inputs', () => {
   const from = stylizedSky('night')
   const to = stylizedSky('light')
