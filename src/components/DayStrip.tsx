@@ -220,8 +220,8 @@ function Lead({
   next?: string
 }) {
   return (
-    <div className="flex flex-col items-center gap-1 text-white">
-      <p className="text-[0.8125rem] font-semibold text-white/85">
+    <div className="flex flex-col items-center gap-1 text-sw-paper">
+      <p className="text-[0.8125rem] font-semibold text-sw-foam">
         {state}
         {detail && <span className={`ml-1.5 ${tone}`}>{detail}</span>}
       </p>
@@ -229,9 +229,9 @@ function Lead({
         {value}
         <span className="ml-1 text-[1.375rem] font-light">{unit}</span>
       </p>
-      <p className="text-xs tabular-nums text-white/85">{chartTime(at, timeZone)}</p>
+      <p className="text-xs tabular-nums text-sw-foam">{chartTime(at, timeZone)}</p>
       {next && (
-        <p className="mt-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold">{next}</p>
+        <p className="mt-2 rounded-full bg-sw-surface px-3 py-1 text-xs font-semibold">{next}</p>
       )}
     </div>
   )

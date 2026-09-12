@@ -10,7 +10,6 @@ const themedSources = [
   './components/ComparePage.tsx',
   './components/Shot.tsx',
   './components/StationPage.tsx',
-  // DayStrip text and its bg-white/10 pill sit inside the always-dark curve overlay.
   './components/DayStrip.tsx',
 ]
 
@@ -27,14 +26,11 @@ describe('site appearances', () => {
     expect(css).toMatch(/html\s*{[^}]*color-scheme:\s*dark/s)
   })
 
-  it('uses appearance tokens for themed borders, rings, and surfaces', () => {
+  it('uses appearance tokens for themed borders, rings, surfaces, and ink', () => {
     for (const path of themedSources) {
       const source = readFileSync(new URL(path, import.meta.url), 'utf8')
-      const literals = source.match(/(?:border|ring|bg)-white(?:\/\d+)?/g) ?? []
-      expect({ path, literals }).toEqual({
-        path,
-        literals: path === './components/DayStrip.tsx' ? ['bg-white/10'] : [],
-      })
+      const literals = source.match(/(?:border|ring|bg|text)-white(?:\/\d+)?/g) ?? []
+      expect({ path, literals }).toEqual({ path, literals: [] })
     }
   })
 })
