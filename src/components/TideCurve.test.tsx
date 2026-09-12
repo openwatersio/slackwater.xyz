@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { TideCurve } from './TideCurve'
+import { TideCurve, timeAtFraction } from './TideCurve'
 import { fetchPortTides } from '#/lib/iwls'
 import portFixture from '#/lib/__fixtures__/iwls-ports.json' with { type: 'json' }
 import type { BundledStation, ChsStation } from '#/lib/station'
@@ -48,6 +48,73 @@ describe('TideCurve', () => {
   it('uses no current-only visual language', () => {
     // Green means slack and slack is a current concept. A tide has no slack.
     expect(svg).not.toContain('#88B868')
+  })
+
+  it('labels a shared selection by its station-local time, not as now', () => {
+    expect(svg).toContain('11:00pm')
+    expect(svg).not.toMatch(/>Now<\/text>/)
+
+    const live = renderToStaticMarkup(
+      <TideCurve
+        station={SEATTLE}
+        start={new Date('2026-09-01T00:00:00Z')}
+        hours={24}
+        now={new Date('2026-09-01T06:00:00Z')}
+        trackingNow
+      />,
+    )
+    expect(live).toMatch(/>Now<\/text>/)
+  })
+
+  it('uses the app tide colours and prints each turn time beside its value', () => {
+    expect(svg).toContain('#38BDF8')
+    expect(svg).toContain('#2DD4BF')
+    expect(svg).toContain('#FBBF24')
+    expect(svg).toContain('8:37pm')
+    expect(svg).toContain('3:46am')
+  })
+
+  it('shades night and daylight beneath the curve', () => {
+    expect(svg).toContain('data-shade="night"')
+    expect(svg).toContain('data-shade="daylight"')
+  })
+
+  it('keeps the actual time visible while a shared instant is selected', () => {
+    const selected = renderToStaticMarkup(
+      <TideCurve
+        station={SEATTLE}
+        start={new Date('2026-09-01T00:00:00Z')}
+        hours={24}
+        now={new Date('2026-09-01T06:00:00Z')}
+        actualNow={new Date('2026-09-01T12:00:00Z')}
+      />,
+    )
+    expect(selected).toContain('data-marker="actual-now"')
+  })
+
+  it('exposes the whole interactive chart as a keyboard-accessible time slider', () => {
+    const interactive = renderToStaticMarkup(
+      <TideCurve
+        station={SEATTLE}
+        start={new Date('2026-09-01T00:00:00Z')}
+        hours={24}
+        now={new Date('2026-09-01T06:00:00Z')}
+        onSelect={() => {}}
+        onCommit={() => {}}
+      />,
+    )
+    expect(interactive).toMatch(/role="slider"/)
+    expect(interactive).toMatch(/tabindex="0"/)
+    expect(interactive).toContain('aria-valuetext="11:00pm"')
+  })
+})
+
+describe('timeAtFraction', () => {
+  it('maps and clamps a horizontal chart position to its selected minute', () => {
+    const start = new Date('2026-09-01T00:00:00Z')
+    expect(timeAtFraction(start, 24, 0.5).toISOString()).toBe('2026-09-01T12:00:00.000Z')
+    expect(timeAtFraction(start, 24, -1)).toEqual(start)
+    expect(timeAtFraction(start, 24, 2).toISOString()).toBe('2026-09-02T00:00:00.000Z')
   })
 })
 

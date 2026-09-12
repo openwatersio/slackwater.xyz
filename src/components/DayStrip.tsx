@@ -20,10 +20,8 @@ import type { BundledStation, ChsStation } from '#/lib/station'
  * and the day's sunrise and sunset under it.
  *
  * A composer, not a third curve. `TideCurve` and `CurrentCurve` already draw
- * the highs, lows, slacks, maxima and the now line; this adds only what a
- * whole day needs around them. There is no centreline and nothing to drag —
- * the app's scrub view is the interactive one, and this page exists to send a
- * reader to it.
+ * the highs, lows, slacks, maxima and the selected line; this adds only what a
+ * whole day needs around them.
  *
  * `start` is a prop, not derived inside: an eclipse page passes the eclipse
  * night, a Canadian page passes the window DFO sent.
@@ -34,6 +32,10 @@ type Props = {
   now: Date
   /** Is `now` the reader's own clock? Only then may the strip read the water "now". */
   live: boolean
+  selectedAt?: Date
+  trackingNow?: boolean
+  onSelect?: (at: Date) => void
+  onCommit?: (at: Date) => void
 } & (
   | { station: BundledStation; fetched?: never }
   | { station: ChsStation; fetched: Fetched }
@@ -45,16 +47,20 @@ export type Fetched =
   | { kind: 'tide'; samples: Sample[]; high: Sample; low: Sample }
 
 export function DayStrip(props: Props) {
-  const { station, start, hours, now, live } = props
+  const {
+    station, start, hours, now, live, selectedAt,
+    trackingNow = false, onSelect, onCommit,
+  } = props
+  const selected = selectedAt ?? now
   const end = new Date(start.getTime() + hours * 3600_000)
   const today = now >= start && now < end
 
   return (
     <div className="relative">
-      {live && today && station.source === 'bundled' && (
+      {station.source === 'bundled' && ((station.kind === 'tide' && selectedAt) || (live && today)) && (
         <div className="mb-4 flex justify-center">
           {station.kind === 'tide' ? (
-            <TideLead station={station} now={now} />
+            <TideLead station={station} now={selected} />
           ) : (
             <CurrentLead station={station} now={now} />
           )}
@@ -71,7 +77,21 @@ export function DayStrip(props: Props) {
             samples={props.fetched.samples} events={props.fetched.events} />
         )
       ) : props.station.kind === 'tide' ? (
-        <TideCurve station={props.station} start={start} hours={hours} now={now} />
+        <>
+          <div className="sm:hidden">
+            <TideCurve
+              station={props.station} start={start} hours={hours} now={selected}
+              actualNow={now} trackingNow={trackingNow} onSelect={onSelect} onCommit={onCommit}
+              width={390}
+            />
+          </div>
+          <div className="hidden sm:block">
+            <TideCurve
+              station={props.station} start={start} hours={hours} now={selected}
+              actualNow={now} trackingNow={trackingNow} onSelect={onSelect} onCommit={onCommit}
+            />
+          </div>
+        </>
       ) : (
         <CurrentCurve station={props.station} start={start} hours={hours} now={now} />
       )}
@@ -137,7 +157,7 @@ function TideLead({ station, now }: { station: BundledStation; now: Date }) {
       unit="ft"
       at={now}
       timeZone={station.timezone}
-      next={next && `${next.high ? 'High' : 'Low'} in ${until(next.time, now)}`}
+      next={next && `${next.high ? 'High' : 'Low'} at ${chartTime(next.time, station.timezone)}`}
     />
   )
 }

@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DayStrip, type Fetched } from './DayStrip'
 import { NearbyMap } from './NearbyMap'
-import { DATUM_NOTE, datumLine, pageTitle, placeLine } from '#/lib/copy'
-import { compass16, dayLabel, dayStart, height, hhmm } from '#/lib/format'
+import { DATUM_NOTE, datumLine, stationHeading } from '#/lib/copy'
+import { compass16, dayLabel, dayStart, height, hhmm, shiftLocalDay } from '#/lib/format'
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
 import { TESTFLIGHT } from '#/lib/links'
 import type { NearbyRow } from '#/lib/catalogue-server'
 import { findEvents, tideExtremes } from '#/lib/predict'
 import { stationPath, type BundledStation, type ChsStation, type Station } from '#/lib/station'
+import { tideInstantPath } from '#/routes/instant-url'
 
 /**
  * One Canadian station's day, once DFO has sent it back.
@@ -35,8 +36,10 @@ const startOf = (at: Date) => new Date(at.getTime() - 6 * 3600_000)
 
 interface Props {
   station: Station
-  /** The moment the page is centred on: the reader's clock, or a shared instant. */
+  /** The reader's clock. */
   now: Date
+  /** A fixed moment from a shared URL. Omit to follow `now`. */
+  selectedAt?: Date
   /** True only on a hydrated client — see `useLiveNow`. */
   live?: boolean
   /**
@@ -63,10 +66,15 @@ interface Props {
  * card, not in what they draw, so the page itself lives here rather than in
  * four near-identical copies that can drift apart.
  *
- * Order is the argument: the answer to the query first, the two day strips,
- * the app, then everything a reader or a crawler goes on to want.
+ * Order is the argument: the selected day first, the app, then everything a
+ * reader or a crawler goes on to want.
  */
-export function StationPage({ station, now, live = false, settled = live, nearby = [] }: Props) {
+export function StationPage({ station, now, selectedAt: initialSelection, live = false, settled = live, nearby = [] }: Props) {
+  const [selectedAt, setSelectedAt] = useState(initialSelection ?? now)
+  const [trackingNow, setTrackingNow] = useState(initialSelection === undefined)
+  useEffect(() => {
+    if (trackingNow) setSelectedAt(now)
+  }, [trackingNow, now])
   // Held here rather than in `ChsGate` because the subtitle is here: a page
   // that has just gained a chart also gains the date that chart needs.
   const [curve, setCurve] = useState<Curve | undefined>()
@@ -75,24 +83,39 @@ export function StationPage({ station, now, live = false, settled = live, nearby
   // and the numbers all have to be that same day or the page contradicts
   // itself. `now` keeps ticking underneath, which is what the NOW marker and
   // the countdown want.
-  const at = curve?.at ?? now
-  // The date, always, in the station's own zone — but only where there is a
-  // chart to date. The chart speaks in bare `hh:mm`, and a shared link can
-  // point at any day — without a date a receiver cannot tell which day's
-  // water they are looking at. A CHS page draws no chart, so there is
-  // nothing for a date to disambiguate: on a prerender `now` is the fixed
-  // build clock, and printing it would read as the freshness of information
-  // that is not there.
-  const date = station.source === 'bundled' || curve ? dayLabel(at, station.timezone) : undefined
-  const subtitle = [placeLine(station), date].filter(Boolean).join(' · ')
+  const at = station.source === 'bundled' && station.kind === 'tide'
+    ? selectedAt
+    : curve?.at ?? now
+  const select = (next: Date) => {
+    setTrackingNow(false)
+    setSelectedAt(next)
+  }
+  const commit = (next: Date) => {
+    select(next)
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(
+        window.history.state,
+        '',
+        tideInstantPath(station.slug, next, station.timezone),
+      )
+    }
+  }
+  const returnToNow = () => {
+    setTrackingNow(true)
+    setSelectedAt(now)
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(window.history.state, '', stationPath('tide', station.slug))
+    }
+  }
   return (
     <main className="mx-auto max-w-3xl px-5 pb-24 pt-8 sm:px-6 sm:pt-14">
       <Breadcrumb station={station} />
       <h1 className="mt-4 text-3xl font-semibold tracking-tight text-sw-paper sm:text-5xl">
-        {pageTitle(station)}
+        {stationHeading(station)}
       </h1>
-      <p className="mt-3 text-sw-steel">{subtitle}</p>
-      {station.source === 'bundled' && <Answer station={station} at={at} />}
+      <p className="mt-3 text-sw-steel">
+        {station.kind === 'tide' ? 'Tide times & tide chart' : 'Tidal currents & slack water'}
+      </p>
       {station.source === 'chs' ? (
         !curve ? (
           <ChsGate station={station} now={now} settled={settled} hours={24} onCurve={setCurve} />
@@ -101,6 +124,18 @@ export function StationPage({ station, now, live = false, settled = live, nearby
             <DayStrip station={station} fetched={curve} start={startOf(at)} hours={24} now={now} live={live} />
           </div>
         )
+      ) : station.kind === 'tide' ? (
+        <TideDayPager
+          station={station}
+          selectedAt={selectedAt}
+          actualNow={now}
+          live={live}
+          trackingNow={trackingNow}
+          showSelection={live || initialSelection !== undefined}
+          onSelect={select}
+          onCommit={commit}
+          onNow={returnToNow}
+        />
       ) : (
         <DayTabs station={station} at={at} now={now} live={live} />
       )}
@@ -163,24 +198,66 @@ function turns(station: BundledStation, from: Date, to: Date) {
   ).map((t) => ({ ...t, hhmm: hhmm(t.time, tz) }))
 }
 
-/**
- * The answer, dated, in one line that is true in prerendered HTML: it names a
- * day and that day's water, and claims nothing about the present.
- */
-function Answer({ station, at }: { station: BundledStation; at: Date }) {
-  const [today, tomorrow] = days(at, station.timezone, 1)
-  const day = useMemo(() => turns(station, today, tomorrow), [station, today.getTime()])
-  if (!day.length) return null
+function TideDayPager({
+  station, selectedAt, actualNow, live, trackingNow, showSelection, onSelect, onCommit, onNow,
+}: {
+  station: BundledStation
+  selectedAt: Date
+  actualNow: Date
+  live: boolean
+  trackingNow: boolean
+  showSelection: boolean
+  onSelect: (at: Date) => void
+  onCommit: (at: Date) => void
+  onNow: () => void
+}) {
+  const tz = station.timezone
+  const day = dayStart(selectedAt, tz)
+  const next = dayStart(selectedAt, tz, 1)
+  const sameDay = day.getTime() === dayStart(actualNow, tz).getTime()
+  const label = (offset: number) => {
+    if (live && sameDay) return ['Yesterday', 'Today', 'Tomorrow'][offset + 1]
+    return dayLabel(dayStart(selectedAt, tz, offset), tz)
+  }
+  const button = 'min-w-0 flex-1 rounded-full px-2 py-2 text-sm hover:text-sw-foam focus-visible:ring-2 focus-visible:ring-sw-foam'
   return (
-    <p className="mt-6 text-lg leading-relaxed text-sw-foam">
-      <span className="text-sw-steel">{dayLabel(today, station.timezone)}</span>
-      {day.map((t) => (
-        <span key={t.time.getTime()}>
-          <span className="text-sw-steel"> · </span>
-          {t.what}{t.value ? ` ${t.value}` : ''} at <span className="tabular-nums">{t.hhmm}</span>
-        </span>
-      ))}
-    </p>
+    <div className="mt-8">
+      {live && !trackingNow && (
+        <div className="mb-2 flex justify-end">
+          <button type="button" onClick={onNow} className="rounded-full px-3 py-1 text-sm text-sw-steel hover:text-sw-foam">
+            Now
+          </button>
+        </div>
+      )}
+      <nav aria-label="Choose tide day" className="flex items-center gap-1">
+        {[-1, 0, 1].map((offset) => (
+          <button
+            key={offset}
+            type="button"
+            aria-current={offset === 0 ? 'date' : undefined}
+            onClick={() => offset && onCommit(shiftLocalDay(selectedAt, tz, offset))}
+            className={`${button} ${offset === 0 ? 'bg-white/10 text-sw-paper' : 'text-sw-steel'}`}
+          >
+            {offset < 0 && <span aria-hidden="true">‹ </span>}
+            {label(offset)}
+            {offset > 0 && <span aria-hidden="true"> ›</span>}
+          </button>
+        ))}
+      </nav>
+      <section className="mt-4" aria-label={dayLabel(day, tz)}>
+        <DayStrip
+          station={station}
+          start={day}
+          hours={hoursBetween(day, next)}
+          now={actualNow}
+          live={live}
+          selectedAt={showSelection ? selectedAt : undefined}
+          trackingNow={trackingNow}
+          onSelect={onSelect}
+          onCommit={onCommit}
+        />
+      </section>
+    </div>
   )
 }
 

@@ -1,7 +1,8 @@
 import { useId, useMemo } from 'react'
+import { sunEvents } from '@openwaters/almanac'
 import { provenance } from '#/lib/copy'
 import { fadeStops } from '#/lib/fade'
-import { dayLabel, height, hhmm } from '#/lib/format'
+import { chartTime, dayLabel, height, hhmm } from '#/lib/format'
 import { predictSeries, tideExtremes } from '#/lib/predict'
 import type { Sample } from '#/lib/predict'
 import type { BundledStation, ChsStation, Station } from '#/lib/station'
@@ -19,6 +20,11 @@ interface Common {
   start: Date
   hours: number
   now: Date
+  actualNow?: Date
+  /** True only while this selected instant follows the reader's clock. */
+  trackingNow?: boolean
+  onSelect?: (at: Date) => void
+  onCommit?: (at: Date) => void
   /**
    * viewBox width. SVG text scales with the viewBox, so a 1000-wide box shrunk
    * into a 390px phone renders 15px labels at about 6px — unreadable. Narrow
@@ -47,8 +53,16 @@ type Props = Common &
     | { station: ChsStation; samples: Sample[]; high: Sample; low: Sample }
   )
 
+export function timeAtFraction(start: Date, hours: number, fraction: number): Date {
+  const minute = Math.round(Math.max(0, Math.min(1, fraction)) * hours * 60)
+  return new Date(start.getTime() + minute * 60_000)
+}
+
 export function TideCurve(props: Props) {
-  const { station, start, hours, now, width: W = 1000, height: H = 320 } = props
+  const {
+    station, start, hours, now, actualNow, trackingNow = false, onSelect, onCommit,
+    width: W = 1000, height: H = 320,
+  } = props
   // Unique per instance. The page renders this twice — a phone version and a
   // desktop one, one of them display:none — and shared element ids make the
   // second SVG reference the first's gradient, which sits in a hidden subtree
@@ -58,10 +72,11 @@ export function TideCurve(props: Props) {
   const maskId = `edges-${uid}`
   const fadeId = `fade-${uid}`
   const clipId = `plot-${uid}`
+  const areaId = `area-${uid}`
 
   const PAD_TOP = 34
   const PAD_BOTTOM = 44
-  const { path, area, x, yOf, high, low, extremes } = useMemo(() => {
+  const { path, area, x, yOf, high, low, extremes, samples } = useMemo(() => {
     const samples = props.samples ?? predictSeries(props.station, start, hours)
     const levels = samples.map((s) => s.level)
     const max = Math.max(...levels)
@@ -95,15 +110,93 @@ export function TideCurve(props: Props) {
       high,
       low,
       extremes,
+      samples,
     }
     // `props` itself would be a new object every render, and this page ticks:
     // the whole path would be rebuilt once a minute for a curve that has not
     // changed. The fetched arrays are set once and never mutated.
   }, [station, props.samples, props.high, props.low, start, hours])
 
+  const end = new Date(start.getTime() + hours * 3600_000)
+  const daylight = useMemo(() => {
+    try {
+      const events = sunEvents(start, end, {
+        latitudeDeg: station.latitude,
+        longitudeDeg: station.longitude,
+      }).filter((event) => event.kind === 'rise' || event.kind === 'set')
+      const spans: Array<[Date, Date]> = []
+      let rise = events[0]?.kind === 'set' ? start : undefined
+      for (const event of events) {
+        if (event.kind === 'rise') rise = event.time
+        else if (rise) {
+          spans.push([rise, event.time])
+          rise = undefined
+        }
+      }
+      if (rise) spans.push([rise, end])
+      return spans
+    } catch {
+      return []
+    }
+  }, [station.latitude, station.longitude, start.getTime(), end.getTime()])
+  const actualSample = actualNow && actualNow >= start && actualNow <= end
+    ? samples.reduce((best, sample) =>
+        Math.abs(sample.time.getTime() - actualNow.getTime()) < Math.abs(best.time.getTime() - actualNow.getTime())
+          ? sample
+          : best)
+    : undefined
+
+  const selectedMinute = Math.max(0, Math.min(hours * 60, Math.round((now.getTime() - start.getTime()) / 60_000)))
+  const pick = (element: HTMLDivElement, clientX: number) => {
+    const box = element.getBoundingClientRect()
+    return timeAtFraction(start, hours, (clientX - box.left) / box.width)
+  }
+  const moveBy = (minutes: number) =>
+    timeAtFraction(start, hours, (selectedMinute + minutes) / (hours * 60))
+
   return (
     <figure className="m-0">
-      <svg
+      <div
+        className={onSelect ? 'cursor-ew-resize touch-none' : undefined}
+        role={onSelect ? 'slider' : undefined}
+        tabIndex={onSelect ? 0 : undefined}
+        aria-label={onSelect ? 'Selected tide time' : undefined}
+        aria-valuemin={onSelect ? 0 : undefined}
+        aria-valuemax={onSelect ? hours * 60 : undefined}
+        aria-valuenow={onSelect ? selectedMinute : undefined}
+        aria-valuetext={onSelect ? chartTime(now, station.timezone) : undefined}
+        onPointerDown={onSelect ? (event) => {
+          event.currentTarget.setPointerCapture(event.pointerId)
+          onSelect(pick(event.currentTarget, event.clientX))
+        } : undefined}
+        onPointerMove={onSelect ? (event) => {
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            onSelect(pick(event.currentTarget, event.clientX))
+          }
+        } : undefined}
+        onPointerUp={onSelect ? (event) => {
+          const at = pick(event.currentTarget, event.clientX)
+          event.currentTarget.releasePointerCapture(event.pointerId)
+          onSelect(at)
+          onCommit?.(at)
+        } : undefined}
+        onKeyDown={onSelect ? (event) => {
+          const at = event.key === 'Home'
+            ? start
+            : event.key === 'End'
+              ? timeAtFraction(start, hours, 1)
+              : event.key === 'ArrowLeft'
+                ? moveBy(-10)
+                : event.key === 'ArrowRight'
+                  ? moveBy(10)
+                  : undefined
+          if (!at) return
+          event.preventDefault()
+          onSelect(at)
+          onCommit?.(at)
+        } : undefined}
+      >
+        <svg
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"
         role="img"
@@ -111,11 +204,14 @@ export function TideCurve(props: Props) {
       >
         <defs>
           <linearGradient id={fillId} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0" stopColor="#3B7BC9" stopOpacity="0.55" />
-            <stop offset="1" stopColor="#3B7BC9" stopOpacity="0.05" />
+            <stop offset="0" stopColor="#38BDF8" stopOpacity="0.38" />
+            <stop offset="1" stopColor="#38BDF8" stopOpacity="0.04" />
           </linearGradient>
           <clipPath id={clipId}>
             <rect x="0" y="0" width={W} height={H} />
+          </clipPath>
+          <clipPath id={areaId}>
+            <path d={area} />
           </clipPath>
           {/* The window has to end somewhere; a hard vertical cut reads as a
               rendering fault, so let the fill fade out instead. */}
@@ -133,29 +229,64 @@ export function TideCurve(props: Props) {
 
         <g clipPath={`url(#${clipId})`}>
           <g mask={`url(#${maskId})`}>
+            <path d={area} fill="#00101F" data-shade="night" />
+            <g clipPath={`url(#${areaId})`}>
+              {daylight.map(([from, to]) => (
+                <rect
+                  key={from.getTime()}
+                  x={x(from)}
+                  y={0}
+                  width={x(to) - x(from)}
+                  height={H}
+                  fill="#A8CAE0"
+                  fillOpacity={0.16}
+                  data-shade="daylight"
+                />
+              ))}
+            </g>
             <path d={area} fill={`url(#${fillId})`} />
-            <path d={path} fill="none" stroke="#DFEEE0" strokeWidth={2.2} strokeLinejoin="round" />
+            <path d={path} fill="none" stroke="#38BDF8" strokeWidth={2.2} strokeLinejoin="round" />
           </g>
 
           {/* Highs and lows — a dot and a number, no ramp, no slack. */}
           {extremes.map((e) => (
             <g key={e.time.getTime()}>
-              <circle cx={x(e.time)} cy={yOf(e.level)} r={4} fill="#E4F0E4" />
+              <circle cx={x(e.time)} cy={yOf(e.level)} r={4.5} fill={e.high ? '#2DD4BF' : '#FBBF24'} />
               <text
                 x={x(e.time)}
                 y={yOf(e.level) + (e.high ? -14 : 22)}
                 textAnchor="middle"
-                fill="#E4F0E4"
+                fill={e.high ? '#2DD4BF' : '#FBBF24'}
                 className="font-mono text-[15px] font-semibold [font-variant-numeric:tabular-nums]"
                 style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
               >
                 {height(e.level)} ft
               </text>
+              <text
+                x={x(e.time)}
+                y={yOf(e.level) + (e.high ? 18 : 38)}
+                textAnchor="middle"
+                fill={e.high ? '#2DD4BF' : '#FBBF24'}
+                className="font-mono text-[11px] font-medium [font-variant-numeric:tabular-nums]"
+                style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
+              >
+                {chartTime(e.time, station.timezone)}
+              </text>
             </g>
           ))}
 
-          {/* Now. Steel, not leaf: leaf and slack share one hex in the token
-              set, and this component has no state to colour by. */}
+          {actualSample && !trackingNow && (
+            <circle
+              cx={x(actualSample.time)}
+              cy={yOf(actualSample.level)}
+              r={3.5}
+              fill="#E4F0E4"
+              data-marker="actual-now"
+              aria-hidden="true"
+            />
+          )}
+
+          {/* The selected instant. Steel, not leaf: green belongs to slack. */}
           <g>
             <line x1={x(now)} x2={x(now)} y1={0} y2={H} stroke="#5888A8" strokeOpacity={0.9} strokeWidth={1.5} />
             {/* Top, not bottom: the bottom is where a low label lands, and on a
@@ -168,11 +299,12 @@ export function TideCurve(props: Props) {
               className="font-mono text-[11px] font-medium uppercase tracking-[0.16em]"
               style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
             >
-              Now
+              {trackingNow ? 'Now' : chartTime(now, station.timezone)}
             </text>
           </g>
         </g>
-      </svg>
+        </svg>
+      </div>
 
       <figcaption className="sr-only">{describe(station, high, low)}</figcaption>
     </figure>

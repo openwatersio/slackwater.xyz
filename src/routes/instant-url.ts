@@ -20,3 +20,20 @@ export function parseInstant(raw: string): Date | undefined {
   const d = new Date(raw)
   return Number.isNaN(d.getTime()) ? undefined : d
 }
+
+/** A minute-precise instant written in the station's own UTC offset. */
+export function formatInstant(at: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    timeZoneName: 'longOffset',
+  }).formatToParts(at)
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? ''
+  const offset = get('timeZoneName').replace('GMT', '') || 'Z'
+  return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}${offset}`
+}
+
+export const tideInstantPath = (slug: string, at: Date, timeZone: string) =>
+  `/tides/${slug}/${formatInstant(at, timeZone)}`

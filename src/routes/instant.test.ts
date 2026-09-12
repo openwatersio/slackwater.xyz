@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseInstant } from './instant-url'
+import { formatInstant, parseInstant, tideInstantPath } from './instant-url'
 
 describe('parseInstant', () => {
   it('accepts an offset-bearing ISO instant', () => {
@@ -29,5 +29,23 @@ describe('parseInstant', () => {
   it('still accepts Feb 29 in a leap year and Dec 31 at year end', () => {
     expect(parseInstant('2024-02-29T10:00Z')).toBeInstanceOf(Date)
     expect(parseInstant('2026-12-31T23:59Z')).toBeInstanceOf(Date)
+  })
+})
+
+describe('formatInstant', () => {
+  it('writes the selected minute in the station offset so a shared URL reads locally', () => {
+    expect(formatInstant(new Date('2026-09-19T08:03:44Z'), 'Europe/Amsterdam')).toBe(
+      '2026-09-19T10:03+02:00',
+    )
+  })
+
+  it('builds the path Safari should share for the selected station time', () => {
+    expect(
+      tideInstantPath(
+        'hellevoetsluis',
+        new Date('2026-09-19T08:03:44Z'),
+        'Europe/Amsterdam',
+      ),
+    ).toBe('/tides/hellevoetsluis/2026-09-19T10:03+02:00')
   })
 })

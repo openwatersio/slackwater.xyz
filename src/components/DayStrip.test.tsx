@@ -48,12 +48,32 @@ describe('DayStrip', () => {
     )
     expect(live).toMatch(/Rising|Falling/)
     expect(live).toMatch(/\d+\.\d ft/)
-    expect(live).toMatch(/(High|Low) in \d+(h \d+)?m/)
+    expect(live).toMatch(/(High|Low) at \d{1,2}:\d{2}[ap]m/)
 
     const tomorrow = renderToStaticMarkup(
       <DayStrip station={SEATTLE} start={dayStart(NOW, SEATTLE.timezone, 1)} hours={24} now={NOW} live />,
     )
     expect(tomorrow).not.toMatch(/Rising|Falling/)
+  })
+
+  it('reads a shared selected tide without calling it now', () => {
+    const selected = renderToStaticMarkup(
+      <DayStrip
+        station={SEATTLE}
+        start={TODAY}
+        hours={24}
+        now={new Date('2026-09-12T00:00:00Z')}
+        selectedAt={NOW}
+        live={false}
+        onSelect={() => {}}
+        onCommit={() => {}}
+      />,
+    )
+    expect(selected).toMatch(/Rising|Falling/)
+    expect(selected).toContain('1:00pm')
+    expect(selected).not.toMatch(/>Now<\/text>/)
+    expect(selected).toContain('viewBox="0 0 390 320"')
+    expect(selected).toContain('viewBox="0 0 1000 320"')
   })
 
   it('reads a current the way the app does', () => {
