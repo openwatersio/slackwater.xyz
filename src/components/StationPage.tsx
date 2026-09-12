@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DayStrip, type Fetched } from './DayStrip'
 import { NearbyMap } from './NearbyMap'
+import { useThemeSubject } from './ThemeShell'
 import { DATUM_NOTE, datumLine, stationHeading } from '#/lib/copy'
 import { compass16, dayLabel, dayStart, height, hhmm, shiftLocalDay } from '#/lib/format'
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
@@ -84,6 +85,14 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
   // itself. `now` keeps ticking underneath, which is what the NOW marker and
   // the countdown want.
   const at = station.source === 'bundled' ? selectedAt : curve?.at ?? now
+  const publishThemeSubject = useThemeSubject()
+  useEffect(() => {
+    publishThemeSubject({
+      observer: { latitude: station.latitude, longitude: station.longitude },
+      instant: at,
+    })
+    return () => publishThemeSubject()
+  }, [at, publishThemeSubject, station.latitude, station.longitude])
   const select = (next: Date) => {
     setTrackingNow(false)
     setSelectedAt(next)

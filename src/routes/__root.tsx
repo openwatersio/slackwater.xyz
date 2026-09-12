@@ -1,4 +1,6 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import { HeadContent, Scripts, createRootRoute, useMatches } from '@tanstack/react-router'
+import { ThemeShell } from '#/components/ThemeShell'
+import { PREPAINT_THEME_SCRIPT } from '#/lib/theme'
 import appCss from '../styles.css?url'
 
 export const SITE_TITLE = 'Slackwater — Tides & Currents'
@@ -42,6 +44,7 @@ export const Route = createRootRoute({
     ],
     // Both paths are the first-party proxy rules in vite.config.ts, not plausible.io.
     scripts: [
+      { children: PREPAINT_THEME_SCRIPT },
       { src: '/js/script.js', defer: true, 'data-domain': 'slackwater.xyz', 'data-api': '/api/event' },
     ],
   }),
@@ -76,13 +79,14 @@ function NotFound() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const matches = useMatches()
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
       <body className="bg-sw-page text-sw-foam font-sans antialiased">
-        {children}
+        <ThemeShell matches={matches}>{children}</ThemeShell>
         <Scripts />
       </body>
     </html>
