@@ -65,8 +65,7 @@ referral route and a web client still haven't earned their place, which is why n
 - **`src/content/privacy.md` is a promise, not boilerplate.** It names what the site collects.
   Anything that changes what is measured — analytics, an embed, a font CDN, a third-party
   script — updates that file in the same commit, or it makes the policy false.
-- **Colour comes from the tokens in `src/styles.css`.** No literal hexes in components; a
-  light theme is wanted eventually and hexes are how that gets expensive.
+- **Colour comes from the shared dark/light tokens in `src/styles.css`.** No literal hexes in components or theme-sensitive literal colour utilities; every surface supports both palettes.
 - **Colour is state, form is kind.** Green is slack and only slack. Never colour something by
   what it *is*.
 - **The wordmark never breaks.** One word, capital S, lowercase w, `whitespace-nowrap`.
