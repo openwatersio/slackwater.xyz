@@ -77,7 +77,44 @@ html[data-appearance="light"] {
   --color-sw-surface: #ffffffb3;
   --color-sw-rule: #08243724;
   --color-sw-shadow: #6f8c952e;
+  --color-sw-tide-night: #244b60;
+  --color-sw-tide-high: #0d746d;
+  --color-sw-tide-low: #945900;
+  --color-sw-sunrise: #8c5d08;
+  --color-sw-sunset: #7f5a24;
   color-scheme: light;
+}
+
+html[data-appearance="light"] .tide-curve [data-shade="night"] {
+  fill: var(--color-sw-tide-night);
+}
+
+html[data-appearance="light"] .tide-curve [data-shade="daylight"] {
+  fill-opacity: 0.4;
+}
+
+html[data-appearance="light"] .tide-curve [data-curve-edge] {
+  stroke: var(--color-sw-paper);
+}
+
+html[data-appearance="light"] .tide-curve [data-turn="high"] :is(circle, text) {
+  fill: var(--color-sw-tide-high);
+}
+
+html[data-appearance="light"] .tide-curve [data-turn="low"] :is(circle, text) {
+  fill: var(--color-sw-tide-low);
+}
+
+html[data-appearance="light"] .tide-curve text {
+  stroke: var(--color-sw-page);
+}
+
+html[data-appearance="light"] .tide-curve [data-selected-time] line {
+  stroke: var(--color-sw-steel);
+}
+
+html[data-appearance="light"] .tide-curve [data-selected-time] text {
+  fill: var(--color-sw-steel);
 }
 
 body {

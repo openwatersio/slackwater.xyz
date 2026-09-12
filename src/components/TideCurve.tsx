@@ -186,7 +186,7 @@ export function TideCurve(props: Props) {
       >
         <svg
         viewBox={`0 0 ${W} ${H}`}
-        className="w-full"
+        className="tide-curve w-full"
         role="img"
         aria-label={describe(station, high, low)}
       >
@@ -233,12 +233,13 @@ export function TideCurve(props: Props) {
               ))}
             </g>
             <path d={area} fill={`url(#${fillId})`} />
+            <path d={path} fill="none" stroke="none" strokeWidth={5} strokeLinejoin="round" data-curve-edge="" />
             <path d={path} fill="none" stroke="#38BDF8" strokeWidth={2.2} strokeLinejoin="round" />
           </g>
 
           {/* Highs and lows — a dot and a number, no ramp, no slack. */}
           {extremes.map((e) => (
-            <g key={e.time.getTime()}>
+            <g key={e.time.getTime()} data-turn={e.high ? 'high' : 'low'}>
               <circle cx={x(e.time)} cy={yOf(e.level)} r={4.5} fill={e.high ? '#2DD4BF' : '#FBBF24'} />
               <text
                 x={x(e.time)}
@@ -246,7 +247,9 @@ export function TideCurve(props: Props) {
                 textAnchor="middle"
                 fill={e.high ? '#2DD4BF' : '#FBBF24'}
                 className="font-mono text-[15px] font-semibold [font-variant-numeric:tabular-nums]"
-                style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
+                stroke="#00121F"
+                strokeWidth={3}
+                style={{ paintOrder: 'stroke' }}
               >
                 {height(e.level)} ft
               </text>
@@ -256,7 +259,9 @@ export function TideCurve(props: Props) {
                 textAnchor="middle"
                 fill={e.high ? '#2DD4BF' : '#FBBF24'}
                 className="font-mono text-[11px] font-medium [font-variant-numeric:tabular-nums]"
-                style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
+                stroke="#00121F"
+                strokeWidth={3}
+                style={{ paintOrder: 'stroke' }}
               >
                 {chartTime(e.time, station.timezone)}
               </text>
@@ -276,7 +281,7 @@ export function TideCurve(props: Props) {
           )}
 
           {/* The selected instant. Steel, not leaf: green belongs to slack. */}
-          <g>
+          <g data-selected-time="">
             <line x1={x(now)} x2={x(now)} y1={0} y2={H} stroke="#5888A8" strokeOpacity={0.9} strokeWidth={1.5} />
             {/* Top, not bottom: the bottom is where a low label lands, and on a
                 phone the two collide. */}
@@ -286,7 +291,9 @@ export function TideCurve(props: Props) {
               textAnchor="middle"
               fill="#5888A8"
               className="font-mono text-[11px] font-medium uppercase tracking-[0.16em]"
-              style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
+              stroke="#00121F"
+              strokeWidth={3}
+              style={{ paintOrder: 'stroke' }}
             >
               {trackingNow ? 'Now' : chartTime(now, station.timezone)}
             </text>

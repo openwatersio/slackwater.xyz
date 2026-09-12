@@ -150,6 +150,51 @@ test('filled CTAs keep readable ink in both palettes and hover states', async ()
   }
 })
 
+test('light tide charts keep day and night distinct with readable labels', async () => {
+  const { page, close } = await open('light', {
+    instant: '2026-09-12T19:00:00Z', route: '/tides/friday-harbor/',
+    viewport: { width: 390, height: 844 },
+  })
+  try {
+    const chart = page.locator('svg[aria-label^="Tide predictions"]:visible').first()
+    const colors = await chart.evaluate((svg) => {
+      const style = (selector) => getComputedStyle(svg.querySelector(selector))
+      const curve = svg.querySelector('path[stroke="#38BDF8"]')
+      return {
+        night: style('[data-shade="night"]').fill,
+        day: style('[data-shade="daylight"]').fill,
+        dayOpacity: Number(style('[data-shade="daylight"]').fillOpacity),
+        curveInks: [...svg.querySelectorAll('path[fill="none"]')]
+          .filter((path) => path.getAttribute('d') === curve.getAttribute('d'))
+          .map((path) => getComputedStyle(path).stroke),
+        high: style('text[fill="#2DD4BF"]').fill,
+        low: style('text[fill="#FBBF24"]').fill,
+        halo: style('text[fill="#2DD4BF"]').stroke,
+      }
+    })
+    const pageGround = await page.locator('body').evaluate((body) => getComputedStyle(body).backgroundColor)
+    const sunrise = await page.locator('.text-sw-sunrise').first().evaluate((label) => getComputedStyle(label).color)
+    const sunset = await page.locator('.text-sw-sunset').first().evaluate((label) => getComputedStyle(label).color)
+    const rgb = (value) => value.match(/[\d.]+/g).slice(0, 3).map(Number)
+    const luminance = (value) => rgb(value).map((v) => v / 255).map((v) => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4).reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0)
+    const contrast = (a, b) => (Math.max(luminance(a), luminance(b)) + 0.05) / (Math.min(luminance(a), luminance(b)) + 0.05)
+    const night = rgb(colors.night)
+    const day = rgb(colors.day).map((v, i) => v * colors.dayOpacity + night[i] * (1 - colors.dayOpacity))
+    const dayColor = `rgb(${day.join(',')})`
+    assert(luminance(colors.night) > 0.04, `night water is still near-black: ${colors.night}`)
+    assert(luminance(dayColor) > luminance(colors.night) + 0.05, 'daylight must visibly lift the night water')
+    assert(colors.curveInks.some((ink) => contrast(ink, colors.night) >= 3), 'curve must separate from night water')
+    assert(colors.curveInks.some((ink) => contrast(ink, dayColor) >= 3), 'curve must separate from daylight water')
+    for (const ink of [colors.high, colors.low, sunrise, sunset]) {
+      assert(contrast(ink, pageGround) >= 4.5, `${ink} is unreadable on ${pageGround}`)
+    }
+    assert(contrast(colors.halo, pageGround) < 1.5, 'light labels must not retain a dark outline')
+    for (const water of [colors.night, dayColor]) {
+      assert(contrast(colors.halo, water) >= 3, `label outline is unreadable on ${water}`)
+    }
+  } finally { await close() }
+})
+
 test('the daylight glow fades to the sun hue without a dark ring', async () => {
   const { page, close } = await open('light')
   try {
