@@ -1,5 +1,6 @@
 import type { StationRow } from '#/lib/catalogue-server'
 import { stationPath, type Kind } from '#/lib/station'
+import { DirectoryNav } from './DirectoryNav'
 
 /** Stations with no region of their own, gathered at the end rather than dropped. */
 const UNPLACED = 'Elsewhere'
@@ -65,6 +66,10 @@ export function StationIndex({ kind, rows }: { kind: Kind; rows: StationRow[] })
   const label = kind === 'tide' ? 'Tide stations' : 'Current stations'
   return (
     <main className="mx-auto max-w-5xl px-5 pb-24 pt-10 sm:px-6 sm:pt-20">
+      <DirectoryNav />
+      <a href="/stations/" className="mb-4 inline-block text-sm text-sw-steel hover:text-sw-paper">
+        All stations
+      </a>
       <h1 className="text-4xl font-semibold tracking-tight text-sw-paper sm:text-5xl">{label}</h1>
       <p className="mt-3 text-sw-steel">
         {rows.length.toLocaleString()} stations
