@@ -59,18 +59,18 @@ The document's `theme-color` meta value follows the resolved page ground so brow
 
 One fixed, pointer-transparent canvas spans the viewport. The body owns the page ground; the canvas sits above that ground and below a positioned content wrapper, with the orbital control above both. It draws the sun and moon, with Almanac supplying their positions for Auto on station pages and for Your location, but no star catalogue, weather, clouds, or additional scenery. The sky never changes document layout.
 
-Manual Light and Night, and Auto on non-station pages, are deliberately stylized: the active body rests at 72% of the viewport width and 18% of its height. Light uses the sun; Night uses a full moon. Location-based modes use the relevant observer and time. Their projection maps each body's rise-to-set span across the viewport, while altitude moves its artwork within the upper 0.5–1% of the viewport; the top edge clips part of the disc so it stays clear of page content without moving the layout. A body below the horizon is outside the frame.
+One high arc determines every body position: `y = 0.016 × (2x − 1)² + 0.014x` in normalized viewport coordinates. Manual Light and Night, and Auto on non-station pages, park the active sun or full moon at `x = 0.72` on that arc, in the upper right. Location-based modes use the relevant observer and time to project each body's rise-to-set span across the width, then place it on the same arc. Almanac's altitude determines visibility and paint, not a separate vertical path. The top edge clips part of the disc, keeping artwork clear of page content without moving the layout. A body below the horizon is outside the frame.
 
 The canvas background interpolates through five solar-altitude anchors: daylight at `10°` (`#2f7fd4` → `#bde3fb`), horizon at `0°` (`#2b4a7a` → `#f8a15f`), civil twilight at `−6°` (`#17264a` → `#8d4a63`), nautical twilight at `−12°` (`#0b1430` → `#2a2a52`), and night at `−18°` (`#04060f` → `#0b1023`). The gradient fades into the page ground rather than replacing it.
 
 The approved transition is **Passing orbits**, about 700 milliseconds:
 
-1. The outgoing body climbs a high arc, clear of page text and the tide scrubber, then continues beyond its setting edge.
-2. The incoming body enters from the opposite horizon in a high arc at the same time.
+1. The outgoing body follows the shared arc to the right setting edge.
+2. The incoming body follows that arc from the left rising edge at the same time.
 3. The page ground crosses through twilight anchor colours while both bodies may briefly share the sky.
 4. The animation settles at the target body's representative or Almanac-derived position.
 
-Literal sky state overrides the generic handoff: a moonless night receives no fabricated moon, and daylight draws no moon even when one is also above the horizon. The available body exits or enters while the gradient completes the transition alone. Large same-body moves also take the high arc; minute-scale position updates remain direct.
+Literal sky state overrides the generic handoff: a moonless night receives no fabricated moon, and daylight draws no moon even when one is also above the horizon. The available body exits or enters while the gradient completes the transition alone. Same-body mode switches and minute-scale position updates move along the shared arc without a separate detour.
 
 A new choice cancels the active transition and starts from the currently rendered state. This avoids queued animations and abrupt jumps during quick clicks. `prefers-reduced-motion: reduce` skips the travel and colour interpolation and applies the final state immediately.
 

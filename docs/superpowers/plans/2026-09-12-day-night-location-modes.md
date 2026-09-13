@@ -181,8 +181,10 @@ describe('skyPaint', () => {
 })
 
 it('keeps stylized modes stable', () => {
-  expect(stylizedSky('light').sun).toMatchObject({ x: 0.72, y: 0.18 })
-  expect(stylizedSky('night').moon).toMatchObject({ x: 0.72, y: 0.18, fraction: 1 })
+  expect(stylizedSky('light').sun?.x).toBe(0.72)
+  expect(stylizedSky('light').sun?.y).toBeCloseTo(0.0131776)
+  expect(stylizedSky('night').moon?.x).toBe(0.72)
+  expect(stylizedSky('night').moon?.y).toBeCloseTo(0.0131776)
 })
 
 it('draws only the literal nighttime body', () => {
@@ -223,7 +225,7 @@ Expected: FAIL because the modules do not exist.
 
 - [ ] **Step 3: Implement the five-anchor interpolation and two sky sources**
 
-Define `SkyFrame` with `paint`, optional sun, and optional moon. Keep coordinates normalized from 0 to 1. `stylizedSky` returns the fixed 72%/18% body. `locationSky` searches a 48-hour event window once per observer/day, projects rise-to-set progress across the width, maps altitude above the horizon into the upper 0.5–1% of the viewport, hides the daytime moon, and hides every body Almanac places below the horizon. Catch Almanac range errors and return the night paint with no body.
+Define `SkyFrame` with `paint`, optional sun, and optional moon. Keep coordinates normalized from 0 to 1. One shared high arc, `y = 0.016 × (2x − 1)² + 0.014x`, places every body. `stylizedSky` parks its body at `x = 0.72` on that arc. `locationSky` searches a 48-hour event window once per observer/day, projects rise-to-set progress across the width, places the body on the same arc, hides the daytime moon, and hides every body Almanac places below the horizon. Catch Almanac range errors and return the night paint with no body.
 
 Use these exact paint anchors:
 
@@ -237,7 +239,7 @@ const SKY_ANCHORS = [
 ] as const
 ```
 
-`transitionSky(from, to, progress)` clamps progress, returns the exact inputs at 0 and 1, sends the outgoing body toward `x = -0.05` in a high arc, brings the incoming body from `x = 1.05` in a high arc, and mixes the two paint colours. Large same-body moves also arc; minute drift stays direct. If the target has no literal moon, interpolate only the outgoing sun and paint.
+`transitionSky(from, to, progress)` clamps progress, returns the exact inputs at 0 and 1, sends the outgoing body toward `x = 1.05`, brings the incoming body from `x = -0.05`, derives each intermediate `y` from the shared arc, and mixes the two paint colours. Same-body moves, including minute drift, also stay on the arc. If the target has no literal moon, interpolate only the outgoing sun and paint.
 
 - [ ] **Step 4: Draw the frame on one fixed canvas**
 

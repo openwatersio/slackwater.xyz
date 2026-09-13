@@ -31,8 +31,8 @@ export function skyPaint(altitude: number): SkyPaint {
 
 export function stylizedSky(appearance: Appearance): SkyFrame {
   return appearance === 'light'
-    ? { paint: skyPaint(10), sun: { x: 0.72, y: 0.18 } }
-    : { paint: skyPaint(-18), moon: { x: 0.72, y: 0.18, fraction: 1, lightAngle: 0 } }
+    ? { paint: skyPaint(10), sun: { x: 0.72, y: orbitY(0.72) } }
+    : { paint: skyPaint(-18), moon: { x: 0.72, y: orbitY(0.72), fraction: 1, lightAngle: 0 } }
 }
 
 export function locationSky(observer: Observer, at: Date): SkyFrame {
@@ -92,31 +92,30 @@ function eventsFor(observer: Observer, at: Date, almanacObserver: { latitudeDeg:
 function bodyAt({ altDeg, azDeg }: AltAz, events: RiseSet[], at: Date): SkyBody {
   const rise = [...events].reverse().find((event) => event.kind === 'rise' && event.time <= at)
   const set = events.find((event) => event.kind === 'set' && event.time > at)
-  return {
-    // Circumpolar bodies use their east-west projection when the event window has no bracket.
-    x: rise && set
-      ? clamp((at.getTime() - rise.time.getTime()) / (set.time.getTime() - rise.time.getTime()))
-      : 0.5 - 0.45 * Math.sin(azDeg * Math.PI / 180) * Math.cos(altDeg * Math.PI / 180),
-    y: 0.01 - 0.005 * clamp(altDeg / 90),
-  }
+  // Circumpolar bodies use their east-west projection when the event window has no bracket.
+  const x = rise && set
+    ? clamp((at.getTime() - rise.time.getTime()) / (set.time.getTime() - rise.time.getTime()))
+    : 0.5 - 0.45 * Math.sin(azDeg * Math.PI / 180) * Math.cos(altDeg * Math.PI / 180)
+  return { x, y: orbitY(x) }
 }
 
 function transitionBody<T extends SkyBody>(from: T | undefined, to: T | undefined, progress: number): T | undefined {
   if (from && to) {
-    const y = Math.abs(from.x - to.x) > 0.08 || Math.abs(from.y - to.y) > 0.08
-      ? arcY(from.y, to.y, progress)
-      : from.y + (to.y - from.y) * progress
-    return { ...to, x: from.x + (to.x - from.x) * progress, y }
+    const x = from.x + (to.x - from.x) * progress
+    return { ...to, x, y: orbitY(x) }
   }
-  if (from) return { ...from, x: from.x + (-0.05 - from.x) * progress, y: arcY(from.y, from.y, progress) }
-  if (to) return { ...to, x: 1.05 + (to.x - 1.05) * progress, y: arcY(to.y, to.y, progress) }
+  if (from) {
+    const x = from.x + (1.05 - from.x) * progress
+    return { ...from, x, y: orbitY(x) }
+  }
+  if (to) {
+    const x = -0.05 + (to.x + 0.05) * progress
+    return { ...to, x, y: orbitY(x) }
+  }
   return undefined
 }
 
-function arcY(from: number, to: number, progress: number) {
-  const midpoint = (from + to) / 2
-  return from + (to - from) * progress - 4 * progress * (1 - progress) * (midpoint - Math.min(0, midpoint))
-}
+function orbitY(x: number) { return 0.016 * (2 * x - 1) ** 2 + 0.014 * x }
 
 function isRiseSet(event: ReturnType<typeof sunEvents>[number]): event is RiseSet {
   return event.kind === 'rise' || event.kind === 'set'

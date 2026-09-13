@@ -22,8 +22,31 @@ describe('skyPaint', () => {
 })
 
 it('keeps stylized modes stable', () => {
-  expect(stylizedSky('light').sun).toMatchObject({ x: 0.72, y: 0.18 })
-  expect(stylizedSky('night').moon).toMatchObject({ x: 0.72, y: 0.18, fraction: 1 })
+  expect(stylizedSky('light').sun?.x).toBe(0.72)
+  expect(stylizedSky('light').sun?.y).toBeCloseTo(0.0131776)
+  expect(stylizedSky('night').moon?.x).toBe(0.72)
+  expect(stylizedSky('night').moon?.y).toBeCloseTo(0.0131776)
+  expect(stylizedSky('night').moon?.fraction).toBe(1)
+})
+
+it('keeps both bodies on one arc in every mode and transition', () => {
+  const sun = locationSky(observer, new Date('2026-09-12T19:00:00Z'))
+  const moon = locationSky(observer, new Date('2026-09-01T06:00:00Z'))
+  const frames = [
+    stylizedSky('light'), stylizedSky('night'), sun, moon,
+    transitionSky(stylizedSky('night'), stylizedSky('light'), 0.35),
+    transitionSky(stylizedSky('light'), sun, 0.35),
+    transitionSky(moon, stylizedSky('night'), 0.35),
+  ]
+  for (const frame of frames) for (const body of [frame.sun, frame.moon]) {
+    if (body) expect(body.y).toBeCloseTo(0.016 * (2 * body.x - 1) ** 2 + 0.014 * body.x)
+  }
+})
+
+it('brings the next body from the left and sets the old one on the right', () => {
+  const frame = transitionSky(stylizedSky('night'), stylizedSky('light'), 0.5)
+  expect(frame.sun!.x).toBeLessThan(0.72)
+  expect(frame.moon!.x).toBeGreaterThan(0.72)
 })
 
 it('draws only the literal nighttime body', () => {
@@ -51,11 +74,11 @@ it('draws a sun whose rise was before UTC midnight', () => {
 it.each([
   ['sun', '2026-09-12T17:06:00Z'],
   ['moon', '2026-09-01T06:00:00Z'],
-] as const)('keeps the location %s in the top sky lane', (body, instant) => {
+] as const)('keeps the location %s on the high arc', (body, instant) => {
   const position = locationSky(observer, new Date(instant))[body]
   expect(position).toBeDefined()
-  expect(position!.y).toBeGreaterThanOrEqual(0.005)
-  expect(position!.y).toBeLessThanOrEqual(0.01)
+  expect(position!.y).toBeGreaterThanOrEqual(0)
+  expect(position!.y).toBeLessThanOrEqual(0.03)
 })
 
 it.each([
@@ -87,8 +110,8 @@ it.each([
   expect(position).toBeDefined()
   expect(position!.x).toBeGreaterThan(0)
   expect(position!.x).toBeLessThan(1)
-  expect(position!.y).toBeGreaterThanOrEqual(0.005)
-  expect(position!.y).toBeLessThanOrEqual(0.01)
+  expect(position!.y).toBeGreaterThanOrEqual(0)
+  expect(position!.y).toBeLessThanOrEqual(0.03)
   const later = locationSky(observer, new Date(at.getTime() + 60 * 60_000))[body]
   expect(later!.x).not.toBeCloseTo(position!.x)
 })
@@ -100,27 +123,25 @@ it('starts and ends a passing-orbits transition exactly at its inputs', () => {
   expect(transitionSky(from, to, 1)).toEqual(to)
 })
 
-it('sends the outgoing moon off-screen during a night-to-light transition', () => {
+it('sends the outgoing moon right and brings the sun from the left', () => {
   const moon = transitionSky(stylizedSky('night'), stylizedSky('light'), 0.5).moon
   expect(moon).toBeDefined()
-  expect(moon?.x).toBeCloseTo(0.335)
-  expect(moon?.y).toBeLessThanOrEqual(0.07)
+  expect(moon?.x).toBeCloseTo(0.885)
   const sun = transitionSky(stylizedSky('night'), stylizedSky('light'), 0.5).sun
-  expect(sun?.y).toBeLessThanOrEqual(0.07)
+  expect(sun?.x).toBeCloseTo(0.335)
 })
 
-it('keeps a high arc when the incoming sun uses the top sky lane', () => {
+it('keeps the incoming location sun on the same arc', () => {
   const to = locationSky(observer, new Date('2026-09-12T19:00:00Z'))
   const halfway = transitionSky(stylizedSky('night'), to, 0.5)
   expect(halfway.sun).toBeDefined()
-  expect(halfway.sun!.y).toBeLessThan(to.sun!.y)
-  expect(halfway.sun!.y).toBeLessThanOrEqual(0)
+  expect(halfway.sun!.y).toBeCloseTo(0.016 * (2 * halfway.sun!.x - 1) ** 2 + 0.014 * halfway.sun!.x)
 })
 
-it('arcs a large same-body move above tide controls but leaves minute drift direct', () => {
-  const from = { ...stylizedSky('light'), sun: { x: 0.2, y: 0.4 } }
-  const far = { ...stylizedSky('light'), sun: { x: 0.8, y: 0.3 } }
-  const near = { ...stylizedSky('light'), sun: { x: 0.21, y: 0.39 } }
-  expect(transitionSky(from, far, 0.5).sun?.y).toBeLessThanOrEqual(0.07)
-  expect(transitionSky(from, near, 0.5).sun?.y).toBeCloseTo(0.395)
+it('keeps large and minute same-body moves on the same arc', () => {
+  const from = { ...stylizedSky('light'), sun: { x: 0.2, y: 0.00856 } }
+  const far = { ...stylizedSky('light'), sun: { x: 0.8, y: 0.01696 } }
+  const near = { ...stylizedSky('light'), sun: { x: 0.21, y: 0.0083224 } }
+  expect(transitionSky(from, far, 0.25).sun?.y).toBeCloseTo(0.00634)
+  expect(transitionSky(from, near, 0.5).sun?.y).toBeCloseTo(0.0084396)
 })

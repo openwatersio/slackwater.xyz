@@ -74,41 +74,6 @@ async function contrast(page, selector) {
   })
 }
 
-async function haloContrast(page, selector) {
-  const screenshot = (await page.screenshot()).toString('base64')
-  return page.locator(selector).first().evaluate(async (element, png) => {
-    const image = new Image()
-    image.src = `data:image/png;base64,${png}`
-    await image.decode()
-    const surface = document.createElement('canvas')
-    surface.width = image.width
-    surface.height = image.height
-    const context = surface.getContext('2d')
-    context.drawImage(image, 0, 0)
-    const pixels = context.getImageData(0, 0, surface.width, surface.height).data
-    const bounds = element.getBoundingClientRect()
-    const moon = window.skyFrames.at(-1).arcs.find((arc) => arc[2] === 18)
-    const pixel = (x, y) => [...pixels.slice((y * surface.width + x) * 4, (y * surface.width + x) * 4 + 3)]
-    const near = (a, b) => a.every((value, i) => Math.abs(value - b[i]) < 3)
-    const ink = [252, 252, 252]
-    let pairs = 0
-    let lightestEdge = [0, 0, 0]
-    for (let y = Math.ceil(bounds.top); y < bounds.bottom; y++) for (let x = Math.ceil(bounds.left); x < bounds.right; x++) {
-      if (Math.hypot(x - moon[0], y - moon[1]) > 17 || !near(pixel(x, y), ink)) continue
-      for (const [dx, dy] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) {
-        if (Math.hypot(x + dx - moon[0], y + dy - moon[1]) > 17) continue
-        const edge = pixel(x + dx, y + dy)
-        if (edge.every((value) => value < 100)) {
-          pairs++
-          if (edge.reduce((a, b) => a + b) > lightestEdge.reduce((a, b) => a + b)) lightestEdge = edge
-        }
-      }
-    }
-    const luminance = (rgb) => rgb.map((v) => v / 255).map((v) => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4).reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0)
-    return { pairs, ink, background: lightestEdge, ratio: (luminance(ink) + 0.05) / (luminance(lightestEdge) + 0.05) }
-  }, screenshot)
-}
-
 test('the sky fades into the page ground and keeps both palettes readable', async () => {
   for (const mode of ['light', 'night']) {
     for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
@@ -119,12 +84,7 @@ test('the sky fades into the page ground and keeps both palettes readable', asyn
         for (const selector of ['h1', 'header p.text-sw-foam', 'header p.text-sw-steel']) {
           const measured = await contrast(page, selector)
           console.log('CONTRAST', mode, viewport.width, selector, measured)
-          if (mode === 'night' && viewport.width === 390 && selector === 'h1') {
-            const halo = await haloContrast(page, selector)
-            console.log('HALO', halo)
-            assert(halo.pairs > 5, 'The moon-crossed headline needs rendered ink/ground-outline edges')
-            assert(halo.ratio >= 3)
-          } else assert(measured.ratio >= (selector === 'h1' ? 3 : 4.5), JSON.stringify(measured))
+          assert(measured.ratio >= (selector === 'h1' ? 3 : 4.5), JSON.stringify(measured))
         }
       } finally { await close() }
     }
@@ -232,7 +192,7 @@ test('saved explicit and system modes draw the restored body on the first hydrat
   } finally { await close() }
 })
 
-test('saved location-based skies keep the sun in the top lane from first paint', async () => {
+test('saved location-based skies keep the sun on the shared arc from first paint', async () => {
   for (const [mode, route, observer] of [
     ['location', '/stations/', { latitude: 48.4284, longitude: -123.3656 }],
     ['auto', '/tides/friday-harbor/', undefined],
@@ -242,12 +202,13 @@ test('saved location-based skies keep the sun in the top lane from first paint',
       viewport: { width: 390, height: 844 },
     })
     try {
-      const { height, frames } = await page.evaluate(() => ({ height: innerHeight, frames: window.skyFrames.map((frame) => frame.arcs) }))
+      const { width, height, frames } = await page.evaluate(() => ({ width: innerWidth, height: innerHeight, frames: window.skyFrames.map((frame) => frame.arcs) }))
       assert.equal(frames[0].length, 0, `${mode} drew a placeholder body`)
       assert(frames.every((arcs) => arcs.every((arc) => arc[2] !== 18)), `${mode} flashed a placeholder moon`)
       const suns = frames.flatMap((arcs) => arcs.filter((arc) => arc[2] === 20))
       assert(suns.length > 0, `${mode} should draw the daytime sun`)
-      assert(suns.every(([, y]) => y <= height * 0.01), `${mode} sun left the top lane: ${JSON.stringify(suns)}`)
+      const offArc = suns.find(([x, y]) => Math.abs(y - height * (0.016 * (2 * x / width - 1) ** 2 + 0.014 * x / width)) >= 1)
+      assert.equal(offArc, undefined, `${mode} sun left the shared arc: ${JSON.stringify(offArc)}`)
       const overlap = await page.evaluate(() => {
         for (const frame of window.skyFrames) {
           for (const [x, y, radius] of frame.arcs.filter((arc) => arc[2] === 20)) {
@@ -257,14 +218,14 @@ test('saved location-based skies keep the sun in the top lane from first paint',
               for (const rect of range.getClientRects()) {
                 const dx = Math.max(rect.left - x, 0, x - rect.right)
                 const dy = Math.max(rect.top - y, 0, y - rect.bottom)
-                if (dx * dx + dy * dy < radius * radius) return label.textContent
+                if (dx * dx + dy * dy < radius * radius) return { label: label.textContent, x, y, radius, rect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } }
               }
             }
           }
         }
         return null
       })
-      assert.equal(overlap, null, `${mode} sun overlaps ${overlap}`)
+      assert.equal(overlap, null, `${mode} sun overlaps ${JSON.stringify(overlap)}`)
     } finally { await close() }
   }
 })
