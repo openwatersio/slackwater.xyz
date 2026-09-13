@@ -1,8 +1,9 @@
 import { useId, useMemo } from 'react'
 import { provenance } from '#/lib/copy'
+import { daylightSpans } from '#/lib/daylight'
 import { fadeStops } from '#/lib/fade'
-import { dayLabel, hhmm } from '#/lib/format'
-import { speedColor } from '#/lib/ramp'
+import { chartTime, dayLabel, hhmm } from '#/lib/format'
+import { timeAtFraction } from './TideCurve'
 import {
   findEvents,
   nextEvent,
@@ -19,24 +20,12 @@ import type { BundledStation, ChsStation, Station } from '#/lib/station'
  *
  * Colour is state, form is kind.
  *
- * The fill is the app's speed ramp, and it starts at the COMFORT LIMIT rather
- * than at zero: only the excess above ±threshold is inked, yellow where it
- * leaves the band and red at the edge of the plot. Water you can work in is
- * not drawn hot at all. The gradient runs vertically against the auto-fitted
- * plot, exactly as `drawCurrent` runs it, so the day's peak is the red end
- * whatever it measures — see `speedColor`.
- *
- * Green is slack, and it makes two separate claims with two separate marks.
- * The BAND is what slack is set to: a flat rule from +threshold to -threshold
- * across the whole width, ground rather than figure, claiming nothing about
- * time. The INKED RUN is when it is happening: the curve itself, overdrawn
- * green between the window's crossings. Drawing the window on the water rather
- * than behind it means the mark cannot over-claim — a peak that rises out of
- * the band breaks the green — and makes two windows comparable by length
- * alone, which a mark whose height followed the curve's steepness was not.
+ * The app's blue fill fades to clear at zero and intensifies equally toward
+ * flood and ebb. Green belongs only to actual slack runs on the line; each
+ * peak hangs its speed and set arrow inside the lobe.
  */
 
-// ponytail: the app's SN.go. A literal, like the foam and ramp hexes below it —
+// ponytail: the app's SN.go. A literal, like the other SVG inks below it —
 // the tokens in styles.css can't reach the OG card, which resvg rasterises from
 // bare markup with no stylesheet (see lib/og-image.ts).
 const GO = '#88B868'
@@ -45,6 +34,10 @@ interface Common {
   start: Date
   hours: number
   now: Date
+  actualNow?: Date
+  trackingNow?: boolean
+  onSelect?: (at: Date) => void
+  onCommit?: (at: Date) => void
   /**
    * viewBox width. SVG text scales with the viewBox, so a 1000-wide box shrunk
    * into a 390px phone renders 15px labels at about 6px — unreadable. Narrow
@@ -93,6 +86,10 @@ export function CurrentCurve(props: Props) {
     start,
     hours,
     now,
+    actualNow,
+    trackingNow = false,
+    onSelect,
+    onCommit,
     width: W = 1000,
     height: H = 320,
     sparse = false,
@@ -102,10 +99,8 @@ export function CurrentCurve(props: Props) {
   // second SVG reference the first's gradient, which sits in a hidden subtree
   // and paints nothing. The stroke survives, the fill silently vanishes.
   const uid = useId().replace(/:/g, '')
-  const hotUpId = `hot-up-${uid}`
-  const hotDownId = `hot-down-${uid}`
-  const hotAboveId = `above-${uid}`
-  const hotBelowId = `below-${uid}`
+  const fillId = `fill-${uid}`
+  const areaId = `area-${uid}`
   const maskId = `edges-${uid}`
   const fadeId = `fade-${uid}`
   const clipId = `plot-${uid}`
@@ -113,7 +108,7 @@ export function CurrentCurve(props: Props) {
 
   const PAD_TOP = 34
   const PAD_BOTTOM = 44
-  const { path, area, zeroY, x, yOf, events, windows } = useMemo(() => {
+  const { path, area, zeroY, x, yOf, events, windows, samples } = useMemo(() => {
     const { samples, events } = curveOf(props, start, hours)
     const windows = slackWindows(samples)
     const peak = Math.max(...samples.map((s) => Math.abs(s.level)), 1)
@@ -133,6 +128,7 @@ export function CurrentCurve(props: Props) {
       zeroY: y(0),
       x,
       events,
+      samples,
     }
     // `props` itself would be a new object every render, and this page ticks:
     // the whole path would be rebuilt once a minute for a curve that has not
@@ -145,9 +141,72 @@ export function CurrentCurve(props: Props) {
   const inFrame = (e: StationEvent) => x(e.time) > W * 0.07 && x(e.time) < W * 0.93
   const slacks = events.filter((e) => e.kind === 'slack' && inFrame(e))
   const turns = events.filter((e) => e.kind !== 'slack' && inFrame(e))
+  const end = new Date(start.getTime() + hours * 3600_000)
+  const daylight = useMemo(
+    () => daylightSpans(start, end, station.latitude, station.longitude),
+    [station.latitude, station.longitude, start.getTime(), end.getTime()],
+  )
+  const actualSample = actualNow && actualNow >= start && actualNow <= end
+    ? samples.reduce((best, sample) =>
+        Math.abs(sample.time.getTime() - actualNow.getTime()) < Math.abs(best.time.getTime() - actualNow.getTime())
+          ? sample
+          : best)
+    : undefined
+  const selectedMinute = Math.max(0, Math.min(hours * 60, Math.round((now.getTime() - start.getTime()) / 60_000)))
+  const pick = (element: HTMLDivElement, clientX: number) => {
+    const box = element.getBoundingClientRect()
+    return timeAtFraction(start, hours, (clientX - box.left) / box.width)
+  }
+  const moveBy = (minutes: number) =>
+    timeAtFraction(start, hours, (selectedMinute + minutes) / (hours * 60))
 
   return (
     <figure className="m-0">
+      <div
+        className={onSelect ? 'cursor-ew-resize touch-pan-y' : undefined}
+        role={onSelect ? 'slider' : undefined}
+        tabIndex={onSelect ? 0 : undefined}
+        aria-label={onSelect ? 'Selected current time' : undefined}
+        aria-valuemin={onSelect ? 0 : undefined}
+        aria-valuemax={onSelect ? hours * 60 : undefined}
+        aria-valuenow={onSelect ? selectedMinute : undefined}
+        aria-valuetext={onSelect ? chartTime(now, station.timezone) : undefined}
+        onPointerDown={onSelect ? (event) => {
+          event.currentTarget.setPointerCapture(event.pointerId)
+          onSelect(pick(event.currentTarget, event.clientX))
+        } : undefined}
+        onPointerMove={onSelect ? (event) => {
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            onSelect(pick(event.currentTarget, event.clientX))
+          }
+        } : undefined}
+        onPointerUp={onSelect ? (event) => {
+          const at = pick(event.currentTarget, event.clientX)
+          event.currentTarget.releasePointerCapture(event.pointerId)
+          onSelect(at)
+          onCommit?.(at)
+        } : undefined}
+        onPointerCancel={onSelect ? (event) => {
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId)
+          }
+        } : undefined}
+        onKeyDown={onSelect ? (event) => {
+          const at = event.key === 'Home'
+            ? start
+            : event.key === 'End'
+              ? timeAtFraction(start, hours, 1)
+              : event.key === 'ArrowLeft'
+                ? moveBy(-10)
+                : event.key === 'ArrowRight'
+                  ? moveBy(10)
+                  : undefined
+          if (!at) return
+          event.preventDefault()
+          onSelect(at)
+          onCommit?.(at)
+        } : undefined}
+      >
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"
@@ -155,40 +214,21 @@ export function CurrentCurve(props: Props) {
         aria-label={describe(station, events, now)}
       >
         <defs>
-          {/* Vertical, in user space: the ramp is a position in the PLOT, not
-              a speed, so the yellow end pins to the threshold line and the red
-              end to the edge of the fitted plot. Two of them because the ebb
-              half runs the other way. */}
-          <linearGradient id={hotUpId} gradientUnits="userSpaceOnUse" x1={0} x2={0} y1={yOf(SLACK_KNOTS)} y2={PAD_TOP}>
-            <stop offset="0" stopColor={speedColor(0)} />
-            <stop offset="0.5" stopColor={speedColor(0.5)} />
-            <stop offset="1" stopColor={speedColor(1)} />
+          <linearGradient id={fillId} gradientUnits="userSpaceOnUse" x1={0} x2={0} y1={PAD_TOP} y2={H - PAD_BOTTOM}>
+            <stop offset="0" stopColor="#38BDF8" stopOpacity="0.38" />
+            <stop offset="0.5" stopColor="#38BDF8" stopOpacity="0" />
+            <stop offset="1" stopColor="#38BDF8" stopOpacity="0.38" />
           </linearGradient>
-          <linearGradient id={hotDownId} gradientUnits="userSpaceOnUse" x1={0} x2={0} y1={yOf(-SLACK_KNOTS)} y2={H - PAD_BOTTOM}>
-            <stop offset="0" stopColor={speedColor(0)} />
-            <stop offset="0.5" stopColor={speedColor(0.5)} />
-            <stop offset="1" stopColor={speedColor(1)} />
-          </linearGradient>
-          {/* The excess, without walking the samples for it: the area between
-              the zero line and the curve, intersected with the half-plane
-              outside the band, IS the area between the threshold line and the
-              curve wherever the curve exceeds it. The clip edge lands on the
-              exact crossing, which a sampled polygon would not. */}
-          <clipPath id={hotAboveId}>
-            <rect x={0} y={0} width={W} height={yOf(SLACK_KNOTS)} />
-          </clipPath>
-          <clipPath id={hotBelowId}>
-            <rect x={0} y={yOf(-SLACK_KNOTS)} width={W} height={H - yOf(-SLACK_KNOTS)} />
-          </clipPath>
           <clipPath id={clipId}>
             <rect x="0" y="0" width={W} height={H} />
           </clipPath>
+          <clipPath id={areaId}><path d={area} /></clipPath>
           {/* The window has to end somewhere; a hard vertical cut reads as a
               rendering fault, so let the fill fade out instead. */}
           {/* WHITE, not black: an SVG mask is luminance-based, so black hides
               and white reveals. Black stops here erase the entire curve. */}
           <linearGradient id={fadeId} x1="0" x2="1" y1="0" y2="0">
-            {fadeStops(x(now) / W).map((s, i) => (
+            {fadeStops(x(actualNow ?? now) / W).map((s, i) => (
               <stop key={i} offset={s.offset} stopColor="#fff" stopOpacity={s.opacity} />
             ))}
           </linearGradient>
@@ -205,29 +245,16 @@ export function CurrentCurve(props: Props) {
 
         <g clipPath={`url(#${clipId})`}>
           <g mask={`url(#${maskId})`}>
-            {/* The slack band: the threshold made visible everywhere at once, so
-                it reads as a speed the reader can check any moment against. It
-                claims nothing about time — the inked run does that. Under the
-                fill, so a peak crossing the band occludes it rather than being
-                tinted green; inside the mask, so it fades at the frame edges
-                with everything else instead of ending in a hard vertical cut. */}
-            <rect
-              x={0}
-              y={yOf(SLACK_KNOTS)}
-              width={W}
-              height={yOf(-SLACK_KNOTS) - yOf(SLACK_KNOTS)}
-              fill={GO}
-              // ponytail: 0.56 is the app's, settled by eye on a phone. Tune here.
-              opacity={0.56}
-            />
-            <g clipPath={`url(#${hotAboveId})`}>
-              <path d={area} fill={`url(#${hotUpId})`} />
+            <path d={area} fill="#00101F" data-shade="night" />
+            <g clipPath={`url(#${areaId})`}>
+              {daylight.map(([from, to]) => (
+                <rect key={from.getTime()} x={x(from)} y={0} width={x(to) - x(from)} height={H}
+                  fill="#A8CAE0" fillOpacity={0.16} data-shade="daylight" />
+              ))}
             </g>
-            <g clipPath={`url(#${hotBelowId})`}>
-              <path d={area} fill={`url(#${hotDownId})`} />
-            </g>
-            <path d={path} fill="none" stroke="#DFEEE0" strokeWidth={2.2} strokeLinejoin="round" />
-            {/* The same curve, inked green where it is inside the band. Clipped
+            <path d={area} fill={`url(#${fillId})`} />
+            <path d={path} fill="none" stroke="#38BDF8" strokeWidth={2.2} strokeLinejoin="round" />
+            {/* The same curve, inked green where the slack window is. Clipped
                 rather than re-fitted: the clip's edges are the interpolated
                 crossings, so the green starts and stops exactly where the water
                 does and not at the nearest 10-minute sample. */}
@@ -236,25 +263,28 @@ export function CurrentCurve(props: Props) {
             </g>
           </g>
 
-          {/* Max flood / max ebb — a dot and a number, ink picked by luminance. */}
-          {turns.map((e) => (
-            <g key={`t${e.time.getTime()}`}>
-              <circle cx={x(e.time)} cy={yOf(e.level)} r={4} fill="#E4F0E4" />
-              <text
-                x={x(e.time)}
-                y={yOf(e.level) + (e.level > 0 ? -14 : 22)}
-                textAnchor="middle"
-                // Foam, always: the label sits on the page as often as on the
-                // fill, and the app's own `SN.speedInk` contrast switch is for
-                // a mark drawn inside the fill. The curve carries the speed.
-                fill="#E4F0E4"
-                className="font-mono text-[15px] font-semibold [font-variant-numeric:tabular-nums]"
-                style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
-              >
-                {Math.abs(e.level).toFixed(1)} kn
-              </text>
-            </g>
-          ))}
+          {/* Set arrow nearest each peak, speed inside the lobe, as in the app. */}
+          {turns.map((e) => {
+            const deg = station.source === 'bundled'
+              ? e.kind === 'flood' ? station.floodDirection : station.ebbDirection
+              : undefined
+            const toward = e.level > 0 ? 1 : -1
+            const arrowY = yOf(e.level) + toward * 18
+            return (
+              <g key={`t${e.time.getTime()}`} data-set={e.kind}>
+                {deg !== undefined && (
+                  <text x={x(e.time)} y={arrowY} textAnchor="middle" fill="#E4F0E4"
+                    className="text-[15px] font-semibold"
+                    transform={`rotate(${deg} ${x(e.time)} ${arrowY})`}>↑</text>
+                )}
+                <text x={x(e.time)} y={yOf(e.level) + toward * 39} textAnchor="middle"
+                  fill="#E4F0E4" className="font-mono text-[15px] font-semibold [font-variant-numeric:tabular-nums]"
+                  style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}>
+                  {Math.abs(e.level).toFixed(1)} kn
+                </text>
+              </g>
+            )
+          })}
 
           {/* Slack instants: foam, never green. A mathematical point is not
               something you can transit at — the inked run is. Set smaller than
@@ -266,9 +296,7 @@ export function CurrentCurve(props: Props) {
               {!sparse && (
               <text
                 x={x(s.time)}
-                // Clear of the BAND, not of the zero line: the band's height is
-                // the threshold, so a label pinned near zero sits inside it as
-                // soon as the threshold grows. At 0.5 kn this is where it was.
+                // Just above zero so the time does not sit on the run.
                 y={yOf(SLACK_KNOTS) - 8}
                 textAnchor="middle"
                 fill="#E4F0E4"
@@ -282,25 +310,32 @@ export function CurrentCurve(props: Props) {
             </g>
           ))}
 
-          {/* Now. */}
+          {actualSample && !trackingNow && (
+            <circle cx={x(actualSample.time)} cy={yOf(actualSample.level)} r={3.5}
+              fill="#E4F0E4" data-marker="actual-now">
+              <title>{`Now at ${chartTime(actualNow!, station.timezone)}`}</title>
+            </circle>
+          )}
+
+          {/* The selected instant. Green belongs to the slack run, not chrome. */}
           <g>
-            <line x1={x(now)} x2={x(now)} y1={0} y2={H} stroke={GO} strokeOpacity={0.9} strokeWidth={1.5} />
-            <circle cx={x(now)} cy={zeroY} r={3} fill={GO} />
+            <line x1={x(now)} x2={x(now)} y1={0} y2={H} stroke="#5888A8" strokeOpacity={0.9} strokeWidth={1.5} />
             {/* Top, not bottom: the bottom is where a max-ebb label lands, and
                 on a phone the two collide. */}
             <text
               x={x(now)}
               y={12}
               textAnchor="middle"
-              fill={GO}
+              fill="#5888A8"
               className="font-mono text-[11px] font-medium uppercase tracking-[0.16em]"
               style={{ paintOrder: 'stroke', stroke: '#00121F', strokeWidth: 3 }}
             >
-              Now
+              {trackingNow ? 'Now' : chartTime(now, station.timezone)}
             </text>
           </g>
         </g>
       </svg>
+      </div>
 
       {/* Visible, not only in the sr-only caption: these are DFO's own
           published numbers and this is the one place on the page that says so

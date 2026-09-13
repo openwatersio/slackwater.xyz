@@ -235,3 +235,26 @@ describe('StationPage for a bundled tide station', () => {
     expect(html).not.toContain('tile.openstreetmap.org')
   })
 })
+
+describe('StationPage for a bundled current station', () => {
+  const station: BundledStation = {
+    id: 'noaa/PUG1701', kind: 'current', slug: 'deception-pass-narrows', name: 'Deception Pass (Narrows)',
+    latitude: 48.4, longitude: -122.64, timezone: 'America/Los_Angeles',
+    source: 'bundled', floodDirection: 101.5, ebbDirection: 281.5,
+    constituents: [{ name: 'M2', amplitude: 3.2, phase: 100 }, { name: 'K1', amplitude: 1.1, phase: 250 }],
+  }
+  const selected = new Date('2026-09-11T20:00:00Z')
+  const actualNow = new Date('2026-09-11T22:00:00Z')
+
+  it('pages around a shared current selection and keeps Now separate', () => {
+    const html = renderToStaticMarkup(
+      <StationPage station={station} now={actualNow} selectedAt={selected} live />,
+    )
+    expect(html).toContain('aria-label="Choose current day"')
+    expect(html).toContain('aria-label="Selected current time"')
+    expect(html).toContain('aria-valuetext="1:00pm"')
+    expect(html).toMatch(/>Now<\/button>/)
+    expect(html).toContain('data-marker="actual-now"')
+    expect(html).toContain('Slack water and maximums for the next 7 days')
+  })
+})

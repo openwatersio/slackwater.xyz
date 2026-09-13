@@ -1,6 +1,6 @@
 import { useId, useMemo } from 'react'
-import { sunAltAz, sunEvents } from '@openwaters/almanac'
 import { provenance } from '#/lib/copy'
+import { daylightSpans } from '#/lib/daylight'
 import { fadeStops } from '#/lib/fade'
 import { chartTime, dayLabel, height, hhmm } from '#/lib/format'
 import { predictSeries, tideExtremes } from '#/lib/predict'
@@ -118,34 +118,10 @@ export function TideCurve(props: Props) {
   }, [station, props.samples, props.high, props.low, start, hours])
 
   const end = new Date(start.getTime() + hours * 3600_000)
-  const daylight = useMemo(() => {
-    try {
-      const events = sunEvents(start, end, {
-        latitudeDeg: station.latitude,
-        longitudeDeg: station.longitude,
-      }).filter((event) => event.kind === 'rise' || event.kind === 'set')
-      if (!events.length) {
-        const noon = new Date((start.getTime() + end.getTime()) / 2)
-        return sunAltAz(noon, {
-          latitudeDeg: station.latitude,
-          longitudeDeg: station.longitude,
-        }).altDeg > 0 ? [[start, end] as [Date, Date]] : []
-      }
-      const spans: Array<[Date, Date]> = []
-      let rise = events[0]?.kind === 'set' ? start : undefined
-      for (const event of events) {
-        if (event.kind === 'rise') rise = event.time
-        else if (rise) {
-          spans.push([rise, event.time])
-          rise = undefined
-        }
-      }
-      if (rise) spans.push([rise, end])
-      return spans
-    } catch {
-      return []
-    }
-  }, [station.latitude, station.longitude, start.getTime(), end.getTime()])
+  const daylight = useMemo(
+    () => daylightSpans(start, end, station.latitude, station.longitude),
+    [station.latitude, station.longitude, start.getTime(), end.getTime()],
+  )
   const actualSample = actualNow && actualNow >= start && actualNow <= end
     ? samples.reduce((best, sample) =>
         Math.abs(sample.time.getTime() - actualNow.getTime()) < Math.abs(best.time.getTime() - actualNow.getTime())

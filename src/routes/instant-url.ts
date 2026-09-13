@@ -37,3 +37,6 @@ export function formatInstant(at: Date, timeZone: string): string {
 
 export const tideInstantPath = (slug: string, at: Date, timeZone: string) =>
   `/tides/${slug}/${formatInstant(at, timeZone)}`
+
+export const currentInstantPath = (slug: string, at: Date, timeZone: string) =>
+  `/currents/${slug}/${formatInstant(at, timeZone)}`

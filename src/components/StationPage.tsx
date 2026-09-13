@@ -8,7 +8,7 @@ import { TESTFLIGHT } from '#/lib/links'
 import type { NearbyRow } from '#/lib/catalogue-server'
 import { findEvents, tideExtremes } from '#/lib/predict'
 import { stationPath, type BundledStation, type ChsStation, type Station } from '#/lib/station'
-import { tideInstantPath } from '#/routes/instant-url'
+import { currentInstantPath, tideInstantPath } from '#/routes/instant-url'
 
 /**
  * One Canadian station's day, once DFO has sent it back.
@@ -83,9 +83,7 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
   // and the numbers all have to be that same day or the page contradicts
   // itself. `now` keeps ticking underneath, which is what the NOW marker and
   // the countdown want.
-  const at = station.source === 'bundled' && station.kind === 'tide'
-    ? selectedAt
-    : curve?.at ?? now
+  const at = station.source === 'bundled' ? selectedAt : curve?.at ?? now
   const select = (next: Date) => {
     setTrackingNow(false)
     setSelectedAt(next)
@@ -96,7 +94,9 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
       window.history.replaceState(
         window.history.state,
         '',
-        tideInstantPath(station.slug, next, station.timezone),
+        station.kind === 'tide'
+          ? tideInstantPath(station.slug, next, station.timezone)
+          : currentInstantPath(station.slug, next, station.timezone),
       )
     }
   }
@@ -104,7 +104,7 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
     setTrackingNow(true)
     setSelectedAt(now)
     if (typeof window !== 'undefined') {
-      window.history.replaceState(window.history.state, '', stationPath('tide', station.slug))
+      window.history.replaceState(window.history.state, '', stationPath(station.kind, station.slug))
     }
   }
   return (
@@ -124,8 +124,8 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
             <DayStrip station={station} fetched={curve} start={startOf(at)} hours={24} now={now} live={live} />
           </div>
         )
-      ) : station.kind === 'tide' ? (
-        <TideDayPager
+      ) : (
+        <StationDayPager
           station={station}
           selectedAt={selectedAt}
           actualNow={now}
@@ -136,8 +136,6 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
           onCommit={commit}
           onNow={returnToNow}
         />
-      ) : (
-        <DayTabs station={station} at={at} now={now} live={live} />
       )}
       <Cta station={station} />
       {station.source === 'bundled' && <WeekTable station={station} at={at} />}
@@ -198,7 +196,7 @@ function turns(station: BundledStation, from: Date, to: Date) {
   ).map((t) => ({ ...t, hhmm: hhmm(t.time, tz) }))
 }
 
-function TideDayPager({
+function StationDayPager({
   station, selectedAt, actualNow, live, trackingNow, showSelection, onSelect, onCommit, onNow,
 }: {
   station: BundledStation
@@ -222,7 +220,7 @@ function TideDayPager({
   const button = 'min-w-0 rounded-full px-2 py-2 text-sm hover:text-sw-foam focus-visible:ring-2 focus-visible:ring-sw-foam'
   return (
     <div className="mt-8">
-      <nav aria-label="Choose tide day" className="grid grid-cols-3 items-center gap-x-1">
+      <nav aria-label={`Choose ${station.kind} day`} className="grid grid-cols-3 items-center gap-x-1">
         {[-1, 0, 1].map((offset) => (
           <button
             key={offset}
@@ -258,40 +256,6 @@ function TideDayPager({
           onSelect={onSelect}
           onCommit={onCommit}
         />
-      </section>
-    </div>
-  )
-}
-
-/**
- * Today and tomorrow, both in the HTML, switched by two radio inputs styled
- * as tabs. No script runs the switch — it works before hydration and in a
- * crawler — and there is one URL, so the canonical stays clean.
- *
- * The words "Today" and "Tomorrow" only when the clock is the reader's own:
- * a prerender's today is the build day, and an instant page is one fixed
- * moment, so both show dates instead.
- */
-function DayTabs({ station, at, now, live }: { station: BundledStation; at: Date; now: Date; live: boolean }) {
-  const tz = station.timezone
-  const [d0, d1, d2] = days(at, tz, 2)
-  const label = (day: Date, word: string) => (live ? word : dayLabel(day, tz))
-  const tab = 'inline-block cursor-pointer rounded-full px-3 py-1 text-sm text-sw-steel hover:text-sw-foam'
-  return (
-    <div className="mt-8">
-      <input type="radio" name="day" id="day-0" className="peer/d0 sr-only" defaultChecked />
-      <input type="radio" name="day" id="day-1" className="peer/d1 sr-only" />
-      <label htmlFor="day-0" className={`${tab} peer-checked/d0:bg-white/10 peer-checked/d0:text-sw-paper peer-focus-visible/d0:ring-2`}>
-        {label(d0, 'Today')}
-      </label>
-      <label htmlFor="day-1" className={`${tab} ml-1 peer-checked/d1:bg-white/10 peer-checked/d1:text-sw-paper peer-focus-visible/d1:ring-2`}>
-        {label(d1, 'Tomorrow')}
-      </label>
-      <section className="mt-4 hidden peer-checked/d0:block" aria-label={dayLabel(d0, tz)}>
-        <DayStrip station={station} start={d0} hours={hoursBetween(d0, d1)} now={now} live={live} />
-      </section>
-      <section className="mt-4 hidden peer-checked/d1:block" aria-label={dayLabel(d1, tz)}>
-        <DayStrip station={station} start={d1} hours={hoursBetween(d1, d2)} now={now} live={live} />
       </section>
     </div>
   )

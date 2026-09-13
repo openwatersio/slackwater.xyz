@@ -83,6 +83,29 @@ describe('DayStrip', () => {
     expect(live).toMatch(/Flooding|Ebbing|Slack/)
     expect(live).toMatch(/\d\.\d kn/)
     expect(live).toMatch(/(Slack|Max flood|Max ebb) in \d+(h \d+)?m/)
+    expect(live).toMatch(/transform:rotate\((90|270)deg\)/)
+  })
+
+  it('reads a selected current without calling its next event a live countdown', () => {
+    const selected = renderToStaticMarkup(
+      <DayStrip station={DECEPTION} start={TODAY} hours={24}
+        now={new Date('2026-09-12T22:00:00Z')} selectedAt={NOW} live
+        onSelect={() => {}} onCommit={() => {}} />,
+    )
+    expect(selected).toContain('aria-label="Selected current time"')
+    expect(selected).toContain('1:00pm')
+    expect(selected).toMatch(/(Slack|Max flood|Max ebb) at \d{1,2}:\d{2}[ap]m/)
+    expect(selected).not.toMatch(/(Slack|Max flood|Max ebb) in \d/)
+    expect(selected).toContain('viewBox="0 0 390 320"')
+    expect(selected).toContain('viewBox="0 0 1000 320"')
+  })
+
+  it('does not label the build clock as actual now on a shared current page', () => {
+    const server = renderToStaticMarkup(
+      <DayStrip station={DECEPTION} start={TODAY} hours={24}
+        now={new Date('2026-09-11T22:00:00Z')} selectedAt={NOW} live={false} />,
+    )
+    expect(server).not.toContain('data-marker="actual-now"')
   })
 })
 

@@ -3,6 +3,7 @@ import { StationPage } from '#/components/StationPage'
 import { nearbyStations, stationBySlug } from '#/lib/catalogue-server'
 import { ogImageAlt, pageDescription, pageTitle } from '#/lib/copy'
 import { stationPath } from '#/lib/station'
+import { useLiveNow } from '#/lib/use-live-now'
 import { parseInstant } from './instant-url'
 
 const ORIGIN = 'https://slackwater.xyz'
@@ -63,9 +64,10 @@ export const Route = createFileRoute('/currents/$slug_/$instant')({
 
 function CurrentInstant() {
   const { station, instant, nearby } = Route.useLoaderData()
-  // Never `live`: this page is one fixed shared moment, so a relative "in 30m"
-  // would be measured from a moment that may be long past. But `settled` from
-  // the first render — that moment came out of the URL and nothing will
-  // replace it, which is the opposite of a live page's build-time placeholder.
-  return <StationPage station={station} now={instant} settled nearby={nearby} />
+  const { now, live } = useLiveNow()
+  // A bundled station keeps the shared selection while the real clock drives
+  // its separate Now marker. CHS keeps its fetched fixed-day behavior.
+  return station.source === 'bundled'
+    ? <StationPage station={station} now={now} selectedAt={instant} live={live} nearby={nearby} />
+    : <StationPage station={station} now={instant} settled nearby={nearby} />
 }
