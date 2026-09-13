@@ -64,7 +64,7 @@ function Cta() {
   return TESTFLIGHT ? (
     <a
       href={TESTFLIGHT}
-      className="inline-block rounded-full bg-sw-leaf px-6 py-3 font-medium text-sw-navy-deep transition hover:bg-sw-leaf/90"
+      className="inline-block rounded-full bg-sw-leaf px-6 py-3 font-medium text-sw-page transition hover:bg-sw-leaf/95"
     >
       Get the beta on TestFlight
     </a>
@@ -160,7 +160,7 @@ function Home() {
               width={780}
               height={1694}
               aria-label="Friday Harbor in Slackwater scrubbing from afternoon into a full-moon night."
-              className="w-full rounded-[min(3rem,13cqw)] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
+              className="w-full rounded-[min(3rem,13cqw)] shadow-2xl shadow-sw-shadow ring-1 ring-sw-rule"
             >
               <source
                 src="/shots/tides-day-to-night.mp4"
@@ -178,7 +178,7 @@ function Home() {
         </div>
       </header>
 
-      <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
+      <section className="mt-24 border-t border-sw-rule pt-10 sm:mt-28">
         <Heading>Checked against the agencies&rsquo; own predictions.</Heading>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-sw-foam">
           Harmonic constituents published by NOAA and the Canadian Hydrographic Service, summed
@@ -301,7 +301,7 @@ function Home() {
         <p>Thousands of stations ship inside the app.</p>
       </Feature>
 
-      <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
+      <section className="mt-24 border-t border-sw-rule pt-10 sm:mt-28">
         <Heading>Free, open source, no account, no ads.</Heading>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-sw-foam">
           The core is free and stays free: every station, every date, the curves, the slack
@@ -321,7 +321,7 @@ function Home() {
         </div>
       </section>
 
-      <footer className="mt-20 border-t border-white/10 pt-6 text-sm text-sw-steel">
+      <footer className="mt-20 border-t border-sw-rule pt-6 text-sm text-sw-steel">
         <p>
           Every station has its own page, so a link you send works for someone who hasn&rsquo;t
           installed anything:{' '}

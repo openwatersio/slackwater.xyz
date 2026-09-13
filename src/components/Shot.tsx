@@ -28,7 +28,7 @@ export function Shot({
       fetchPriority={eager ? 'high' : undefined}
       width={780}
       height={1695}
-      className="w-full rounded-[min(3rem,13cqw)] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
+      className="w-full rounded-[min(3rem,13cqw)] shadow-2xl shadow-sw-shadow ring-1 ring-sw-rule"
     />
   )
 

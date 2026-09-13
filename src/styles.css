@@ -12,12 +12,15 @@
    else. Direction is one signed colourblind-safe axis, blue↔amber.
    ───────────────────────────────────────────────────────────── */
 @theme {
-  /* grounds — the app is dark-only, and so is this page */
+  /* grounds */
   --color-sw-navy-deep: #00183c;
   --color-sw-canvas: #05122a;
   --color-sw-canvas-glow: #0a2140;
   --color-sw-page: #00121f;
   --color-sw-night: #00101f;
+  --color-sw-surface: #ffffff0d;
+  --color-sw-rule: #ffffff1a;
+  --color-sw-shadow: #00143299;
 
   /* ink */
   --color-sw-paper: #fcfcfc;   /* the wordmark, and only the wordmark */
@@ -57,7 +60,80 @@
   --font-mono: ui-monospace, "SF Mono", monospace;
 }
 
-/* Dark-only, matching the app (.preferredColorScheme(.dark)). */
 html {
   color-scheme: dark;
+}
+
+html[data-appearance="light"] {
+  --color-sw-page: #eef6f3;
+  --color-sw-paper: #082437;
+  --color-sw-foam: #153f4f;
+  --color-sw-steel: #3f6573;
+  --color-sw-leaf: #4b732f;
+  --color-sw-go: #4b732f;
+  --color-sw-flood: #276f9d;
+  --color-sw-ebb: #9b5900;
+  --color-sw-amber: #b33c2c;
+  --color-sw-surface: #ffffffb3;
+  --color-sw-rule: #08243724;
+  --color-sw-shadow: #6f8c952e;
+  --color-sw-tide-night: #244b60;
+  --color-sw-tide-high: #0d746d;
+  --color-sw-tide-low: #945900;
+  --color-sw-sunrise: #8c5d08;
+  --color-sw-sunset: #7f5a24;
+  color-scheme: light;
+}
+
+html[data-appearance="light"] .tide-curve [data-shade="night"] {
+  fill: var(--color-sw-tide-night);
+}
+
+html[data-appearance="light"] .tide-curve [data-shade="daylight"] {
+  fill-opacity: 0.4;
+}
+
+html[data-appearance="light"] .tide-curve [data-curve-edge] {
+  stroke: var(--color-sw-paper);
+}
+
+html[data-appearance="light"] .tide-curve [data-turn="high"] :is(circle, text) {
+  fill: var(--color-sw-tide-high);
+}
+
+html[data-appearance="light"] .tide-curve [data-turn="low"] :is(circle, text) {
+  fill: var(--color-sw-tide-low);
+}
+
+html[data-appearance="light"] .tide-curve text {
+  stroke: var(--color-sw-page);
+}
+
+html[data-appearance="light"] .tide-curve [data-selected-time] line {
+  stroke: var(--color-sw-steel);
+}
+
+html[data-appearance="light"] .tide-curve [data-selected-time] text {
+  fill: var(--color-sw-steel);
+}
+
+body {
+  transition: background-color 700ms;
+}
+
+.site-content {
+  /* A one-pixel ground halo keeps letters readable where a celestial body passes behind them. */
+  text-shadow: -1px -1px 0 var(--color-sw-page), 0 -1px 0 var(--color-sw-page), 1px -1px 0 var(--color-sw-page),
+    -1px 0 0 var(--color-sw-page), 1px 0 0 var(--color-sw-page),
+    -1px 1px 0 var(--color-sw-page), 0 1px 0 var(--color-sw-page), 1px 1px 0 var(--color-sw-page);
+}
+
+.site-content :is(svg, .bg-sw-leaf) {
+  text-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
 }

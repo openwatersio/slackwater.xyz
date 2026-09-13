@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DayStrip, type Fetched } from './DayStrip'
 import { NearbyMap } from './NearbyMap'
+import { useThemeSubject } from './ThemeShell'
 import { DATUM_NOTE, datumLine, stationHeading } from '#/lib/copy'
 import { compass16, dayLabel, dayStart, height, hhmm, shiftLocalDay } from '#/lib/format'
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
@@ -84,6 +85,14 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
   // itself. `now` keeps ticking underneath, which is what the NOW marker and
   // the countdown want.
   const at = station.source === 'bundled' ? selectedAt : curve?.at ?? now
+  const publishThemeSubject = useThemeSubject()
+  useEffect(() => {
+    publishThemeSubject({
+      observer: { latitude: station.latitude, longitude: station.longitude },
+      instant: at,
+    })
+    return () => publishThemeSubject()
+  }, [at, publishThemeSubject, station.latitude, station.longitude])
   const select = (next: Date) => {
     setTrackingNow(false)
     setSelectedAt(next)
@@ -227,7 +236,7 @@ function StationDayPager({
             type="button"
             aria-current={offset === 0 ? 'date' : undefined}
             onClick={() => offset && onCommit(shiftLocalDay(selectedAt, tz, offset))}
-            className={`${button} row-start-1 ${offset === 0 ? 'bg-white/10 text-sw-paper' : 'text-sw-steel'}`}
+            className={`${button} row-start-1 ${offset === 0 ? 'bg-sw-surface text-sw-paper' : 'text-sw-steel'}`}
           >
             {offset < 0 && <span aria-hidden="true">‹ </span>}
             {label(offset)}
@@ -528,7 +537,7 @@ function Cta({ station }: { station: Station }) {
         {TESTFLIGHT ? (
           <a
             href={TESTFLIGHT}
-            className="rounded-md bg-sw-leaf px-5 py-3 font-medium text-sw-navy-deep transition hover:bg-sw-leaf/90"
+            className="rounded-md bg-sw-leaf px-5 py-3 font-medium text-sw-page transition hover:bg-sw-leaf/95"
           >
             Get the beta on TestFlight
           </a>

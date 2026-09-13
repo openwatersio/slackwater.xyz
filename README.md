@@ -52,9 +52,7 @@ not the only thing this origin serves.
 TanStack rather than Astro is deliberate: `openwaters.io` is Astro, but the direction of travel
 is TanStack, and `sailingnaturali/web` already runs this stack.
 
-Visits are counted with Plausible, proxied through the Worker so the script and its event
-endpoint are same-origin. No cookies, no persistent identifier, nothing stored on your device
-— the [privacy policy](https://slackwater.xyz/privacy) says exactly what is collected.
+Visits are counted with Plausible, proxied through the Worker so the script and its event endpoint are same-origin. Analytics use no cookies or persistent identifier and store nothing on your device. The [privacy policy](https://slackwater.xyz/privacy) says exactly what is collected.
 
 ## Design rules
 
@@ -62,8 +60,7 @@ Every page **matches the app in look and data, not in depth** — the station pa
 same computed curve the app does, and the landing page shows the app itself, but none of them
 are the app.
 
-- **Dark only**, because the app is. A light theme is wanted eventually, so colour goes through
-  the tokens in `src/styles.css` and never a literal hex in a component.
+- **Four appearance modes: Auto, Light, Night, and Your location.** Night is the default; Light uses a sea-glass palette. Auto follows each station's published coordinates and selected chart time on station pages, and the system appearance elsewhere. Your location asks for browser coordinates and follows the visitor's current sky on every page, including station pages. Colours use the shared dark/light tokens in `src/styles.css`.
 - **System font.** A page selling "no spinner, nothing to load" should not block on a webfont.
 - **Colour is state, form is kind.** Green is slack and only slack; direction is a single
   signed blue/amber axis; steel means unknown. Nothing is ever coloured by what it *is*.

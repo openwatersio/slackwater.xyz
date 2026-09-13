@@ -32,7 +32,7 @@ function Support() {
       </nav>
 
       <div className="mt-10 leading-relaxed text-sw-foam">
-        <h1 className="border-b border-white/10 pb-8 text-4xl font-semibold tracking-tight text-sw-paper sm:text-5xl">
+        <h1 className="border-b border-sw-rule pb-8 text-4xl font-semibold tracking-tight text-sw-paper sm:text-5xl">
           Support
         </h1>
 

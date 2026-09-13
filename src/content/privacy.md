@@ -1,6 +1,6 @@
 # Privacy policy
 
-Effective September 1, 2026
+Effective September 12, 2026
 
 This policy covers the Slackwater iOS app and slackwater.xyz. Slackwater is operated by Open Water Software, LLC, doing business as Open Waters (“Open Waters,” “we,” or “us”).
 
@@ -57,6 +57,12 @@ The page we serve for a Canadian tidal current gate or tide port carries no pred
 Cloudflare hosts the site and processes technical request information such as IP address, request URL, browser information, timestamps, and errors to deliver, secure, and diagnose the site. Worker logs are retained for no more than seven days. We do not use them to build profiles or track people across services.
 
 Links to TestFlight and other websites take you to services governed by their own privacy policies.
+
+## Website appearance
+
+The site stores your chosen appearance mode (`Auto`, `Light`, `Night`, or `Your location`) in your browser. It does not store coordinates.
+
+On a tide or current station page, Auto uses that station's published coordinates and the time selected on the page; it does not request your position. On other pages, Auto follows your system appearance. Choosing Your location on any page asks your browser for your current position. The position stays in your browser and is not sent to Slackwater or its analytics provider.
 
 ## Sharing and service providers
 
