@@ -73,6 +73,16 @@ describe('prerendered station pages', () => {
     }
   })
 
+  it('links home and offers the app from every station directory', () => {
+    for (const path of ['stations', 'stations/tides', 'stations/currents']) {
+      const html = readFileSync(`${OUT}/${path}/index.html`, 'utf8')
+      expect(html, `${path} has no link home`).toMatch(/<a[^>]+href="\/"/)
+      expect(html, `${path} has no TestFlight CTA`).toContain(
+        'https://testflight.apple.com/join/',
+      )
+    }
+  })
+
   it('claims nothing about now in HTML that was rendered days ago', () => {
     // A prerendered page is served for as long as the deploy lasts, so a
     // relative "in 30m" or a "next slack" in it is a live-sounding reading

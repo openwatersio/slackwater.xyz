@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { DirectoryNav } from '#/components/DirectoryNav'
 
 const CANONICAL = 'https://slackwater.xyz/stations/'
 const TITLE = 'Stations — Slackwater'
@@ -22,6 +23,7 @@ export const Route = createFileRoute('/stations/')({
 function Stations() {
   return (
     <main className="mx-auto max-w-3xl px-5 pb-24 pt-10 sm:px-6 sm:pt-20">
+      <DirectoryNav />
       <h1 className="text-4xl font-semibold tracking-tight text-sw-paper sm:text-5xl">Stations</h1>
       <p className="mt-3 text-sw-steel">
         Every station Slackwater predicts, worldwide for tides and across the US and Canada for
