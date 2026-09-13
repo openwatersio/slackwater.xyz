@@ -3,6 +3,7 @@ import { provenance } from '#/lib/copy'
 import { daylightSpans } from '#/lib/daylight'
 import { fadeStops } from '#/lib/fade'
 import { chartTime, dayLabel, hhmm } from '#/lib/format'
+import { currentSpeedRampT, speedColor } from '#/lib/ramp'
 import { timeAtFraction } from './TideCurve'
 import {
   findEvents,
@@ -100,6 +101,7 @@ export function CurrentCurve(props: Props) {
   // and paints nothing. The stroke survives, the fill silently vanishes.
   const uid = useId().replace(/:/g, '')
   const fillId = `fill-${uid}`
+  const speedId = `speed-core-${uid}`
   const areaId = `area-${uid}`
   const maskId = `edges-${uid}`
   const fadeId = `fade-${uid}`
@@ -219,6 +221,14 @@ export function CurrentCurve(props: Props) {
             <stop offset="0.5" stopColor="#38BDF8" stopOpacity="0" />
             <stop offset="1" stopColor="#38BDF8" stopOpacity="0.38" />
           </linearGradient>
+          <linearGradient id={speedId} data-speed-core="true" gradientUnits="userSpaceOnUse" x1={0} x2={W} y1={0} y2={0}>
+            {samples.map((sample) => {
+              const kn = Math.abs(sample.level)
+              return <stop key={sample.time.getTime()} offset={Math.min(1, Math.max(0, x(sample.time) / W))}
+                stopColor={speedColor(currentSpeedRampT(kn))}
+                stopOpacity={Number(Math.min(1, Math.max(0, (kn - 0.5) / 2.5)).toFixed(4))} />
+            })}
+          </linearGradient>
           <clipPath id={clipId}>
             <rect x="0" y="0" width={W} height={H} />
           </clipPath>
@@ -254,6 +264,7 @@ export function CurrentCurve(props: Props) {
             </g>
             <path d={area} fill={`url(#${fillId})`} />
             <path d={path} fill="none" stroke="#38BDF8" strokeWidth={2.2} strokeLinejoin="round" />
+            <path d={path} fill="none" stroke={`url(#${speedId})`} strokeWidth={1.6} strokeLinejoin="round" />
             {/* The same curve, inked green where the slack window is. Clipped
                 rather than re-fitted: the clip's edges are the interpolated
                 crossings, so the green starts and stops exactly where the water

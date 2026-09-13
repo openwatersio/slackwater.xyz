@@ -180,7 +180,14 @@ function CurrentLead({ station, now, trackingNow }: { station: BundledStation; n
   const windows = slackWindows(predictSeries(station, new Date(now.getTime() - 3 * 3600_000), 6))
   const slack = windows.some((w) => now >= w.start && now <= w.end)
   const set = level > 0 ? station.floodDirection : station.ebbDirection
-  const next = nextEvent(findEvents(station, now, 24), now)
+  const event = nextEvent(findEvents(station, now, 24), now)
+  const window = windows.find((w) => w.end > now)
+  const boundary = window && (now < window.start
+    ? { time: window.start, label: 'Slack' }
+    : { time: window.end, label: levelAt(station, new Date(window.end.getTime() + 1000)) >= 0 ? 'Flood' : 'Ebb' })
+  const next = boundary && (!event || boundary.time < event.time)
+    ? boundary
+    : event && { time: event.time, label: event.kind === 'slack' ? 'Slack' : `Max ${event.kind}` }
   return (
     <Lead
       state={slack ? 'Slack' : level > 0 ? 'Flooding' : 'Ebbing'}
@@ -195,7 +202,7 @@ function CurrentLead({ station, now, trackingNow }: { station: BundledStation; n
       unit="kn"
       at={now}
       timeZone={station.timezone}
-      next={next && `${next.kind === 'slack' ? 'Slack' : `Max ${next.kind}`} ${trackingNow ? `in ${until(next.time, now)}` : `at ${chartTime(next.time, station.timezone)}`}`}
+      next={next && `${next.label} ${trackingNow ? `in ${until(next.time, now)}` : `at ${chartTime(next.time, station.timezone)}`}`}
     />
   )
 }

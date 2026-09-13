@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { SPEED_STOPS, speedColor } from './ramp'
+import { SPEED_STOPS, currentSpeedRampT, speedColor } from './ramp'
 
 describe('speed ramp', () => {
   it('is the app ramp, stop for stop', () => {
@@ -39,5 +39,9 @@ describe('speed ramp', () => {
       expect(g).toBeLessThanOrEqual(prev)
       prev = g
     }
+  })
+
+  it('uses the app’s absolute knot anchors for the current speed thread', () => {
+    expect([0.5, 3, 8, 12, 20].map(currentSpeedRampT)).toEqual([0, 1 / 3, 2 / 3, 1, 1])
   })
 })

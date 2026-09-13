@@ -118,10 +118,9 @@ export interface SlackWindow {
  * The speed below which the water counts as slack, in knots.
  *
  * The app makes this a per-boat setting (`slackThresholdKn`, range 0.1…10);
- * the web has no settings, so it ships one value for everyone. THREE marks
- * derive from it — the band's height, the length of the inked run, and the
- * baseline the speed fill starts from — so it is the single number that says
- * what this chart considers workable water, and they cannot drift apart.
+ * the web has no settings, so it ships one value for everyone. The length of
+ * the inked run derives from it: this is the number that says what the chart
+ * considers workable water.
  *
  * NOTE: the app's own default is still `defaultSlackThresholdKn = 0.5`
  * (slackwater-ios, SlackWindow.swift). Until that moves, a reader comparing
