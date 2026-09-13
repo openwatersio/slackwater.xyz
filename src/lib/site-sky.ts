@@ -94,8 +94,8 @@ function bodyAt({ altDeg, azDeg }: AltAz, events: RiseSet[], at: Date): SkyBody 
   const set = events.find((event) => event.kind === 'set' && event.time > at)
   // Circumpolar bodies use their east-west projection when the event window has no bracket.
   const x = rise && set
-    ? clamp((at.getTime() - rise.time.getTime()) / (set.time.getTime() - rise.time.getTime()))
-    : 0.5 - 0.45 * Math.sin(azDeg * Math.PI / 180) * Math.cos(altDeg * Math.PI / 180)
+    ? 1 - clamp((at.getTime() - rise.time.getTime()) / (set.time.getTime() - rise.time.getTime()))
+    : 0.5 + 0.45 * Math.sin(azDeg * Math.PI / 180) * Math.cos(altDeg * Math.PI / 180)
   return { x, y: orbitY(x) }
 }
 
@@ -105,17 +105,17 @@ function transitionBody<T extends SkyBody>(from: T | undefined, to: T | undefine
     return { ...to, x, y: orbitY(x) }
   }
   if (from) {
-    const x = from.x + (1.05 - from.x) * progress
+    const x = from.x + (-0.05 - from.x) * progress
     return { ...from, x, y: orbitY(x) }
   }
   if (to) {
-    const x = -0.05 + (to.x + 0.05) * progress
+    const x = 1.05 + (to.x - 1.05) * progress
     return { ...to, x, y: orbitY(x) }
   }
   return undefined
 }
 
-function orbitY(x: number) { return 0.016 * (2 * x - 1) ** 2 + 0.014 * x }
+function orbitY(x: number) { return 0.016 * (2 * x - 1) ** 2 + 0.008 * x }
 
 function isRiseSet(event: ReturnType<typeof sunEvents>[number]): event is RiseSet {
   return event.kind === 'rise' || event.kind === 'set'

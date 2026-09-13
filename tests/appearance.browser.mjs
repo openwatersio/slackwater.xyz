@@ -207,7 +207,7 @@ test('saved location-based skies keep the sun on the shared arc from first paint
       assert(frames.every((arcs) => arcs.every((arc) => arc[2] !== 18)), `${mode} flashed a placeholder moon`)
       const suns = frames.flatMap((arcs) => arcs.filter((arc) => arc[2] === 20))
       assert(suns.length > 0, `${mode} should draw the daytime sun`)
-      const offArc = suns.find(([x, y]) => Math.abs(y - height * (0.016 * (2 * x / width - 1) ** 2 + 0.014 * x / width)) >= 1)
+      const offArc = suns.find(([x, y]) => Math.abs(y - height * (0.016 * (2 * x / width - 1) ** 2 + 0.008 * x / width)) >= 1)
       assert.equal(offArc, undefined, `${mode} sun left the shared arc: ${JSON.stringify(offArc)}`)
       const overlap = await page.evaluate(() => {
         for (const frame of window.skyFrames) {
