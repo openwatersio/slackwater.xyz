@@ -1,8 +1,9 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { DayStrip } from './DayStrip'
-import { dayStart } from '#/lib/format'
+import { chartTime, dayStart } from '#/lib/format'
 import { fetchPortTides } from '#/lib/iwls'
+import { predictSeries, slackWindows } from '#/lib/predict'
 import portFixture from '#/lib/__fixtures__/iwls-ports.json' with { type: 'json' }
 import type { BundledStation, ChsStation } from '#/lib/station'
 
@@ -83,6 +84,38 @@ describe('DayStrip', () => {
     expect(live).toMatch(/Flooding|Ebbing|Slack/)
     expect(live).toMatch(/\d\.\d kn/)
     expect(live).toMatch(/(Slack|Max flood|Max ebb) in \d+(h \d+)?m/)
+    expect(live).toMatch(/transform:rotate\((90|270)deg\)/)
+  })
+
+  it('reads a selected current without calling its next event a live countdown', () => {
+    const selected = renderToStaticMarkup(
+      <DayStrip station={DECEPTION} start={TODAY} hours={24}
+        now={new Date('2026-09-12T22:00:00Z')} selectedAt={NOW} live
+        onSelect={() => {}} onCommit={() => {}} />,
+    )
+    expect(selected).toContain('aria-label="Selected current time"')
+    expect(selected).toContain('1:00pm')
+    expect(selected).toMatch(/(Slack|Max flood|Max ebb) at \d{1,2}:\d{2}[ap]m/)
+    expect(selected).not.toMatch(/(Slack|Max flood|Max ebb) in \d/)
+    expect(selected).toContain('viewBox="0 0 390 320"')
+    expect(selected).toContain('viewBox="0 0 1000 320"')
+  })
+
+  it('names the end of an active slack window as the next water change', () => {
+    const window = slackWindows(predictSeries(DECEPTION, TODAY, 24))[0]
+    const inside = new Date((window.start.getTime() + window.end.getTime()) / 2)
+    const selected = renderToStaticMarkup(
+      <DayStrip station={DECEPTION} start={TODAY} hours={24} now={NOW} selectedAt={inside} live={false} />,
+    )
+    expect(selected).toMatch(new RegExp(`(Flood|Ebb) at ${chartTime(window.end, DECEPTION.timezone)}`))
+  })
+
+  it('does not label the build clock as actual now on a shared current page', () => {
+    const server = renderToStaticMarkup(
+      <DayStrip station={DECEPTION} start={TODAY} hours={24}
+        now={new Date('2026-09-11T22:00:00Z')} selectedAt={NOW} live={false} />,
+    )
+    expect(server).not.toContain('data-marker="actual-now"')
   })
 })
 

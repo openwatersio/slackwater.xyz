@@ -62,6 +62,53 @@ describe('CurrentCurve times', () => {
     expect(server).not.toMatch(/in \d+[hm]/)
     expect(server).not.toContain('Next')
   })
+
+  it('offers a keyboard-accessible scrubber and marks actual now separately', () => {
+    const svg = renderToStaticMarkup(
+      <CurrentCurve station={DECEPTION}
+        start={new Date('2026-09-11T07:00:00Z')} hours={24}
+        now={new Date('2026-09-11T20:00:00Z')}
+        actualNow={new Date('2026-09-11T22:00:00Z')}
+        onSelect={() => {}} onCommit={() => {}} />,
+    )
+    expect(svg).toContain('role="slider"')
+    expect(svg).toContain('tabindex="0"')
+    expect(svg).toContain('aria-label="Selected current time"')
+    expect(svg).toContain('aria-valuetext="1:00pm"')
+    expect(svg).toContain('touch-pan-y')
+    expect(svg).toContain('data-marker="actual-now"')
+    expect(svg).not.toMatch(/>Now<\/text>/)
+  })
+
+  it('uses the app current ink: blue zero fill and a green slack run, not a green band', () => {
+    const svg = renderToStaticMarkup(
+      <CurrentCurve station={DECEPTION}
+        start={new Date('2026-09-11T07:00:00Z')} hours={24}
+        now={new Date('2026-09-11T20:00:00Z')} />,
+    )
+    expect(svg).toContain('stop-color="#38BDF8"')
+    expect(svg).toContain('data-speed-core="true"')
+    expect(svg).toContain('stroke="url(#speed-core-')
+    expect(svg).toMatch(/<path[^>]*stroke="#88B868"/)
+    expect(svg).not.toMatch(/<rect[^>]*fill="#88B868"/)
+    expect(svg).toContain('data-shade="night"')
+    expect(svg).toContain('data-shade="daylight"')
+    expect(svg).toMatch(/data-set="(flood|ebb)"/)
+    expect(svg).not.toMatch(/<g data-set="(?:flood|ebb)"><circle/)
+  })
+
+  it('rounds speed-thread opacity for stable server and client markup', () => {
+    const svg = renderToStaticMarkup(
+      <CurrentCurve station={DECEPTION}
+        start={new Date('2026-09-11T07:00:00Z')} hours={24}
+        now={new Date('2026-09-11T20:00:00Z')} />,
+    )
+    const core = svg.match(/<linearGradient[^>]*data-speed-core="true"[^>]*>(.*?)<\/linearGradient>/)?.[1]
+    expect(core).toBeDefined()
+    for (const [, opacity] of core!.matchAll(/stop-opacity="([^"]+)"/g)) {
+      expect(opacity).toMatch(/^\d(?:\.\d{1,4})?$/)
+    }
+  })
 })
 
 describe('CurrentCurve with fetched samples', () => {

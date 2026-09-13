@@ -23,11 +23,8 @@ export const SPEED_STOPS: readonly (readonly [number, string])[] = [
  * sit close enough together that a perceptual space buys nothing a reader
  * could see. (`SN.speedRGB`.)
  *
- * `t` is a position in the plot, not a speed. The app's strip runs this
- * gradient from the threshold line to the edge of the auto-fitted plot, so the
- * day's peak is always the red end whatever it measures — see the fill in
- * CurrentCurve. The absolute knots→t scale (`widgetSpeedRampT`) is the map's,
- * and the web has no map.
+ * `t` is supplied by the caller. The current curve uses absolute knot anchors,
+ * so a given speed keeps its colour across stations and days.
  */
 export function speedColor(t: number): string {
   const clamped = Math.min(1, Math.max(0, t))
@@ -42,6 +39,14 @@ export function speedColor(t: number): string {
     return `#${mix.map((v) => v.toString(16).padStart(2, '0')).join('')}`
   }
   return SPEED_STOPS[SPEED_STOPS.length - 1][1].toLowerCase()
+}
+
+/** The app's currentSpeedRampAnchorsKn: 0.5, 3, 8, 12 knots. */
+export function currentSpeedRampT(kn: number): number {
+  if (kn <= 0.5) return 0
+  if (kn <= 3) return (kn - 0.5) / 2.5 / 3
+  if (kn <= 8) return (1 + (kn - 3) / 5) / 3
+  return Math.min(1, (2 + (kn - 8) / 4) / 3)
 }
 
 function hexToRgb(hex: string): number[] {

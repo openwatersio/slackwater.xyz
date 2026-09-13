@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { sunEvents } from '@openwaters/almanac'
 import { CurrentCurve } from './CurrentCurve'
 import { TideCurve } from './TideCurve'
@@ -57,12 +57,12 @@ export function DayStrip(props: Props) {
 
   return (
     <div className="relative">
-      {station.source === 'bundled' && ((station.kind === 'tide' && selectedAt) || (live && today)) && (
+      {station.source === 'bundled' && (selectedAt || (live && today)) && (
         <div className="mb-4 flex justify-center">
           {station.kind === 'tide' ? (
             <TideLead station={station} now={selected} />
           ) : (
-            <CurrentLead station={station} now={now} />
+            <CurrentLead station={station} now={selected} trackingNow={selectedAt ? trackingNow : live} />
           )}
         </div>
       )}
@@ -93,7 +93,16 @@ export function DayStrip(props: Props) {
           </div>
         </>
       ) : (
-        <CurrentCurve station={props.station} start={start} hours={hours} now={now} />
+        <>
+          <div className="sm:hidden">
+            <CurrentCurve station={props.station} start={start} hours={hours} now={selected}
+              actualNow={live ? now : undefined} trackingNow={trackingNow} onSelect={onSelect} onCommit={onCommit} width={390} />
+          </div>
+          <div className="hidden sm:block">
+            <CurrentCurve station={props.station} start={start} hours={hours} now={selected}
+              actualNow={live ? now : undefined} trackingNow={trackingNow} onSelect={onSelect} onCommit={onCommit} />
+          </div>
+        </>
       )}
       <SunRow station={station} start={start} end={end} />
       {/* A bundled page names its datum under Station facts. A Canadian page
@@ -163,7 +172,7 @@ function TideLead({ station, now }: { station: BundledStation; now: Date }) {
 }
 
 /** The same card for a current: state and set lead, speed is the large thing. */
-function CurrentLead({ station, now }: { station: BundledStation; now: Date }) {
+function CurrentLead({ station, now, trackingNow }: { station: BundledStation; now: Date; trackingNow: boolean }) {
   const level = levelAt(station, now)
   // Green is slack and only slack, so it follows `slackWindows` rather than the
   // bare threshold: a lull that dips under it and builds back the way it came
@@ -171,17 +180,29 @@ function CurrentLead({ station, now }: { station: BundledStation; now: Date }) {
   const windows = slackWindows(predictSeries(station, new Date(now.getTime() - 3 * 3600_000), 6))
   const slack = windows.some((w) => now >= w.start && now <= w.end)
   const set = level > 0 ? station.floodDirection : station.ebbDirection
-  const next = nextEvent(findEvents(station, now, 24), now)
+  const event = nextEvent(findEvents(station, now, 24), now)
+  const window = windows.find((w) => w.end > now)
+  const boundary = window && (now < window.start
+    ? { time: window.start, label: 'Slack' }
+    : { time: window.end, label: levelAt(station, new Date(window.end.getTime() + 1000)) >= 0 ? 'Flood' : 'Ebb' })
+  const next = boundary && (!event || boundary.time < event.time)
+    ? boundary
+    : event && { time: event.time, label: event.kind === 'slack' ? 'Slack' : `Max ${event.kind}` }
   return (
     <Lead
       state={slack ? 'Slack' : level > 0 ? 'Flooding' : 'Ebbing'}
       tone={slack ? 'text-sw-go' : level > 0 ? 'text-sw-flood' : 'text-sw-ebb'}
-      detail={slack || set === undefined ? undefined : compass16(set)}
+      detail={slack ? '⇄' : set === undefined ? undefined : (
+        <span className="inline-flex items-center gap-1">
+          <span className="inline-block" aria-hidden="true" style={{ transform: `rotate(${set}deg)` }}>↑</span>
+          {compass16(set)}
+        </span>
+      )}
       value={Math.abs(level).toFixed(1)}
       unit="kn"
       at={now}
       timeZone={station.timezone}
-      next={next && `${next.kind === 'slack' ? 'Slack' : `Max ${next.kind}`} in ${until(next.time, now)}`}
+      next={next && `${next.label} ${trackingNow ? `in ${until(next.time, now)}` : `at ${chartTime(next.time, station.timezone)}`}`}
     />
   )
 }
@@ -191,7 +212,7 @@ function Lead({
 }: {
   state: string
   tone: string
-  detail?: string
+  detail?: ReactNode
   value: string
   unit: string
   at: Date
