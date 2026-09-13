@@ -91,6 +91,20 @@ test('the sky fades into the page ground and keeps both palettes readable', asyn
   }
 })
 
+test('sky artwork scrolls away from the top viewport', async () => {
+  const { page, close } = await open('light', { route: '/tides/friday-harbor/', viewport: { width: 390, height: 844 } })
+  try {
+    const before = await page.locator('canvas').boundingBox()
+    assert(Math.abs(before.y) < 1)
+    assert(Math.abs(before.height - 844) < 1)
+    await page.evaluate(() => scrollTo(0, 600))
+    const after = await page.locator('canvas').boundingBox()
+    const scroll = await page.evaluate(() => scrollY)
+    assert(scroll > 400, 'the page must have enough content to scroll')
+    assert(Math.abs(after.y + scroll) < 1, `the sky remained fixed after scrolling: ${JSON.stringify(after)}`)
+  } finally { await close() }
+})
+
 test('filled CTAs keep readable ink in both palettes and hover states', async () => {
   for (const mode of ['light', 'night']) {
     for (const route of ['/', '/tides/friday-harbor/']) {

@@ -57,7 +57,7 @@ The document's `theme-color` meta value follows the resolved page ground so brow
 
 ## Celestial layer and motion
 
-One fixed, pointer-transparent canvas spans the viewport. The body owns the page ground; the canvas sits above that ground and below a positioned content wrapper, with the orbital control above both. It draws the sun and moon, with Almanac supplying their positions for Auto on station pages and for Your location, but no star catalogue, weather, clouds, or additional scenery. The sky never changes document layout.
+One absolutely positioned, pointer-transparent canvas spans the first viewport at the top of the document and scrolls away with it. The body owns the page ground; the canvas sits above that ground and below a positioned content wrapper, with the fixed orbital control above both. It draws the sun and moon, with Almanac supplying their positions for Auto on station pages and for Your location, but no star catalogue, weather, clouds, or additional scenery. The sky never changes document layout.
 
 One high arc determines every body position: `y = 0.016 × (2x − 1)² + 0.008x` in normalized viewport coordinates. Manual Light and Night, and Auto on non-station pages, park the active sun or full moon at `x = 0.72` on that arc, in the upper right. Location-based modes use the relevant observer and time to project each body's rise-to-set span from the eastern right edge to the western left edge, then place it on the same arc. Almanac's altitude determines visibility and paint, not a separate vertical path. The top edge clips part of the disc, keeping artwork clear of page content without moving the layout. A body below the horizon is outside the frame.
 
