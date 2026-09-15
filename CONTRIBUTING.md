@@ -1,15 +1,15 @@
 # Working on slackwater.xyz
 
-How this site gets built and shipped. It is the working doc for whoever maintains it, not an
-invitation — the repo is public because a marketing site has nothing to hide, and outside
-contributions aren't being sought. Bug reports about the live site are welcome.
+How this site gets built and shipped. It is the source of truth for people and coding agents working in this repository. The repo is public because a marketing site has nothing to hide, but outside contributions are not being sought. Bug reports about the live site are welcome.
+
+Everything written here, including code, comments, documentation, commits, and pull requests, is public. Keep roadmaps, pricing, unreleased plans, and paths into private repositories out of it.
 
 Short, because it is meant to be followed rather than consulted. What the site is and why it
 looks the way it does is in [README.md](README.md).
 
 ## Getting started
 
-Node 22+ and pnpm 10+.
+The tested toolchain is Node 24 and pnpm 11. `mise install` reads those versions from `mise.toml`.
 
 ```bash
 pnpm install
@@ -26,21 +26,51 @@ pnpm deploy     # build, then wrangler deploy with nitro's generated config
 | `src/routes/` | File-based routes. `__root.tsx` is the document shell and `<head>`. |
 | `src/lib/` | Prediction maths — `currents.ts` (harmonic synthesis) and `ramp.ts` (speed → colour). Both tested. |
 | `src/components/` | Presentational React. No data fetching. |
-| `src/content/privacy.md` | The privacy policy, rendered at `/privacy` and served raw at `/privacy.md`. |
+| `src/content/` | Support and privacy Markdown, rendered as pages and served raw from their `.md` URLs. |
 | `src/styles.css` | Colour tokens. Components reference these, never a literal hex. |
 | `src/data/` | Bundled harmonic constituents for Deception Pass, the fixture `currents.test.ts` checks `predict.ts` against. |
 | `wrangler.jsonc` | Worker *source* config. Not the deployable one — see the gotchas. |
 
 ## Testing
 
-`pnpm test` covers `src/lib` — the harmonic synthesis and the speed ramp. That is the part
-where being wrong is invisible in a screenshot and embarrassing on the water, so a change to
-either arrives with a test.
+CI runs these commands in order:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm build
+pnpm typecheck
+pnpm test
+```
+
+The build comes before typechecking and tests because it generates `src/routeTree.gen.ts` and the prerendered artifacts that four integration suites inspect. Prediction changes arrive with a focused test; errors there can look plausible and matter on the water.
 
 Presentation is checked by looking at it. There is no snapshot suite: 5,657 pages come from
 three templates, so a representative tide page, a representative current page, and a
 representative CHS identity-only page (`/currents/dodd-narrows`) is the check, and a diff
 across thousands of near-identical generated pages would be noise, not signal.
+
+Anything touching a Worker route, including the analytics proxy, `/privacy.md`, or `/support.md`, must be checked against a real Worker because those routes do not resolve under `pnpm dev`:
+
+```bash
+pnpm build && pnpm preview
+```
+
+Look at any visible change before reporting it complete.
+
+## Project rules
+
+- Keep dependencies, abstractions, and build steps to the minimum. Their cost is multiplied across 5,657 station pages.
+- Every rendered curve comes from `src/lib/predict.ts` and bundled constituents. The landing page only shows the app's screenshots. Changes to `predict.ts`, `src/lib/ramp.ts`, or `src/lib/iwls.ts` require a test.
+- `catalogue.ts` excludes NOAA subordinate current stations until reference-station reductions are implemented in issue #80. Without that reduction, they render blank bodies.
+- The 33 CHS pages ship identity without a prerendered prediction. The visitor's browser fetches 32 station predictions directly from DFO; `chs-malibu-rapids` is derived and has no station to fetch. Never proxy or re-serve IWLS predictions, and never prerender them. `src/lib/iwls.ts` converts DFO metres on chart datum to feet; CHS pages name chart datum without borrowing another datum code. The site covers 10 of 1,058 Canadian tide ports and must not imply complete coverage. Issue #17 tracks the missing identities and `chs-arran-rapids`.
+- Never claim a feature the app does not ship or publish a private TestFlight link. `src/routes/index.tsx` contains the public beta URL.
+- `src/content/privacy.md` names what the site collects. Any analytics, embed, font CDN, third-party script, or change to the IWLS request timing updates that policy in the same commit.
+- Components use colour tokens from `src/styles.css`. Green means slack, and colour expresses state rather than kind. Keep the Slackwater wordmark on one line with `whitespace-nowrap`.
+- The Worker custom domain owns apex and `www` DNS. Do not add those records by hand.
+- Do not add `devtools()` from `@tanstack/devtools-vite`; it breaks `vite dev` with an unavailable SSR environment and a transport timeout.
+- `slackwater-ios` is the source of truth for ported visuals. Match the Swift palette, geometry, and crop after reading the complete draw function and its `Theme.swift` constants. Resolve genuine inconsistencies in the app first.
+- The app's sky projection depends on both crops: fit each body's rise-to-set span to the width and fit the app's 0–62° altitude range to the band height at the call site. Keep `skyPoint` aligned with `Slackwater/Theme.swift`; the 300° projection in `openwaters.io` has a different purpose.
+- pnpm 11 blocks very recent releases. `pnpm add` records required exceptions in `pnpm-workspace.yaml`; commit those with a fresh `@openwaters/*` dependency bump. Dependabot uses a three-day cooldown for the same reason.
 
 ## Branch and PR
 
@@ -96,7 +126,13 @@ Edit**, or `wrangler login`.
 Do **not** hand-add the apex or `www` DNS records. A Worker custom domain declared in
 `wrangler.jsonc` creates and manages them itself, as proxied `AAAA -> 100::`.
 
-After a deploy, check <https://slackwater.xyz> and `/privacy`.
+Before merging a release:
+
+- Review specs and plans touched by the release, including unfinished work carried from earlier releases.
+- Preserve lasting guidance here and delete completed implementation specs and plans. Keep unfinished plans and link remaining work to issues.
+- Have a human review documentation updates and deletions in the pull request.
+
+After a deploy, check <https://slackwater.xyz>, `/support`, `/support.md`, `/privacy`, and `/privacy.md`.
 
 ## Analytics
 
@@ -159,6 +195,4 @@ that changes what the site measures changes that file in the same commit.
 
 ## Agents
 
-Claude Code and other agents work here under the same rules, plus the ones in
-[AGENTS.md](AGENTS.md). **An agent never merges its own PR** — it may open one, push to its
-branch, and respond to review; the merge is a human decision.
+`AGENTS.md` and `CLAUDE.md` point here so every harness follows the same instructions. An agent may open a pull request, push to its branch, and respond to review, but it never merges its own pull request.

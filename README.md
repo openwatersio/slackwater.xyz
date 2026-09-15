@@ -38,11 +38,6 @@ Slackwater is two separate things, and confusing them is the easiest mistake to 
 | **This site** | `slackwater.xyz` — this repo | Explains the app, drives installs, and serves a real prediction for every station it has data for. |
 | **iOS app** | [`openwatersio/slackwater-ios`](https://github.com/openwatersio/slackwater-ios) | The product. The only surface that can be paid. |
 
-A third surface, `web.slackwater.xyz`, was reserved early as a demo for people who wouldn't
-install an app but just wanted an answer now — it never got a DNS record. The station pages
-turned out to be that surface: instant, indexable, computing the same curve in the browser that
-the app computes on the phone. There is no web client, and no plan to build one.
-
 ## How it's built
 
 **TanStack Start** (React + Vite, nitro), prerendered and deployed as a **Cloudflare Worker**
@@ -82,6 +77,8 @@ pnpm dev        # http://localhost:5174
 Layout, testing, deploys, and the handful of gotchas that will otherwise cost you an hour are
 in [CONTRIBUTING.md](CONTRIBUTING.md). If you are an AI agent working in this repo, read
 [AGENTS.md](AGENTS.md) first.
+
+Every merge to `main` runs the checks and deploys the site. The same workflow rebuilds nightly so dates in prerendered pages stay current.
 
 This repo is public because a marketing site has nothing to hide, not because it is looking for
 contributors. Read it, borrow from it; there is no licence, so all rights are reserved.
