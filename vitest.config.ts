@@ -22,6 +22,7 @@ import { existsSync } from 'node:fs'
  */
 const NEEDS_BUILD = [
   'src/lib/bundle-size.test.ts',
+  'src/lib/content-routes.test.ts',
   'src/routes/station-routes.test.ts',
   'src/routes/instant-page.test.tsx',
 ]

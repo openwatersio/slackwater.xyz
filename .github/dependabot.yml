@@ -36,5 +36,8 @@ updates:
       interval: monthly
     groups:
       github-actions:
+        update-types:
+          - minor
+          - patch
         patterns:
           - '*'
