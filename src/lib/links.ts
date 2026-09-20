@@ -9,4 +9,4 @@
  * the public is defined once rather than copied to a second file that can drift
  * onto the wrong group.
  */
-export const TESTFLIGHT: string | null = 'https://testflight.apple.com/join/FCSS4w8s'
+export const TESTFLIGHT: string | null = 'https://testflight.apple.com/join/5gwh791N'

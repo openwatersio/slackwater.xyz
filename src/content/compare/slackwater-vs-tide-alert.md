@@ -79,7 +79,7 @@ Nothing imports. Star your stations in Slackwater by search.
 Predictions are not observations. Weather, river flow and local conditions change the
 water. Neither app is for navigation.
 
-**[Get Slackwater on TestFlight](https://testflight.apple.com/join/FCSS4w8s)** · Free,
+**[Get Slackwater on TestFlight](https://testflight.apple.com/join/5gwh791N)** · Free,
 no account.
 
 See also: [the best tide and current apps for iPhone](/compare/best-tide-and-current-apps-iphone/)

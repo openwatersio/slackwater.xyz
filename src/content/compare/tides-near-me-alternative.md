@@ -93,7 +93,7 @@ Two minutes.
 Predictions are not observations. Weather, river flow and local conditions change the
 water. Slackwater is not for navigation.
 
-**[Get Slackwater on TestFlight](https://testflight.apple.com/join/FCSS4w8s)** · Free,
+**[Get Slackwater on TestFlight](https://testflight.apple.com/join/5gwh791N)** · Free,
 no account.
 
 See also: [the best tide and current apps for iPhone](/compare/best-tide-and-current-apps-iphone/)
