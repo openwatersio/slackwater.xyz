@@ -139,5 +139,5 @@ Each app above has its own page with a side-by-side screenshot and the full tabl
 Predictions are not observations. Weather, river flow and local conditions change the
 water. None of these apps, including ours, is for navigation.
 
-**[Get Slackwater on TestFlight](https://testflight.apple.com/join/FCSS4w8s)** · Free,
+**[Get Slackwater on TestFlight](https://testflight.apple.com/join/5gwh791N)** · Free,
 no account.
