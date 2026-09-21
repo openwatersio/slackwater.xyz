@@ -104,6 +104,7 @@ export function loadCatalogue(): Station[] {
             override?.context ??
             (r.region ? String(r.region) : undefined),
           ...(r.country ? { country: String(r.country) } : {}),
+          ...(r.continent ? { continent: String(r.continent) } : {}),
           // The provider's `region` is a USPS code on US rows and a GeoNames
           // numeric ("02") on Canadian ones — and a few Canadian rows carry a
           // stray US code (Amherstburg, Ontario is "MI"). Only a US row's
@@ -149,9 +150,10 @@ export function loadCatalogue(): Station[] {
           // the only source and there is nothing to fall back to.
           region: curated.get(slug)?.region ?? override?.context,
           // The NOAA bundle carries no country or subdivision either. Every
-          // station in it is a US one, which is what makes the constant
+          // station in it is a US one, which is what makes the constants
           // honest rather than a default.
           country: 'United States',
+          continent: 'Americas',
           constituents: r.constituents as BundledStation['constituents'],
           offset: Number(r.offset ?? 0),
           floodDirection: Number(r.floodDirection),

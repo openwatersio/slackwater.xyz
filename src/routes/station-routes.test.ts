@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { existsSync, readFileSync, statSync } from 'node:fs'
 import { loadCatalogue } from '../lib/catalogue'
+import { placePath, placePaths, placeTree } from '../lib/places'
 
 const OUT = '.output/public'
 
@@ -71,6 +72,39 @@ describe('prerendered station pages', () => {
       )
       expect(html, `${path} has no link home`).toMatch(/<a[^>]+href="\/"/)
     }
+  })
+
+  it('keeps every browse page small enough to be worth loading', () => {
+    // #33: the flat tide index shipped 4,792 links and 322 KB of loader data
+    // nothing read back — 922 KB, 150 KB gzipped, on a site whose pitch is that
+    // it loads instantly. The split answers that, and this is what keeps it
+    // answered: the budget binds every page the tree mints, so a country or
+    // subdivision quietly growing past it fails here rather than on the wire.
+    const BUDGET = 250_000
+    const tree = placeTree(loadCatalogue().filter((s) => s.kind === 'tide'))
+    const pages = ['/stations/tides/', ...placePaths('tide', tree)]
+    const over = pages
+      .map((p) => [p, statSync(`${OUT}${p}index.html`).size] as const)
+      .filter(([, size]) => size > BUDGET)
+    expect(over).toEqual([])
+  })
+
+  it('reaches every station from the browse index without the sitemap', () => {
+    // The corpus was orphaned from the homepage once already (#27). Splitting
+    // the index puts two hops between the top of it and a station, so the
+    // chain is walked rather than assumed: index -> country -> station.
+    const tree = placeTree(loadCatalogue().filter((s) => s.kind === 'tide'))
+    const index = readFileSync(`${OUT}/stations/tides/index.html`, 'utf8')
+    const missing = tree.filter((c) => !index.includes(`href="${placePath('tide', c.slug)}"`))
+    expect(missing.map((c) => c.name)).toEqual([])
+
+    // One country of each shape: split, and whole.
+    const us = readFileSync(`${OUT}/stations/tides/united-states/index.html`, 'utf8')
+    expect(us).toContain(`href="${placePath('tide', 'united-states', 'wa')}"`)
+    const wa = readFileSync(`${OUT}/stations/tides/united-states/wa/index.html`, 'utf8')
+    expect(wa).toContain('href="/tides/seattle/"')
+    const japan = readFileSync(`${OUT}/stations/tides/japan/index.html`, 'utf8')
+    expect(japan).toMatch(/href="\/tides\/[a-z0-9-]+\/"/)
   })
 
   it('links home and offers the app from every station directory', () => {

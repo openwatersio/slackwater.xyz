@@ -1,10 +1,8 @@
-import type { StationRow } from '#/lib/catalogue-server'
+import type { PlaceLink, StationRow } from '#/lib/catalogue-server'
+import { UNPLACED } from '#/lib/places'
 import { stationPath, type Kind } from '#/lib/station'
 import { DirectoryNav } from './DirectoryNav'
 import { TidesExplainerCard } from './TidesExplainerCard'
-
-/** Stations with no region of their own, gathered at the end rather than dropped. */
-const UNPLACED = 'Elsewhere'
 
 /**
  * Five regions in the tide database are bare numbers - "02", "08", "10" - NOAA
@@ -48,12 +46,19 @@ function group(rows: StationRow[]): [string, StationRow[]][] {
 }
 
 /**
- * Every station of one kind, on one page.
+ * One page of a browse index: the places below it, then the stations on it.
  *
- * One page rather than a page per region: the regions are a long tail — 286 of
- * the 542 hold a single station — so a route per region would mint hundreds of
- * pages carrying one link each, which is the thin-content problem the corpus
- * already has to answer for.
+ * Four pages share this shape rather than four components — the worldwide
+ * index (all places, no stations), a country that fits on one page (no
+ * places, all its stations), a country too big to (its subdivisions, plus the
+ * few stations no subdivision claims), and a subdivision (its stations). A
+ * page can hold both lists, which is what keeps the handful of US stations
+ * with no state code reachable from somewhere other than the sitemap.
+ *
+ * Within a page, stations still group under `region` — the water rather than
+ * the jurisdiction. Those regions are a long tail (286 of 542 name a single
+ * station), which is why region is a heading here and never a route; see
+ * `placeTree` in `places.ts`.
  *
  * Most current stations carry no region at all (the NOAA bundle has no such
  * field) — a curated few (CHS gates, `boundary-pass`) do, but not enough of
@@ -61,26 +66,46 @@ function group(rows: StationRow[]): [string, StationRow[]][] {
  * shape follows the data instead of forcing both kinds into the same
  * furniture. See `PLACED_SHARE_TO_GROUP` for the threshold.
  */
-export function StationIndex({ kind, rows }: { kind: Kind; rows: StationRow[] }) {
+export function StationIndex({
+  kind,
+  rows,
+  places = [],
+  title,
+  lede,
+  up,
+}: {
+  kind: Kind
+  rows: StationRow[]
+  places?: PlaceLink[]
+  title?: string
+  lede?: string
+  /** The page one level up, for the crumb above the heading. */
+  up?: { href: string; label: string }
+}) {
   const placed = rows.filter((r) => r.region && isPlace(r.region)).length
   const grouped = rows.length > 0 && placed / rows.length >= PLACED_SHARE_TO_GROUP
-  const label = kind === 'tide' ? 'Tide stations' : 'Current stations'
+  const label = title ?? (kind === 'tide' ? 'Tide stations' : 'Current stations')
+  const back = up ?? { href: '/stations/', label: 'All stations' }
+  const blurb =
+    lede ??
+    `${rows.length.toLocaleString()} stations${kind === 'tide' ? ' worldwide' : ' across the US and Canada'}.`
   return (
     <main className="mx-auto max-w-5xl px-5 pb-24 pt-10 sm:px-6 sm:pt-20">
       <DirectoryNav />
-      <a href="/stations/" className="mb-4 inline-block text-sm text-sw-steel hover:text-sw-paper">
-        All stations
+      <a href={back.href} className="mb-4 inline-block text-sm text-sw-steel hover:text-sw-paper">
+        {back.label}
       </a>
       <h1 className="text-4xl font-semibold tracking-tight text-sw-paper sm:text-5xl">{label}</h1>
-      <p className="mt-3 text-sw-steel">
-        {rows.length.toLocaleString()} stations
-        {kind === 'tide' ? ' worldwide' : ' across the US and Canada'}.
-      </p>
-      {kind === 'tide' && (
+      <p className="mt-3 text-sw-steel">{blurb}</p>
+      {/* The explainer belongs on the one page a reader arrives at cold — the
+          worldwide tide index, the only page with nothing above it — and not
+          on the 148 country and subdivision pages under it. */}
+      {kind === 'tide' && !up && (
         <div className="mt-8 max-w-3xl">
           <TidesExplainerCard />
         </div>
       )}
+      {places.length > 0 && <Places places={places} />}
       {grouped ? (
         group(rows).map(([region, list]) => (
           <section key={region} className="mt-10">
@@ -88,12 +113,53 @@ export function StationIndex({ kind, rows }: { kind: Kind; rows: StationRow[] })
             <List kind={kind} rows={list} />
           </section>
         ))
-      ) : (
+      ) : rows.length > 0 ? (
         <div className="mt-10">
           <List kind={kind} rows={rows} />
         </div>
-      )}
+      ) : null}
     </main>
+  )
+}
+
+/**
+ * The places below this page, under their continent where they have one.
+ *
+ * Continent is only ever set on a country, so a subdivision list renders as
+ * one block — which is right, since every subdivision on a page shares its
+ * country's continent and a heading repeating it would say nothing.
+ */
+function Places({ places }: { places: PlaceLink[] }) {
+  const byContinent = new Map<string, PlaceLink[]>()
+  for (const p of places) {
+    const key = p.continent ?? ''
+    const list = byContinent.get(key)
+    list ? list.push(p) : byContinent.set(key, [p])
+  }
+  return (
+    <>
+      {[...byContinent.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([continent, list]) => (
+          <section key={continent} className="mt-10">
+            {continent && (
+              <h2 className="text-sm font-medium uppercase tracking-wider text-sw-leaf">
+                {continent}
+              </h2>
+            )}
+            <ul className="mt-3 grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+              {list.map((p) => (
+                <li key={p.href}>
+                  <a href={p.href} className="text-sw-paper/90 hover:text-sw-leaf">
+                    {p.name}
+                  </a>{' '}
+                  <span className="text-sw-steel">{p.count.toLocaleString()}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+    </>
   )
 }
 

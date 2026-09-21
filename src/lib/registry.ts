@@ -95,6 +95,7 @@ export function chsStations(kind: Kind): ChsStation[] {
       // every station in this curated set; the unified station database
       // supplies a real region_code and retires this line.
       country: 'Canada',
+      continent: 'Americas',
       ...(entry.position[1] < -114 && entry.position[0] < 60 ? { state: 'BC' } : {}),
       // Carried through so the page knows not to offer a curve it cannot
       // fetch: a derived gate has no CHS current station, and resolving its

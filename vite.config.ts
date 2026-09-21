@@ -5,6 +5,7 @@ import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 import { loadCatalogue } from './src/lib/catalogue'
+import { placePaths, placeTree } from './src/lib/places'
 import { buildSitemaps } from './src/lib/sitemap'
 
 const catalogue = loadCatalogue()
@@ -12,6 +13,12 @@ const catalogue = loadCatalogue()
 const stationPages = catalogue.map((s) => ({
   path: `/${s.kind === 'tide' ? 'tides' : 'currents'}/${s.slug}/`,
 }))
+// The browse index's country and subdivision pages. Parameterised like the
+// station pages, so listed for the same reason — and derived from the same
+// catalogue the routes read, so the list cannot disagree with what the pages
+// link to.
+const PLACE_PATHS = placePaths('tide', placeTree(catalogue.filter((s) => s.kind === 'tide')))
+const placePages = PLACE_PATHS.map((path) => ({ path }))
 // Comparison pages are parameterised routes too, so they need listing here for
 // the same reason the stations do. `src/lib/compare.ts` parses the same
 // frontmatter with import.meta.glob, which does not exist in this file's Node
@@ -24,7 +31,7 @@ const comparePages = COMPARE_PATHS.map((path) => ({ path }))
 
 // Written straight into public/ so Vite's static copy ships them as
 // .output/public/sitemap*.xml — same mechanism as the old hand-written file.
-for (const [name, xml] of Object.entries(buildSitemaps(catalogue, COMPARE_PATHS))) {
+for (const [name, xml] of Object.entries(buildSitemaps(catalogue, [...COMPARE_PATHS, ...PLACE_PATHS]))) {
   writeFileSync(`./public/${name}`, xml)
 }
 
@@ -58,15 +65,16 @@ export default defineConfig({
       // in @tanstack/start-plugin-core) validates `prerender` against a schema
       // with no `pages` field, so nesting it there is silently dropped and the
       // build still reports success while emitting zero station pages.
-      pages: [...stationPages, ...comparePages],
+      pages: [...stationPages, ...comparePages, ...placePages],
       prerender: {
         enabled: true,
         autoSubfolderIndex: true,
         // Parameterised routes are excluded from discovery, so without `pages`
         // above the build emits zero station pages and still reports success.
-        // The browse index links to every station and would now let crawlLinks
-        // find them, but `pages` stays: discovery via one page is a single point
-        // of failure for the whole corpus.
+        // The browse index reaches every station through its country and
+        // subdivision pages and would now let crawlLinks find them, but `pages`
+        // stays: discovery through one chain of pages is a single point of
+        // failure for the whole corpus.
         autoStaticPathsDiscovery: true,
         crawlLinks: true,
         concurrency: 14,
