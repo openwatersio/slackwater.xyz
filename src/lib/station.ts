@@ -15,7 +15,14 @@ interface StationIdentity {
   latitude: number
   longitude: number
   timezone: string
+  /** The water this station sits in — "Hudson River", "Boundary Pass". */
   region?: string
+  /**
+   * The jurisdiction it sits in, spelled out: "Hokkaido", "British Columbia",
+   * "ME". Read only to head a group on a browse page whose own title does not
+   * already name it; `region` is what a station page says.
+   */
+  area?: string
   /** The country the station sits in, as its provider names it. */
   country?: string
   /**

@@ -41,6 +41,17 @@ const toRow = (s: Pick<Station, 'slug' | 'name' | 'region'>): StationRow => ({
   ...(s.region ? { region: s.region } : {}),
 })
 
+/**
+ * The same row, headed by jurisdiction where the water does not name itself.
+ *
+ * A page that spans jurisdictions wants them as headings: Japan's 198 stations
+ * have no other structure, and a US state code still tells a reader something
+ * on the worldwide list. A page already titled for one jurisdiction does not —
+ * see the subdivision branch below.
+ */
+const toAreaRow = (s: Pick<Station, 'slug' | 'name' | 'region' | 'area'>): StationRow =>
+  toRow({ ...s, region: s.region ?? s.area })
+
 const byName = (a: StationRow, b: StationRow) => a.name.localeCompare(b.name)
 
 /**
@@ -155,7 +166,7 @@ export const placeIndex = createServerFn({ method: 'GET' })
           name: s.name,
           count: s.count,
         })),
-        rows: rows.map(toRow).sort(byName),
+        rows: rows.map(toAreaRow).sort(byName),
         count: node.count,
       }
     }
@@ -169,14 +180,14 @@ export const placeIndex = createServerFn({ method: 'GET' })
       name: `${sub.name}, ${node.name}`,
       up: { href: placePath(kind, node.slug), label: node.name },
       places: [],
-      // `region` drops out where it only repeats the subdivision this page is
-      // already named for: every US provider row carries the state code in
-      // both, and grouping 167 stations under one heading saying "WA" on the
-      // WA page is furniture around nothing. A curated water context — the
-      // ones that read "Hudson River" — is different, and stays.
+      // Water headings only. The jurisdiction is the page's own title, so
+      // repeating it says nothing — and the provider rows near a border carry
+      // the neighbouring one, which on a page titled "BC, Canada" reads as a
+      // contradiction rather than a heading. `area` is dropped here for that
+      // reason; `region` is the water and stays.
       rows: placed
         .filter(({ at }) => at!.state?.slug === state)
-        .map(({ s }) => (s.region === s.state ? toRow({ ...s, region: undefined }) : toRow(s)))
+        .map(({ s }) => toRow(s))
         .sort(byName),
       count: sub.count,
     }

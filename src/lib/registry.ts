@@ -7,8 +7,23 @@
 // until this existed.
 import registry from '@openwaters/station-metadata/data/registry.json' with { type: 'json' }
 import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type: 'json' }
+import { stationsById } from '@neaps/tide-database'
 import tzLookup from 'tz-lookup'
 import type { ChsStation, Kind } from './station'
+
+/**
+ * The province a curated record sits in, as the database publishes it.
+ *
+ * The registry's own ids are in the database — it carries these 35 identity-
+ * only records alongside the provider ones — so `CA-BC` is read rather than
+ * inferred. A record the database does not name gets no province at all: an
+ * invented one puts a station under the wrong heading on a page that exists
+ * to say where things are.
+ */
+function province(id: string): string | undefined {
+  const code = String((stationsById.get(id) as { region_code?: string } | undefined)?.region_code ?? '')
+  return code.startsWith('CA-') ? code.slice(3) : undefined
+}
 
 interface RegistryEntry {
   name: string
@@ -84,19 +99,18 @@ export function chsStations(kind: Kind): ChsStation[] {
     // means the registry and the slug table disagree about what exists.
     if (!slug) throw new Error(`registry: no published slug for CHS ${kind} station ${id}`)
     const [latitude, longitude] = entry.position
+    const state = province(id)
     out.push({
       id, kind, slug, source: 'chs',
       name: entry.name,
       ...(entry.context ? { region: entry.context } : {}),
-      // Every CHS station is Canadian by definition of the provider. The
-      // registry publishes no subdivision, but the query this page competes
-      // for is "tides victoria bc", so the province has to be in the title.
-      // ponytail: west of the Rockies and south of 60° is British Columbia for
-      // every station in this curated set; the unified station database
-      // supplies a real region_code and retires this line.
+      // Every CHS station is Canadian by definition of the provider, and the
+      // database carries all 35 of these curated records with a real
+      // `region_code` — so the province a page competes for ("tides victoria
+      // bc") is read rather than guessed from the position.
       country: 'Canada',
       continent: 'Americas',
-      ...(entry.position[1] < -114 && entry.position[0] < 60 ? { state: 'BC' } : {}),
+      ...(state ? { state } : {}),
       // Carried through so the page knows not to offer a curve it cannot
       // fetch: a derived gate has no CHS current station, and resolving its
       // position would land on real water 47 km away down another inlet.

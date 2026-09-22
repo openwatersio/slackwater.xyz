@@ -4,6 +4,9 @@ import { loadCatalogue } from './catalogue'
 import { predictSeries } from './predict'
 import { nearby } from './nearby'
 
+/** The ten provinces and three territories, as ISO 3166-2 spells their codes. */
+const CANADA = new Set(['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT'])
+
 describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
@@ -106,8 +109,11 @@ describe('loadCatalogue', () => {
     // NOAA publishes 86 of its tide stations all-caps ("ALBANY"); issue #31.
     const albany = all.find((s) => s.id === 'noaa/8518995')
     expect(albany?.name).toBe('Albany')
+    // The database splits a provider's comma-joined name into the place and
+    // the water it is in, so the qualifier is on the region rather than lost.
     const turkey = all.find((s) => s.id === 'noaa/8518962')
-    expect(turkey?.name).toBe('Turkey Point, Hudson River')
+    expect(turkey?.name).toBe('Turkey Point')
+    expect(turkey?.region).toBe('Hudson River')
   })
 
   it('applies station-metadata corrections to provider stations', () => {
@@ -121,35 +127,38 @@ describe('loadCatalogue', () => {
     expect(bp?.region).toBe('Saturna & Patos Islands')
   })
 
-  it('places a station in a country, and a US one in its state', () => {
-    // `state` is the provider's own subdivision code, which is a two-letter one
-    // only where the provider publishes one. Canadian rows carry GeoNames
-    // numerics ("02") — a heading reading "02" is worse than no heading, so
-    // they get no state at all rather than a code no reader can place.
+  it('places a station in a country, and in its subdivision', () => {
+    // `state` is an ISO 3166-2 subdivision the database vouched for, which it
+    // publishes for the United States and Canada and nowhere else.
     const seattle = all.find((s) => s.kind === 'tide' && s.slug === 'seattle')
     expect(seattle?.country).toBe('United States')
     expect(seattle?.state).toBe('WA')
 
     const canadian = all.find((s) => s.kind === 'tide' && s.slug === 'jim-creek')
     expect(canadian?.country).toBe('Canada')
-    expect(canadian?.state).toBeUndefined()
+    expect(canadian?.state).toBe('BC')
 
     // A few Canadian rows carry a stray US code ("MI" on the Ontario side of
-    // the Detroit River). A state that contradicts the country is no state.
-    const stray = all.find((s) => s.source === 'bundled' && s.country === 'Canada' && s.state !== undefined)
-    expect(stray).toBeUndefined()
+    // the Detroit River). The code has to agree with the row's own country, so
+    // a contradicting one is no state — and the USPS fallback that fills in
+    // where the gazetteer stayed silent never applies outside the US.
+    const strays = all.filter(
+      (s) => s.country === 'Canada' && s.state !== undefined && !CANADA.has(s.state),
+    )
+    expect(strays.map((s) => `${s.id}:${s.state}`)).toEqual([])
 
     // The NOAA current bundle carries neither field, so the country is the one
     // fact the corpus itself establishes.
     const pass = all.find((s) => s.kind === 'current' && s.id === 'noaa/PUG1701')
     expect(pass?.country).toBe('United States')
 
-    // A CHS port on this coast is in British Columbia; one on the other coast
-    // gets no province rather than a wrong one.
+    // A curated CHS record is in the database too, so its province is read
+    // rather than inferred from which side of the Rockies it falls on — which
+    // is how the one in Nova Scotia used to get no province at all.
     const victoria = all.find((s) => s.id === 'chs-victoria')
     expect(victoria?.state).toBe('BC')
     const brasdor = all.find((s) => s.id === 'chs-great-bras-dor')
-    expect(brasdor?.state).toBeUndefined()
+    expect(brasdor?.state).toBe('NS')
 
     // CHS identity comes from the registry, which publishes no country field.
     const chs = all.find((s) => s.source === 'chs')

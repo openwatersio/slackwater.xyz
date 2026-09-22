@@ -24,12 +24,14 @@ const isPlace = (region: string) => !/^\d+$/.test(region)
  * current station scrolled past two dozen Canadian headings to reach the
  * site's entire bulk under a heading that isn't a place.
  *
- * A quarter is the line: below it, region data is too thin to be worth the
- * extra furniture and the page stays one flat list (currents, at 2.8%
- * placed); at or above it, region carries enough of the corpus that
- * grouping earns its place (tides, at 95.9% placed).
+ * Half is the line, and it is the same guarantee said as a threshold: group
+ * and `Elsewhere` can never hold more of the page than the real headings do.
+ * Below it a page stays one flat list — the current index at 2.8% placed,
+ * Alaska at 49%, where 283 of 559 stations would otherwise pile up under a
+ * heading that isn't a place. Above it the water names enough of the page to
+ * be worth reading — Japan at 99%, Florida at 63%.
  */
-const PLACED_SHARE_TO_GROUP = 0.25
+const PLACED_SHARE_TO_GROUP = 0.5
 
 function group(rows: StationRow[]): [string, StationRow[]][] {
   const by = new Map<string, StationRow[]>()

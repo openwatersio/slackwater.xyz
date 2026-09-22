@@ -28,6 +28,9 @@
   <url><loc>https://slackwater.xyz/stations/tides/british-indian-ocean-territory/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/cameroon/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/canada/</loc></url>
+  <url><loc>https://slackwater.xyz/stations/tides/canada/bc/</loc></url>
+  <url><loc>https://slackwater.xyz/stations/tides/canada/on/</loc></url>
+  <url><loc>https://slackwater.xyz/stations/tides/canada/qc/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/cape-verde/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/cayman-islands/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/chile/</loc></url>
@@ -129,24 +132,20 @@
   <url><loc>https://slackwater.xyz/stations/tides/united-states/al/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/ca/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/ct/</loc></url>
-  <url><loc>https://slackwater.xyz/stations/tides/united-states/dc/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/de/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/fl/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/ga/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/hi/</loc></url>
-  <url><loc>https://slackwater.xyz/stations/tides/united-states/il/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/la/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/ma/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/md/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/me/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/mi/</loc></url>
-  <url><loc>https://slackwater.xyz/stations/tides/united-states/mn/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/ms/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/nc/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/nh/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/nj/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/ny/</loc></url>
-  <url><loc>https://slackwater.xyz/stations/tides/united-states/oh/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/or/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/pa/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/ri/</loc></url>
@@ -154,7 +153,6 @@
   <url><loc>https://slackwater.xyz/stations/tides/united-states/tx/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/va/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/united-states/wa/</loc></url>
-  <url><loc>https://slackwater.xyz/stations/tides/united-states/wi/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/vanuatu/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/venezuela/</loc></url>
   <url><loc>https://slackwater.xyz/stations/tides/vietnam/</loc></url>

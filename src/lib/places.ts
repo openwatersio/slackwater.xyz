@@ -1,23 +1,26 @@
 import type { Kind, Station } from './station'
 
 /**
- * A country holds its stations on one page until it reaches this many, past
- * which its subdivisions become pages of their own.
+ * A subdivision earns a page of its own once it holds more stations than this.
  *
- * One rule rather than a rule and an exception: the United States is the only
- * country over the line (3,164 tide stations) and the next one down is Japan
- * at 198, so anywhere between those two picks out the same country. The line
- * is drawn at what a page should carry rather than at what today's corpus
- * happens to need, because #17 and slackwater-ios#229 both grow it.
+ * The split follows the data rather than a size: a country splits where the
+ * database vouches for ISO 3166-2 codes, which is the United States and
+ * Canada and nowhere else — `region_code` covers 71% of the database and no
+ * third country. So this is not the rule that decides who splits, only which
+ * of a splitting country's subdivisions is worth a page: Ontario at 46 is,
+ * Nunavut at 1 is not, and one station is better found on its country's page
+ * than alone under a heading.
  *
- * The leaf pages this mints are allowed past it — Alaska is 559 stations,
- * about 20 KB gzipped — because a subdivision is as far as the data goes. A
- * third level would need a locality the catalogue does not carry.
+ * A subdivision below the line keeps its stations on the country page, where
+ * the region heading still names it — nothing is dropped either way; see
+ * `stationPlace`.
+ *
+ * The pages this mints have no ceiling of their own — Florida is 529 stations,
+ * about 20 KB gzipped — because a subdivision is as far as the database's
+ * geography goes. A third level would need a locality, and 89% coverage with
+ * half of it naming a single station is not a level.
  */
-const SPLIT_COUNTRY_ABOVE = 500
-
-/** A country needs this many subdivisions before splitting improves anything. */
-const SPLIT_INTO_AT_LEAST = 2
+const PAGE_WORTH_MINTING = 5
 
 export interface Place {
   /** The URL segment. */
@@ -77,8 +80,8 @@ const byName = (a: Place, b: Place) => a.name.localeCompare(b.name)
  * Built from `country` and `state` rather than `region`: `region` is the water
  * a station sits in — "Hudson River", "Boundary Pass" — which is the right
  * heading inside a page and the wrong thing to route on, being a long tail
- * where most values name a single station. `state` is only ever a subdivision
- * code the catalogue vouched for; see `SUBDIVISION` in `catalogue.ts`.
+ * where most values name a single station. `state` is only ever an ISO 3166-2
+ * subdivision the database vouched for; see `subdivision` in `catalogue.ts`.
  */
 export function placeTree(stations: Station[]): CountryPlace[] {
   const byCountry = new Map<string, Station[]>()
@@ -92,15 +95,15 @@ export function placeTree(stations: Station[]): CountryPlace[] {
   for (const [name, list] of byCountry) {
     const states = new Map<string, number>()
     for (const s of list) if (s.state) states.set(s.state, (states.get(s.state) ?? 0) + 1)
-    const split = list.length > SPLIT_COUNTRY_ABOVE && states.size >= SPLIT_INTO_AT_LEAST
     out.push({
       slug: slugify(name),
       name,
       count: list.length,
       continent: list.find((s) => s.continent)?.continent ?? UNPLACED,
-      states: split
-        ? [...states].map(([code, count]) => ({ slug: slugify(code), name: code, count })).sort(byName)
-        : [],
+      states: [...states]
+        .filter(([, count]) => count > PAGE_WORTH_MINTING)
+        .map(([code, count]) => ({ slug: slugify(code), name: code, count }))
+        .sort(byName),
     })
   }
   return out.sort(byName)
