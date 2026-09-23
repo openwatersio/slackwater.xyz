@@ -20,6 +20,12 @@ export const Route = createFileRoute('/learn/tides')({
       },
       { property: 'og:url', content: CANONICAL },
       { property: 'og:title', content: 'How the Moon makes two high tides' },
+      { property: 'og:image', content: 'https://slackwater.xyz/og-tides.png' },
+      {
+        property: 'og:image:alt',
+        content:
+          'Earth and the Moon with ocean bulges on both sides, illustrating how the Moon makes two high tides.',
+      },
     ],
   }),
   component: TidesExplainer,

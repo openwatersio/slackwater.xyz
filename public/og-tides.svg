@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#5888a8" stroke-opacity=".08"/>
+    </pattern>
+    <radialGradient id="earth" cx="38%" cy="32%" r="70%">
+      <stop offset="0" stop-color="#0d3562"/>
+      <stop offset="1" stop-color="#00183c"/>
+    </radialGradient>
+    <radialGradient id="moon" cx="35%" cy="30%" r="75%">
+      <stop offset="0" stop-color="#fff1bd"/>
+      <stop offset="1" stop-color="#e1bd68"/>
+    </radialGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="#00121f"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <path d="M0 525C140 492 246 550 390 522s250-2 364 20 274 20 446-18v106H0Z" fill="#051a2e"/>
+
+  <g font-family="Roboto Mono">
+    <text x="72" y="78" fill="#88b868" font-size="22" font-weight="700" letter-spacing="3">SLACKWATER · VISUAL GUIDE</text>
+    <text x="72" y="146" fill="#fcfcfc" font-size="50" font-weight="700">
+      <tspan x="72" dy="0">How can the Moon</tspan>
+      <tspan x="72" dy="59">make a high tide</tspan>
+      <tspan x="72" dy="59">on both sides</tspan>
+      <tspan x="72" dy="59">of Earth?</tspan>
+    </text>
+    <text x="72" y="423" fill="#9bbbd0" font-size="23">
+      <tspan x="72" dy="0">Follow the Moon’s pull, Earth’s wobble,</tspan>
+      <tspan x="72" dy="38">and the far-side bulge.</tspan>
+    </text>
+    <text x="72" y="557" fill="#e4f0e4" font-size="22" font-weight="700">slackwater.xyz/learn/tides</text>
+  </g>
+
+  <g>
+    <line x1="632" y1="321" x2="1141" y2="321" stroke="#9bbbd0" stroke-opacity=".3" stroke-width="2" stroke-dasharray="5 10"/>
+    <ellipse cx="842" cy="321" rx="194" ry="148" fill="#0a2140" opacity=".8" filter="url(#glow)"/>
+    <ellipse cx="842" cy="321" rx="181" ry="135" fill="#0a2140" stroke="#b7d0df" stroke-width="4"/>
+    <circle cx="842" cy="321" r="119" fill="url(#earth)" stroke="#e4f0e4" stroke-opacity=".6" stroke-width="3"/>
+    <path d="M770 257c25-31 57-46 96-43 28 2 55 17 75 39-27 7-39 20-56 40-20 24-55 26-81 8-14-10-24-25-34-44Z" fill="#24527c" opacity=".72"/>
+    <path d="M778 380c25-21 53-23 77-11 23 11 46 10 67-3-13 38-42 65-80 71-27-6-49-26-64-57Z" fill="#24527c" opacity=".65"/>
+
+    <circle cx="898" cy="321" r="7" fill="#e4f0e4"/>
+    <circle cx="1092" cy="321" r="52" fill="#f0d890" opacity=".18" filter="url(#glow)"/>
+    <circle cx="1092" cy="321" r="45" fill="url(#moon)"/>
+    <circle cx="1078" cy="308" r="8" fill="#b99353" opacity=".32"/>
+    <circle cx="1106" cy="337" r="12" fill="#b99353" opacity=".25"/>
+
+    <g fill="#9bbbd0" font-family="Roboto Mono" font-size="18" font-weight="700" letter-spacing="1.2">
+      <text x="624" y="124">FAR-SIDE HIGH TIDE</text>
+      <text x="961" y="174">NEAR-SIDE HIGH TIDE</text>
+      <text x="1057" y="399">MOON</text>
+      <text x="802" y="500">EARTH</text>
+    </g>
+    <g fill="none" stroke="#5888a8" stroke-width="2">
+      <path d="M709 137v34l-41 51"/>
+      <path d="M1040 187v36l-31 37"/>
+      <path d="M898 340v93"/>
+    </g>
+    <text x="866" y="461" fill="#e4f0e4" font-family="Roboto Mono" font-size="18" font-weight="700">BARYCENTRE</text>
+
+    <g stroke="#9bbbd0" stroke-opacity=".55" stroke-width="2" fill="none">
+      <path d="M660 529h363"/>
+      <path d="M660 517v24M1023 517v24"/>
+      <path d="M669 529l12-6v12Zm345 0-12-6v12Z" fill="#9bbbd0" stroke="none"/>
+    </g>
+    <text x="736" y="568" fill="#5888a8" font-family="Roboto Mono" font-size="17" letter-spacing="1">TWO BULGES · ONE SHARED ORBIT</text>
+  </g>
+</svg>
