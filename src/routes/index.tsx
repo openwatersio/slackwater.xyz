@@ -144,6 +144,12 @@ function Home() {
             <Cta />
           </div>
           <p className="mt-4 text-sm text-sw-steel">Free. Open source. No account, no ads.</p>
+          <a
+            href="/learn/tides/"
+            className="mt-5 inline-block font-medium text-sw-foam underline underline-offset-4 transition hover:text-sw-paper"
+          >
+            Learn how tides work <span aria-hidden>→</span>
+          </a>
         </div>
 
         {/* The recording runs taller than the hero, so it is clipped and faded
