@@ -22,7 +22,7 @@ const stationLoc = (s: Station) => ORIGIN + stationPath(s.kind, s.slug)
 export function buildSitemaps(stations: Station[], extraStatic: string[] = []): Record<string, string> {
   const tides = stations.filter((s) => s.kind === 'tide').map(stationLoc)
   const currents = stations.filter((s) => s.kind === 'current').map(stationLoc)
-  const staticPages = ['/', '/support/', '/privacy/', '/stations/', '/stations/tides/', '/stations/currents/', ...extraStatic].map(
+  const staticPages = ['/', '/support/', '/privacy/', '/learn/tides/', '/stations/', '/stations/tides/', '/stations/currents/', ...extraStatic].map(
     (p) => `${ORIGIN}${p}`,
   )
 

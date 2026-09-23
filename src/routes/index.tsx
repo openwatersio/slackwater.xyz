@@ -348,6 +348,10 @@ function Home() {
             Stations
           </a>
           .{' '}
+          <a href="/learn/tides/" className="underline underline-offset-4">
+            How tides work
+          </a>
+          .{' '}
           <a href="/compare/best-tide-and-current-apps-iphone/" className="underline underline-offset-4">
             Compare
           </a>
