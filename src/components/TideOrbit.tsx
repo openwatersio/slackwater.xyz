@@ -33,6 +33,10 @@ export function tideOrbitGeometry(reveal: number) {
   }
 }
 
+export function wobbleGeometry(referencePoint: 'center' | 'barycenter') {
+  return tideOrbitGeometry(referencePoint === 'barycenter' ? 1 : 0)
+}
+
 function waterPath(earthX: number, nearBulge: number, farBulge: number) {
   const left = earthX - EARTH_RADIUS - farBulge
   const right = earthX + EARTH_RADIUS + nearBulge
@@ -97,18 +101,51 @@ function ArrowMarker({ id }: { id: string }) {
 function IntroAnimation({ stage }: { stage: 'pull' | 'wobble' }) {
   const motion = useOrbitMotion()
   const id = useId().replaceAll(':', '')
+  const [referencePoint, setReferencePoint] = useState<'center' | 'barycenter'>('barycenter')
   const pull = stage === 'pull'
-  const model = tideOrbitGeometry(pull ? 0 : 1)
-  const title = pull ? 'The Moon pulling the nearest water' : 'Earth orbiting an off-centre barycentre'
+  const barycenter = referencePoint === 'barycenter'
+  const model = pull ? tideOrbitGeometry(0) : wobbleGeometry(referencePoint)
+  const title = pull ? 'The Moon pulling the nearest water' : 'Center and barycenter compared'
   const caption = pull
     ? 'For this first view, Earth is held still and the far-side response is hidden.'
-    : 'The white dot is the barycentre. Earth’s centre follows the small dotted circle around it.'
+    : barycenter
+      ? 'Around the barycenter, Earth’s center follows the dotted circle and the far-side water line moves outward.'
+      : 'Around Earth’s center, the planet stays fixed and the water line remains even.'
 
   return (
     <figure className="m-0">
       <div className="overflow-hidden rounded-3xl border border-white/10 bg-sw-canvas">
-        <div className="flex items-start justify-between gap-4 px-5 pt-5 sm:px-6 sm:pt-6">
-          <p className="font-semibold text-sw-foam">{pull ? 'Hold Earth still' : 'Let Earth wobble'}</p>
+        <div className="flex flex-wrap items-center justify-between gap-4 px-5 pt-5 sm:px-6 sm:pt-6">
+          {pull ? (
+            <p className="font-semibold text-sw-foam">Hold Earth still</p>
+          ) : (
+            <div
+              className="inline-flex rounded-full border border-white/15 bg-sw-page/40 p-1 text-sm"
+              role="group"
+              aria-label="Earth orbit reference point"
+            >
+              <button
+                type="button"
+                aria-pressed={!barycenter}
+                onClick={() => setReferencePoint('center')}
+                className={`rounded-full px-3 py-1.5 transition ${
+                  barycenter ? 'text-sw-steel hover:text-sw-foam' : 'bg-sw-foam text-sw-page'
+                }`}
+              >
+                Center
+              </button>
+              <button
+                type="button"
+                aria-pressed={barycenter}
+                onClick={() => setReferencePoint('barycenter')}
+                className={`rounded-full px-3 py-1.5 transition ${
+                  barycenter ? 'bg-sw-foam text-sw-page' : 'text-sw-steel hover:text-sw-foam'
+                }`}
+              >
+                Barycenter
+              </button>
+            </div>
+          )}
           <MotionButton running={motion.running} toggle={motion.toggle} />
         </div>
         <svg
@@ -133,7 +170,7 @@ function IntroAnimation({ stage }: { stage: 'pull' | 'wobble' }) {
             strokeDasharray="3 10"
             className="text-white/10"
           />
-          {!pull && (
+          {!pull && barycenter && (
             <circle
               r={model.earthOrbit}
               fill="none"
@@ -155,6 +192,13 @@ function IntroAnimation({ stage }: { stage: 'pull' | 'wobble' }) {
             {pull && (
               <path
                 d={waterPath(model.earthX, model.nearBulge, 0)}
+                fill="currentColor"
+                className="text-sw-canvas-glow"
+              />
+            )}
+            {!pull && (
+              <path
+                d={waterPath(model.earthX, 8, 8 + model.farBulge)}
                 fill="currentColor"
                 className="text-sw-canvas-glow"
               />
@@ -186,7 +230,16 @@ function IntroAnimation({ stage }: { stage: 'pull' | 'wobble' }) {
                 />
               </>
             ) : (
-              <circle cx={model.earthX} r="5" fill="currentColor" className="text-sw-foam" />
+              <>
+                <path
+                  d={waterPath(model.earthX, 8, 8 + model.farBulge)}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  className="text-sw-foam/70"
+                />
+                <circle cx={model.earthX} r="5" fill="currentColor" className="text-sw-foam" />
+              </>
             )}
             <circle
               cx={model.moonX}
@@ -203,7 +256,7 @@ function IntroAnimation({ stage }: { stage: 'pull' | 'wobble' }) {
               <circle r="9" fill="currentColor" className="text-sw-page" />
               <circle r="5" fill="currentColor" className="text-sw-foam" />
               <text x="16" y="-12" fill="currentColor" fontSize="14" className="text-sw-steel">
-                Barycentre
+                {barycenter ? 'Barycenter' : 'Center'}
               </text>
             </g>
           )}
