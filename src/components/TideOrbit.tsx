@@ -4,6 +4,23 @@ const EARTH_RADIUS = 88
 const EARTH_ORBIT = 62
 const MOON_ORBIT = 240
 const BULGE = 24
+const EARTH_MASS = 5.9724
+const MOON_MASS = 0.07346
+const MEAN_DISTANCE_KM = 384_400
+const SIDEREAL_PERIOD_DAYS = 27.3217
+
+export function earthMoonMeasurements() {
+  const earthToBarycentreKm =
+    (MEAN_DISTANCE_KM * MOON_MASS) / (EARTH_MASS + MOON_MASS)
+  const periodSeconds = SIDEREAL_PERIOD_DAYS * 86_400
+
+  return {
+    earthToMoonKm: MEAN_DISTANCE_KM,
+    earthToBarycentreKm,
+    barycentreToMoonKm: MEAN_DISTANCE_KM - earthToBarycentreKm,
+    earthSpeedMps: (2 * Math.PI * earthToBarycentreKm * 1_000) / periodSeconds,
+  }
+}
 
 export function tideOrbitGeometry(reveal: number) {
   const amount = Math.max(0, Math.min(1, reveal))
@@ -351,6 +368,261 @@ export function TideOrbit() {
       <figcaption className="mt-3 text-sm leading-relaxed text-sw-steel">
         The three arrows show the Moon&rsquo;s pull: strongest on the near side, weakest on the far
         side. Sizes, distances, and the water&rsquo;s shape are exaggerated.
+      </figcaption>
+    </figure>
+  )
+}
+
+function Dimension({
+  x1,
+  x2,
+  y,
+  label,
+}: {
+  x1: number
+  x2: number
+  y: number
+  label: string
+}) {
+  return (
+    <g>
+      <line x1={x1} x2={x2} y1={y} y2={y} stroke="currentColor" />
+      <line x1={x1} x2={x1} y1={y - 7} y2={y + 7} stroke="currentColor" />
+      <line x1={x2} x2={x2} y1={y - 7} y2={y + 7} stroke="currentColor" />
+      <text
+        x={(x1 + x2) / 2}
+        y={y - 10}
+        textAnchor="middle"
+        fill="currentColor"
+        fontSize="13"
+        letterSpacing="0.04em"
+      >
+        {label}
+      </text>
+    </g>
+  )
+}
+
+export function TideBlueprint() {
+  const values = earthMoonMeasurements()
+  const earthToBarycentre = Math.round(values.earthToBarycentreKm).toLocaleString('en-US')
+  const barycentreToMoon = Math.round(values.barycentreToMoonKm).toLocaleString('en-US')
+  const earthSpeed = values.earthSpeedMps.toFixed(1)
+
+  return (
+    <figure className="m-0 min-w-0 max-w-full">
+      <div className="max-w-full overflow-hidden rounded-3xl border border-sw-foam/20 bg-sw-canvas shadow-2xl shadow-black/20">
+        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-sw-foam/15 px-5 py-4 sm:px-7">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-[0.18em] text-sw-steel">
+              Plate 01 · Mean Earth–Moon geometry
+            </p>
+            <p className="mt-1 font-semibold text-sw-paper">Section through both centres</p>
+          </div>
+          <p className="font-mono text-xs uppercase tracking-[0.12em] text-sw-steel">
+            Distance compressed · bodies enlarged
+          </p>
+        </div>
+
+        <div
+          className="max-w-full overflow-x-auto"
+          tabIndex={0}
+          role="region"
+          aria-label="Scrollable Earth and Moon dimension drawing"
+        >
+          <svg
+            viewBox="0 0 1120 620"
+            role="img"
+            aria-labelledby="blueprint-title blueprint-description"
+            className="block w-full min-w-[760px] font-mono text-sw-foam"
+          >
+            <title id="blueprint-title">Dimensions of the Earth–Moon system</title>
+            <desc id="blueprint-description">
+              A blueprint-style section through Earth and Moon, naming their centres, the
+              barycentre, diameters, and mean distances.
+            </desc>
+            <defs>
+              <pattern id="blueprint-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+                <path
+                  d="M 24 0 L 0 0 0 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="0.5"
+                  className="text-sw-foam/10"
+                />
+              </pattern>
+            </defs>
+
+            <rect width="1120" height="620" fill="url(#blueprint-grid)" />
+
+            <g fill="none" stroke="currentColor" className="text-sw-foam/40">
+              <line x1="72" x2="1056" y1="302" y2="302" strokeDasharray="8 8" />
+              <line x1="240" x2="240" y1="142" y2="478" strokeDasharray="4 8" />
+              <line x1="321" x2="321" y1="142" y2="478" strokeDasharray="4 8" />
+              <line x1="980" x2="980" y1="142" y2="478" strokeDasharray="4 8" />
+            </g>
+
+            <g fill="none" stroke="currentColor" className="text-sw-foam">
+              <Dimension x1={240} x2={980} y={62} label="EARTH CENTRE — MOON CENTRE  384,400 km" />
+              <Dimension
+                x1={321}
+                x2={980}
+                y={108}
+                label={`BARYCENTRE — MOON CENTRE  ${barycentreToMoon} km`}
+              />
+              <Dimension x1={130} x2={350} y={500} label="EARTH DIAMETER  12,742 km" />
+              <Dimension
+                x1={240}
+                x2={321}
+                y={550}
+                label={`CENTRE — BARYCENTRE  ${earthToBarycentre} km`}
+              />
+            </g>
+
+            <g>
+              <circle
+                cx="240"
+                cy="302"
+                r="110"
+                fill="var(--color-sw-navy-deep)"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="text-sw-foam"
+              />
+              <circle
+                cx="240"
+                cy="302"
+                r="116"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="text-sw-foam/65"
+              />
+              <path
+                d="M 129 267 A 116 116 0 0 1 351 267"
+                fill="none"
+                stroke="currentColor"
+                strokeDasharray="3 6"
+                className="text-sw-foam/55"
+              />
+              <text x="240" y="171" textAnchor="middle" fill="currentColor" fontSize="18">
+                EARTH
+              </text>
+              <text x="105" y="225" textAnchor="end" fill="currentColor" fontSize="12">
+                OCEAN SURFACE
+              </text>
+              <line
+                x1="112"
+                x2="142"
+                y1="229"
+                y2="245"
+                stroke="currentColor"
+                className="text-sw-foam/70"
+              />
+            </g>
+
+            <g>
+              <circle cx="240" cy="302" r="5" fill="currentColor" />
+              <text x="240" y="331" textAnchor="middle" fill="currentColor" fontSize="12">
+                EARTH CENTRE
+              </text>
+              <circle cx="321" cy="302" r="9" fill="var(--color-sw-canvas)" />
+              <circle cx="321" cy="302" r="5" fill="currentColor" />
+              <text x="321" y="279" textAnchor="middle" fill="currentColor" fontSize="12">
+                BARYCENTRE
+              </text>
+              <path
+                d="M 321 354 L 350 383 L 378 383"
+                fill="none"
+                stroke="currentColor"
+                className="text-sw-foam/70"
+              />
+              <text x="386" y="388" fill="currentColor" fontSize="12">
+                1,700 km BELOW SURFACE
+              </text>
+            </g>
+
+            <g>
+              <path
+                d="M 570 288 l 12 28 12 -28 12 28 12 -28"
+                fill="var(--color-sw-canvas)"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <text x="600" y="344" textAnchor="middle" fill="currentColor" fontSize="11">
+                DISTANCE BREAK
+              </text>
+            </g>
+
+            <g>
+              <circle
+                cx="980"
+                cy="302"
+                r="45"
+                fill="var(--color-sw-navy-deep)"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <circle cx="980" cy="302" r="5" fill="currentColor" />
+              <text x="980" y="234" textAnchor="middle" fill="currentColor" fontSize="18">
+                MOON
+              </text>
+              <text x="980" y="373" textAnchor="middle" fill="currentColor" fontSize="12">
+                MOON CENTRE
+              </text>
+              <line x1="1048" x2="1048" y1="257" y2="347" stroke="currentColor" />
+              <line x1="1041" x2="1055" y1="257" y2="257" stroke="currentColor" />
+              <line x1="1041" x2="1055" y1="347" y2="347" stroke="currentColor" />
+              <text
+                x="1070"
+                y="302"
+                fill="currentColor"
+                fontSize="12"
+                textAnchor="middle"
+                transform="rotate(90 1070 302)"
+              >
+                3,475 km
+              </text>
+            </g>
+          </svg>
+        </div>
+
+        <div className="grid border-t border-sw-foam/15 sm:grid-cols-3">
+          <div className="px-5 py-5 sm:px-7">
+            <p className="font-mono text-xs uppercase tracking-[0.14em] text-sw-steel">
+              Earth&rsquo;s centre
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-sw-paper">{earthSpeed} m/s</p>
+            <p className="mt-1 text-sm text-sw-steel">44.8 km/h around the barycentre</p>
+          </div>
+          <div className="border-t border-sw-foam/15 px-5 py-5 sm:border-l sm:border-t-0 sm:px-7">
+            <p className="font-mono text-xs uppercase tracking-[0.14em] text-sw-steel">
+              Moon relative to Earth
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-sw-paper">1.022 km/s</p>
+            <p className="mt-1 text-sm text-sw-steel">Mean orbital speed</p>
+          </div>
+          <div className="border-t border-sw-foam/15 px-5 py-5 sm:border-l sm:border-t-0 sm:px-7">
+            <p className="font-mono text-xs uppercase tracking-[0.14em] text-sw-steel">
+              One shared orbit
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-sw-paper">27.3217 days</p>
+            <p className="mt-1 text-sm text-sw-steel">Relative to the distant stars</p>
+          </div>
+        </div>
+      </div>
+
+      <figcaption className="mt-4 grid gap-3 text-sm leading-relaxed text-sw-steel sm:grid-cols-2 sm:gap-8">
+        <p>
+          The barycentre follows from{' '}
+          <span className="font-mono text-sw-foam">r = d × Mₘ ÷ (Mₑ + Mₘ)</span>. At the mean
+          distance, Earth&rsquo;s centre is 4,671 km from it.
+        </p>
+        <p>
+          Earth&rsquo;s speed follows <span className="font-mono text-sw-foam">v = 2πr ÷ T</span>.
+          Over the elliptical orbit, the Moon&rsquo;s distance varies from 363,300 to 405,500 km and
+          its speed from 0.970 to 1.082 km/s.
+        </p>
       </figcaption>
     </figure>
   )

@@ -1,5 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { EarthWobbleAnimation, MoonPullAnimation, TideOrbit } from '#/components/TideOrbit'
+import {
+  EarthWobbleAnimation,
+  MoonPullAnimation,
+  TideBlueprint,
+  TideOrbit,
+} from '#/components/TideOrbit'
 
 const CANONICAL = 'https://slackwater.xyz/learn/tides/'
 
@@ -120,14 +125,40 @@ function TidesExplainer() {
           </p>
         </aside>
 
+        <section className="mt-20 sm:mt-28" aria-labelledby="numbers-heading">
+          <header className="mx-auto mb-10 max-w-3xl text-center">
+            <p className="text-sm font-medium uppercase tracking-[0.16em] text-sw-steel">
+              For the nerds
+            </p>
+            <h2
+              id="numbers-heading"
+              className="mt-3 text-3xl font-semibold tracking-tight text-sw-paper sm:text-4xl"
+            >
+              The numbers behind the picture
+            </h2>
+            <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-sw-foam">
+              These are mean values. The drawing compresses the enormous gap so Earth, the
+              barycentre, and the Moon can share one page.
+            </p>
+          </header>
+          <TideBlueprint />
+        </section>
+
         <footer className="mx-auto mt-20 max-w-3xl border-t border-white/10 pt-6 text-sm leading-relaxed text-sw-steel">
           <p>
-            Source:{' '}
+            Sources:{' '}
             <a
               href="https://www.tidesandcurrents.noaa.gov/restles3"
               className="underline underline-offset-4 hover:text-sw-foam"
             >
               NOAA, The Astronomical Tide-Producing Forces
+            </a>
+            , and the{' '}
+            <a
+              href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html"
+              className="underline underline-offset-4 hover:text-sw-foam"
+            >
+              NASA Moon Fact Sheet
             </a>
             . This first model assumes a smooth, water-covered Earth. Continents, depth, and
             friction are why real local tides are more complicated.

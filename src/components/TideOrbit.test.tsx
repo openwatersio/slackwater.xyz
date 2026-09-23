@@ -3,7 +3,9 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import {
   EarthWobbleAnimation,
   MoonPullAnimation,
+  TideBlueprint,
   TideOrbit,
+  earthMoonMeasurements,
   tideOrbitGeometry,
 } from './TideOrbit'
 
@@ -33,5 +35,20 @@ describe('TideOrbit', () => {
     expect(wobble).toContain('Earth orbiting an off-centre barycentre')
     expect(wobble).toContain('Barycentre')
     expect(wobble).not.toContain('type="range"')
+  })
+
+  it('derives the blueprint dimensions from the mean Earth–Moon system', () => {
+    const measurements = earthMoonMeasurements()
+
+    expect(measurements.earthToBarycentreKm).toBeCloseTo(4_671, 0)
+    expect(measurements.earthToBarycentreKm + measurements.barycentreToMoonKm).toBe(
+      measurements.earthToMoonKm,
+    )
+    expect(measurements.earthSpeedMps).toBeCloseTo(12.4, 1)
+
+    const html = renderToStaticMarkup(<TideBlueprint />)
+    expect(html).toContain('384,400 km')
+    expect(html).toContain('4,671 km')
+    expect(html).toContain('1.022 km/s')
   })
 })
