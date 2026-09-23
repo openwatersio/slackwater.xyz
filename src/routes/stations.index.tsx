@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { DirectoryNav } from '#/components/DirectoryNav'
+import { TidesExplainerCard } from '#/components/TidesExplainerCard'
 
 const CANONICAL = 'https://slackwater.xyz/stations/'
 const TITLE = 'Stations — Slackwater'
@@ -43,6 +44,9 @@ function Stations() {
           <p className="text-sw-steel">865 across the US and Canada.</p>
         </li>
       </ul>
+      <div className="mt-14">
+        <TidesExplainerCard />
+      </div>
     </main>
   )
 }

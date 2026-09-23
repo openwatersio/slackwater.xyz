@@ -40,4 +40,12 @@ describe('StationIndex', () => {
     const html = renderToStaticMarkup(<StationIndex kind="tide" rows={rowsFor('tide')} />)
     expect(html).toContain('<h2')
   })
+
+  it('promotes the tides guide on the tide index only', () => {
+    const tides = renderToStaticMarkup(<StationIndex kind="tide" rows={[]} />)
+    const currents = renderToStaticMarkup(<StationIndex kind="current" rows={[]} />)
+
+    expect(tides).toContain('Why does the Moon make two high tides?')
+    expect(currents).not.toContain('Why does the Moon make two high tides?')
+  })
 })

@@ -1,6 +1,7 @@
 import type { StationRow } from '#/lib/catalogue-server'
 import { stationPath, type Kind } from '#/lib/station'
 import { DirectoryNav } from './DirectoryNav'
+import { TidesExplainerCard } from './TidesExplainerCard'
 
 /** Stations with no region of their own, gathered at the end rather than dropped. */
 const UNPLACED = 'Elsewhere'
@@ -75,6 +76,11 @@ export function StationIndex({ kind, rows }: { kind: Kind; rows: StationRow[] })
         {rows.length.toLocaleString()} stations
         {kind === 'tide' ? ' worldwide' : ' across the US and Canada'}.
       </p>
+      {kind === 'tide' && (
+        <div className="mt-8 max-w-3xl">
+          <TidesExplainerCard />
+        </div>
+      )}
       {grouped ? (
         group(rows).map(([region, list]) => (
           <section key={region} className="mt-10">
