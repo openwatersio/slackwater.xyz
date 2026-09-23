@@ -134,9 +134,14 @@ describe('loadCatalogue', () => {
     expect(seattle?.country).toBe('United States')
     expect(seattle?.state).toBe('WA')
 
-    const canadian = all.find((s) => s.kind === 'tide' && s.slug === 'jim-creek')
+    // Well inland on Lake Ontario, deliberately. A station within sight of the
+    // border is a poor witness for "the database places this correctly": Jim
+    // Creek stood here until the database stopped reading a gauge's country
+    // off the agency that publishes it, and moved it from BC to Washington,
+    // which is where it is.
+    const canadian = all.find((s) => s.kind === 'tide' && s.slug === 'burlington-hamilton-on')
     expect(canadian?.country).toBe('Canada')
-    expect(canadian?.state).toBe('BC')
+    expect(canadian?.state).toBe('ON')
 
     // A few Canadian rows carry a stray US code ("MI" on the Ontario side of
     // the Detroit River). The code has to agree with the row's own country, so
