@@ -206,7 +206,7 @@ export function EarthWobbleAnimation() {
 }
 
 export function TideOrbit() {
-  const [reveal, setReveal] = useState(0)
+  const [reveal, setReveal] = useState(1)
   const motion = useOrbitMotion()
   const arrowId = `pull-${useId().replaceAll(':', '')}`
   const model = tideOrbitGeometry(reveal)

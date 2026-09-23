@@ -19,6 +19,7 @@ describe('TideOrbit', () => {
 
     const html = renderToStaticMarkup(<TideOrbit />)
     expect(html).toContain('type="range"')
+    expect(html).toContain('value="100"')
     expect(html).toContain('Reveal the shared orbit')
     expect(html).toContain('Pause motion')
   })
