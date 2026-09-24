@@ -10,15 +10,15 @@ const MEAN_DISTANCE_KM = 384_400
 const SIDEREAL_PERIOD_DAYS = 27.3217
 
 export function earthMoonMeasurements() {
-  const earthToBarycentreKm =
+  const earthToBarycenterKm =
     (MEAN_DISTANCE_KM * MOON_MASS) / (EARTH_MASS + MOON_MASS)
   const periodSeconds = SIDEREAL_PERIOD_DAYS * 86_400
 
   return {
     earthToMoonKm: MEAN_DISTANCE_KM,
-    earthToBarycentreKm,
-    barycentreToMoonKm: MEAN_DISTANCE_KM - earthToBarycentreKm,
-    earthSpeedMps: (2 * Math.PI * earthToBarycentreKm * 1_000) / periodSeconds,
+    earthToBarycenterKm,
+    barycenterToMoonKm: MEAN_DISTANCE_KM - earthToBarycenterKm,
+    earthSpeedMps: (2 * Math.PI * earthToBarycenterKm * 1_000) / periodSeconds,
   }
 }
 
@@ -99,10 +99,10 @@ function IntroAnimation({ stage }: { stage: 'pull' | 'wobble' }) {
   const id = useId().replaceAll(':', '')
   const pull = stage === 'pull'
   const model = tideOrbitGeometry(pull ? 0 : 1)
-  const title = pull ? 'The Moon pulling the nearest water' : 'Earth orbiting an off-centre barycentre'
+  const title = pull ? 'The Moon pulling the nearest water' : 'Earth orbiting an off-center barycenter'
   const caption = pull
     ? 'For this first view, Earth is held still and the far-side response is hidden.'
-    : 'The white dot is the barycentre. Earth’s centre follows the small dotted circle around it.'
+    : 'The white dot is the barycenter. Earth’s center follows the small dotted circle around it.'
 
   return (
     <figure className="m-0">
@@ -203,7 +203,7 @@ function IntroAnimation({ stage }: { stage: 'pull' | 'wobble' }) {
               <circle r="9" fill="currentColor" className="text-sw-page" />
               <circle r="5" fill="currentColor" className="text-sw-foam" />
               <text x="16" y="-12" fill="currentColor" fontSize="14" className="text-sw-steel">
-                Barycentre
+                Barycenter
               </text>
             </g>
           )}
@@ -239,7 +239,7 @@ export function TideOrbit() {
     ? 'Hold Earth still and the Moon draws the nearest water toward it. That explains the near-side bulge.'
     : shared
       ? 'Near water pulls ahead of Earth. Far water also falls toward the Moon, but Earth falls faster. Relative to Earth, both sides bulge outward.'
-      : 'Earth’s centre begins tracing a small circle around the barycentre. The second bulge appears as we stop treating Earth as fixed.'
+      : 'Earth’s center begins tracing a small circle around the barycenter. The second bulge appears as we stop treating Earth as fixed.'
 
   return (
     <figure className="m-0">
@@ -340,7 +340,7 @@ export function TideOrbit() {
             <circle r="9" fill="currentColor" className="text-sw-page" />
             <circle r="5" fill="currentColor" className="text-sw-foam" />
             <text x="16" y="-12" fill="currentColor" fontSize="14" className="text-sw-steel">
-              Barycentre
+              Barycenter
             </text>
           </g>
         </svg>
@@ -405,8 +405,8 @@ function Dimension({
 
 export function TideBlueprint() {
   const values = earthMoonMeasurements()
-  const earthToBarycentre = Math.round(values.earthToBarycentreKm).toLocaleString('en-US')
-  const barycentreToMoon = Math.round(values.barycentreToMoonKm).toLocaleString('en-US')
+  const earthToBarycenter = Math.round(values.earthToBarycenterKm).toLocaleString('en-US')
+  const barycenterToMoon = Math.round(values.barycenterToMoonKm).toLocaleString('en-US')
   const earthSpeed = values.earthSpeedMps.toFixed(1)
 
   return (
@@ -417,7 +417,7 @@ export function TideBlueprint() {
             <p className="font-mono text-xs uppercase tracking-[0.18em] text-sw-steel">
               Plate 01 · Mean Earth–Moon geometry
             </p>
-            <p className="mt-1 font-semibold text-sw-paper">Section through both centres</p>
+            <p className="mt-1 font-semibold text-sw-paper">Section through both centers</p>
           </div>
           <p className="font-mono text-xs uppercase tracking-[0.12em] text-sw-steel">
             Distance compressed · bodies enlarged
@@ -438,8 +438,8 @@ export function TideBlueprint() {
           >
             <title id="blueprint-title">Dimensions of the Earth–Moon system</title>
             <desc id="blueprint-description">
-              A blueprint-style section through Earth and Moon, naming their centres, the
-              barycentre, diameters, and mean distances.
+              A blueprint-style section through Earth and Moon, naming their centers, the
+              barycenter, diameters, and mean distances.
             </desc>
             <defs>
               <pattern id="blueprint-grid" width="24" height="24" patternUnits="userSpaceOnUse">
@@ -463,19 +463,19 @@ export function TideBlueprint() {
             </g>
 
             <g fill="none" stroke="currentColor" className="text-sw-foam">
-              <Dimension x1={240} x2={980} y={62} label="EARTH CENTRE — MOON CENTRE  384,400 km" />
+              <Dimension x1={240} x2={980} y={62} label="EARTH CENTER — MOON CENTER  384,400 km" />
               <Dimension
                 x1={321}
                 x2={980}
                 y={108}
-                label={`BARYCENTRE — MOON CENTRE  ${barycentreToMoon} km`}
+                label={`BARYCENTER — MOON CENTER  ${barycenterToMoon} km`}
               />
               <Dimension x1={130} x2={350} y={500} label="EARTH DIAMETER  12,742 km" />
               <Dimension
                 x1={240}
                 x2={321}
                 y={550}
-                label={`CENTRE — BARYCENTRE  ${earthToBarycentre} km`}
+                label={`CENTER — BARYCENTER  ${earthToBarycenter} km`}
               />
             </g>
 
@@ -524,12 +524,12 @@ export function TideBlueprint() {
             <g>
               <circle cx="240" cy="302" r="5" fill="currentColor" />
               <text x="240" y="331" textAnchor="middle" fill="currentColor" fontSize="12">
-                EARTH CENTRE
+                EARTH CENTER
               </text>
               <circle cx="321" cy="302" r="9" fill="var(--color-sw-canvas)" />
               <circle cx="321" cy="302" r="5" fill="currentColor" />
               <text x="321" y="279" textAnchor="middle" fill="currentColor" fontSize="12">
-                BARYCENTRE
+                BARYCENTER
               </text>
               <path
                 d="M 321 354 L 350 383 L 378 383"
@@ -568,7 +568,7 @@ export function TideBlueprint() {
                 MOON
               </text>
               <text x="980" y="373" textAnchor="middle" fill="currentColor" fontSize="12">
-                MOON CENTRE
+                MOON CENTER
               </text>
               <line x1="1048" x2="1048" y1="257" y2="347" stroke="currentColor" />
               <line x1="1041" x2="1055" y1="257" y2="257" stroke="currentColor" />
@@ -590,10 +590,10 @@ export function TideBlueprint() {
         <div className="grid border-t border-sw-foam/15 sm:grid-cols-3">
           <div className="px-5 py-5 sm:px-7">
             <p className="font-mono text-xs uppercase tracking-[0.14em] text-sw-steel">
-              Earth&rsquo;s centre
+              Earth&rsquo;s center
             </p>
             <p className="mt-2 text-2xl font-semibold text-sw-paper">{earthSpeed} m/s</p>
-            <p className="mt-1 text-sm text-sw-steel">44.8 km/h around the barycentre</p>
+            <p className="mt-1 text-sm text-sw-steel">44.8 km/h around the barycenter</p>
           </div>
           <div className="border-t border-sw-foam/15 px-5 py-5 sm:border-l sm:border-t-0 sm:px-7">
             <p className="font-mono text-xs uppercase tracking-[0.14em] text-sw-steel">
@@ -614,9 +614,9 @@ export function TideBlueprint() {
 
       <figcaption className="mt-4 grid gap-3 text-sm leading-relaxed text-sw-steel sm:grid-cols-2 sm:gap-8">
         <p>
-          The barycentre follows from{' '}
+          The barycenter follows from{' '}
           <span className="font-mono text-sw-foam">r = d × Mₘ ÷ (Mₑ + Mₘ)</span>. At the mean
-          distance, Earth&rsquo;s centre is 4,671 km from it.
+          distance, Earth&rsquo;s center is 4,671 km from it.
         </p>
         <p>
           Earth&rsquo;s speed follows <span className="font-mono text-sw-foam">v = 2πr ÷ T</span>.
