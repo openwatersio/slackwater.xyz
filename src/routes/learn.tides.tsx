@@ -16,7 +16,7 @@ export const Route = createFileRoute('/learn/tides')({
       {
         name: 'description',
         content:
-          'An interactive explanation of the near-side and far-side ocean bulges, using the Earth–Moon barycentre.',
+          'An interactive explanation of the near-side and far-side ocean bulges, using the Earth–Moon barycenter: their shared center of mass.',
       },
       { property: 'og:url', content: CANONICAL },
       { property: 'og:title', content: 'How the Moon makes two high tides' },
@@ -83,12 +83,13 @@ function TidesExplainer() {
               Next
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-sw-paper sm:text-4xl">
-              Earth wobbles around an off-centre point
+              Earth wobbles around an off-center point
             </h2>
             <div className="mt-5 space-y-4 text-lg leading-relaxed text-sw-foam">
               <p>
-                Earth and the Moon both orbit their barycentre. It sits inside Earth, offset from
-                the planet&rsquo;s centre, so Earth&rsquo;s centre travels around a small circle.
+                Earth and the Moon both orbit their barycenter: their shared center of mass. It
+                sits inside Earth, offset from the planet&rsquo;s center, so Earth&rsquo;s center travels
+                around a small circle.
               </p>
               <p>
                 This wobble takes a month. It is part of the shared Earth–Moon orbit, not
@@ -112,7 +113,7 @@ function TidesExplainer() {
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-sw-foam">
               Move the slider from the fixed-Earth shortcut to the shared orbit. The second bulge
-              appears as Earth begins to move around the barycentre.
+              appears as Earth begins to move around the barycenter.
             </p>
           </header>
           <TideOrbit />
@@ -144,7 +145,7 @@ function TidesExplainer() {
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-sw-foam">
               These are mean values. The drawing compresses the enormous gap so Earth, the
-              barycentre, and the Moon can share one page.
+              barycenter, and the Moon can share one page.
             </p>
           </header>
           <TideBlueprint />

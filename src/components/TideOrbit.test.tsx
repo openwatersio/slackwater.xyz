@@ -34,7 +34,7 @@ describe('TideOrbit', () => {
     const barycenter = wobbleGeometry('barycenter')
 
     expect(pull).toContain('The Moon pulling the nearest water')
-    expect(pull).not.toContain('Barycentre')
+    expect(pull).not.toContain('Barycenter')
     expect(centered.earthX).toBe(0)
     expect(centered.farBulge).toBe(0)
     expect(barycenter.earthX).toBeLessThan(0)
@@ -49,8 +49,8 @@ describe('TideOrbit', () => {
   it('derives the blueprint dimensions from the mean Earth–Moon system', () => {
     const measurements = earthMoonMeasurements()
 
-    expect(measurements.earthToBarycentreKm).toBeCloseTo(4_671, 0)
-    expect(measurements.earthToBarycentreKm + measurements.barycentreToMoonKm).toBe(
+    expect(measurements.earthToBarycenterKm).toBeCloseTo(4_671, 0)
+    expect(measurements.earthToBarycenterKm + measurements.barycenterToMoonKm).toBe(
       measurements.earthToMoonKm,
     )
     expect(measurements.earthSpeedMps).toBeCloseTo(12.4, 1)
