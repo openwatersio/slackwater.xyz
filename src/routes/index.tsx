@@ -124,10 +124,24 @@ function Feature({
 function Home() {
   return (
     <main className="mx-auto max-w-5xl px-5 pb-24 pt-8 sm:px-6 sm:pt-10">
-      <nav>
+      <nav className="flex flex-wrap items-center justify-between gap-4">
         <a href="/" className="whitespace-nowrap text-lg font-semibold tracking-tight text-sw-paper">
           Slackwater
         </a>
+        <div className="flex flex-wrap items-center gap-4">
+          <a
+            href="https://openwaters.io/tides/slackwater"
+            className="text-sm text-sw-foam underline-offset-4 hover:underline"
+          >
+            Docs
+          </a>
+          <a
+            href="https://github.com/openwatersio/slackwater"
+            className="text-sm text-sw-foam underline-offset-4 hover:underline"
+          >
+            GitHub
+          </a>
+        </div>
       </nav>
 
       <header className="mt-12 grid gap-12 sm:mt-16 lg:grid-cols-[1fr_360px] lg:items-center lg:gap-20">
