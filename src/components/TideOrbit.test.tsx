@@ -7,6 +7,7 @@ import {
   TideOrbit,
   earthMoonMeasurements,
   tideOrbitGeometry,
+  wobbleGeometry,
 } from './TideOrbit'
 
 describe('TideOrbit', () => {
@@ -29,11 +30,19 @@ describe('TideOrbit', () => {
   it('introduces the pull and the wobble as separate animations', () => {
     const pull = renderToStaticMarkup(<MoonPullAnimation />)
     const wobble = renderToStaticMarkup(<EarthWobbleAnimation />)
+    const centered = wobbleGeometry('center')
+    const barycenter = wobbleGeometry('barycenter')
 
     expect(pull).toContain('The Moon pulling the nearest water')
     expect(pull).not.toContain('Barycentre')
-    expect(wobble).toContain('Earth orbiting an off-centre barycentre')
-    expect(wobble).toContain('Barycentre')
+    expect(centered.earthX).toBe(0)
+    expect(centered.farBulge).toBe(0)
+    expect(barycenter.earthX).toBeLessThan(0)
+    expect(barycenter.farBulge).toBeGreaterThan(0)
+    expect(wobble).toContain('>Center</button>')
+    expect(wobble).toContain('>Barycenter</button>')
+    expect(wobble).toContain('aria-pressed="true"')
+    expect(wobble).not.toContain('Let Earth wobble')
     expect(wobble).not.toContain('type="range"')
   })
 
