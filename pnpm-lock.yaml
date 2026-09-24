@@ -14,8 +14,8 @@ importers:
         specifier: 0.4.0
         version: 0.4.0
       '@neaps/tide-database':
-        specifier: ^0.9.20260923
-        version: 0.9.20260923
+        specifier: ^0.10.20260924
+        version: 0.10.20260924
       '@neaps/tide-predictor':
         specifier: ^0.11.0
         version: 0.11.0
@@ -555,8 +555,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
-  '@neaps/tide-database@0.9.20260923':
-    resolution: {integrity: sha512-Itn/AuaraK0eCXHQ6t8Ka9ahDUGP/C9090K+UIQYmLaze/dRfIo1jHDg3t6m+zmNfSPeFzuMtTt2qdIJjDSKcg==}
+  '@neaps/tide-database@0.10.20260924':
+    resolution: {integrity: sha512-2iUZXhMNUhjQcSG4AYVW038aXWzy2bObN0RbONuRJZuimUOF3/OsL3LJFasKSYCGyyEa2tBU2Ch9vF4uPqt3Eg==}
 
   '@neaps/tide-predictor@0.11.0':
     resolution: {integrity: sha512-aBjaTMthLvkAmTURoGsdfjobd2PwNm1FJ6laoAmi3ZlM9IMrAjcAerdUtGJ39de0mXl6wTZRH+CAXY4AmCi6Xg==}
@@ -2318,7 +2318,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@neaps/tide-database@0.9.20260923':
+  '@neaps/tide-database@0.10.20260924':
     dependencies:
       flatbuffers: 25.9.23
       geokdbush: 2.1.0
