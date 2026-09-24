@@ -10,6 +10,7 @@ import { stationsById } from '@neaps/tide-database'
 import tzLookup from 'tz-lookup'
 import { FEET_PER_METRE } from './format'
 import { chsStations, curatedBySlug, REGISTRY_IDS } from './registry'
+import { routeSlug } from './routes'
 import type { BundledStation, Kind, Station } from './station'
 
 /**
@@ -144,8 +145,12 @@ export function loadCatalogue(): Station[] {
 
   for (const kind of ['tide', 'current'] as Kind[]) {
     const curated = curatedBySlug(kind)
-    for (const [id, slug] of Object.entries(slugTable[kind] as Record<string, string>)) {
+    for (const id of Object.keys(slugTable[kind] as Record<string, string>)) {
       if (!isBuildable(id)) continue
+      // The table says which stations this site publishes; the database says
+      // where. A corpus id with no route is a broken corpus, not one to skip.
+      const slug = routeSlug(kind, id)
+      if (!slug) throw new Error(`catalogue: no route for ${id}`)
 
       if (kind === 'tide') {
         const r = tideRecord(id)

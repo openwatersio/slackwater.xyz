@@ -107,6 +107,20 @@ describe('prerendered station pages', () => {
     expect(japan).toMatch(/href="\/tides\/[a-z0-9-]+\/"/)
   })
 
+  it('ships a redirect for every station URL that moved, and no page under one', () => {
+    // `_redirects` is read by Cloudflare ahead of the Worker, so a rule whose
+    // source is also a built page would hide the page. And a destination that
+    // was never built is a redirect into a 404.
+    const rules = readFileSync(`${OUT}/_redirects`, 'utf8').trim().split('\n').map((l) => l.split(' '))
+    expect(rules.length).toBeGreaterThan(0)
+    for (const [from, to, code] of rules) {
+      expect(code, `${from}`).toBe('301')
+      expect(existsSync(`${OUT}${to}index.html`), `${from} -> ${to} is not a built page`).toBe(true)
+      const dir = from.endsWith('/') ? from : `${from}/`
+      expect(existsSync(`${OUT}${dir}index.html`), `${from} is built and redirected`).toBe(false)
+    }
+  })
+
   it('links home and offers the app from every station directory', () => {
     for (const path of ['stations', 'stations/tides', 'stations/currents']) {
       const html = readFileSync(`${OUT}/${path}/index.html`, 'utf8')

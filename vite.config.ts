@@ -6,6 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 import { loadCatalogue } from './src/lib/catalogue'
 import { placePaths, placeTree } from './src/lib/places'
+import { buildRedirects } from './src/lib/redirects'
 import { buildSitemaps } from './src/lib/sitemap'
 
 const catalogue = loadCatalogue()
@@ -34,6 +35,9 @@ const comparePages = COMPARE_PATHS.map((path) => ({ path }))
 for (const [name, xml] of Object.entries(buildSitemaps(catalogue, [...COMPARE_PATHS, ...PLACE_PATHS]))) {
   writeFileSync(`./public/${name}`, xml)
 }
+// Same mechanism for the redirects: Cloudflare reads `_redirects` from the
+// assets directory, ahead of the Worker and whether or not an asset matches.
+writeFileSync('./public/_redirects', buildRedirects(catalogue))
 
 // The prerender crawl runs against `wrangler dev`, and wrangler dev watches its
 // assets directory — which is .output/public, the directory the crawl is writing

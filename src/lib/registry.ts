@@ -6,9 +6,9 @@
 // name, which is why /currents/boundary-pass read "Turn Point, Boundary Pass"
 // until this existed.
 import registry from '@openwaters/station-metadata/data/registry.json' with { type: 'json' }
-import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type: 'json' }
 import { stationsById } from '@neaps/tide-database'
 import tzLookup from 'tz-lookup'
+import { routeSlug } from './routes'
 import type { ChsStation, Kind } from './station'
 
 /**
@@ -56,11 +56,10 @@ export interface Curated {
  * ids at one slug. An id join would miss every one of them.
  */
 export function curatedBySlug(kind: Kind): Map<string, Curated> {
-  const table = slugTable[kind] as Record<string, string>
   const out = new Map<string, Curated>()
   for (const [id, entry] of Object.entries(entries)) {
     if (kindOf(entry) !== kind) continue
-    const slug = table[id]
+    const slug = routeSlug(kind, id)
     if (!slug) continue
     out.set(slug, { name: entry.name, ...(entry.context ? { region: entry.context } : {}) })
   }
@@ -89,12 +88,11 @@ const EXCLUDED = new Set(['chs-arran-rapids'])
  * rest of #17 and needs an operator run against IWLS, not a change here.
  */
 export function chsStations(kind: Kind): ChsStation[] {
-  const table = slugTable[kind] as Record<string, string>
   const out: ChsStation[] = []
   for (const [id, entry] of Object.entries(entries)) {
     if (entry.provider !== 'chs' || kindOf(entry) !== kind) continue
     if (EXCLUDED.has(id)) continue
-    const slug = table[id]
+    const slug = routeSlug(kind, id)
     // A station with no published slug is a broken corpus, not one to skip: it
     // means the registry and the slug table disagree about what exists.
     if (!slug) throw new Error(`registry: no published slug for CHS ${kind} station ${id}`)

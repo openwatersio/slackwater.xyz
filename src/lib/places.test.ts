@@ -56,8 +56,11 @@ describe('placeTree', () => {
     // Home water, and the reason the subdivision split is not US-only: the
     // provider rows here carry GeoNames numerics ("02"), so before the
     // database resolved them every Canadian station sat on one country page.
+    // Fewer than it once was, twice over: the seven NOAA gauges in the Alaska
+    // panhandle went home to US-AK, and a curated record and its provider twin
+    // now share one route, so the pair counts once.
     const bc = tree.find((c) => c.name === 'Canada')!.states.find((s) => s.name === 'BC')
-    expect(bc?.count).toBeGreaterThan(20)
+    expect(bc?.count).toBeGreaterThan(10)
     expect(bc?.slug).toBe('bc')
   })
 
