@@ -45,7 +45,10 @@ describe('StationIndex', () => {
     // `Elsewhere` than under every real heading combined.
     const inCountry = (country: string) =>
       loadCatalogue().filter((s) => s.kind === 'tide' && s.country === country)
-    const japan = renderToStaticMarkup(<StationIndex kind="tide" rows={inCountry('Japan').map(toRow)} />)
+    // Both are place pages, which always carry the crumb up — and that is
+    // what keeps the tides explainer, with its own heading, off them.
+    const up = { href: '/stations/tides/', label: 'Tide stations' }
+    const japan = renderToStaticMarkup(<StationIndex kind="tide" up={up} rows={inCountry('Japan').map(toRow)} />)
     expect(japan).toContain('<h2')
 
     // A subdivision page heads by water alone — the jurisdiction is its title.
@@ -53,7 +56,7 @@ describe('StationIndex', () => {
       .filter((s) => s.state === 'AK')
       .map((s) => ({ slug: s.slug, name: s.name, ...(s.region ? { region: s.region } : {}) }))
     expect(alaska.length).toBeGreaterThan(100)
-    expect(renderToStaticMarkup(<StationIndex kind="tide" rows={alaska} />)).not.toContain('<h2')
+    expect(renderToStaticMarkup(<StationIndex kind="tide" up={up} rows={alaska} />)).not.toContain('<h2')
   })
 
   it('promotes the tides guide on the tide index only', () => {
