@@ -5,11 +5,13 @@ import { loadCatalogue } from '#/lib/catalogue'
 import type { StationRow } from '#/lib/catalogue-server'
 import type { Kind } from '#/lib/station'
 
-const toRow = (s: { slug: string; name: string; region?: string }): StationRow => ({
-  slug: s.slug,
-  name: s.name,
-  ...(s.region ? { region: s.region } : {}),
-})
+// A country page heads its rows by water where the provider named one and by
+// jurisdiction otherwise, which is what `toAreaRow` builds in `catalogue-server`.
+// Feeding the component `region` alone would test a row shape no page produces.
+const toRow = (s: { slug: string; name: string; region?: string; area?: string }): StationRow => {
+  const region = s.region ?? s.area
+  return { slug: s.slug, name: s.name, ...(region ? { region } : {}) }
+}
 
 const rowsFor = (kind: Kind) => loadCatalogue().filter((s) => s.kind === kind).map(toRow)
 
@@ -36,9 +38,25 @@ describe('StationIndex', () => {
     expect(html).not.toContain('<h2')
   })
 
-  it('groups the tide index, which is overwhelmingly regioned', () => {
-    const html = renderToStaticMarkup(<StationIndex kind="tide" rows={rowsFor('tide')} />)
-    expect(html).toContain('<h2')
+  it('groups a page the water names, and leaves one it does not flat', () => {
+    // Two real pages rather than the whole corpus, because the threshold is
+    // per page now. Japan's rows are 99% placed and read as prefectures;
+    // Alaska's are 49%, and grouping those would put more stations under
+    // `Elsewhere` than under every real heading combined.
+    const inCountry = (country: string) =>
+      loadCatalogue().filter((s) => s.kind === 'tide' && s.country === country)
+    // Both are place pages, which always carry the crumb up — and that is
+    // what keeps the tides explainer, with its own heading, off them.
+    const up = { href: '/stations/tides/', label: 'Tide stations' }
+    const japan = renderToStaticMarkup(<StationIndex kind="tide" up={up} rows={inCountry('Japan').map(toRow)} />)
+    expect(japan).toContain('<h2')
+
+    // A subdivision page heads by water alone — the jurisdiction is its title.
+    const alaska = inCountry('United States')
+      .filter((s) => s.state === 'AK')
+      .map((s) => ({ slug: s.slug, name: s.name, ...(s.region ? { region: s.region } : {}) }))
+    expect(alaska.length).toBeGreaterThan(100)
+    expect(renderToStaticMarkup(<StationIndex kind="tide" up={up} rows={alaska} />)).not.toContain('<h2')
   })
 
   it('promotes the tides guide on the tide index only', () => {

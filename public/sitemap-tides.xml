@@ -48,7 +48,7 @@
   <url><loc>https://slackwater.xyz/tides/pago-pago-harbor/</loc></url>
   <url><loc>https://slackwater.xyz/tides/apia-observatory/</loc></url>
   <url><loc>https://slackwater.xyz/tides/kwajalein-atoll-kwajalein-i/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/chuuk/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/chuuk-moen-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/koror/</loc></url>
   <url><loc>https://slackwater.xyz/tides/malakal-harbor/</loc></url>
   <url><loc>https://slackwater.xyz/tides/wake-island-u-s/</loc></url>
@@ -67,7 +67,7 @@
   <url><loc>https://slackwater.xyz/tides/pettegrove-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/gravelly-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/birch-islands/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/cutler/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/cutler-little-river/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cutler-naval-radio-station/</loc></url>
   <url><loc>https://slackwater.xyz/tides/stone-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/machiasport/</loc></url>
@@ -94,7 +94,7 @@
   <url><loc>https://slackwater.xyz/tides/castine/</loc></url>
   <url><loc>https://slackwater.xyz/tides/bucksport-me/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sandy-point-stockton-springs-me/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/fort-point/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/fort-point-penobscot-river/</loc></url>
   <url><loc>https://slackwater.xyz/tides/vinalhaven/</loc></url>
   <url><loc>https://slackwater.xyz/tides/winterport/</loc></url>
   <url><loc>https://slackwater.xyz/tides/north-haven/</loc></url>
@@ -213,7 +213,7 @@
   <url><loc>https://slackwater.xyz/tides/duxbury/</loc></url>
   <url><loc>https://slackwater.xyz/tides/plymouth/</loc></url>
   <url><loc>https://slackwater.xyz/tides/wellfleet/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/cape-cod-canal/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/cape-cod-canal-sagamore/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sandwich-marina/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cape-cod-canal-bournedale/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sesuit-harbor/</loc></url>
@@ -301,7 +301,7 @@
   <url><loc>https://slackwater.xyz/tides/west-mystic/</loc></url>
   <url><loc>https://slackwater.xyz/tides/norwich/</loc></url>
   <url><loc>https://slackwater.xyz/tides/yale-boathouse/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/new-london/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/new-london-state-pier/</loc></url>
   <url><loc>https://slackwater.xyz/tides/niantic/</loc></url>
   <url><loc>https://slackwater.xyz/tides/saybrook-jetty/</loc></url>
   <url><loc>https://slackwater.xyz/tides/saybrook-point/</loc></url>
@@ -397,7 +397,7 @@
   <url><loc>https://slackwater.xyz/tides/woodmere/</loc></url>
   <url><loc>https://slackwater.xyz/tides/port-washington/</loc></url>
   <url><loc>https://slackwater.xyz/tides/east-rockaway-inlet/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/norton-point/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/norton-point-head-of-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/motts-basin/</loc></url>
   <url><loc>https://slackwater.xyz/tides/kings-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/willets-point/</loc></url>
@@ -500,7 +500,7 @@
   <url><loc>https://slackwater.xyz/tides/seaside-park/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sloop-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cedar-creek/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/island-beach/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/island-beach-barnegat-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/stouts-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/forked-river/</loc></url>
   <url><loc>https://slackwater.xyz/tides/oyster-creek-forked-river-nj/</loc></url>
@@ -515,13 +515,13 @@
   <url><loc>https://slackwater.xyz/tides/manahawkin-drawbridge/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cedar-run/</loc></url>
   <url><loc>https://slackwater.xyz/tides/dinner-point-creek/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/west-creek/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/west-creek-westecunk-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sweetwater/</loc></url>
   <url><loc>https://slackwater.xyz/tides/wading-river-town/</loc></url>
   <url><loc>https://slackwater.xyz/tides/westecunk-creek-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/beach-haven-crest/</loc></url>
   <url><loc>https://slackwater.xyz/tides/parker-run/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/tuckerton-nj/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/tuckerton-tuckerton-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/new-gretna/</loc></url>
   <url><loc>https://slackwater.xyz/tides/tuckerton-creek-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/beach-haven-coast-guard-station/</loc></url>
@@ -530,7 +530,7 @@
   <url><loc>https://slackwater.xyz/tides/nacote-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/little-sheepshead-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/seven-island/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/tuckerton/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/tuckerton-shooting-thorofare-little-egg-inlet/</loc></url>
   <url><loc>https://slackwater.xyz/tides/main-marsh-thorofare/</loc></url>
   <url><loc>https://slackwater.xyz/tides/mays-landing/</loc></url>
   <url><loc>https://slackwater.xyz/tides/brigantine-channel-hoffman-thorofare/</loc></url>
@@ -559,20 +559,20 @@
   <url><loc>https://slackwater.xyz/tides/old-turtle-thorofare/</loc></url>
   <url><loc>https://slackwater.xyz/tides/west-wildwood/</loc></url>
   <url><loc>https://slackwater.xyz/tides/swain-channel/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/wildwood-crest/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/wildwood-crest-ocean-pier/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cape-may-harbor/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cape-island-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cape-may-point/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/cape-may/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/cape-may-ferry-terminal/</loc></url>
   <url><loc>https://slackwater.xyz/tides/north-highlands-beach/</loc></url>
   <url><loc>https://slackwater.xyz/tides/dias-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/bidwell-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/bidwell-creek-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sluice-creek/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/dennis-creek/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/west-creek-0-7-nm-above-entrance/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/dennis-creek-2-5-n-mi-above-entrance/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/west-creek-0-7-n-mi-above-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/east-point-maurice-river-cove/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/riggins-ditch/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/riggins-ditch-0-5-n-mi-above-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/east-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/fishing-creek-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/dividing-creek-entrance/</loc></url>
@@ -629,7 +629,7 @@
   <url><loc>https://slackwater.xyz/tides/tinicum-national-wildlife-refuge/</loc></url>
   <url><loc>https://slackwater.xyz/tides/penrose-avenue-bridge/</loc></url>
   <url><loc>https://slackwater.xyz/tides/market-street-bridge/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/philadelphia/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/philadelphia-us-coast-guard-station-pa/</loc></url>
   <url><loc>https://slackwater.xyz/tides/philadelphia-municipal-pier-11-pa/</loc></url>
   <url><loc>https://slackwater.xyz/tides/bridesburg/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cornwells-heights/</loc></url>
@@ -695,7 +695,7 @@
   <url><loc>https://slackwater.xyz/tides/deep-neck-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/poplar-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/easton-point/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/st-michaels/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/st-michaels-san-domingo-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/kent-point-marina/</loc></url>
   <url><loc>https://slackwater.xyz/tides/claiborne/</loc></url>
   <url><loc>https://slackwater.xyz/tides/hillsboro/</loc></url>
@@ -759,7 +759,7 @@
   <url><loc>https://slackwater.xyz/tides/washington/</loc></url>
   <url><loc>https://slackwater.xyz/tides/franklin-city/</loc></url>
   <url><loc>https://slackwater.xyz/tides/jesters-island/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/chincoteague-island/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/chincoteague-island-uscg-station/</loc></url>
   <url><loc>https://slackwater.xyz/tides/chincoteague-channel-south-end/</loc></url>
   <url><loc>https://slackwater.xyz/tides/southern-chincoteague-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/wishart-point/</loc></url>
@@ -831,7 +831,7 @@
   <url><loc>https://slackwater.xyz/tides/cheatham-annex/</loc></url>
   <url><loc>https://slackwater.xyz/tides/gloucester-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/tue-marshes-light/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/yorktown/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/yorktown-noaa-8637689/</loc></url>
   <url><loc>https://slackwater.xyz/tides/jamestown-williamsburg-va/</loc></url>
   <url><loc>https://slackwater.xyz/tides/fort-eustis-marad/</loc></url>
   <url><loc>https://slackwater.xyz/tides/messick-point/</loc></url>
@@ -909,7 +909,7 @@
   <url><loc>https://slackwater.xyz/tides/newport-river-yacht-club/</loc></url>
   <url><loc>https://slackwater.xyz/tides/gallant-channel/</loc></url>
   <url><loc>https://slackwater.xyz/tides/spoonerscreek/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/beaufort/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/beaufort-duke-marine-lab/</loc></url>
   <url><loc>https://slackwater.xyz/tides/morehead-city/</loc></url>
   <url><loc>https://slackwater.xyz/tides/atlantic-beach-bridge/</loc></url>
   <url><loc>https://slackwater.xyz/tides/morehead-city-harbor/</loc></url>
@@ -931,12 +931,12 @@
   <url><loc>https://slackwater.xyz/tides/wrightsville-beach/</loc></url>
   <url><loc>https://slackwater.xyz/tides/orton-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/wilmington-beach/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/sunny-point-army-base/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/sunny-point-army-base-wharf-no-3/</loc></url>
   <url><loc>https://slackwater.xyz/tides/reaves-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/federal-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/zekes-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/bald-head/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/southport-nc/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/southport-noaa-8659084/</loc></url>
   <url><loc>https://slackwater.xyz/tides/fort-caswell/</loc></url>
   <url><loc>https://slackwater.xyz/tides/oak-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/varnamtown/</loc></url>
@@ -945,7 +945,7 @@
   <url><loc>https://slackwater.xyz/tides/sunset-beach-bridge/</loc></url>
   <url><loc>https://slackwater.xyz/tides/little-river-neck/</loc></url>
   <url><loc>https://slackwater.xyz/tides/little-river-town/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/dunn-sound/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/dunn-sound-north-end/</loc></url>
   <url><loc>https://slackwater.xyz/tides/nixon-crossroads/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cherry-grove-inside/</loc></url>
   <url><loc>https://slackwater.xyz/tides/hog-inlet-pier/</loc></url>
@@ -973,7 +973,7 @@
   <url><loc>https://slackwater.xyz/tides/divine-s-dock/</loc></url>
   <url><loc>https://slackwater.xyz/tides/winea-plantation/</loc></url>
   <url><loc>https://slackwater.xyz/tides/allston-creek/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/oaks-creek/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/oaks-creek-upper-end/</loc></url>
   <url><loc>https://slackwater.xyz/tides/black-river-south-of-dunbar/</loc></url>
   <url><loc>https://slackwater.xyz/tides/thoroughfare-creek-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/mt-pleasant-plantation/</loc></url>
@@ -999,8 +999,8 @@
   <url><loc>https://slackwater.xyz/tides/u-s-highway-17-bridge/</loc></url>
   <url><loc>https://slackwater.xyz/tides/georgetown-sampit-river-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/waccamaw-river-entrance/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/windsor-plantation/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/cape-romain/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/windsor-plantation-black-river/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/cape-romain-mcclellanville-sc/</loc></url>
   <url><loc>https://slackwater.xyz/tides/south-santee-river/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cedar-island-north-santee-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cedar-island-point/</loc></url>
@@ -1029,14 +1029,14 @@
   <url><loc>https://slackwater.xyz/tides/big-paradise-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/wharf-creek-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/goose-creek-entrance/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/clouter-creek/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/clouter-creek-north-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/north-charleston/</loc></url>
   <url><loc>https://slackwater.xyz/tides/nowell-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/parker-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/price-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/magnolia-gardens/</loc></url>
   <url><loc>https://slackwater.xyz/tides/old-capers-landing/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/capers-creek/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/capers-creek-south-capers-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/drayton/</loc></url>
   <url><loc>https://slackwater.xyz/tides/i-526-bridge/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cosgrove-bridge/</loc></url>
@@ -1126,7 +1126,7 @@
   <url><loc>https://slackwater.xyz/tides/albergottie-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/village-creek-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/edding-point/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/jenkins-creek/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/jenkins-creek-1-mi-above-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/beaufort-sc/</loc></url>
   <url><loc>https://slackwater.xyz/tides/village-creek-cemetery/</loc></url>
   <url><loc>https://slackwater.xyz/tides/battery-creek/</loc></url>
@@ -1144,14 +1144,14 @@
   <url><loc>https://slackwater.xyz/tides/fripps-inlet/</loc></url>
   <url><loc>https://slackwater.xyz/tides/callawassie-island-bridge/</loc></url>
   <url><loc>https://slackwater.xyz/tides/club-bridge-creek-entrance/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/station-creek/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/station-creek-county-landing/</loc></url>
   <url><loc>https://slackwater.xyz/tides/colleton-river-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/callawassie-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/callawassie-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/fort-fremont/</loc></url>
   <url><loc>https://slackwater.xyz/tides/purrysburg-landing/</loc></url>
   <url><loc>https://slackwater.xyz/tides/capers-island/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/skull-creek/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/skull-creek-north-entrance-hilton-head-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/pinckney-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/rt-170-bridge/</loc></url>
   <url><loc>https://slackwater.xyz/tides/bluffton/</loc></url>
@@ -1186,7 +1186,7 @@
   <url><loc>https://slackwater.xyz/tides/richmond-hill/</loc></url>
   <url><loc>https://slackwater.xyz/tides/vernon-view/</loc></url>
   <url><loc>https://slackwater.xyz/tides/little-wassaw-island/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/florida-passage/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/florida-passage-ogeechee-river/</loc></url>
   <url><loc>https://slackwater.xyz/tides/bradley-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/belfast-richmond-hill-ga/</loc></url>
   <url><loc>https://slackwater.xyz/tides/bear-river/</loc></url>
@@ -1237,7 +1237,7 @@
   <url><loc>https://slackwater.xyz/tides/cumberland-wharf/</loc></url>
   <url><loc>https://slackwater.xyz/tides/harrietts-bluff/</loc></url>
   <url><loc>https://slackwater.xyz/tides/crooked-river/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/kings-bay/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/kings-bay-navy-base/</loc></url>
   <url><loc>https://slackwater.xyz/tides/kings-bay-msf-pier/</loc></url>
   <url><loc>https://slackwater.xyz/tides/seacamp-dock/</loc></url>
   <url><loc>https://slackwater.xyz/tides/beach-creek-entrance/</loc></url>
@@ -1270,7 +1270,7 @@
   <url><loc>https://slackwater.xyz/tides/sisters-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/clapboard-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/blount-island-bridge/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/mayport-naval-station/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/mayport-naval-station-water-treatment-dock/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sherwood-forest/</loc></url>
   <url><loc>https://slackwater.xyz/tides/mayport-naval-station-degausing-structure/</loc></url>
   <url><loc>https://slackwater.xyz/tides/lake-forest/</loc></url>
@@ -1280,7 +1280,7 @@
   <url><loc>https://slackwater.xyz/tides/mayport-ferry-depot/</loc></url>
   <url><loc>https://slackwater.xyz/tides/fulton/</loc></url>
   <url><loc>https://slackwater.xyz/tides/phoenix-park/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/jacksonville/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/jacksonville-main-street-bridge/</loc></url>
   <url><loc>https://slackwater.xyz/tides/pablo-creek-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/jacksonville-long-branch/</loc></url>
   <url><loc>https://slackwater.xyz/tides/atlantic-beach-fl/</loc></url>
@@ -1336,12 +1336,12 @@
   <url><loc>https://slackwater.xyz/tides/oslo-florida-ridge-fl/</loc></url>
   <url><loc>https://slackwater.xyz/tides/st-lucie/</loc></url>
   <url><loc>https://slackwater.xyz/tides/north-beach-causeway/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/fort-pierce-inlet/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/fort-pierce-inlet-binney-dock/</loc></url>
   <url><loc>https://slackwater.xyz/tides/fort-pierce/</loc></url>
   <url><loc>https://slackwater.xyz/tides/ankona/</loc></url>
   <url><loc>https://slackwater.xyz/tides/eden-nettles-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/jensen-beach-causeway-park/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/north-fork-port-saint-lucie-fl/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/north-fork-north-river-shores-fl/</loc></url>
   <url><loc>https://slackwater.xyz/tides/stuart/</loc></url>
   <url><loc>https://slackwater.xyz/tides/seminole-shores/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sewall-point/</loc></url>
@@ -1355,21 +1355,21 @@
   <url><loc>https://slackwater.xyz/tides/hobe-sound/</loc></url>
   <url><loc>https://slackwater.xyz/tides/conch-bar/</loc></url>
   <url><loc>https://slackwater.xyz/tides/boy-scout-dock/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/north-fork-1-7-nm-above-entrance/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/north-fork-2-miles-above-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/2-6-nm-above-a1a-highway-bridge/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/tequesta/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/tequesta-north-fork/</loc></url>
   <url><loc>https://slackwater.xyz/tides/jupiter-sound/</loc></url>
   <url><loc>https://slackwater.xyz/tides/a1a-highway-bridge/</loc></url>
   <url><loc>https://slackwater.xyz/tides/southwest-fork/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/jupiter-inlet/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/jupiter-inlet-south-jetty/</loc></url>
   <url><loc>https://slackwater.xyz/tides/southwest-fork-spillway/</loc></url>
   <url><loc>https://slackwater.xyz/tides/jupiter/</loc></url>
   <url><loc>https://slackwater.xyz/tides/lake-worth-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/donald-ross-bridge/</loc></url>
   <url><loc>https://slackwater.xyz/tides/pga-boulevard-bridge/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/north-palm-beach/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/north-palm-beach-juno-ridge-fl/</loc></url>
   <url><loc>https://slackwater.xyz/tides/port-of-palm-beach/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/palm-beach/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/palm-beach-noaa-8722607/</loc></url>
   <url><loc>https://slackwater.xyz/tides/west-palm-beach-canal/</loc></url>
   <url><loc>https://slackwater.xyz/tides/lake-worth-icw/</loc></url>
   <url><loc>https://slackwater.xyz/tides/lake-worth-pier-ocean/</loc></url>
@@ -1389,7 +1389,7 @@
   <url><loc>https://slackwater.xyz/tides/port-everglades/</loc></url>
   <url><loc>https://slackwater.xyz/tides/south-port-everglades/</loc></url>
   <url><loc>https://slackwater.xyz/tides/port-laudania/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/whiskey-creek/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/whiskey-creek-south-entrance-icww/</loc></url>
   <url><loc>https://slackwater.xyz/tides/hollywood-beach-west-lake-north-end/</loc></url>
   <url><loc>https://slackwater.xyz/tides/golden-beach/</loc></url>
   <url><loc>https://slackwater.xyz/tides/dumfoundling-bay/</loc></url>
@@ -1420,7 +1420,7 @@
   <url><loc>https://slackwater.xyz/tides/east-arsenicker/</loc></url>
   <url><loc>https://slackwater.xyz/tides/totten-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/card-sound/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/pumpkin-key/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/pumpkin-key-south-end-card-sound/</loc></url>
   <url><loc>https://slackwater.xyz/tides/wednesday-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/ocean-reef-harbor/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cormorant-point/</loc></url>
@@ -1439,28 +1439,28 @@
   <url><loc>https://slackwater.xyz/tides/east-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/plantation-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/yacht-harbor/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/snake-creek/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/snake-creek-uscg-station-plantation-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/whale-harbor/</loc></url>
   <url><loc>https://slackwater.xyz/tides/shell-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/islamorada/</loc></url>
   <url><loc>https://slackwater.xyz/tides/shell-key-channel/</loc></url>
   <url><loc>https://slackwater.xyz/tides/little-basin/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/lignumvitae-key/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/upper-matecumbe-key/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/indian-key/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/lignumvitae-key-ne-side-florida-bay/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/upper-matecumbe-key-west-end-hawk-channel/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/indian-key-hawk-channel/</loc></url>
   <url><loc>https://slackwater.xyz/tides/indian-key-anchorage/</loc></url>
   <url><loc>https://slackwater.xyz/tides/matecumbe-bight/</loc></url>
   <url><loc>https://slackwater.xyz/tides/alligator-reef/</loc></url>
   <url><loc>https://slackwater.xyz/tides/matecumbe-harbor/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/channel-two/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/channel-five/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/channel-two-east-lower-matecumbe-key-fla-bay/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/channel-five-west-side-hawk-channel/</loc></url>
   <url><loc>https://slackwater.xyz/tides/jewfish-hole/</loc></url>
   <url><loc>https://slackwater.xyz/tides/long-key-bight/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/long-key/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/long-key-western-end/</loc></url>
   <url><loc>https://slackwater.xyz/tides/conch-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/toms-harbor-cut/</loc></url>
   <url><loc>https://slackwater.xyz/tides/toms-harbor-channel/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/grassy-key/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/grassy-key-north-side-florida-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/duck-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/fat-deer-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/vaca-key-fat-deer-key-bridge/</loc></url>
@@ -1468,7 +1468,7 @@
   <url><loc>https://slackwater.xyz/tides/vaca-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sombrero-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/knight-key-channel/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/pigeon-key/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/pigeon-key-south-side-hawk-channel/</loc></url>
   <url><loc>https://slackwater.xyz/tides/molasses-key-channel/</loc></url>
   <url><loc>https://slackwater.xyz/tides/money-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/little-duck-key/</loc></url>
@@ -1478,10 +1478,10 @@
   <url><loc>https://slackwater.xyz/tides/west-bahia-honda-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/bahia-honda-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/horseshoe-keys/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/johnson-keys/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/little-pine-key/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/johnson-keys-south-end/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/little-pine-key-south-end/</loc></url>
   <url><loc>https://slackwater.xyz/tides/no-name-key/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/big-pine-key/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/big-pine-key-spanish-harbor/</loc></url>
   <url><loc>https://slackwater.xyz/tides/water-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/porpoise-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/crawl-key/</loc></url>
@@ -1492,11 +1492,11 @@
   <url><loc>https://slackwater.xyz/tides/annette-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/middle-torch-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/munson-island/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/ramrod-key/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/howe-key/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/ramrod-key-newfound-harbor/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/howe-key-south-end-harbor-channel/</loc></url>
   <url><loc>https://slackwater.xyz/tides/big-spanish-key/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/big-torch-key/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/summerland-key/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/big-torch-key-niles-channel/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/summerland-key-niles-channel-south/</loc></url>
   <url><loc>https://slackwater.xyz/tides/water-keys/</loc></url>
   <url><loc>https://slackwater.xyz/tides/kemp-channel-viaduct/</loc></url>
   <url><loc>https://slackwater.xyz/tides/key-lois/</loc></url>
@@ -1504,24 +1504,24 @@
   <url><loc>https://slackwater.xyz/tides/gopher-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/content-keys/</loc></url>
   <url><loc>https://slackwater.xyz/tides/raccoon-key/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/cudjoe-key/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/sugarloaf-key/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/cudjoe-key-cudjoe-bay/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/sugarloaf-key-pirates-cove/</loc></url>
   <url><loc>https://slackwater.xyz/tides/tarpon-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/park-channel-bridge/</loc></url>
   <url><loc>https://slackwater.xyz/tides/north-harris-channel/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/sawyer-key/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/sawyer-key-inside-cudjoe-channel/</loc></url>
   <url><loc>https://slackwater.xyz/tides/pumpkin-key-bow-channel/</loc></url>
   <url><loc>https://slackwater.xyz/tides/perky/</loc></url>
   <url><loc>https://slackwater.xyz/tides/johnston-key/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/saddlebunch-keys/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/snipe-keys/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/saddlebunch-keys-channel-no-3/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/snipe-keys-southeast-end-inner-narrows/</loc></url>
   <url><loc>https://slackwater.xyz/tides/bird-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/shark-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/o-hara-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/waltz-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/rockland-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/duck-key-point/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/boca-chica-key/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/boca-chica-key-long-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/big-coppitt-key/</loc></url>
   <url><loc>https://slackwater.xyz/tides/boca-chica-marina/</loc></url>
   <url><loc>https://slackwater.xyz/tides/boca-chica-channel-bridge/</loc></url>
@@ -1583,7 +1583,7 @@
   <url><loc>https://slackwater.xyz/tides/locust-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/englewood/</loc></url>
   <url><loc>https://slackwater.xyz/tides/el-jobean/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/shell-point/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/shell-point-peace-river-charlotte-harbor/</loc></url>
   <url><loc>https://slackwater.xyz/tides/manasota/</loc></url>
   <url><loc>https://slackwater.xyz/tides/myakka-river/</loc></url>
   <url><loc>https://slackwater.xyz/tides/venice-municipal-airport/</loc></url>
@@ -1596,7 +1596,7 @@
   <url><loc>https://slackwater.xyz/tides/cortez/</loc></url>
   <url><loc>https://slackwater.xyz/tides/perico-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/palma-sola-bay-south/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/anna-maria-key/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/anna-maria-key-bradenton-beach/</loc></url>
   <url><loc>https://slackwater.xyz/tides/bradenton/</loc></url>
   <url><loc>https://slackwater.xyz/tides/palma-sola-bay-north/</loc></url>
   <url><loc>https://slackwater.xyz/tides/perico-bayou/</loc></url>
@@ -1690,17 +1690,17 @@
   <url><loc>https://slackwater.xyz/tides/mandalay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/port-leon/</loc></url>
   <url><loc>https://slackwater.xyz/tides/st-marks-river-entrance/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/st-marks/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/st-marks-wakulla-river/</loc></url>
   <url><loc>https://slackwater.xyz/tides/shell-point-walker-creek/</loc></url>
   <url><loc>https://slackwater.xyz/tides/bald-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/wakulla-airport/</loc></url>
   <url><loc>https://slackwater.xyz/tides/panacea/</loc></url>
   <url><loc>https://slackwater.xyz/tides/alligator-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/turkey-point-st-james-island/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/dog-island/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/dog-island-east-end/</loc></url>
   <url><loc>https://slackwater.xyz/tides/lanark/</loc></url>
   <url><loc>https://slackwater.xyz/tides/carrabelle/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/st-george-island/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/st-george-island-northeast-end/</loc></url>
   <url><loc>https://slackwater.xyz/tides/south-carrabelle-beach/</loc></url>
   <url><loc>https://slackwater.xyz/tides/st-george-island-east-end/</loc></url>
   <url><loc>https://slackwater.xyz/tides/east-bayou/</loc></url>
@@ -1714,7 +1714,7 @@
   <url><loc>https://slackwater.xyz/tides/eleven-mile/</loc></url>
   <url><loc>https://slackwater.xyz/tides/lake-wimico/</loc></url>
   <url><loc>https://slackwater.xyz/tides/indian-pass/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/white-city/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/white-city-icww/</loc></url>
   <url><loc>https://slackwater.xyz/tides/white-city-gulf-county-canal/</loc></url>
   <url><loc>https://slackwater.xyz/tides/port-saint-joe/</loc></url>
   <url><loc>https://slackwater.xyz/tides/overstreet/</loc></url>
@@ -1788,7 +1788,7 @@
   <url><loc>https://slackwater.xyz/tides/grand-bay-nerr/</loc></url>
   <url><loc>https://slackwater.xyz/tides/petit-bois-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/point-of-pines-bayou-cumbest/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/pascagoula/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/pascagoula-south-side/</loc></url>
   <url><loc>https://slackwater.xyz/tides/dock-e/</loc></url>
   <url><loc>https://slackwater.xyz/tides/pascagoula-mississippi-sound/</loc></url>
   <url><loc>https://slackwater.xyz/tides/pascagoula-noaa-lab/</loc></url>
@@ -1804,7 +1804,7 @@
   <url><loc>https://slackwater.xyz/tides/st-louis-bay-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/waveland/</loc></url>
   <url><loc>https://slackwater.xyz/tides/wolf-river/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/pearlington/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/pearlington-pearl-river/</loc></url>
   <url><loc>https://slackwater.xyz/tides/chandeleur-light/</loc></url>
   <url><loc>https://slackwater.xyz/tides/southeast-pass/</loc></url>
   <url><loc>https://slackwater.xyz/tides/devon-energy-facility/</loc></url>
@@ -1841,12 +1841,12 @@
   <url><loc>https://slackwater.xyz/tides/mendicant-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/texaco-dock/</loc></url>
   <url><loc>https://slackwater.xyz/tides/caminada-pass-bridge/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/lafitte/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/lafitte-barataria-waterway/</loc></url>
   <url><loc>https://slackwater.xyz/tides/new-canal-uscg-station/</loc></url>
   <url><loc>https://slackwater.xyz/tides/tchefuncta-river/</loc></url>
   <url><loc>https://slackwater.xyz/tides/port-fourchon/</loc></url>
   <url><loc>https://slackwater.xyz/tides/leeville/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/golden-meadow/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/golden-meadow-plaisance-canal/</loc></url>
   <url><loc>https://slackwater.xyz/tides/east-timbalier-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/bayou-faleau/</loc></url>
   <url><loc>https://slackwater.xyz/tides/east-bank-1/</loc></url>
@@ -1912,9 +1912,9 @@
   <url><loc>https://slackwater.xyz/tides/renaissance-sa-13-platform/</loc></url>
   <url><loc>https://slackwater.xyz/tides/fieldwood-wc-289-platform/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sievers-cove/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/texas-city/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/texas-city-galveston-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/port-bolivar/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/galveston-bay-entrance/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/galveston-bay-entrance-north-jetty/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sabine-offshore-light-uscg-s-1-platform/</loc></url>
   <url><loc>https://slackwater.xyz/tides/galveston-bay-entrance-south-jetty/</loc></url>
   <url><loc>https://slackwater.xyz/tides/galveston/</loc></url>
@@ -1927,7 +1927,7 @@
   <url><loc>https://slackwater.xyz/tides/old-brazos-river/</loc></url>
   <url><loc>https://slackwater.xyz/tides/freeport-harbor/</loc></url>
   <url><loc>https://slackwater.xyz/tides/uscg-freeport/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/freeport-harbor-surfside-beach-tx/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/freeport-harbor-noaa-8772471/</loc></url>
   <url><loc>https://slackwater.xyz/tides/freeport-entrance-jetty/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sargent/</loc></url>
   <url><loc>https://slackwater.xyz/tides/seadrift/</loc></url>
@@ -1998,7 +1998,7 @@
   <url><loc>https://slackwater.xyz/tides/san-simeon/</loc></url>
   <url><loc>https://slackwater.xyz/tides/mansfield-cone/</loc></url>
   <url><loc>https://slackwater.xyz/tides/carmel-cove/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/monterey/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/monterey-monterey-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/moss-landing/</loc></url>
   <url><loc>https://slackwater.xyz/tides/elkhorn-slough/</loc></url>
   <url><loc>https://slackwater.xyz/tides/pacific-mariculture-dock/</loc></url>
@@ -2016,14 +2016,14 @@
   <url><loc>https://slackwater.xyz/tides/rincon-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/potrero-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/hunters-point/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/borden-highway-bridge/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/borden-highway-bridge-san-joaquin-river/</loc></url>
   <url><loc>https://slackwater.xyz/tides/south-san-francisco/</loc></url>
   <url><loc>https://slackwater.xyz/tides/oyster-point-marina/</loc></url>
   <url><loc>https://slackwater.xyz/tides/point-san-bruno/</loc></url>
   <url><loc>https://slackwater.xyz/tides/seaplane-harbor/</loc></url>
   <url><loc>https://slackwater.xyz/tides/coyote-point-marina/</loc></url>
   <url><loc>https://slackwater.xyz/tides/san-mateo-bridge-west-end/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/bay-slough/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/bay-slough-west-end/</loc></url>
   <url><loc>https://slackwater.xyz/tides/redwood-creek-marker-8/</loc></url>
   <url><loc>https://slackwater.xyz/tides/newark-slough/</loc></url>
   <url><loc>https://slackwater.xyz/tides/west-point-slough/</loc></url>
@@ -2035,7 +2035,7 @@
   <url><loc>https://slackwater.xyz/tides/palo-alto-yacht-harbor/</loc></url>
   <url><loc>https://slackwater.xyz/tides/calaveras-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/upper-guadalupe-slough/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/coyote-creek/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/coyote-creek-alviso-slough/</loc></url>
   <url><loc>https://slackwater.xyz/tides/south-bay-wreck/</loc></url>
   <url><loc>https://slackwater.xyz/tides/coyote-hills-slough-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/alameda-creek/</loc></url>
@@ -2203,7 +2203,7 @@
   <url><loc>https://slackwater.xyz/tides/cape-disappointment/</loc></url>
   <url><loc>https://slackwater.xyz/tides/ilwaco/</loc></url>
   <url><loc>https://slackwater.xyz/tides/greenhead-slough/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/naselle-river/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/naselle-river-4-miles-above-swing-bridge/</loc></url>
   <url><loc>https://slackwater.xyz/tides/paradise-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/nahcotta/</loc></url>
   <url><loc>https://slackwater.xyz/tides/palix-river/</loc></url>
@@ -2366,7 +2366,7 @@
   <url><loc>https://slackwater.xyz/tides/sakie-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/tamgas-harbor/</loc></url>
   <url><loc>https://slackwater.xyz/tides/keete-inlet/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/mud-bay/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/mud-bay-hetta-inlet/</loc></url>
   <url><loc>https://slackwater.xyz/tides/view-cove/</loc></url>
   <url><loc>https://slackwater.xyz/tides/custom-house-cove/</loc></url>
   <url><loc>https://slackwater.xyz/tides/boca-de-quadra/</loc></url>
@@ -2428,7 +2428,7 @@
   <url><loc>https://slackwater.xyz/tides/shakan-bay-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/shakan-strait/</loc></url>
   <url><loc>https://slackwater.xyz/tides/kell-bay/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/el-capitan-passage/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/el-capitan-passage-w-of-aneskett-pt/</loc></url>
   <url><loc>https://slackwater.xyz/tides/el-capitan-passage-dry-pass/</loc></url>
   <url><loc>https://slackwater.xyz/tides/table-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/point-harrington/</loc></url>
@@ -2470,7 +2470,7 @@
   <url><loc>https://slackwater.xyz/tides/sitka/</loc></url>
   <url><loc>https://slackwater.xyz/tides/baranof/</loc></url>
   <url><loc>https://slackwater.xyz/tides/herring-bay/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/eliza-harbor/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/eliza-harbor-admiralty-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/kasnyku-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cleveland-passage/</loc></url>
   <url><loc>https://slackwater.xyz/tides/olga-point/</loc></url>
@@ -2495,8 +2495,8 @@
   <url><loc>https://slackwater.xyz/tides/upper-endicott-arm/</loc></url>
   <url><loc>https://slackwater.xyz/tides/ford-s-terror/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sawyer-island/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/holkham-bay/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/port-snettisham/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/holkham-bay-tracy-arm-entrance/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/port-snettisham-speel-river-arm/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sharp-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/taku-harbor/</loc></url>
   <url><loc>https://slackwater.xyz/tides/taku-point/</loc></url>
@@ -2574,7 +2574,7 @@
   <url><loc>https://slackwater.xyz/tides/4-3-nm-ne-of-point-brazil/</loc></url>
   <url><loc>https://slackwater.xyz/tides/louis-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/bay-of-isles/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/snug-harbor/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/snug-harbor-knight-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/point-helen/</loc></url>
   <url><loc>https://slackwater.xyz/tides/college-fiord/</loc></url>
   <url><loc>https://slackwater.xyz/tides/port-audrey/</loc></url>
@@ -2587,7 +2587,7 @@
   <url><loc>https://slackwater.xyz/tides/bainbridge-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/eshamy-lagoon/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sawmill-bay/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/chenega-island/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/chenega-island-southwest-end/</loc></url>
   <url><loc>https://slackwater.xyz/tides/applegate-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/culross-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/hogg-bay/</loc></url>
@@ -2602,7 +2602,7 @@
   <url><loc>https://slackwater.xyz/tides/day-harbor/</loc></url>
   <url><loc>https://slackwater.xyz/tides/seward/</loc></url>
   <url><loc>https://slackwater.xyz/tides/agnes-cove/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/bear-cove/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/bear-cove-aialik-peninsula/</loc></url>
   <url><loc>https://slackwater.xyz/tides/aialik-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/aialik-sill/</loc></url>
   <url><loc>https://slackwater.xyz/tides/camp-cove/</loc></url>
@@ -2655,7 +2655,7 @@
   <url><loc>https://slackwater.xyz/tides/redfox-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/big-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/ugak-bay-saltery-cove/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/fox-bay/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/fox-bay-whale-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/uzkosti-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/port-lions/</loc></url>
   <url><loc>https://slackwater.xyz/tides/kizhuyak-bay/</loc></url>
@@ -2861,14 +2861,14 @@
   <url><loc>https://slackwater.xyz/tides/matamoros/</loc></url>
   <url><loc>https://slackwater.xyz/tides/madero/</loc></url>
   <url><loc>https://slackwater.xyz/tides/frontera/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/salina-cruz/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/salina-cruz-colonia-santita-oaxaca/</loc></url>
   <url><loc>https://slackwater.xyz/tides/guaymas/</loc></url>
   <url><loc>https://slackwater.xyz/tides/la-union-cutuco/</loc></url>
   <url><loc>https://slackwater.xyz/tides/isla-de-guanaja/</loc></url>
   <url><loc>https://slackwater.xyz/tides/puerto-cabezas/</loc></url>
   <url><loc>https://slackwater.xyz/tides/puntarenas/</loc></url>
   <url><loc>https://slackwater.xyz/tides/puerto-limon/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/settlement-point/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/settlement-point-grand-bahamas-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/grapetree-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/teague-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/fareham-bay/</loc></url>
@@ -2930,9 +2930,9 @@
   <url><loc>https://slackwater.xyz/tides/southeast-mona-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/mona-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/barbuda/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/balboa/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/balboa-canal-zone/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cristobal-colon/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/la-libertad/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/la-libertad-bahia-de-santa-elena/</loc></url>
   <url><loc>https://slackwater.xyz/tides/guayaquil/</loc></url>
   <url><loc>https://slackwater.xyz/tides/san-cristobal/</loc></url>
   <url><loc>https://slackwater.xyz/tides/troy/</loc></url>
@@ -2949,7 +2949,7 @@
   <url><loc>https://slackwater.xyz/tides/winyah-bay-entrance-south-jetty/</loc></url>
   <url><loc>https://slackwater.xyz/tides/frazier-point/</loc></url>
   <url><loc>https://slackwater.xyz/tides/brown-island/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/cape-romain-40-0-nm-east/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/cape-romain-46-miles-east-of/</loc></url>
   <url><loc>https://slackwater.xyz/tides/jack-creek-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sullivans-island-outer-coast/</loc></url>
   <url><loc>https://slackwater.xyz/tides/shipyard-creek/</loc></url>
@@ -2965,7 +2965,7 @@
   <url><loc>https://slackwater.xyz/tides/egg-islands/</loc></url>
   <url><loc>https://slackwater.xyz/tides/coffee-bluff/</loc></url>
   <url><loc>https://slackwater.xyz/tides/fort-mcallister/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/highway-bridge/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/highway-bridge-ogeechee-river/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cane-patch-creek-entrance/</loc></url>
   <url><loc>https://slackwater.xyz/tides/north-newport-river/</loc></url>
   <url><loc>https://slackwater.xyz/tides/dallas-bluff/</loc></url>
@@ -2999,7 +2999,7 @@
   <url><loc>https://slackwater.xyz/tides/memory-rock/</loc></url>
   <url><loc>https://slackwater.xyz/tides/pelican-harbor-central-abaco/</loc></url>
   <url><loc>https://slackwater.xyz/tides/nassau/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/eleuthera-island/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/eleuthera-island-west-coast/</loc></url>
   <url><loc>https://slackwater.xyz/tides/eleuthera-island-east-coast/</loc></url>
   <url><loc>https://slackwater.xyz/tides/the-bight/</loc></url>
   <url><loc>https://slackwater.xyz/tides/san-salvador/</loc></url>
@@ -3138,7 +3138,7 @@
   <url><loc>https://slackwater.xyz/tides/neiafu/</loc></url>
   <url><loc>https://slackwater.xyz/tides/lifuka-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/nomuka/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/nukualofa/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/nukualofa-nuku-alofa-tongatapu/</loc></url>
   <url><loc>https://slackwater.xyz/tides/raoul-or-sunday-island/</loc></url>
   <url><loc>https://slackwater.xyz/tides/puerto-bolivar/</loc></url>
   <url><loc>https://slackwater.xyz/tides/puna/</loc></url>
@@ -3304,7 +3304,7 @@
   <url><loc>https://slackwater.xyz/tides/alpena/</loc></url>
   <url><loc>https://slackwater.xyz/tides/altengamme/</loc></url>
   <url><loc>https://slackwater.xyz/tides/althagen/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/alvarado/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/alvarado-paso-nacional-veracruz/</loc></url>
   <url><loc>https://slackwater.xyz/tides/amaliahaven/</loc></url>
   <url><loc>https://slackwater.xyz/tides/amami/</loc></url>
   <url><loc>https://slackwater.xyz/tides/ambes/</loc></url>
@@ -3464,7 +3464,7 @@
   <url><loc>https://slackwater.xyz/tides/cardwell/</loc></url>
   <url><loc>https://slackwater.xyz/tides/carillon-amont/</loc></url>
   <url><loc>https://slackwater.xyz/tides/carloforte/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/carnarvon/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/carnarvon-brockman-western-australia/</loc></url>
   <url><loc>https://slackwater.xyz/tides/carpenters-bayou/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cartagena/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cascais/</loc></url>
@@ -3500,7 +3500,7 @@
   <url><loc>https://slackwater.xyz/tides/ciboure/</loc></url>
   <url><loc>https://slackwater.xyz/tides/cilacap/</loc></url>
   <url><loc>https://slackwater.xyz/tides/ciudad-del-carmen/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/ciudad-del-carmen-campeche/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/ciudad-del-carmen-ticon-ciudad-del-carmen-779a-mex-uhslc-rq/</loc></url>
   <url><loc>https://slackwater.xyz/tides/civitavecchia/</loc></url>
   <url><loc>https://slackwater.xyz/tides/clear-creek-bay-area-boulevard/</loc></url>
   <url><loc>https://slackwater.xyz/tides/clear-creek-fm-2351/</loc></url>
@@ -3606,10 +3606,10 @@
   <url><loc>https://slackwater.xyz/tides/erie-lake-erie/</loc></url>
   <url><loc>https://slackwater.xyz/tides/erieau/</loc></url>
   <url><loc>https://slackwater.xyz/tides/esashiko/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/esashiko-hokkaido/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/esashiko-ticon-esashiko-1615-jpn-jodc-pahb/</loc></url>
   <url><loc>https://slackwater.xyz/tides/esbjerg/</loc></url>
   <url><loc>https://slackwater.xyz/tides/esmeraldas/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/esperance/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/esperance-ticon-esperance-176-aus-uhslc-fd/</loc></url>
   <url><loc>https://slackwater.xyz/tides/esperanza-antarctica/</loc></url>
   <url><loc>https://slackwater.xyz/tides/essexville/</loc></url>
   <url><loc>https://slackwater.xyz/tides/esteinneressperrwerkbp/</loc></url>
@@ -3719,7 +3719,7 @@
   <url><loc>https://slackwater.xyz/tides/haikou/</loc></url>
   <url><loc>https://slackwater.xyz/tides/hakata/</loc></url>
   <url><loc>https://slackwater.xyz/tides/hakodate/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/haleiwa/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/haleiwa-hale-iwa-hi/</loc></url>
   <url><loc>https://slackwater.xyz/tides/halmstad-sjov/</loc></url>
   <url><loc>https://slackwater.xyz/tides/hamada/</loc></url>
   <url><loc>https://slackwater.xyz/tides/hamilton-stoney-creek/</loc></url>
@@ -3928,8 +3928,8 @@
   <url><loc>https://slackwater.xyz/tides/kumano/</loc></url>
   <url><loc>https://slackwater.xyz/tides/kungsholmsfort/</loc></url>
   <url><loc>https://slackwater.xyz/tides/kungsvik/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/kure/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/kure-hiroshima/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/kure-susaki-kochi/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/kure-hiroshima-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/kurihamako/</loc></url>
   <url><loc>https://slackwater.xyz/tides/kushimoto/</loc></url>
   <url><loc>https://slackwater.xyz/tides/kushiro/</loc></url>
@@ -3940,7 +3940,7 @@
   <url><loc>https://slackwater.xyz/tides/la-figueirette/</loc></url>
   <url><loc>https://slackwater.xyz/tides/la-guaira/</loc></url>
   <url><loc>https://slackwater.xyz/tides/la-paz/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/la-paz-baja-california-sur/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/la-paz-ticon-la-paz-671a-mex-uhslc-rq/</loc></url>
   <url><loc>https://slackwater.xyz/tides/la-rochelle-la-pallice/</loc></url>
   <url><loc>https://slackwater.xyz/tides/la-salle/</loc></url>
   <url><loc>https://slackwater.xyz/tides/lachine/</loc></url>
@@ -4118,7 +4118,7 @@
   <url><loc>https://slackwater.xyz/tides/mocamedes/</loc></url>
   <url><loc>https://slackwater.xyz/tides/moda/</loc></url>
   <url><loc>https://slackwater.xyz/tides/moerdijk/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/moji/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/moji-shimonoseki-yamaguchi/</loc></url>
   <url><loc>https://slackwater.xyz/tides/mokuoloe/</loc></url>
   <url><loc>https://slackwater.xyz/tides/mombasa/</loc></url>
   <url><loc>https://slackwater.xyz/tides/monaco-fontvieille/</loc></url>
@@ -4158,7 +4158,7 @@
   <url><loc>https://slackwater.xyz/tides/napa-river-at-brazos-drawbridge/</loc></url>
   <url><loc>https://slackwater.xyz/tides/napa-river-at-downtown-napa/</loc></url>
   <url><loc>https://slackwater.xyz/tides/napa-river-at-lincoln-avenue/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/napier/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/napier-ruawharo-harbour-te-whanga-o-ruawharo/</loc></url>
   <url><loc>https://slackwater.xyz/tides/napoli/</loc></url>
   <url><loc>https://slackwater.xyz/tides/nardana-patches/</loc></url>
   <url><loc>https://slackwater.xyz/tides/narvik/</loc></url>
@@ -4169,7 +4169,7 @@
   <url><loc>https://slackwater.xyz/tides/nemuroko/</loc></url>
   <url><loc>https://slackwater.xyz/tides/nes/</loc></url>
   <url><loc>https://slackwater.xyz/tides/neuendorfhafen/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/neustadt/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/neustadt-bay-of-lubeck/</loc></url>
   <url><loc>https://slackwater.xyz/tides/new-brighton-pier/</loc></url>
   <url><loc>https://slackwater.xyz/tides/new-rochelle/</loc></url>
   <url><loc>https://slackwater.xyz/tides/newcastle-new-south-wales/</loc></url>
@@ -4212,7 +4212,7 @@
   <url><loc>https://slackwater.xyz/tides/ofu/</loc></url>
   <url><loc>https://slackwater.xyz/tides/ofunato/</loc></url>
   <url><loc>https://slackwater.xyz/tides/oga/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/ogdensburg/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/ogdensburg-ny/</loc></url>
   <url><loc>https://slackwater.xyz/tides/ogi/</loc></url>
   <url><loc>https://slackwater.xyz/tides/oita/</loc></url>
   <url><loc>https://slackwater.xyz/tides/okada/</loc></url>
@@ -4327,7 +4327,7 @@
   <url><loc>https://slackwater.xyz/tides/port-blair/</loc></url>
   <url><loc>https://slackwater.xyz/tides/port-bloc/</loc></url>
   <url><loc>https://slackwater.xyz/tides/port-camargue/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/port-chalmers-otago/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/port-chalmers-ticon-port-chalmers-669a-nzl-uhslc-rq/</loc></url>
   <url><loc>https://slackwater.xyz/tides/port-colborne/</loc></url>
   <url><loc>https://slackwater.xyz/tides/port-douglas/</loc></url>
   <url><loc>https://slackwater.xyz/tides/port-dover/</loc></url>
@@ -4386,7 +4386,7 @@
   <url><loc>https://slackwater.xyz/tides/puerto-armuelles/</loc></url>
   <url><loc>https://slackwater.xyz/tides/puerto-castilla/</loc></url>
   <url><loc>https://slackwater.xyz/tides/puerto-chiapas/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/puerto-cortes/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/puerto-cortes-el-porvenir-cortes-department/</loc></url>
   <url><loc>https://slackwater.xyz/tides/puerto-deseado/</loc></url>
   <url><loc>https://slackwater.xyz/tides/puerto-madero/</loc></url>
   <url><loc>https://slackwater.xyz/tides/puerto-madryn/</loc></url>
@@ -4475,7 +4475,7 @@
   <url><loc>https://slackwater.xyz/tides/salalah/</loc></url>
   <url><loc>https://slackwater.xyz/tides/saldahna-bay/</loc></url>
   <url><loc>https://slackwater.xyz/tides/salerno/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/salina-cruz-oaxaca/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/salina-cruz-heroica-villa-de-san-blas-atempa-oaxaca/</loc></url>
   <url><loc>https://slackwater.xyz/tides/salvador/</loc></url>
   <url><loc>https://slackwater.xyz/tides/san-andres/</loc></url>
   <url><loc>https://slackwater.xyz/tides/san-benedetto-del-tronto/</loc></url>
@@ -4511,7 +4511,7 @@
   <url><loc>https://slackwater.xyz/tides/schleimndesp/</loc></url>
   <url><loc>https://slackwater.xyz/tides/schoonhoven/</loc></url>
   <url><loc>https://slackwater.xyz/tides/schulau/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/sciacca/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/sciacca-secca-grande-sicily/</loc></url>
   <url><loc>https://slackwater.xyz/tides/scott-base/</loc></url>
   <url><loc>https://slackwater.xyz/tides/s-cruz-d-palma/</loc></url>
   <url><loc>https://slackwater.xyz/tides/sedili/</loc></url>
@@ -4610,7 +4610,7 @@
   <url><loc>https://slackwater.xyz/tides/tarawa-bairiki/</loc></url>
   <url><loc>https://slackwater.xyz/tides/tarifa/</loc></url>
   <url><loc>https://slackwater.xyz/tides/tau/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/tauranga/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/tauranga-mount-maunganui-bay-of-plenty/</loc></url>
   <url><loc>https://slackwater.xyz/tides/tawau/</loc></url>
   <url><loc>https://slackwater.xyz/tides/taylor-lake-nasa-road-1/</loc></url>
   <url><loc>https://slackwater.xyz/tides/taylor-lake-port-road/</loc></url>
@@ -4668,7 +4668,7 @@
   <url><loc>https://slackwater.xyz/tides/tsushima/</loc></url>
   <url><loc>https://slackwater.xyz/tides/tsushimahidakatsu/</loc></url>
   <url><loc>https://slackwater.xyz/tides/tubuai/</loc></url>
-  <url><loc>https://slackwater.xyz/tides/tubuai-austral-islands/</loc></url>
+  <url><loc>https://slackwater.xyz/tides/tubuai-ticon-tubuai-456-fra-uhslc-fd/</loc></url>
   <url><loc>https://slackwater.xyz/tides/tumaco/</loc></url>
   <url><loc>https://slackwater.xyz/tides/turku-ruissalo-saaronniemi/</loc></url>
   <url><loc>https://slackwater.xyz/tides/turtle-head/</loc></url>

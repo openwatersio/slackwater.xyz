@@ -15,9 +15,23 @@ interface StationIdentity {
   latitude: number
   longitude: number
   timezone: string
+  /** The water this station sits in — "Hudson River", "Boundary Pass". */
   region?: string
+  /**
+   * The jurisdiction it sits in, spelled out: "Hokkaido", "British Columbia",
+   * "ME". Read only to head a group on a browse page whose own title does not
+   * already name it; `region` is what a station page says.
+   */
+  area?: string
   /** The country the station sits in, as its provider names it. */
   country?: string
+  /**
+   * The continent that country sits on, as the tide database names it —
+   * "Americas", "Oceania", and "Atlantic Ocean" for the one station that is
+   * on no continent at all. Carried only to group the country list on the
+   * browse index; nothing about a station reads it.
+   */
+  continent?: string
   /**
    * The first-level subdivision code as `@neaps/tide-database` publishes it —
    * `WA`, `BC`. Only set where the provider publishes a code a reader can

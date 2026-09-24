@@ -10,6 +10,7 @@ import { stationsById } from '@neaps/tide-database'
 import tzLookup from 'tz-lookup'
 import { FEET_PER_METRE } from './format'
 import { chsStations, curatedBySlug, REGISTRY_IDS } from './registry'
+import { routeSlug } from './routes'
 import type { BundledStation, Kind, Station } from './station'
 
 /**
@@ -31,8 +32,70 @@ export function isBuildable(id: string): boolean {
 const NOAA = 'noaa/'
 const overrides = corrections as Record<string, { name?: string; context?: string }>
 
-/** A provider `region` that is a subdivision code rather than a GeoNames numeric. */
-const SUBDIVISION = /^[A-Z]{2}$/
+/** A subdivision code the provider published rather than the gazetteer. */
+const USPS = /^[A-Z]{2}$/
+
+/**
+ * The water a station sits in, for the heading above it and the line under its
+ * name.
+ *
+ * `context` is the half the database separates out of a provider's
+ * comma-joined name — "Turkey Point, Hudson River" becomes the point and the
+ * river — and that half is exactly what this wants. But the same field is also
+ * filled from a gazetteer when the provider published no qualifier, and a
+ * derived one names the nearest settlement: 2,736 of them read "Downtown, HI"
+ * or "Waialua, HI". A neighbourhood is not the water, and as a heading it
+ * groups stations by nothing. `context_derived` is the database's own flag for
+ * which is which, so only the provider's own half is taken.
+ *
+ * It shouts as often as a name does, so it gets the same cleaning.
+ */
+function waterContext(r: Record<string, unknown>): string | undefined {
+  const own = r.context_derived ? undefined : r.context
+  return own ? cleanName(String(own)) : undefined
+}
+
+/**
+ * The jurisdiction a station sits in, spelled out — "Hokkaido", "British
+ * Columbia", "ME".
+ *
+ * Kept apart from the water because the two make good headings on different
+ * pages. Grouping Japan's 198 stations by prefecture is the only structure
+ * that page has; grouping British Columbia's by "British Columbia" says
+ * nothing, and the provider rows near the border say "Alaska" on stations the
+ * gazetteer places in BC — a heading that reads as a contradiction on a page
+ * titled for the province. `placeIndex` picks which one a page uses.
+ */
+function adminArea(r: Record<string, unknown>): string | undefined {
+  return r.region ? cleanName(String(r.region)) : undefined
+}
+
+/**
+ * The subdivision a station sits in, where the database vouches for one.
+ *
+ * `region_code` is ISO 3166-2 — `US-WA`, `CA-BC` — and the database emits it
+ * only where a gazetteer confirmed it, which is the United States and Canada
+ * and nowhere else. `region` beside it is a display name and is not safe to
+ * route on: US rows carry whatever NOAA published, so the same state appears
+ * as both "WA" and "Washington". The code is the identity; the name is not.
+ *
+ * The country prefix is checked rather than assumed, because a code that does
+ * not agree with its own country would put a station under another country's
+ * subdivision.
+ *
+ * Where the gazetteer could not confirm a code, a US row falls back to the
+ * USPS code NOAA itself published — 159 stations, most of them Alaskan, that
+ * would otherwise sit on the country page rather than in the state they are
+ * plainly in. The fallback stays US-only: a Canadian row carrying a stray US
+ * code (Amherstburg, Ontario is "MI") is the reason it was never wider.
+ */
+function subdivision(r: Record<string, unknown>): string | undefined {
+  const code = String(r.region_code ?? '')
+  const country = String(r.country_code ?? '')
+  if (country && code.startsWith(`${country}-`)) return code.slice(country.length + 1)
+  const region = String(r.region ?? '')
+  return country === 'US' && USPS.test(region) ? region : undefined
+}
 
 /**
  * `@neaps/tide-database` ships tide amplitudes in METRES (Boston M2 = 1.371,
@@ -82,8 +145,12 @@ export function loadCatalogue(): Station[] {
 
   for (const kind of ['tide', 'current'] as Kind[]) {
     const curated = curatedBySlug(kind)
-    for (const [id, slug] of Object.entries(slugTable[kind] as Record<string, string>)) {
+    for (const id of Object.keys(slugTable[kind] as Record<string, string>)) {
       if (!isBuildable(id)) continue
+      // The table says which stations this site publishes; the database says
+      // where. A corpus id with no route is a broken corpus, not one to skip.
+      const slug = routeSlug(kind, id)
+      if (!slug) throw new Error(`catalogue: no route for ${id}`)
 
       if (kind === 'tide') {
         const r = tideRecord(id)
@@ -91,6 +158,8 @@ export function loadCatalogue(): Station[] {
         // means the slug table and the data package disagree about what exists.
         if (!r) throw new Error(`catalogue: no tide data for ${id}`)
         const override = overrides[id]
+        const state = subdivision(r)
+        const area = adminArea(r)
         out.push({
           id, kind, slug,
           source: 'bundled',
@@ -99,20 +168,11 @@ export function loadCatalogue(): Station[] {
           name: curated.get(slug)?.name ?? override?.name ?? cleanName(String(r.name)),
           latitude: Number(r.latitude), longitude: Number(r.longitude),
           timezone: String(r.timezone),
-          region:
-            curated.get(slug)?.region ??
-            override?.context ??
-            (r.region ? String(r.region) : undefined),
+          region: curated.get(slug)?.region ?? override?.context ?? waterContext(r),
+          ...(area ? { area } : {}),
           ...(r.country ? { country: String(r.country) } : {}),
-          // The provider's `region` is a USPS code on US rows and a GeoNames
-          // numeric ("02") on Canadian ones — and a few Canadian rows carry a
-          // stray US code (Amherstburg, Ontario is "MI"). Only a US row's
-          // letter code is a subdivision a reader can trust, so only that
-          // becomes `state`; the hierarchy migration gets the rest from the
-          // unified station database.
-          ...(r.country === 'United States' && SUBDIVISION.test(String(r.region ?? ''))
-            ? { state: String(r.region) }
-            : {}),
+          ...(r.continent ? { continent: String(r.continent) } : {}),
+          ...(state ? { state } : {}),
           constituents: (r.harmonic_constituents as BundledStation['constituents']).map((c) => ({
             ...c,
             amplitude: c.amplitude * FEET_PER_METRE,
@@ -149,9 +209,10 @@ export function loadCatalogue(): Station[] {
           // the only source and there is nothing to fall back to.
           region: curated.get(slug)?.region ?? override?.context,
           // The NOAA bundle carries no country or subdivision either. Every
-          // station in it is a US one, which is what makes the constant
+          // station in it is a US one, which is what makes the constants
           // honest rather than a default.
           country: 'United States',
+          continent: 'Americas',
           constituents: r.constituents as BundledStation['constituents'],
           offset: Number(r.offset ?? 0),
           floodDirection: Number(r.floodDirection),

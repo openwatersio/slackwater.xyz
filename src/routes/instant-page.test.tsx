@@ -47,6 +47,10 @@ vi.mock('#/lib/catalogue-server', () => ({
   // error page for both instants - which looks exactly like the nesting bug
   // this file exists to catch, and sends you hunting in the wrong place.
   nearbyStations: async () => [],
+  // The browse index's place routes are in the same route tree, so their
+  // import of this module is evaluated here too even though nothing in this
+  // file navigates to one.
+  placeIndex: async () => ({ places: [], rows: [], count: 0 }),
 }))
 
 const { routeTree } = await import('#/routeTree.gen')
