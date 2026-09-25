@@ -13,21 +13,18 @@ importers:
       '@cf-wasm/resvg':
         specifier: 0.4.0
         version: 0.4.0
-      '@neaps/tide-database':
-        specifier: ^0.10.20260924
-        version: 0.10.20260924
       '@neaps/tide-predictor':
         specifier: ^0.11.0
         version: 0.11.0
       '@openwaters/almanac':
         specifier: 0.3.0
         version: 0.3.0
-      '@openwaters/noaa-current-stations':
-        specifier: ^0.5.0
-        version: 0.5.0
       '@openwaters/station-metadata':
         specifier: ^5.3.2
         version: 5.3.2
+      '@slackwater/database':
+        specifier: ^1.0.0-beta.20260925
+        version: 1.0.0-beta.20260925
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.3.3(vite@8.3.0(@types/node@26.5.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
@@ -555,9 +552,6 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
-  '@neaps/tide-database@0.10.20260924':
-    resolution: {integrity: sha512-2iUZXhMNUhjQcSG4AYVW038aXWzy2bObN0RbONuRJZuimUOF3/OsL3LJFasKSYCGyyEa2tBU2Ch9vF4uPqt3Eg==}
-
   '@neaps/tide-predictor@0.11.0':
     resolution: {integrity: sha512-aBjaTMthLvkAmTURoGsdfjobd2PwNm1FJ6laoAmi3ZlM9IMrAjcAerdUtGJ39de0mXl6wTZRH+CAXY4AmCi6Xg==}
 
@@ -579,11 +573,6 @@ packages:
 
   '@openwaters/almanac@0.3.0':
     resolution: {integrity: sha512-QXqCCpVAqgATgKnRtp5POB5YgMCLVIODN7c5PkTVnkqrG0pwQQjx6Mx5D95Pg37+vZy1ivpGZnAvD0plH61CSA==}
-
-  '@openwaters/noaa-current-stations@0.5.0':
-    resolution: {integrity: sha512-Rlj2+bbwZhfQvyCojy7baadClEEnzJt2xtyQ0JZaiZUPt40lHb72Icd2AURfCW4WqES59LtRcJNOcoW2DNAznQ==}
-    engines: {node: '>=20'}
-    hasBin: true
 
   '@openwaters/station-metadata@5.3.2':
     resolution: {integrity: sha512-XNtX6HF3UJO3riol9k2Jwl3OOevqG2JpYZLjURIyB7j5zNf0P/oLAliV5jOVmBIig2Vq2HmdgOQFChIlDipfWQ==}
@@ -810,6 +799,9 @@ packages:
   '@sindresorhus/is@7.2.0':
     resolution: {integrity: sha512-P1Cz1dWaFfR4IR+U13mqqiGsLFf1KbayybWwdd2vfctdV6hDpUkgCY0nKOLLTMSoRd/jJNjtbqzf13K8DCCXQw==}
     engines: {node: '>=18'}
+
+  '@slackwater/database@1.0.0-beta.20260925':
+    resolution: {integrity: sha512-4dMIqqriPSqv3Bbon02c4TZHurCuJnFbvSqdjqG6OK+NCTwSMw9Qd2ZJTla1R+SyVI+f/80z+82CaJ7aBShbaw==}
 
   '@speed-highlight/core@1.2.24':
     resolution: {integrity: sha512-qeW2e1l78afw8VhRPfPQ1Gjj+KU5XFQ/OFV5ti6eTa9bruO7mJyZtA4vw0ofqmA3tKCkROE9xLk3VZoeRc98nw==}
@@ -2318,13 +2310,6 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@neaps/tide-database@0.10.20260924':
-    dependencies:
-      flatbuffers: 25.9.23
-      geokdbush: 2.1.0
-      kdbush: 4.1.0
-      minisearch: 7.2.0
-
   '@neaps/tide-predictor@0.11.0': {}
 
   '@oozcitak/dom@2.0.2':
@@ -2345,8 +2330,6 @@ snapshots:
   '@oozcitak/util@10.0.0': {}
 
   '@openwaters/almanac@0.3.0': {}
-
-  '@openwaters/noaa-current-stations@0.5.0': {}
 
   '@openwaters/station-metadata@5.3.2':
     dependencies:
@@ -2467,6 +2450,13 @@ snapshots:
   '@rolldown/pluginutils@1.0.1': {}
 
   '@sindresorhus/is@7.2.0': {}
+
+  '@slackwater/database@1.0.0-beta.20260925':
+    dependencies:
+      flatbuffers: 25.9.23
+      geokdbush: 2.1.0
+      kdbush: 4.1.0
+      minisearch: 7.2.0
 
   '@speed-highlight/core@1.2.24': {}
 

@@ -1,13 +1,11 @@
 //
 // BUILD-TIME ONLY. Never import this from a route module: it pulls the whole
-// tide database and the current bundle, and TanStack loaders are isomorphic, so
-// one careless import ships megabytes to every visitor. Task 4 asserts that.
+// station database, and TanStack loaders are isomorphic, so one careless import
+// ships megabytes to every visitor. Task 4 asserts that.
 import { cleanName } from '@openwaters/station-metadata'
 import corrections from '@openwaters/station-metadata/data/corrections.json' with { type: 'json' }
 import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type: 'json' }
-import currentBundle from '@openwaters/noaa-current-stations/currents.json' with { type: 'json' }
-import { stationsById } from '@neaps/tide-database'
-import tzLookup from 'tz-lookup'
+import { stationsById } from '@slackwater/database'
 import { FEET_PER_METRE } from './format'
 import { chsStations, curatedBySlug, REGISTRY_IDS } from './registry'
 import { routeSlug } from './routes'
@@ -28,8 +26,6 @@ export function isBuildable(id: string): boolean {
   return id.includes('/')
 }
 
-/** The current bundle keys stations by bare NOAA id; the slug table prefixes them. */
-const NOAA = 'noaa/'
 const overrides = corrections as Record<string, { name?: string; context?: string }>
 
 /** A subdivision code the provider published rather than the gazetteer. */
@@ -98,8 +94,8 @@ function subdivision(r: Record<string, unknown>): string | undefined {
 }
 
 /**
- * `@neaps/tide-database` ships tide amplitudes in METRES (Boston M2 = 1.371,
- * a 9.5 ft range once summed) — the current bundle is already in knots. The
+ * `@slackwater/database` ships tide amplitudes in METRES (Boston M2 = 1.371,
+ * a 9.5 ft range once summed) and current amplitudes in knots. The
  * site speaks feet, so the conversion happens once, here, at the boundary
  * where provider data enters: from this point on a tide `Station` is in feet
  * and no renderer has to know what a provider chose. Labelling a metre "ft"
@@ -132,15 +128,12 @@ function datumShift(r: Record<string, unknown>): number {
   return (datums.MSL - datums[chartDatum]) * FEET_PER_METRE
 }
 
-function tideRecord(id: string): Record<string, unknown> | undefined {
+function record(id: string): Record<string, unknown> | undefined {
   const db = stationsById as unknown
   return db instanceof Map ? db.get(id) : (db as Record<string, never>)[id]
 }
 
 export function loadCatalogue(): Station[] {
-  const currents = new Map(
-    (currentBundle.stations as Array<Record<string, never>>).map((s) => [NOAA + s.id, s]),
-  )
   const out: Station[] = []
 
   for (const kind of ['tide', 'current'] as Kind[]) {
@@ -152,73 +145,53 @@ export function loadCatalogue(): Station[] {
       const slug = routeSlug(kind, id)
       if (!slug) throw new Error(`catalogue: no route for ${id}`)
 
-      if (kind === 'tide') {
-        const r = tideRecord(id)
-        // A slug with no data is a broken corpus, not a station to skip: it
-        // means the slug table and the data package disagree about what exists.
-        if (!r) throw new Error(`catalogue: no tide data for ${id}`)
-        const override = overrides[id]
-        const state = subdivision(r)
-        const area = adminArea(r)
-        out.push({
-          id, kind, slug,
-          source: 'bundled',
-          // Curated identity wins. The provider row names the water whatever the
-          // provider calls it; the registry names it what a mariner calls it.
-          name: curated.get(slug)?.name ?? override?.name ?? cleanName(String(r.name)),
-          latitude: Number(r.latitude), longitude: Number(r.longitude),
-          timezone: String(r.timezone),
-          region: curated.get(slug)?.region ?? override?.context ?? waterContext(r),
-          ...(area ? { area } : {}),
-          ...(r.country ? { country: String(r.country) } : {}),
-          ...(r.continent ? { continent: String(r.continent) } : {}),
-          ...(state ? { state } : {}),
-          constituents: (r.harmonic_constituents as BundledStation['constituents']).map((c) => ({
-            ...c,
-            amplitude: c.amplitude * FEET_PER_METRE,
-          })),
-          chartDatum: String(r.chart_datum ?? ''),
-          offset: datumShift(r),
-        })
-      } else {
-        const r = currents.get(id)
-        if (!r) throw new Error(`catalogue: no current data for ${id}`)
-        // A subordinate station carries no constituents of its own: NOAA
-        // publishes it as time offsets and flood/ebb speed ratios reduced
-        // against a reference station, and `predict.ts` sums constituents.
-        // Building one anyway produces a page with a head and no body, which
-        // is what 1,692 of these did the first time the slug table grew to
-        // include them. The reduction is a prediction the site does not do
-        // yet, so the station does not get a page yet — see #80.
-        if (!r.constituents) continue
-        const override = overrides[id]
-        const latitude = Number(r.latitude)
-        const longitude = Number(r.longitude)
-        // The current bundle carries no timezone field at all - derive one from
-        // coordinates rather than defaulting to UTC, which would quietly show
-        // every current station's slack time seven-plus hours wrong.
-        out.push({
-          id, kind, slug,
-          source: 'bundled',
-          // Curated identity wins. The provider row names the water whatever the
-          // provider calls it; the registry names it what a mariner calls it.
-          name: curated.get(slug)?.name ?? override?.name ?? cleanName(String(r.name)),
-          latitude, longitude,
-          timezone: tzLookup(latitude, longitude),
-          // The NOAA bundle carries no region field at all, so the registry is
-          // the only source and there is nothing to fall back to.
-          region: curated.get(slug)?.region ?? override?.context,
-          // The NOAA bundle carries no country or subdivision either. Every
-          // station in it is a US one, which is what makes the constants
-          // honest rather than a default.
-          country: 'United States',
-          continent: 'Americas',
-          constituents: r.constituents as BundledStation['constituents'],
-          offset: Number(r.offset ?? 0),
-          floodDirection: Number(r.floodDirection),
-          ebbDirection: Number(r.ebbDirection),
-        })
-      }
+      const r = record(id)
+      // A slug with no data is a broken corpus, not a station to skip: it
+      // means the slug table and the database disagree about what exists.
+      if (!r) throw new Error(`catalogue: no ${kind} data for ${id}`)
+      const constituents = (r.harmonic_constituents ?? []) as BundledStation['constituents']
+      // A subordinate current carries no constituents of its own: NOAA
+      // publishes it as time offsets and flood/ebb speed ratios reduced
+      // against a reference station, and `predict.ts` sums constituents.
+      // Building one anyway produces a page with a head and no body, which
+      // is what 1,692 of these did the first time the slug table grew to
+      // include them. The reduction is a prediction the site does not do
+      // yet, so the station does not get a page yet — see #80.
+      if (kind === 'current' && !constituents.length) continue
+      const override = overrides[id]
+      const state = subdivision(r)
+      const area = adminArea(r)
+      const current = (r.current ?? {}) as Record<string, number | undefined>
+      out.push({
+        id, kind, slug,
+        source: 'bundled',
+        // Curated identity wins. The provider row names the water whatever the
+        // provider calls it; the registry names it what a mariner calls it.
+        name: curated.get(slug)?.name ?? override?.name ?? cleanName(String(r.name)),
+        latitude: Number(r.latitude), longitude: Number(r.longitude),
+        timezone: String(r.timezone),
+        // A NOAA current's own qualifier is a bearing off the named place —
+        // "0.4 nm SE of" — and heading a page by it says nothing, so a
+        // current's water comes from curated identity alone.
+        region: curated.get(slug)?.region ?? override?.context ?? (kind === 'tide' ? waterContext(r) : undefined),
+        ...(area ? { area } : {}),
+        ...(r.country ? { country: String(r.country) } : {}),
+        ...(r.continent ? { continent: String(r.continent) } : {}),
+        ...(state ? { state } : {}),
+        ...(kind === 'tide'
+          ? {
+              constituents: constituents.map((c) => ({ ...c, amplitude: c.amplitude * FEET_PER_METRE })),
+              chartDatum: String(r.chart_datum ?? ''),
+              offset: datumShift(r),
+            }
+          : {
+              constituents,
+              // Mean flow: the constant term under the harmonic sum, in knots.
+              offset: current.mean_flow ?? 0,
+              floodDirection: current.flood_direction,
+              ebbDirection: current.ebb_direction,
+            }),
+      })
     }
   }
 
