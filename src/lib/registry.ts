@@ -1,47 +1,42 @@
 //
-// BUILD-TIME ONLY, like catalogue.ts — it pulls the whole registry.
+// BUILD-TIME ONLY, like catalogue.ts — it walks the whole station database.
 //
-// station-metadata owns curated identity: a hand-written name, a real region,
-// and aliases. A provider row for the same water carries the provider's own
-// name, which is why /currents/boundary-pass read "Turn Point, Boundary Pass"
-// until this existed.
-import registry from '@openwaters/station-metadata/data/registry.json' with { type: 'json' }
-import { stationsById } from '@slackwater/database'
-import tzLookup from 'tz-lookup'
+// The database owns curated identity: a hand-written name, a real region,
+// and aliases, carried as identity-only records beside the provider rows. A
+// provider row for the same water carries the provider's own name, which is
+// why /currents/boundary-pass read "Turn Point, Boundary Pass" until this
+// existed.
+import { allStations } from '@slackwater/database'
 import { routeSlug } from './routes'
 import type { ChsStation, Kind } from './station'
 
-/**
- * The province a curated record sits in, as the database publishes it.
- *
- * The registry's own ids are in the database — it carries these 35 identity-
- * only records alongside the provider ones — so `CA-BC` is read rather than
- * inferred. A record the database does not name gets no province at all: an
- * invented one puts a station under the wrong heading on a page that exists
- * to say where things are.
- */
-function province(id: string): string | undefined {
-  const code = String((stationsById.get(id) as { region_code?: string } | undefined)?.region_code ?? '')
-  return code.startsWith('CA-') ? code.slice(3) : undefined
-}
-
-interface RegistryEntry {
+interface Record {
+  id: string
+  kind: Kind
   name: string
   context?: string
-  position: [number, number]
-  provider?: string
-  kind?: string
-  aliases?: string[]
-  derived?: unknown
+  context_derived?: boolean
+  latitude: number
+  longitude: number
+  timezone: string
+  region_code?: string
+  source?: { name?: string }
+  current?: { derived?: unknown }
 }
 
-const entries = registry as unknown as Record<string, RegistryEntry>
+/** The `source.name` the database gives every curated CHS record. */
+const CHS_SOURCE = 'Canadian Hydrographic Service'
 
-/** Every id station-metadata's registry names — the curated half of a merged pair. */
-export const REGISTRY_IDS: ReadonlySet<string> = new Set(Object.keys(entries))
+/**
+ * A curated record is one the database owns rather than mirrors from a
+ * provider, and the id shape says which: a provider row is `noaa/…` or
+ * `ticon/…`, a curated one is a bare key (`chs-victoria`, `noaa-boundary-pass`).
+ * The same rule `isBuildable` in catalogue.ts reads the other way round.
+ */
+const curatedRecords = (allStations as unknown as Record[]).filter((s) => !s.id.includes('/'))
 
-/** A registry entry with no `kind` is a current gate — the registry's own rule. */
-const kindOf = (e: RegistryEntry): Kind => (e.kind === 'tide' ? 'tide' : 'current')
+/** Every id the database curates — the curated half of a merged pair. */
+export const REGISTRY_IDS: ReadonlySet<string> = new Set(curatedRecords.map((s) => s.id))
 
 export interface Curated {
   name: string
@@ -51,23 +46,24 @@ export interface Curated {
 /**
  * Curated identity for one kind, keyed by SLUG rather than id.
  *
- * Slug is the join key because that is how station-metadata expresses "these
- * two ids are one station": 4.1.2 merged four duplicate pairs by pointing both
- * ids at one slug. An id join would miss every one of them.
+ * Slug is the join key because that is how the database expresses "these two
+ * ids are one station": a merged pair holds one route with both ids on it. An
+ * id join would miss every one of them.
  */
 export function curatedBySlug(kind: Kind): Map<string, Curated> {
   const out = new Map<string, Curated>()
-  for (const [id, entry] of Object.entries(entries)) {
-    if (kindOf(entry) !== kind) continue
-    const slug = routeSlug(kind, id)
+  for (const s of curatedRecords) {
+    if (s.kind !== kind) continue
+    const slug = routeSlug(kind, s.id)
     if (!slug) continue
-    out.set(slug, { name: entry.name, ...(entry.context ? { region: entry.context } : {}) })
+    const region = s.context_derived ? undefined : s.context
+    out.set(slug, { name: s.name, ...(region ? { region } : {}) })
   }
   return out
 }
 
 /**
- * Deferred by owner decision, and excluded by name because the registry
+ * Deferred by owner decision, and excluded by name because the database
  * publishes it like any other gate — without this rule it would become a page
  * as a side effect of a data source. slackwater-ios excludes it fully as a
  * hazard call: violent rapids, "wrong water under a trusted name". Whether
@@ -77,44 +73,43 @@ export function curatedBySlug(kind: Kind): Map<string, Curated> {
 const EXCLUDED = new Set(['chs-arran-rapids'])
 
 /**
- * The Canadian stations of one kind, from identity station-metadata already
+ * The Canadian stations of one kind, from identity the database already
  * publishes.
  *
- * No new package and no upstream release for either kind: all 24 gates and ten
- * of the tide ports are registry entries with a curated name, region and
- * corrected position. Only the timezone is derived, from the position.
- *
- * The other 1,048 CHS tide ports have identity nowhere published — that is the
- * rest of #17 and needs an operator run against IWLS, not a change here.
+ * All 24 gates and ten of the tide ports are curated records with a name,
+ * region, corrected position, timezone and province. The other 1,048 CHS tide
+ * ports have identity nowhere published — that is the rest of #17 and needs
+ * an operator run against IWLS, not a change here.
  */
 export function chsStations(kind: Kind): ChsStation[] {
   const out: ChsStation[] = []
-  for (const [id, entry] of Object.entries(entries)) {
-    if (entry.provider !== 'chs' || kindOf(entry) !== kind) continue
-    if (EXCLUDED.has(id)) continue
-    const slug = routeSlug(kind, id)
+  for (const s of curatedRecords) {
+    if (s.source?.name !== CHS_SOURCE || s.kind !== kind) continue
+    if (EXCLUDED.has(s.id)) continue
+    const slug = routeSlug(kind, s.id)
     // A station with no published slug is a broken corpus, not one to skip: it
-    // means the registry and the slug table disagree about what exists.
-    if (!slug) throw new Error(`registry: no published slug for CHS ${kind} station ${id}`)
-    const [latitude, longitude] = entry.position
-    const state = province(id)
+    // means the database's records and its route index disagree about what exists.
+    if (!slug) throw new Error(`registry: no published slug for CHS ${kind} station ${s.id}`)
+    const region = s.context_derived ? undefined : s.context
+    // The province a page competes for ("tides victoria bc") is read rather
+    // than guessed from the position; a record with no Canadian code gets
+    // none, because an invented one puts a station under the wrong heading.
+    const code = String(s.region_code ?? '')
+    const state = code.startsWith('CA-') ? code.slice(3) : undefined
     out.push({
-      id, kind, slug, source: 'chs',
-      name: entry.name,
-      ...(entry.context ? { region: entry.context } : {}),
-      // Every CHS station is Canadian by definition of the provider, and the
-      // database carries all 35 of these curated records with a real
-      // `region_code` — so the province a page competes for ("tides victoria
-      // bc") is read rather than guessed from the position.
+      id: s.id, kind, slug, source: 'chs',
+      name: s.name,
+      ...(region ? { region } : {}),
+      // Every CHS station is Canadian by definition of the provider.
       country: 'Canada',
       continent: 'Americas',
       ...(state ? { state } : {}),
       // Carried through so the page knows not to offer a curve it cannot
       // fetch: a derived gate has no CHS current station, and resolving its
       // position would land on real water 47 km away down another inlet.
-      ...(entry.derived ? { derived: true as const } : {}),
-      latitude, longitude,
-      timezone: tzLookup(latitude, longitude),
+      ...(s.current?.derived ? { derived: true as const } : {}),
+      latitude: s.latitude, longitude: s.longitude,
+      timezone: s.timezone,
     })
   }
   return out
