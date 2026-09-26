@@ -2,7 +2,6 @@
 // BUILD-TIME ONLY. Never import this from a route module: it pulls the whole
 // station database, and TanStack loaders are isomorphic, so one careless import
 // ships megabytes to every visitor. Task 4 asserts that.
-import corrections from '@openwaters/station-metadata/data/corrections.json' with { type: 'json' }
 import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type: 'json' }
 import { stationsById } from '@slackwater/database'
 import { FEET_PER_METRE } from './format'
@@ -24,8 +23,6 @@ import type { BundledStation, Kind, Station } from './station'
 export function isBuildable(id: string): boolean {
   return id.includes('/')
 }
-
-const overrides = corrections as Record<string, { name?: string; context?: string }>
 
 /** A subdivision code the provider published rather than the gazetteer. */
 const USPS = /^[A-Z]{2}$/
@@ -155,7 +152,6 @@ export function loadCatalogue(): Station[] {
       // include them. The reduction is a prediction the site does not do
       // yet, so the station does not get a page yet — see #80.
       if (kind === 'current' && !constituents.length) continue
-      const override = overrides[id]
       const state = subdivision(r)
       const area = adminArea(r)
       const current = (r.current ?? {}) as Record<string, number | undefined>
@@ -164,13 +160,13 @@ export function loadCatalogue(): Station[] {
         source: 'bundled',
         // Curated identity wins. The provider row names the water whatever the
         // provider calls it; the curated record names it what a mariner calls it.
-        name: curated.get(slug)?.name ?? override?.name ?? String(r.name),
+        name: curated.get(slug)?.name ?? String(r.name),
         latitude: Number(r.latitude), longitude: Number(r.longitude),
         timezone: String(r.timezone),
         // A NOAA current's own qualifier is a bearing off the named place —
         // "0.4 nm SE of" — and heading a page by it says nothing, so a
         // current's water comes from curated identity alone.
-        region: curated.get(slug)?.region ?? override?.context ?? (kind === 'tide' ? waterContext(r) : undefined),
+        region: curated.get(slug)?.region ?? (kind === 'tide' ? waterContext(r) : undefined),
         ...(area ? { area } : {}),
         ...(r.country ? { country: String(r.country) } : {}),
         ...(r.continent ? { continent: String(r.continent) } : {}),

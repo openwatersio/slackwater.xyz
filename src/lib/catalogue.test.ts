@@ -120,9 +120,13 @@ describe('loadCatalogue', () => {
     expect(turkey?.region).toBe('Hudson River')
   })
 
-  it('applies station-metadata corrections to provider stations', () => {
+  it('names the water a river station is measured along', () => {
+    // NOAA names these by distance up a river and files the town as the
+    // qualifier; the database corrects the qualifier to the river, and a
+    // distance with no water under it says nothing.
     const madHorseCreek = all.find((s) => s.id === 'noaa/8537535')
-    expect(madHorseCreek?.name).toBe('1 nm above entrance, Mad Horse Creek')
+    expect(madHorseCreek?.name).toBe('1 nm Above Entrance')
+    expect(madHorseCreek?.region).toBe('Mad Horse Creek')
   })
 
   it('gives a registry station its curated name, not the provider row name', () => {
