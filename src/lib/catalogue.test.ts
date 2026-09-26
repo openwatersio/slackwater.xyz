@@ -171,7 +171,7 @@ describe('loadCatalogue', () => {
   })
 
   it('collapses a merged pair to one row', () => {
-    // station-metadata 4.1.2 points both ids of a merged pair at one slug. Only
+    // The database puts both ids of a merged pair on one route. Only
     // one half is buildable today, so this passes before the dedupe exists - it
     // is here as the tripwire for the CHS gates, where both halves build.
     const rows = all.filter((s) => s.kind === 'current' && s.slug === 'boundary-pass')

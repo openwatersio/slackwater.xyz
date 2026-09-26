@@ -12,14 +12,14 @@ import { routeSlug } from './routes'
 import type { BundledStation, Kind, Station } from './station'
 
 /**
- * A station is buildable when a provider catalogue ships its data, which the id
- * shape tells us: `noaa/…` and `ticon/…` come from a package, while a bare
- * registry key (`chs-victoria`, `noaa-boundary-pass`) is identity that
- * station-metadata owns and no package carries constituents for.
+ * A station is buildable when a provider row ships its constituents, which the
+ * id shape tells us: `noaa/…` and `ticon/…` are provider rows, while a bare
+ * key (`chs-victoria`, `noaa-boundary-pass`) is identity the database curates
+ * and carries no constituents for.
  *
  * Filtering on the id shape rather than a `chs-` prefix is what makes this one
- * rule instead of a rule plus an exception: `noaa-boundary-pass` is registry
- * owned despite its name, and a prefix test silently lets it through to a throw.
+ * rule instead of a rule plus an exception: `noaa-boundary-pass` is curated
+ * despite its name, and a prefix test silently lets it through to a throw.
  * Those stations are excluded from v1 and tracked in issue #17.
  */
 export function isBuildable(id: string): boolean {
@@ -166,7 +166,7 @@ export function loadCatalogue(): Station[] {
         id, kind, slug,
         source: 'bundled',
         // Curated identity wins. The provider row names the water whatever the
-        // provider calls it; the registry names it what a mariner calls it.
+        // provider calls it; the curated record names it what a mariner calls it.
         name: curated.get(slug)?.name ?? override?.name ?? cleanName(String(r.name)),
         latitude: Number(r.latitude), longitude: Number(r.longitude),
         timezone: String(r.timezone),
@@ -195,16 +195,16 @@ export function loadCatalogue(): Station[] {
     }
   }
 
-  // The Canadian gates, and the ten tide ports whose identity the registry
-  // publishes. Both carry no prediction: DFO's terms do not allow re-serving
+  // The Canadian gates, and the ten tide ports whose identity the database
+  // curates. Both carry no prediction: DFO's terms do not allow re-serving
   // one, so the reader's own browser fetches it. The other 1,048 ports have
   // identity nowhere published — see #17.
   out.push(...chsStations('current'), ...chsStations('tide'))
 
-  // One row per slug. station-metadata merges duplicate identities by pointing
-  // both ids at one slug (4.1.2), so a slug can arrive twice. Prefer the id the
-  // registry names - that is the curated half in every merged pair - and fall
-  // back to first-seen so this is total rather than conditional.
+  // One row per slug. The database merges duplicate identities by putting
+  // both ids on one route, so a slug can arrive twice. Prefer the id the
+  // database curates - that is the curated half in every merged pair - and
+  // fall back to first-seen so this is total rather than conditional.
   const bySlug = new Map<string, Station>()
   for (const s of out) {
     const key = `${s.kind}/${s.slug}`
