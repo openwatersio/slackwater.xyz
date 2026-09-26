@@ -6,7 +6,7 @@
 // name, which is why /currents/boundary-pass read "Turn Point, Boundary Pass"
 // until this existed.
 import registry from '@openwaters/station-metadata/data/registry.json' with { type: 'json' }
-import { stationsById } from '@neaps/tide-database'
+import { stationsById } from '@slackwater/database'
 import tzLookup from 'tz-lookup'
 import { routeSlug } from './routes'
 import type { ChsStation, Kind } from './station'

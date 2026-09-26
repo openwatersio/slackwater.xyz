@@ -9,7 +9,7 @@ const SEATTLE: BundledStation = {
   id: 'noaa/9447130', kind: 'tide', slug: 'seattle', name: 'SEATTLE (Madison St.), Elliott Bay',
   latitude: 47.6, longitude: -122.34, timezone: 'America/Los_Angeles',
   source: 'bundled',
-  // FEET. `@neaps/tide-database` ships Seattle's M2 as 1.063 METRES; the
+  // FEET. `@slackwater/database` ships Seattle's M2 as 1.063 METRES; the
   // catalogue converts once at the provider boundary (see catalogue.ts), so a
   // `Station` that reaches a renderer is already in the unit its labels claim.
   // These are those metre figures times 3.28084 — a fixture in metres would

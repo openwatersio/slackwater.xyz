@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import tzLookup from 'tz-lookup'
 import { loadCatalogue } from './catalogue'
 import { predictSeries } from './predict'
 import { nearby } from './nearby'
@@ -89,20 +88,22 @@ describe('loadCatalogue', () => {
   })
 
   it('gives Deception Pass its real local zone, not UTC', () => {
-    // The current bundle carries no timezone field at all - catalogue.ts must
-    // derive one from coordinates. Asserting the zone itself, not merely that
-    // one is present, is the point: a "has a timezone" check passes on 'UTC'.
+    // Asserting the zone itself, not merely that one is present, is the
+    // point: a "has a timezone" check passes on 'UTC'.
     const d = all.find((s) => s.id === 'noaa/PUG1701')
     expect(d?.timezone).toBe('America/Los_Angeles')
   })
 
-  it('never silently defaults a current station to UTC', () => {
-    // Every current station's timezone must match what its own coordinates
-    // resolve to. A station whose zone happens to genuinely be UTC would
-    // still pass, since tzLookup itself would agree - the point is that a
-    // UTC result can never come from a missing-data fallback instead.
-    for (const s of all.filter((s) => s.kind === 'current')) {
-      expect(s.timezone, s.id).toBe(tzLookup(s.latitude, s.longitude))
+  it('takes a current station\'s zone from the database, not from its coordinates', () => {
+    // The database publishes the zone NOAA files each station under. A
+    // coordinate lookup disagrees on 27 of them, and is wrong where it does:
+    // it puts Wrangell Narrows, Alaska, in Vancouver's zone and Discovery
+    // Island, a US station off Victoria, in Canada's.
+    const byId = new Map(all.map((s) => [s.id, s]))
+    expect(byId.get('noaa/SEA0103')?.timezone).toBe('America/Sitka')
+    expect(byId.get('noaa/PUG1636')?.timezone).toBe('America/Los_Angeles')
+    for (const s of all.filter((s) => s.kind === 'current' && s.source === 'bundled')) {
+      expect(s.timezone, s.id).not.toBe('UTC')
     }
   })
   it('cleans provider names instead of shouting them', () => {
@@ -152,8 +153,7 @@ describe('loadCatalogue', () => {
     )
     expect(strays.map((s) => `${s.id}:${s.state}`)).toEqual([])
 
-    // The NOAA current bundle carries neither field, so the country is the one
-    // fact the corpus itself establishes.
+    // A current row is placed the same way a tide row is.
     const pass = all.find((s) => s.kind === 'current' && s.id === 'noaa/PUG1701')
     expect(pass?.country).toBe('United States')
 

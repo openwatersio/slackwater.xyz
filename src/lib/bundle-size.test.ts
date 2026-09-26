@@ -36,8 +36,7 @@ describe('client bundle', () => {
     // station names were minified, split or otherwise made unsearchable.
     for (const f of js()) {
       const src = readFileSync(`${ASSETS}/${f}`, 'utf8')
-      expect(src.includes('tide-database'), f).toBe(false)
-      expect(src.includes('noaa-current-stations'), f).toBe(false)
+      expect(src.includes('@slackwater/database'), f).toBe(false)
       expect(src.includes('station-metadata/data'), f).toBe(false)
     }
   })

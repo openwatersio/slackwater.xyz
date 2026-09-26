@@ -1,6 +1,6 @@
 //
 // BUILD-TIME ONLY, like catalogue.ts: it decodes the tide database's route index.
-import { stationRoutes } from '@neaps/tide-database'
+import { stationRoutes } from '@slackwater/database'
 import type { Kind } from './station'
 
 interface Route {

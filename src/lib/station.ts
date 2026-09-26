@@ -33,7 +33,7 @@ interface StationIdentity {
    */
   continent?: string
   /**
-   * The first-level subdivision code as `@neaps/tide-database` publishes it —
+   * The first-level subdivision code as `@slackwater/database` publishes it —
    * `WA`, `BC`. Only set where the provider publishes a code a reader can
    * place: Canadian rows carry GeoNames numerics ("02") and get none.
    * `region` stays the curated water-body context, which is a different thing.

@@ -33,9 +33,12 @@ describe('StationIndex', () => {
     }
   })
 
-  it('renders the current index flat, having almost no placeable regions', () => {
+  it('heads the current index by jurisdiction, as the tide index is', () => {
+    // A current row is placed the same way a tide row is, so the worldwide
+    // list reads as states and provinces rather than 865 names in one column.
     const html = renderToStaticMarkup(<StationIndex kind="current" rows={rowsFor('current')} />)
-    expect(html).not.toContain('<h2')
+    expect(html).toContain('>Washington<')
+    expect(html).toContain('>Maine<')
   })
 
   it('groups a page the water names, and leaves one it does not flat', () => {

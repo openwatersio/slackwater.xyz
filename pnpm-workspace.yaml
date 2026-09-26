@@ -4,9 +4,8 @@ allowBuilds:
   workerd: true
 
 minimumReleaseAgeExclude:
-  - '@openwaters/noaa-current-stations@0.5.0'
   - '@openwaters/station-metadata@4.1.2 || 5.3.2'
-  - '@neaps/tide-database@0.10.20260924'
+  - '@slackwater/database@1.0.0-beta.20260925'
 
 # unstorage@2 alpha (pulled in by nitro) imports destr without declaring it.
 # Under pnpm's strict node_modules that resolves to nothing and the vite config
