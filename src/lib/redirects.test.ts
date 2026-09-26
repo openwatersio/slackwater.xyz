@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type: 'json' }
 import { loadCatalogue } from './catalogue'
-import { buildRedirects, REDIRECT_LIMIT } from './redirects'
+import { formerSlugs } from './routes'
+import { buildRedirects, PUBLISHED, REDIRECT_LIMIT } from './redirects'
 import { stationPath } from './station'
 
 describe('buildRedirects', () => {
@@ -14,11 +14,13 @@ describe('buildRedirects', () => {
 
   it('keeps every URL this site published reachable', () => {
     // The contract of the switch: nothing anyone linked to stops resolving.
-    // Every slug in the table the site published from is either still the
-    // station's address or redirects to it.
-    const lost = catalogue
-      .map((s) => stationPath(s.kind, (slugTable[s.kind] as Record<string, string>)[s.id]))
-      .filter((path) => !live.has(path) && !rules.has(path))
+    // Every address the site once minted is either still the station's or
+    // redirects to it — the ones the database recorded, and the one it did not.
+    const published = catalogue.flatMap((s) =>
+      [PUBLISHED[s.kind][s.id], ...formerSlugs(s.kind, s.id)].filter(Boolean).map((slug) => stationPath(s.kind, slug!)),
+    )
+    expect(published.length).toBeGreaterThan(200)
+    const lost = published.filter((path) => !live.has(path) && !rules.has(path))
     expect(lost).toEqual([])
   })
 
