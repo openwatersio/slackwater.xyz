@@ -2,8 +2,6 @@
 // BUILD-TIME ONLY. Never import this from a route module: it pulls the whole
 // station database, and TanStack loaders are isomorphic, so one careless import
 // ships megabytes to every visitor. Task 4 asserts that.
-import { cleanName } from '@openwaters/station-metadata'
-import corrections from '@openwaters/station-metadata/data/corrections.json' with { type: 'json' }
 import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type: 'json' }
 import { stationsById } from '@slackwater/database'
 import { FEET_PER_METRE } from './format'
@@ -26,8 +24,6 @@ export function isBuildable(id: string): boolean {
   return id.includes('/')
 }
 
-const overrides = corrections as Record<string, { name?: string; context?: string }>
-
 /** A subdivision code the provider published rather than the gazetteer. */
 const USPS = /^[A-Z]{2}$/
 
@@ -43,12 +39,10 @@ const USPS = /^[A-Z]{2}$/
  * or "Waialua, HI". A neighbourhood is not the water, and as a heading it
  * groups stations by nothing. `context_derived` is the database's own flag for
  * which is which, so only the provider's own half is taken.
- *
- * It shouts as often as a name does, so it gets the same cleaning.
  */
 function waterContext(r: Record<string, unknown>): string | undefined {
   const own = r.context_derived ? undefined : r.context
-  return own ? cleanName(String(own)) : undefined
+  return own ? String(own) : undefined
 }
 
 /**
@@ -63,7 +57,7 @@ function waterContext(r: Record<string, unknown>): string | undefined {
  * titled for the province. `placeIndex` picks which one a page uses.
  */
 function adminArea(r: Record<string, unknown>): string | undefined {
-  return r.region ? cleanName(String(r.region)) : undefined
+  return r.region ? String(r.region) : undefined
 }
 
 /**
@@ -158,7 +152,6 @@ export function loadCatalogue(): Station[] {
       // include them. The reduction is a prediction the site does not do
       // yet, so the station does not get a page yet — see #80.
       if (kind === 'current' && !constituents.length) continue
-      const override = overrides[id]
       const state = subdivision(r)
       const area = adminArea(r)
       const current = (r.current ?? {}) as Record<string, number | undefined>
@@ -167,13 +160,13 @@ export function loadCatalogue(): Station[] {
         source: 'bundled',
         // Curated identity wins. The provider row names the water whatever the
         // provider calls it; the curated record names it what a mariner calls it.
-        name: curated.get(slug)?.name ?? override?.name ?? cleanName(String(r.name)),
+        name: curated.get(slug)?.name ?? String(r.name),
         latitude: Number(r.latitude), longitude: Number(r.longitude),
         timezone: String(r.timezone),
         // A NOAA current's own qualifier is a bearing off the named place —
         // "0.4 nm SE of" — and heading a page by it says nothing, so a
         // current's water comes from curated identity alone.
-        region: curated.get(slug)?.region ?? override?.context ?? (kind === 'tide' ? waterContext(r) : undefined),
+        region: curated.get(slug)?.region ?? (kind === 'tide' ? waterContext(r) : undefined),
         ...(area ? { area } : {}),
         ...(r.country ? { country: String(r.country) } : {}),
         ...(r.continent ? { continent: String(r.continent) } : {}),

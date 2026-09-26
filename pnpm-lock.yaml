@@ -23,8 +23,8 @@ importers:
         specifier: ^5.3.2
         version: 5.3.2
       '@slackwater/database':
-        specifier: ^1.0.0-beta.20260925
-        version: 1.0.0-beta.20260925
+        specifier: 1.0.0-beta.20260926
+        version: 1.0.0-beta.20260926
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.3.3(vite@8.3.0(@types/node@26.5.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
@@ -800,8 +800,8 @@ packages:
     resolution: {integrity: sha512-P1Cz1dWaFfR4IR+U13mqqiGsLFf1KbayybWwdd2vfctdV6hDpUkgCY0nKOLLTMSoRd/jJNjtbqzf13K8DCCXQw==}
     engines: {node: '>=18'}
 
-  '@slackwater/database@1.0.0-beta.20260925':
-    resolution: {integrity: sha512-4dMIqqriPSqv3Bbon02c4TZHurCuJnFbvSqdjqG6OK+NCTwSMw9Qd2ZJTla1R+SyVI+f/80z+82CaJ7aBShbaw==}
+  '@slackwater/database@1.0.0-beta.20260926':
+    resolution: {integrity: sha512-8V1XWF6OEyA2CBEwduyP7pKML2/cm3HBL7jc4MdDyTqf8WXdNPCpwNafOmhO6FHy0r2eR4v5ARcvPK7lNOxZ4w==}
 
   '@speed-highlight/core@1.2.24':
     resolution: {integrity: sha512-qeW2e1l78afw8VhRPfPQ1Gjj+KU5XFQ/OFV5ti6eTa9bruO7mJyZtA4vw0ofqmA3tKCkROE9xLk3VZoeRc98nw==}
@@ -2451,7 +2451,7 @@ snapshots:
 
   '@sindresorhus/is@7.2.0': {}
 
-  '@slackwater/database@1.0.0-beta.20260925':
+  '@slackwater/database@1.0.0-beta.20260926':
     dependencies:
       flatbuffers: 25.9.23
       geokdbush: 2.1.0

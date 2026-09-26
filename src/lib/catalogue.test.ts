@@ -106,8 +106,11 @@ describe('loadCatalogue', () => {
       expect(s.timezone, s.id).not.toBe('UTC')
     }
   })
-  it('cleans provider names instead of shouting them', () => {
+  it('takes the database\'s cased name, not the provider\'s shouted one', () => {
     // NOAA publishes 86 of its tide stations all-caps ("ALBANY"); issue #31.
+    // The database cases them, and spells out NOAA's abbreviations, so the
+    // site applies no rule of its own — one that did title-cased "GPS Buoy"
+    // to "Gps Buoy" on 70 pages.
     const albany = all.find((s) => s.id === 'noaa/8518995')
     expect(albany?.name).toBe('Albany')
     // The database splits a provider's comma-joined name into the place and
@@ -117,9 +120,13 @@ describe('loadCatalogue', () => {
     expect(turkey?.region).toBe('Hudson River')
   })
 
-  it('applies station-metadata corrections to provider stations', () => {
+  it('names the water a river station is measured along', () => {
+    // NOAA names these by distance up a river and files the town as the
+    // qualifier; the database corrects the qualifier to the river, and a
+    // distance with no water under it says nothing.
     const madHorseCreek = all.find((s) => s.id === 'noaa/8537535')
-    expect(madHorseCreek?.name).toBe('1 nm above entrance, Mad Horse Creek')
+    expect(madHorseCreek?.name).toBe('1 nm Above Entrance')
+    expect(madHorseCreek?.region).toBe('Mad Horse Creek')
   })
 
   it('gives a registry station its curated name, not the provider row name', () => {
