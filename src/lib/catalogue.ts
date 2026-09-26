@@ -2,7 +2,7 @@
 // BUILD-TIME ONLY. Never import this from a route module: it pulls the whole
 // station database, and TanStack loaders are isomorphic, so one careless import
 // ships megabytes to every visitor. Task 4 asserts that.
-import { cleanName } from '@openwaters/station-metadata'
+import { cleanName } from './clean-name'
 import corrections from '@openwaters/station-metadata/data/corrections.json' with { type: 'json' }
 import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type: 'json' }
 import { stationsById } from '@slackwater/database'
