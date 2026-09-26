@@ -106,8 +106,11 @@ describe('loadCatalogue', () => {
       expect(s.timezone, s.id).not.toBe('UTC')
     }
   })
-  it('cleans provider names instead of shouting them', () => {
+  it('takes the database\'s cased name, not the provider\'s shouted one', () => {
     // NOAA publishes 86 of its tide stations all-caps ("ALBANY"); issue #31.
+    // The database cases them, and spells out NOAA's abbreviations, so the
+    // site applies no rule of its own — one that did title-cased "GPS Buoy"
+    // to "Gps Buoy" on 70 pages.
     const albany = all.find((s) => s.id === 'noaa/8518995')
     expect(albany?.name).toBe('Albany')
     // The database splits a provider's comma-joined name into the place and
