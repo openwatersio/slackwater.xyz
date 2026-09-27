@@ -123,9 +123,11 @@ describe('loadCatalogue', () => {
   it('names the water a river station is measured along', () => {
     // NOAA names these by distance up a river and files the town as the
     // qualifier; the database corrects the qualifier to the river, and a
-    // distance with no water under it says nothing.
+    // distance with no water under it says nothing. The distance itself
+    // stays in NOAA's own lowercase casing, a qualifier convention this site
+    // does not correct.
     const madHorseCreek = all.find((s) => s.id === 'noaa/8537535')
-    expect(madHorseCreek?.name).toBe('1 nm Above Entrance')
+    expect(madHorseCreek?.name).toBe('1 nm above entrance')
     expect(madHorseCreek?.region).toBe('Mad Horse Creek')
   })
 
