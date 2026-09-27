@@ -7,6 +7,7 @@ import type { BundledStation, ChsStation } from '#/lib/station'
 
 const SEATTLE: BundledStation = {
   id: 'noaa/9447130', kind: 'tide', slug: 'seattle', name: 'SEATTLE (Madison St.), Elliott Bay',
+  path: '/tides/us/wa/seattle/',
   latitude: 47.6, longitude: -122.34, timezone: 'America/Los_Angeles',
   source: 'bundled',
   // FEET. `@slackwater/database` ships Seattle's M2 as 1.063 METRES; the
@@ -236,6 +237,7 @@ describe('TideCurve with fetched samples', () => {
   // fetched from DFO, rather than from constituents we may not re-serve.
   const VICTORIA: ChsStation = {
     id: 'chs-victoria', kind: 'tide', slug: 'victoria', name: 'Victoria',
+    path: '/tides/ca/bc/victoria/',
     latitude: 48.424, longitude: -123.371, timezone: 'America/Vancouver',
     source: 'chs', region: 'Inner Harbour',
   }

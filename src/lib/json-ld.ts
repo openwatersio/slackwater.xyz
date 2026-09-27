@@ -1,3 +1,4 @@
+import type { Crumb } from './catalogue-server'
 import type { Station } from './station'
 
 /**
@@ -22,8 +23,7 @@ export type JsonLd = { [key: string]: Json | undefined }
  * `PostalAddress` is worse than none: it asserts a place we cannot name, and
  * Search Console reports it as an error rather than ignoring it.
  */
-export function stationJsonLd(station: Station, url: string): JsonLd[] {
-  const tide = station.kind === 'tide'
+export function stationJsonLd(station: Station, url: string, crumbs: Crumb[]): JsonLd[] {
   const address = {
     ...(station.state ? { addressRegion: station.state } : {}),
     ...(station.country ? { addressCountry: station.country } : {}),
@@ -51,14 +51,11 @@ export function stationJsonLd(station: Station, url: string): JsonLd[] {
     {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
+      // The same trail the page's own breadcrumb draws: every item a real page.
       itemListElement: [
         crumb(1, 'Slackwater', `${ORIGIN}/`),
-        crumb(
-          2,
-          tide ? 'Tide stations' : 'Current stations',
-          `${ORIGIN}/stations/${tide ? 'tides' : 'currents'}/`,
-        ),
-        crumb(3, station.name, url),
+        ...crumbs.map((c, i) => crumb(i + 2, c.label, ORIGIN + c.href)),
+        crumb(crumbs.length + 2, station.name, url),
       ],
     },
   ]

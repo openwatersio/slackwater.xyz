@@ -8,9 +8,9 @@ import type { Kind } from '#/lib/station'
 // A country page heads its rows by water where the provider named one and by
 // jurisdiction otherwise, which is what `toAreaRow` builds in `catalogue-server`.
 // Feeding the component `region` alone would test a row shape no page produces.
-const toRow = (s: { slug: string; name: string; region?: string; area?: string }): StationRow => {
+const toRow = (s: { slug: string; name: string; path: string; region?: string; area?: string }): StationRow => {
   const region = s.region ?? s.area
-  return { slug: s.slug, name: s.name, ...(region ? { region } : {}) }
+  return { slug: s.slug, name: s.name, path: s.path, ...(region ? { region } : {}) }
 }
 
 const rowsFor = (kind: Kind) => loadCatalogue().filter((s) => s.kind === kind).map(toRow)
@@ -50,14 +50,14 @@ describe('StationIndex', () => {
       loadCatalogue().filter((s) => s.kind === 'tide' && s.country === country)
     // Both are place pages, which always carry the crumb up — and that is
     // what keeps the tides explainer, with its own heading, off them.
-    const up = { href: '/stations/tides/', label: 'Tide stations' }
+    const up = { href: '/tides/', label: 'Tide stations' }
     const japan = renderToStaticMarkup(<StationIndex kind="tide" up={up} rows={inCountry('Japan').map(toRow)} />)
     expect(japan).toContain('<h2')
 
     // A subdivision page heads by water alone — the jurisdiction is its title.
     const alaska = inCountry('United States')
       .filter((s) => s.state === 'AK')
-      .map((s) => ({ slug: s.slug, name: s.name, ...(s.region ? { region: s.region } : {}) }))
+      .map((s) => ({ slug: s.slug, name: s.name, path: s.path, ...(s.region ? { region: s.region } : {}) }))
     expect(alaska.length).toBeGreaterThan(100)
     expect(renderToStaticMarkup(<StationIndex kind="tide" up={up} rows={alaska} />)).not.toContain('<h2')
   })

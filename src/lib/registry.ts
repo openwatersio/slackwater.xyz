@@ -7,7 +7,7 @@
 // why /currents/boundary-pass read "Turn Point, Boundary Pass" until this
 // existed.
 import { allStations } from '@slackwater/database'
-import { routeSlug } from './routes'
+import { stationRoute } from './routes'
 import type { ChsStation, Kind } from './station'
 
 interface Record {
@@ -54,7 +54,7 @@ export function curatedBySlug(kind: Kind): Map<string, Curated> {
   const out = new Map<string, Curated>()
   for (const s of curatedRecords) {
     if (s.kind !== kind) continue
-    const slug = routeSlug(kind, s.id)
+    const slug = stationRoute(kind, s.id)?.slug
     if (!slug) continue
     const region = s.context_derived ? undefined : s.context
     out.set(slug, { name: s.name, ...(region ? { region } : {}) })
@@ -86,10 +86,11 @@ export function chsStations(kind: Kind): ChsStation[] {
   for (const s of curatedRecords) {
     if (s.source?.name !== CHS_SOURCE || s.kind !== kind) continue
     if (EXCLUDED.has(s.id)) continue
-    const slug = routeSlug(kind, s.id)
-    // A station with no published slug is a broken corpus, not one to skip: it
+    const route = stationRoute(kind, s.id)
+    // A station with no published route is a broken corpus, not one to skip: it
     // means the database's records and its route index disagree about what exists.
-    if (!slug) throw new Error(`registry: no published slug for CHS ${kind} station ${s.id}`)
+    if (!route) throw new Error(`registry: no published route for CHS ${kind} station ${s.id}`)
+    const { slug, path } = route
     const region = s.context_derived ? undefined : s.context
     // The province a page competes for ("tides victoria bc") is read rather
     // than guessed from the position; a record with no Canadian code gets
@@ -97,7 +98,7 @@ export function chsStations(kind: Kind): ChsStation[] {
     const code = String(s.region_code ?? '')
     const state = code.startsWith('CA-') ? code.slice(3) : undefined
     out.push({
-      id: s.id, kind, slug, source: 'chs',
+      id: s.id, kind, slug, path, source: 'chs',
       name: s.name,
       ...(region ? { region } : {}),
       // Every CHS station is Canadian by definition of the provider.

@@ -9,6 +9,7 @@ import type { BundledStation, ChsStation } from '#/lib/station'
 
 const SEATTLE: BundledStation = {
   id: 'noaa/9447130', kind: 'tide', slug: 'seattle', name: 'SEATTLE (Madison St.), Elliott Bay',
+  path: '/tides/us/wa/seattle/',
   latitude: 47.6, longitude: -122.34, timezone: 'America/Los_Angeles',
   source: 'bundled', chartDatum: 'MLLW',
   constituents: [{ name: 'M2', amplitude: 3.487, phase: 10.8 }, { name: 'K1', amplitude: 2.625, phase: 300 }],
@@ -16,6 +17,7 @@ const SEATTLE: BundledStation = {
 
 const DECEPTION: BundledStation = {
   id: 'noaa/PUG1701', kind: 'current', slug: 'deception-pass-narrows', name: 'Deception Pass (Narrows)',
+  path: '/currents/us/wa/deception-pass-narrows/',
   latitude: 48.4, longitude: -122.64, timezone: 'America/Los_Angeles',
   source: 'bundled', floodDirection: 90, ebbDirection: 270,
   constituents: [{ name: 'M2', amplitude: 4.2, phase: 40 }, { name: 'K1', amplitude: 1.1, phase: 200 }],
@@ -122,6 +124,7 @@ describe('DayStrip', () => {
 describe('DayStrip for a Canadian port', () => {
   const VICTORIA: ChsStation = {
     id: 'chs-victoria', kind: 'tide', slug: 'victoria', name: 'Victoria',
+    path: '/tides/ca/bc/victoria/',
     latitude: 48.424, longitude: -123.371, timezone: 'America/Vancouver',
     source: 'chs', region: 'Inner Harbour',
   }

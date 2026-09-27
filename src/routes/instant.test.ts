@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatInstant, parseInstant, tideInstantPath } from './instant-url'
+import { formatInstant, instantPath, parseInstant } from './instant-url'
 
 describe('parseInstant', () => {
   it('accepts an offset-bearing ISO instant', () => {
@@ -41,11 +41,11 @@ describe('formatInstant', () => {
 
   it('builds the path Safari should share for the selected station time', () => {
     expect(
-      tideInstantPath(
-        'hellevoetsluis',
+      instantPath(
+        '/tides/nl/hellevoetsluis/',
         new Date('2026-09-19T08:03:44Z'),
         'Europe/Amsterdam',
       ),
-    ).toBe('/tides/hellevoetsluis/2026-09-19T10:03+02:00')
+    ).toBe('/tides/nl/hellevoetsluis/2026-09-19T10:03+02:00')
   })
 })

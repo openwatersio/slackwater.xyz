@@ -331,11 +331,11 @@ function Home() {
         <p>
           Every station has its own page, so a link you send works for someone who hasn&rsquo;t
           installed anything:{' '}
-          <a href="/stations/tides/" className="underline underline-offset-4">
+          <a href="/tides/" className="underline underline-offset-4">
             4,792 tide stations
           </a>{' '}
           and{' '}
-          <a href="/stations/currents/" className="underline underline-offset-4">
+          <a href="/currents/" className="underline underline-offset-4">
             865 current stations
           </a>
           .

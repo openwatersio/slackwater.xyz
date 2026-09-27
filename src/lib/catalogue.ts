@@ -6,7 +6,7 @@ import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type
 import { stationsById } from '@slackwater/database'
 import { FEET_PER_METRE } from './format'
 import { chsStations, curatedBySlug, REGISTRY_IDS } from './registry'
-import { routeSlug } from './routes'
+import { stationRoute } from './routes'
 import type { BundledStation, Kind, Station } from './station'
 
 /**
@@ -136,8 +136,9 @@ export function loadCatalogue(): Station[] {
       if (!isBuildable(id)) continue
       // The table says which stations this site publishes; the database says
       // where. A corpus id with no route is a broken corpus, not one to skip.
-      const slug = routeSlug(kind, id)
-      if (!slug) throw new Error(`catalogue: no route for ${id}`)
+      const route = stationRoute(kind, id)
+      if (!route) throw new Error(`catalogue: no route for ${id}`)
+      const { slug, path } = route
 
       const r = record(id)
       // A slug with no data is a broken corpus, not a station to skip: it
@@ -156,7 +157,7 @@ export function loadCatalogue(): Station[] {
       const area = adminArea(r)
       const current = (r.current ?? {}) as Record<string, number | undefined>
       out.push({
-        id, kind, slug,
+        id, kind, slug, path,
         source: 'bundled',
         // Curated identity wins. The provider row names the water whatever the
         // provider calls it; the curated record names it what a mariner calls it.

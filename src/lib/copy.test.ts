@@ -3,12 +3,13 @@ import { datumLine, pageDescription, pageTitle, placeLine, provenance } from './
 import type { BundledStation, ChsStation } from './station'
 
 const bundled = {
-  id: 'noaa/x', kind: 'current', slug: 'x', name: 'Deception Pass', source: 'bundled',
+  id: 'noaa/x', kind: 'current', slug: 'x', name: 'Deception Pass', path: '/currents/us/wa/x/', source: 'bundled',
   latitude: 0, longitude: 0, timezone: 'UTC', constituents: [],
 } satisfies BundledStation
 
 const chs = {
   id: 'chs-dodd-narrows', kind: 'current', slug: 'dodd-narrows', name: 'Dodd Narrows',
+  path: '/currents/ca/bc/dodd-narrows/',
   source: 'chs', region: 'Nanaimo',
   latitude: 49.1, longitude: -123.8, timezone: 'America/Vancouver',
 } satisfies ChsStation

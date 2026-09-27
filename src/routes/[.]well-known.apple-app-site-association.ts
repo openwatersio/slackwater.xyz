@@ -37,11 +37,13 @@ const APP_IDS = [
  * app if they have it — and the pitch never gets read by the one person most
  * likely to share it onward.
  *
- * `/tides/*` and `/currents/*` also cover the timestamped form, because the
- * instant is a further path segment (`/currents/<slug>/<instant>`) and `*`
- * matches across `/`. Two patterns, four URL shapes. See
- * `docs/superpowers/specs/2026-08-30-station-pages-design.md` for the URL
- * design itself.
+ * The app opens the short share form it mints itself, `/tides/<slug>` and
+ * `/tides/<slug>/<instant>`, and parses nothing longer. The site's own pages
+ * sit under a country (`/tides/us/pa/<slug>/`), so those are excluded and
+ * open here: claimed, they would open the app to nothing. A country code is
+ * two letters and a slug never is, so `??` tells the two apart. `*` matches
+ * across `/`, which is why one `/tides/*` claims both share forms. Rules are
+ * read in order, first match wins.
  *
  * ## Gotchas that cost time
  *
@@ -63,6 +65,11 @@ const association = {
       {
         appIDs: APP_IDS,
         components: [
+          ...(['tides', 'currents'] as const).flatMap((kind) => [
+            { '/': `/${kind}/`, exclude: true, comment: 'The index, a browse page' },
+            { '/': `/${kind}/??`, exclude: true, comment: 'A country, a browse page' },
+            { '/': `/${kind}/??/*`, exclude: true, comment: 'Anything under a country' },
+          ]),
           { '/': '/tides/*', comment: 'A tide station, with or without an instant' },
           { '/': '/currents/*', comment: 'A current station, with or without an instant' },
         ],

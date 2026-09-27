@@ -35,8 +35,6 @@ export function formatInstant(at: Date, timeZone: string): string {
   return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}${offset}`
 }
 
-export const tideInstantPath = (slug: string, at: Date, timeZone: string) =>
-  `/tides/${slug}/${formatInstant(at, timeZone)}`
-
-export const currentInstantPath = (slug: string, at: Date, timeZone: string) =>
-  `/currents/${slug}/${formatInstant(at, timeZone)}`
+/** A station's path at one moment: its own path with the instant as a last segment. */
+export const instantPath = (stationPath: string, at: Date, timeZone: string) =>
+  `${stationPath}${formatInstant(at, timeZone)}`

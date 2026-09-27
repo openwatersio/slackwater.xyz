@@ -32,13 +32,13 @@ function Stations() {
       </p>
       <ul className="mt-10 space-y-4">
         <li>
-          <a href="/stations/tides/" className="text-xl text-sw-paper hover:text-sw-leaf">
+          <a href="/tides/" className="text-xl text-sw-paper hover:text-sw-leaf">
             Tide stations
           </a>
           <p className="text-sw-steel">4,792 worldwide.</p>
         </li>
         <li>
-          <a href="/stations/currents/" className="text-xl text-sw-paper hover:text-sw-leaf">
+          <a href="/currents/" className="text-xl text-sw-paper hover:text-sw-leaf">
             Current stations
           </a>
           <p className="text-sw-steel">865 across the US and Canada.</p>

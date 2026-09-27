@@ -9,28 +9,20 @@ A station's URL carries the place it sits in, and every segment of that URL is a
 Success:
 
 - Every station page's canonical URL is the path the database publishes for its route.
-- Every URL this site has published for a station — flat, former, or a `/stations/…` browse page — still resolves, by 301 where it moved. Zero lost.
-- A shared link from any shipped Slackwater iOS build still opens the station in the app, and no nested link opens the app to nothing.
+- Every prefix of every station path is a page.
+- A share link from Slackwater iOS, which mints `/<kind>/<slug>[/<instant>]`, still opens the station, in the app or on the web.
 
-Out of scope: which stations the site publishes (the `slugs.json` corpus decision), and nested-path parsing in the app.
+Out of scope: redirects for URLs the site published before this (the site has no users to break), which stations the site publishes (the `slugs.json` corpus decision), and nested-path parsing in the app.
 
 ## Constraints
 
-- **The database owns the path.** `routePath()` in the database (`packages/stations/routes.ts`) mints `/<tides|currents>/<country>/<subdivision>/<slug>/` from ISO 3166 codes, lowercased, with the subdivision only where the ISO 3166-2 code agrees with the country. `metadata/routes.lock.json` locks it, and a path that moves becomes a `formerPaths` entry. The site takes that path as given; it never computes one.
-- **Slugs are globally unique per kind.** The path prefix is addressing, not identity: the last segment alone names the station.
-- **Shipped app builds parse one slug segment.** `DeepLink.swift` accepts `/<kind>/<slug>` and `/<kind>/<slug>/<instant>` and returns nil for anything longer. The AASA claims `/tides/*` and `/currents/*`, and `*` crosses `/`, so a nested URL claimed by the AASA opens the app and shows nothing. The app mints flat links and will keep doing so.
-- **Cloudflare reads at most 2,000 static `_redirects` rules.** Flat to nested is about 11,000 sources with both trailing-slash spellings, so those redirects are served by the Worker, not the file.
+- **The database owns the path.** `routePath()` (`packages/database/src/route-path.ts`) mints `/<tides|currents>/<country>/<subdivision>/<slug>/` from ISO 3166 codes, lowercased, with the subdivision only where the ISO 3166-2 code agrees with the country. `metadata/routes.lock.json` locks it. The site reads it as `StationRoute.path` and never computes one.
+- **Slugs are globally unique per kind, and never two characters.** The path prefix is addressing, not identity: the last segment alone names the station, and a two-letter first segment is always a country.
+- **Shipped app builds parse one slug segment.** `DeepLink.swift` accepts `/<kind>/<slug>` and `/<kind>/<slug>/<instant>` and returns nil for anything longer, so a nested URL the AASA claims would open the app to nothing.
 
-## Database: publish the path
+## Database
 
-`StationRoute` gains `path: string`, the value `routePath()` already writes to the route lock.
-
-- `schemas/database.fbs`: `path` appended to the `StationRoute` table, so older readers skip it.
-- `builder.ts` writes it, `routes.ts` reads it, and the TS and Swift bindings are regenerated.
-- `buildRoutes` emits it on each route.
-- Validation fails on a slug of two characters or fewer, so a slug can never be read as a country segment.
-
-A beta release carries it, and the site pins that release.
+`StationRoute` carries `path`, computed at read time from the route's first station's `country_code` and `region_code` with the same `routePath()` the route builder uses (openwatersio/slackwater-database#208). No schema change, so the Worker bundle does not grow. A test asserts every route's `path` equals the one in `routes.lock.json`, and the route builder rejects a slug of two characters or fewer.
 
 ## Site URLs
 
@@ -42,53 +34,23 @@ A beta release carries it, and the site pins that release.
 | Station | `/tides/us/pa/bridesburg/` or `/tides/jp/kushiro/` |
 | Station at an instant | `/tides/us/pa/bridesburg/2026-09-27T10:00-04:00` |
 
-Currents mirror it under `/currents/`.
+Currents mirror it under `/currents/`. `/stations/` stays as the hub linking both indexes.
 
-- The place tree is built from each station's route `path`, not from the station's name fields, so the URL and the browse hierarchy cannot disagree. Every prefix of every station path is a page; there is no minimum station count.
-- Place names come from the codes: countries through `Intl.DisplayNames` (`us` → "United States"), subdivisions through the database's region name where every station under the code agrees on one, otherwise the code itself.
-- `stationPath()` and `placePath()` remain the only places a URL is built. `stationPath()` returns the route's `path`.
-- One splat route per kind (`/tides/$`, `/currents/$`) resolves its segments against a table built from the catalogue. `/tides/us/pa/` and `/tides/jp/kushiro/` have the same shape and only a lookup tells a place from a station. A last segment that parses as an instant is split off first.
+- `placeTree` builds the place pages from each station's `path`, so the URL and the browse hierarchy cannot disagree. There is no minimum station count for a page.
+- Countries are named from their code with `Intl.DisplayNames` (`us` → "United States"); a subdivision is its code, titled with its country ("PA, United States").
+- One splat route per kind (`tides.$.tsx`, `currents.$.tsx`, both through `routes/-directory.tsx`) resolves a path with the catalogue's `resolvePath`. `/tides/us/pa/` and `/tides/jp/kushiro/` have the same shape and only a lookup tells a place from a station. A last segment that parses as an instant is split off first; one that does not stays in the path and 404s.
+- A single-segment path that is a station's slug 301s to that station's path, keeping any instant. That is the app's share link.
 
-## Redirects
+## iOS
 
-- **Flat and former station URLs: 301 from the Worker.** `/tides/<slug>`, `/tides/<slug>/`, and `/tides/<slug>/<instant>` resolve through the current slug or any former slug or former path the database records, plus the one frozen entry in `redirects.ts` (`PUBLISHED`), to the station's current path, keeping the instant. These are no longer written to `_redirects`.
-- **Browse pages: static rules in `_redirects`.** Every `/stations/tides/…` and `/stations/currents` page this site published maps to its new place page, in both trailing-slash spellings. About 150 rules.
-- **Build guard.** The build fails if any URL in the published set (the current flat paths, every former path, every `/stations/…` page) does not resolve to a live page, or if a redirect source is itself a live page.
-
-## iOS safety
-
-The AASA keeps claiming flat station links and stops claiming everything else under `/tides/` and `/currents/`. Exclusions come before the `/tides/*` and `/currents/*` claims:
-
-```
-/tides/          exclude
-/tides/??        exclude
-/tides/??/*      exclude
-```
-
-with the same three for `/currents/`. Two-letter first segments are country codes and slugs are never two letters, so a flat `/tides/<slug>` link is still claimed and opens in the app on every shipped build. A nested link or a browse page opens in Safari.
-
-The exclusions come out once the app parses nested paths (a separate slackwater-ios change) and the builds without it have aged out.
+The AASA excludes `/tides/`, `/tides/??`, and `/tides/??/*` (and the same for currents) ahead of its `/tides/*` and `/currents/*` claims. The app's own flat links stay claimed; browse pages and nested station pages open in Safari. The exclusions come out once the app parses nested paths and the builds without it have aged out.
 
 ## SEO surfaces
 
-These all read `stationPath()` and `placePath()`:
-
-- canonical links and `og:url`
-- sitemaps
-- nearby links
-- OG image URLs
-- `BreadcrumbList` JSON-LD, with country → subdivision → station and every item a live URL
-
-## Testing
-
-- Route resolution: flat, nested, country-only, instant, former slug, former path, and the two-segment place-or-station case.
-- Redirect coverage: every URL in the published set resolves. The set is today's flat station paths and `/stations/…` pages, frozen into a fixture from the current sitemaps and `_redirects`, plus every former path the database records.
-- AASA: a flat link and a flat instant link are claimed; nested, country, subdivision and index paths are not.
-- Prerender: page counts per kind match the catalogue plus the place tree.
-- Smoke on `wrangler dev` before the PR: `curl -I` on a flat link, a flat instant link, a former slug, a `/stations/…` page, and a nested page.
+Canonical links, `og:url`, sitemaps, nearby links, and `BreadcrumbList` JSON-LD all read the station's `path`. The breadcrumb runs Slackwater → kind index → country → subdivision → station, every item a live page. OG image URLs stay at `/og/<kind>/<slug>.png`.
 
 ## Order
 
-1. Database PR, then a beta release.
-2. Site PR on that release. Until the release exists, the branch builds against a local build of the database branch.
+1. openwatersio/slackwater-database#208, then a beta release.
+2. The site PR, which pins #208's preview build until that release exists and then pins the release.
 3. A slackwater-ios issue for nested-path parsing.
