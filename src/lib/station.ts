@@ -11,6 +11,13 @@ interface StationIdentity {
   id: string
   kind: Kind
   slug: string
+  /**
+   * The station's URL, as the tide database publishes it for the route:
+   * `/tides/us/pa/bridesburg/`, or `/tides/jp/kushiro/` where the database
+   * vouches for no subdivision. Every link to a station is this string; the
+   * site never builds one.
+   */
+  path: string
   name: string
   latitude: number
   longitude: number
@@ -39,15 +46,6 @@ interface StationIdentity {
    * `region` stays the curated water-body context, which is a different thing.
    */
   state?: string
-}
-
-/**
- * The single place a station URL is built, so the planned move to a geographic
- * hierarchy (`/tides/us/wa/seattle/`) is one function plus a redirect table
- * rather than a hunt through every route, component and sitemap.
- */
-export function stationPath(kind: Kind, slug: string): string {
-  return `/${kind === 'tide' ? 'tides' : 'currents'}/${slug}/`
 }
 
 /** Constituents ship with the page; the curve is synthesised at build time. */

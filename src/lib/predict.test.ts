@@ -4,6 +4,7 @@ import type { BundledStation } from './station'
 
 const CURRENT: BundledStation = {
   id: 'noaa/PUG1701', kind: 'current', slug: 'deception-pass', name: 'Deception Pass (Narrows)',
+  path: '/currents/us/wa/deception-pass/',
   latitude: 48.4, longitude: -122.64, timezone: 'America/Los_Angeles',
   source: 'bundled',
   offset: 0, floodDirection: 101.5, ebbDirection: 281.5,
@@ -11,6 +12,7 @@ const CURRENT: BundledStation = {
 }
 const TIDE: BundledStation = {
   id: 'noaa/9447130', kind: 'tide', slug: 'seattle', name: 'SEATTLE (Madison St.), Elliott Bay',
+  path: '/tides/us/wa/seattle/',
   latitude: 47.6, longitude: -122.34, timezone: 'America/Los_Angeles',
   source: 'bundled',
   // Feet: the catalogue converts the database's metres once, at the boundary.

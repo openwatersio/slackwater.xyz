@@ -44,7 +44,7 @@ describe('client bundle', () => {
 
 describe('the nearby map', () => {
   // The two pages the rest of the suite reads, one of each kind.
-  const PAGES = ['currents/deception-pass-narrows', 'tides/seattle']
+  const PAGES = ['currents/us/wa/deception-pass-narrows', 'tides/us/wa/seattle']
   const page = (p: string) => readFileSync(`.output/public/${p}/index.html`, 'utf8')
 
   it('keeps leaflet out of every chunk a station page preloads', () => {

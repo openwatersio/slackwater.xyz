@@ -4,6 +4,7 @@ import type { ChsStation, Station } from './station'
 
 const S: Station = {
   id: 'noaa/PUG1701', kind: 'current', slug: 'deception-pass', name: 'Deception Pass (Narrows)',
+  path: '/currents/us/wa/deception-pass/',
   latitude: 48.4, longitude: -122.64, timezone: 'America/Los_Angeles',
   source: 'bundled',
   offset: 0, floodDirection: 101.5, ebbDirection: 281.5,
@@ -12,6 +13,7 @@ const S: Station = {
 
 const DODD: ChsStation = {
   id: 'chs-dodd-narrows', kind: 'current', slug: 'dodd-narrows', name: 'Dodd Narrows',
+  path: '/currents/ca/bc/dodd-narrows/',
   latitude: 49.13546639419797, longitude: -123.81735084108287, timezone: 'America/Vancouver',
   source: 'chs', region: 'Nanaimo',
 }

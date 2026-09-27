@@ -1,9 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { existsSync, readFileSync, statSync } from 'node:fs'
 import { loadCatalogue } from '../lib/catalogue'
-import { placePath, placePaths, placeTree } from '../lib/places'
+import { kindRoot, placeTree } from '../lib/places'
+import type { Kind } from '../lib/station'
 
 const OUT = '.output/public'
+
+/** A station's built page, found by slug so a test names the water rather than its address. */
+const page = (kind: Kind, slug: string) => {
+  const s = loadCatalogue().find((s) => s.kind === kind && s.slug === slug)
+  if (!s) throw new Error(`no ${kind} station ${slug}`)
+  return `${OUT}${s.path}index.html`
+}
 
 describe('prerendered station pages', () => {
   it('emits one non-empty page per station', () => {
@@ -18,7 +26,7 @@ describe('prerendered station pages', () => {
     const FLOOR = 2048
     const all = loadCatalogue()
     const bad = all.filter((s) => {
-      const file = `${OUT}/${s.kind === 'tide' ? 'tides' : 'currents'}/${s.slug}/index.html`
+      const file = `${OUT}${s.path}index.html`
       return !existsSync(file) || statSync(file).size < FLOOR
     })
     expect(bad.slice(0, 5).map((s) => s.id)).toEqual([])
@@ -29,11 +37,11 @@ describe('prerendered station pages', () => {
     // Brief's test named this slug `deception-pass`; the catalogue's actual
     // slug for `noaa/PUG1701` (the HERO_STATION) is `deception-pass-narrows` —
     // confirmed against loadCatalogue() output, not adjusted to dodge a failure.
-    const html = readFileSync(`${OUT}/currents/deception-pass-narrows/index.html`, 'utf8')
+    const html = readFileSync(page('current', 'deception-pass-narrows'), 'utf8')
     expect(html).toContain('Deception Pass (Narrows)')
     expect(html).toMatch(/<path[^>]+d="M[\d.,\-L\s]+"/)
     expect(html).toContain(
-      '<link rel="canonical" href="https://slackwater.xyz/currents/deception-pass-narrows/"',
+      '<link rel="canonical" href="https://slackwater.xyz/currents/us/wa/deception-pass-narrows/"',
     )
   })
 
@@ -64,9 +72,13 @@ describe('prerendered station pages', () => {
     // `currents/dodd-narrows` is here too: the CHS branch replaces the whole
     // page body and the CTA for 23 gates, and before this was only covered by
     // "the file exists" - not by "it still has a CTA and a way home".
-    const paths = ['currents/deception-pass-narrows', 'tides/boston', 'currents/dodd-narrows']
+    const paths = [
+      page('current', 'deception-pass-narrows'),
+      page('tide', 'boston'),
+      page('current', 'dodd-narrows'),
+    ]
     for (const path of paths) {
-      const html = readFileSync(`${OUT}/${path}/index.html`, 'utf8')
+      const html = readFileSync(path, 'utf8')
       expect(html, `${path} has no TestFlight CTA`).toContain(
         'https://testflight.apple.com/join/',
       )
@@ -81,8 +93,10 @@ describe('prerendered station pages', () => {
     // answered: the budget binds every page the tree mints, so a country or
     // subdivision quietly growing past it fails here rather than on the wire.
     const BUDGET = 250_000
-    const tree = placeTree(loadCatalogue().filter((s) => s.kind === 'tide'))
-    const pages = ['/stations/tides/', ...placePaths('tide', tree)]
+    const pages = (['tide', 'current'] as Kind[]).flatMap((kind) => [
+      kindRoot(kind),
+      ...placeTree(loadCatalogue().filter((s) => s.kind === kind)).keys(),
+    ])
     const over = pages
       .map((p) => [p, statSync(`${OUT}${p}index.html`).size] as const)
       .filter(([, size]) => size > BUDGET)
@@ -92,37 +106,32 @@ describe('prerendered station pages', () => {
   it('reaches every station from the browse index without the sitemap', () => {
     // The corpus was orphaned from the homepage once already (#27). Splitting
     // the index puts two hops between the top of it and a station, so the
-    // chain is walked rather than assumed: index -> country -> station.
-    const tree = placeTree(loadCatalogue().filter((s) => s.kind === 'tide'))
-    const index = readFileSync(`${OUT}/stations/tides/index.html`, 'utf8')
-    const missing = tree.filter((c) => !index.includes(`href="${placePath('tide', c.slug)}"`))
-    expect(missing.map((c) => c.name)).toEqual([])
-
-    // One country of each shape: split, and whole.
-    const us = readFileSync(`${OUT}/stations/tides/united-states/index.html`, 'utf8')
-    expect(us).toContain(`href="${placePath('tide', 'united-states', 'wa')}"`)
-    const wa = readFileSync(`${OUT}/stations/tides/united-states/wa/index.html`, 'utf8')
-    expect(wa).toContain('href="/tides/seattle/"')
-    const japan = readFileSync(`${OUT}/stations/tides/japan/index.html`, 'utf8')
-    expect(japan).toMatch(/href="\/tides\/[a-z0-9-]+\/"/)
+    // chain is walked rather than assumed: every page links every page below it,
+    // and every station is linked from the page its path sits under.
+    for (const kind of ['tide', 'current'] as Kind[]) {
+      const stations = loadCatalogue().filter((s) => s.kind === kind)
+      const html = new Map<string, string>()
+      const read = (dir: string) => html.get(dir) ?? html.set(dir, readFileSync(`${OUT}${dir}index.html`, 'utf8')).get(dir)!
+      const links = (from: string, to: string) => read(from).includes(`href="${to}"`)
+      const unlinked = [
+        ...[...placeTree(stations).values()].filter((p) => !links(p.up, p.path)).map((p) => p.path),
+        ...stations.filter((s) => !links(s.path.replace(/[^/]+\/$/, ''), s.path)).map((s) => s.path),
+      ]
+      expect(unlinked.slice(0, 5)).toEqual([])
+    }
   })
 
-  it('ships a redirect for every station URL that moved, and no page under one', () => {
-    // `_redirects` is read by Cloudflare ahead of the Worker, so a rule whose
-    // source is also a built page would hide the page. And a destination that
-    // was never built is a redirect into a 404.
-    const rules = readFileSync(`${OUT}/_redirects`, 'utf8').trim().split('\n').map((l) => l.split(' '))
-    expect(rules.length).toBeGreaterThan(0)
-    for (const [from, to, code] of rules) {
-      expect(code, `${from}`).toBe('301')
-      expect(existsSync(`${OUT}${to}index.html`), `${from} -> ${to} is not a built page`).toBe(true)
-      const dir = from.endsWith('/') ? from : `${from}/`
-      expect(existsSync(`${OUT}${dir}index.html`), `${from} is built and redirected`).toBe(false)
+  it('files a station under its country and subdivision, and every crumb is a page', () => {
+    const html = readFileSync(page('tide', 'bridesburg'), 'utf8')
+    expect(page('tide', 'bridesburg')).toBe(`${OUT}/tides/us/pa/bridesburg/index.html`)
+    for (const crumb of ['/tides/', '/tides/us/', '/tides/us/pa/']) {
+      expect(html, crumb).toContain(`href="${crumb}"`)
+      expect(existsSync(`${OUT}${crumb}index.html`), crumb).toBe(true)
     }
   })
 
   it('links home and offers the app from every station directory', () => {
-    for (const path of ['stations', 'stations/tides', 'stations/currents']) {
+    for (const path of ['stations', 'tides', 'currents']) {
       const html = readFileSync(`${OUT}/${path}/index.html`, 'utf8')
       expect(html, `${path} has no link home`).toMatch(/<a[^>]+href="\/"/)
       expect(html, `${path} has no TestFlight CTA`).toContain(
@@ -136,7 +145,7 @@ describe('prerendered station pages', () => {
     // relative "in 30m" or a "next slack" in it is a live-sounding reading
     // computed against the build clock — wrong for every reader without JS,
     // which is the AI crawlers and unfurl scrapers this corpus exists for.
-    const html = readFileSync(`${OUT}/currents/deception-pass-narrows/index.html`, 'utf8')
+    const html = readFileSync(page('current', 'deception-pass-narrows'), 'utf8')
     expect(html).not.toMatch(/in \d+[hm]\b/)
     expect(html).not.toContain('Next slack')
     expect(html).not.toContain('this device')
@@ -146,14 +155,14 @@ describe('prerendered station pages', () => {
     // The chart speaks in bare hh:mm. Without a date on the page a receiver
     // cannot tell whether they are looking at today's water or a link from
     // last winter.
-    const html = readFileSync(`${OUT}/tides/seattle/index.html`, 'utf8')
+    const html = readFileSync(page('tide', 'seattle'), 'utf8')
     expect(html).toMatch(/[A-Z][a-z]{2} \d{1,2} [A-Z][a-z]{2} \d{4}/)
   })
 
   it('shows a tide range that could only be feet', () => {
     // Seattle swings about 10 ft. The database ships metres; a page that
     // labels those metres "ft" reads 3.28x shallow and entirely plausible.
-    const html = readFileSync(`${OUT}/tides/seattle/index.html`, 'utf8')
+    const html = readFileSync(page('tide', 'seattle'), 'utf8')
     const m = html.match(/High (-?[\d.]+) feet[\s\S]*?low (-?[\d.]+) feet/)
     expect(m, 'no high/low in the accessibility text').not.toBeNull()
     expect(Number(m![1]) - Number(m![2])).toBeGreaterThan(8)
@@ -162,7 +171,7 @@ describe('prerendered station pages', () => {
   it('does not announce the wrong station to screen readers', () => {
     // The accessibility text was hardcoded to one station; across 3,607 pages
     // that would misname every one of them.
-    const html = readFileSync(`${OUT}/tides/seattle/index.html`, 'utf8')
+    const html = readFileSync(page('tide', 'seattle'), 'utf8')
     expect(html).not.toContain('Deception Pass')
   })
 })

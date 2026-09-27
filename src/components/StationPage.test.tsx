@@ -5,6 +5,7 @@ import type { BundledStation, ChsStation } from '#/lib/station'
 
 const dodd = {
   id: 'chs-dodd-narrows', kind: 'current', slug: 'dodd-narrows', name: 'Dodd Narrows',
+  path: '/currents/ca/bc/dodd-narrows/',
   source: 'chs', region: 'Nanaimo',
   latitude: 49.13546639419797, longitude: -123.81735084108287, timezone: 'America/Vancouver',
 } satisfies ChsStation
@@ -86,6 +87,7 @@ describe('StationPage for a derived gate', () => {
   const malibu = {
     ...dodd,
     id: 'chs-malibu-rapids', slug: 'malibu-rapids', name: 'Malibu Rapids',
+    path: '/currents/ca/bc/malibu-rapids/',
     region: 'Princess Louisa Inlet',
     latitude: 50.1626, longitude: -123.8515,
     derived: true,
@@ -108,6 +110,7 @@ describe('StationPage for a derived gate', () => {
 describe('StationPage for a CHS tide port', () => {
   const victoria = {
     id: 'chs-victoria', kind: 'tide', slug: 'victoria', name: 'Victoria',
+    path: '/tides/ca/bc/victoria/',
     source: 'chs', region: 'Inner Harbour',
     latitude: 48.424, longitude: -123.371, timezone: 'America/Vancouver',
   } satisfies ChsStation
@@ -142,13 +145,14 @@ describe('StationPage for a CHS tide port', () => {
 describe('StationPage for a bundled tide station', () => {
   const seattle: BundledStation = {
     id: 'noaa/9447130', kind: 'tide', slug: 'seattle', name: 'Seattle',
+    path: '/tides/us/wa/seattle/',
     latitude: 47.6, longitude: -122.34, timezone: 'America/Los_Angeles',
     source: 'bundled', chartDatum: 'MLLW', state: 'WA', country: 'United States',
     constituents: [{ name: 'M2', amplitude: 3.487, phase: 10.8 }, { name: 'K1', amplitude: 2.625, phase: 300 }],
   }
   const now = new Date('2026-09-11T20:00:00Z')
   const nearby = [
-    { slug: 'tacoma', name: 'Tacoma', latitude: 47.27, longitude: -122.41, nm: 20.1, bearing: 190 },
+    { slug: 'tacoma', name: 'Tacoma', path: '/tides/us/wa/tacoma/', latitude: 47.27, longitude: -122.41, nm: 20.1, bearing: 190 },
   ]
   const html = renderToStaticMarkup(<StationPage station={seattle} now={now} nearby={nearby} />)
   const live = renderToStaticMarkup(<StationPage station={seattle} now={now} live nearby={nearby} />)
@@ -162,7 +166,7 @@ describe('StationPage for a bundled tide station', () => {
   it('walks a breadcrumb of real pages, home first', () => {
     expect(html).toMatch(/<nav aria-label="Breadcrumb"/)
     expect(html).toMatch(/<a href="\/"/)
-    expect(html).toMatch(/<a href="\/stations\/tides\/"/)
+    expect(html).toMatch(/<a href="\/tides\/"/)
   })
 
   it('reads the water now only once the clock is live', () => {
@@ -229,7 +233,7 @@ describe('StationPage for a bundled tide station', () => {
   })
 
   it('links each neighbour with its leg, and leaves the map to the browser', () => {
-    expect(html).toMatch(/<a href="\/tides\/tacoma\/"[^>]*>Tacoma<\/a>/)
+    expect(html).toMatch(/<a href="\/tides\/us\/wa\/tacoma\/"[^>]*>Tacoma<\/a>/)
     expect(html).toContain('20.1 nm S')
     expect(html).not.toContain('leaflet')
     expect(html).not.toContain('tile.openstreetmap.org')
@@ -239,6 +243,7 @@ describe('StationPage for a bundled tide station', () => {
 describe('StationPage for a bundled current station', () => {
   const station: BundledStation = {
     id: 'noaa/PUG1701', kind: 'current', slug: 'deception-pass-narrows', name: 'Deception Pass (Narrows)',
+    path: '/currents/us/wa/deception-pass-narrows/',
     latitude: 48.4, longitude: -122.64, timezone: 'America/Los_Angeles',
     source: 'bundled', floodDirection: 101.5, ebbDirection: 281.5,
     constituents: [{ name: 'M2', amplitude: 3.2, phase: 100 }, { name: 'K1', amplitude: 1.1, phase: 250 }],

@@ -6,6 +6,7 @@ import type { ChsStation } from './station'
 
 const stub: ChsStation = {
   id: 'chs-dodd-narrows', kind: 'current', slug: 'dodd-narrows', name: 'Dodd Narrows',
+  path: '/currents/ca/bc/dodd-narrows/',
   source: 'chs', latitude: 49.1, longitude: -123.8, timezone: 'America/Vancouver',
 }
 
