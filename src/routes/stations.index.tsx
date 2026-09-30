@@ -5,7 +5,7 @@ import { TidesExplainerCard } from '#/components/TidesExplainerCard'
 const CANONICAL = 'https://slackwater.xyz/stations/'
 const TITLE = 'Stations — Slackwater'
 const DESCRIPTION =
-  'Browse every tide and tidal current station Slackwater predicts: 4,792 tide stations worldwide and 865 current stations across the US and Canada.'
+  'Browse every tide and tidal current station Slackwater predicts: 5,843 tide stations worldwide and 865 current stations across the US and Canada.'
 
 export const Route = createFileRoute('/stations/')({
   head: () => ({
@@ -35,7 +35,7 @@ function Stations() {
           <a href="/tides/" className="text-xl text-sw-paper hover:text-sw-leaf">
             Tide stations
           </a>
-          <p className="text-sw-steel">4,792 worldwide.</p>
+          <p className="text-sw-steel">5,843 worldwide.</p>
         </li>
         <li>
           <a href="/currents/" className="text-xl text-sw-paper hover:text-sw-leaf">

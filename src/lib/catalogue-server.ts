@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
-import { loadCatalogue } from './catalogue'
+import { loadCatalogue, loadWithheld } from './catalogue'
 import { bearing, distanceNm, neighbourMap } from './nearby'
-import { kindRoot, parentPath, placeTree, type Place } from './places'
+import { kindRoot, nearestPlace, parentPath, placeTree, type Place } from './places'
 import type { Kind, Station } from './station'
 
 /**
@@ -29,6 +29,12 @@ const index = (() => {
     }
     return cache
   }
+})()
+
+/** The addresses of the routes the quality pass rejects, built once — see `loadWithheld`. */
+const withheld = (() => {
+  let cache: Map<string, string> | undefined
+  return () => (cache ??= loadWithheld())
 })()
 
 /** One row of the browse index: enough to render a link, and nothing else. */
@@ -230,7 +236,12 @@ export const resolvePath = createServerFn({ method: 'GET' })
     if (place) return { page: 'place', path, index: place }
     const slug = path.slice(kindRoot(kind).length, -1)
     const flat = !slug.includes('/') && index().bySlug.get(`${kind}/${slug}`)
-    return flat ? { page: 'redirect', path: flat.path } : undefined
+    if (flat) return { page: 'redirect', path: flat.path }
+    // A route the quality pass rejects has no page, and 357 of them had one
+    // here, so the address answers with the nearest page above it rather than
+    // a 404.
+    const gone = withheld().get(path)
+    return gone ? { page: 'redirect', path: nearestPlace(trees(kind), kind, gone) } : undefined
   })
 
 export const stationBySlug = createServerFn({ method: 'GET' })

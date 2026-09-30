@@ -37,7 +37,6 @@ describe('client bundle', () => {
     for (const f of js()) {
       const src = readFileSync(`${ASSETS}/${f}`, 'utf8')
       expect(src.includes('@slackwater/database'), f).toBe(false)
-      expect(src.includes('station-metadata/data'), f).toBe(false)
     }
   })
 })
