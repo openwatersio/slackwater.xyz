@@ -31,6 +31,24 @@ export const kindRoot = (kind: Kind) => `/${kind === 'tide' ? 'tides' : 'current
 export const parentPath = (path: string) => path.replace(/[^/]+\/$/, '')
 
 /**
+ * The nearest page above `path` that exists.
+ *
+ * Where a station the site withholds sends a reader. The walk skips a place
+ * with no page rather than stopping at it, because a withheld station can be
+ * the only one the database placed in its subdivision — 53 are — and stopping
+ * would send a reader from an Alpena bookmark to the worldwide index when the
+ * United States page is right there. `crumbs` stops at the first gap and has
+ * to: a breadcrumb chain that skips a level is a lie about the hierarchy.
+ *
+ * The kind's index is the floor, and it always exists.
+ */
+export function nearestPlace(tree: Map<string, Place>, kind: Kind, path: string): string {
+  const root = kindRoot(kind)
+  for (let up = parentPath(path); up.length > root.length; up = parentPath(up)) if (tree.has(up)) return up
+  return root
+}
+
+/**
  * Every place page one kind's stations imply, by path.
  *
  * Read from the paths the database publishes rather than from a station's

@@ -44,7 +44,7 @@ pnpm test
 
 The build comes before typechecking and tests because it generates `src/routeTree.gen.ts` and the prerendered artifacts that four integration suites inspect. Prediction changes arrive with a focused test; errors there can look plausible and matter on the water.
 
-Presentation is checked by looking at it. There is no snapshot suite: 5,657 pages come from
+Presentation is checked by looking at it. There is no snapshot suite: 6,708 pages come from
 three templates, so a representative tide page, a representative current page, and a
 representative CHS identity-only page (`/currents/dodd-narrows`) is the check, and a diff
 across thousands of near-identical generated pages would be noise, not signal.
@@ -59,7 +59,7 @@ Look at any visible change before reporting it complete.
 
 ## Project rules
 
-- Keep dependencies, abstractions, and build steps to the minimum. Their cost is multiplied across 5,657 station pages.
+- Keep dependencies, abstractions, and build steps to the minimum. Their cost is multiplied across 6,708 station pages.
 - Every rendered curve comes from `src/lib/predict.ts` and bundled constituents. The landing page only shows the app's screenshots. Changes to `predict.ts`, `src/lib/ramp.ts`, or `src/lib/iwls.ts` require a test.
 - `catalogue.ts` excludes NOAA subordinate current stations until reference-station reductions are implemented in issue #80. Without that reduction, they render blank bodies.
 - The 33 CHS pages ship identity without a prerendered prediction. The visitor's browser fetches 32 station predictions directly from DFO; `chs-malibu-rapids` is derived and has no station to fetch. Never proxy or re-serve IWLS predictions, and never prerender them. `src/lib/iwls.ts` converts DFO metres on chart datum to feet; CHS pages name chart datum without borrowing another datum code. The site covers 10 of 1,058 Canadian tide ports and must not imply complete coverage. Issue #17 tracks the missing identities and `chs-arran-rapids`.

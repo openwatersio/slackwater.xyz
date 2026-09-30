@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { loadCatalogue } from './catalogue'
+import { stationsById } from '@slackwater/database'
+import { loadCatalogue, loadWithheld } from './catalogue'
 import { predictSeries } from './predict'
 import { nearby } from './nearby'
 
@@ -9,19 +10,46 @@ const CANADA = new Set(['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'P
 describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
-  it('yields every station whose data ships on npm, plus the CHS gates and ports', () => {
-    expect(all.length).toBe(5657)
-    expect(all.filter((s) => s.kind === 'tide').length).toBe(4792)
+  it('yields every station the database routes and the quality pass accepts, plus the CHS gates and ports', () => {
+    expect(all.length).toBe(6708)
+    expect(all.filter((s) => s.kind === 'tide').length).toBe(5843)
     expect(all.filter((s) => s.kind === 'current').length).toBe(865)
   })
 
-  it('skips the subordinate current stations it cannot predict', () => {
+  it('skips the subordinate stations it cannot predict', () => {
     // NOAA's subordinate stations are a reduction against a reference station,
     // not constituents, and `predict.ts` sums constituents. Built anyway they
-    // prerender to a head with no body. The slug table names 1,692 of them; a
-    // count above zero here means blank pages shipped (#80).
+    // prerender to a head with no body. The database routes 1,692 subordinate
+    // currents and four tides; a count above zero here means blank pages
+    // shipped (#80).
     const blank = all.filter((s) => s.source === 'bundled' && !s.constituents?.length)
     expect(blank).toHaveLength(0)
+  })
+
+  it('publishes nothing a provider forbids commercial use of', () => {
+    // 674 routed tide stations are TICON-4 rows whose GESLA provider restricts
+    // commercial use. Slackwater has a paid tier and this site promotes the
+    // app, so one of those on a page is a licence breach rather than a
+    // rendering bug — and the filter reads `commercial_use` as truthiness, so
+    // a release that drops the field fails this rather than publishing them.
+    for (const s of all.filter((x) => x.source === 'bundled')) {
+      expect(stationsById.get(s.id)?.license?.commercial_use, s.id).toBe(true)
+    }
+  })
+
+  it('withholds every route the quality pass rejects, and keeps its address answerable', () => {
+    // 1,851 commercially licensed routes fail `qualityFilter`, 357 of them
+    // pages the site published before it read the whole corpus. A withheld
+    // station must not be in the catalogue and must not 404 either: both its
+    // canonical path and the flat `/tides/<slug>/` the share sheet mints are
+    // keys here, so `resolvePath` can answer with a 301.
+    const withheld = loadWithheld()
+    expect(withheld.size).toBe(1851 * 2)
+    const published = new Set(all.map((s) => s.path))
+    for (const [address, canonical] of withheld) {
+      expect(published.has(address), address).toBe(false)
+      expect(canonical.endsWith('/'), canonical).toBe(true)
+    }
   })
 
   it('builds the ten CHS tide ports whose identity IS published, and no more', () => {
@@ -226,7 +254,7 @@ describe('chart datum', () => {
   })
 
   it('uses each station its own datum, not MLLW everywhere', () => {
-    // The corpus spans 8 chart datums and MLLW covers 1,418 of 2,765 bundled tide
+    // The corpus spans 9 chart datums and MLLW covers 4,313 of 5,833 bundled tide
     // stations. Shifting a Greenland or Canadian station by an MLLW offset —
     // or labelling it MLLW — is wrong for more than half the world.
     const aasiaat = bundled('ticon/aasiaat-aas-grl-gloss')
@@ -239,10 +267,11 @@ describe('chart datum', () => {
   })
 
   it('leaves a station already quoted on MSL exactly where it was', () => {
-    // 117 stations chart to MSL, so MSL - MSL = 0 and the curve must not move.
-    const althagen = bundled('ticon/althagen-9650024-deu-wsv')
-    expect(althagen.chartDatum).toBe('MSL')
-    expect(althagen.offset).toBe(0)
+    // 112 published stations chart to MSL, so MSL - MSL = 0 and the curve must
+    // not move.
+    const arko = bundled('ticon/arko-2545-swe-smhi')
+    expect(arko.chartDatum).toBe('MSL')
+    expect(arko.offset).toBe(0)
   })
 
   it('shifts nothing when the provider ships no datums', () => {

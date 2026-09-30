@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { loadCatalogue } from './catalogue'
-import { kindRoot, parentPath, placeTree } from './places'
+import { kindRoot, nearestPlace, parentPath, placeTree } from './places'
 import type { Kind, Station } from './station'
 
 const ofKind = (kind: Kind) => loadCatalogue().filter((s) => s.kind === kind)
@@ -56,5 +56,30 @@ describe('placeTree', () => {
     expect([...small.keys()].sort()).toEqual(['/tides/jp/', '/tides/us/', '/tides/us/wa/'])
     expect(small.get('/tides/us/')).toMatchObject({ count: 2, continent: 'Americas' })
     expect(small.get('/tides/us/wa/')?.count).toBe(2)
+  })
+})
+
+describe('nearestPlace', () => {
+  // A published corpus with stations in Washington and in Japan's Hokkaido, and
+  // nothing at all in Michigan — the shape 53 withheld routes are in.
+  const tree = placeTree([
+    { path: '/tides/us/wa/seattle/', kind: 'tide', continent: 'Americas' },
+    { path: '/tides/jp/kushiro/', kind: 'tide', continent: 'Asia' },
+  ] as Station[])
+
+  it('sends a withheld station to its subdivision when that page exists', () => {
+    expect(nearestPlace(tree, 'tide', '/tides/us/wa/alki-point/')).toBe('/tides/us/wa/')
+  })
+
+  it('skips a subdivision with no page and stops at the country', () => {
+    // Michigan's stations are all quality-rejected, so `/tides/us/mi/` was never
+    // built. Stopping there is a 404; stopping at `/tides/` throws away a
+    // country page that does exist.
+    expect(nearestPlace(tree, 'tide', '/tides/us/mi/alpena/')).toBe('/tides/us/')
+  })
+
+  it('falls back to the kind index when no page above the station exists', () => {
+    expect(nearestPlace(tree, 'tide', '/tides/gl/nuuk/')).toBe('/tides/')
+    expect(nearestPlace(tree, 'current', '/currents/us/wa/deception-pass/')).toBe('/currents/')
   })
 })

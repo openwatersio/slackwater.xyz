@@ -2,11 +2,10 @@
 // BUILD-TIME ONLY. Never import this from a route module: it pulls the whole
 // station database, and TanStack loaders are isomorphic, so one careless import
 // ships megabytes to every visitor. Task 4 asserts that.
-import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type: 'json' }
-import { stationsById } from '@slackwater/database'
+import { stationRoutes, stations, stationsById } from '@slackwater/database'
 import { FEET_PER_METRE } from './format'
+import { kindRoot } from './places'
 import { chsStations, curatedBySlug, REGISTRY_IDS } from './registry'
-import { stationRoute } from './routes'
 import type { BundledStation, Kind, Station } from './station'
 
 /**
@@ -22,6 +21,50 @@ import type { BundledStation, Kind, Station } from './station'
  */
 export function isBuildable(id: string): boolean {
   return id.includes('/')
+}
+
+/**
+ * Every station id the database's quality pass accepts.
+ *
+ * `stations` is the database's own accepted list — `allStations.filter(qualityFilter)` —
+ * so the rule this site publishes by is the database's rule rather than a copy
+ * of it that drifts. A station carrying no verdict counts as accepted, which is
+ * what the database itself does, and 2,561 provider rows are in that state.
+ *
+ * The rule is what makes the whole corpus publishable: it rejects 1,851 of the
+ * 7,694 commercially licensed routes, and 973 of those are a second provider's
+ * row for a gauge the site already publishes (slackwater-database#191). Without
+ * it, adopting the corpus would double the duplicate pages rather than remove
+ * them.
+ */
+const ACCEPTED = new Set(stations.map((s) => s.id))
+
+// A release that shipped no verdicts at all would withhold every station and
+// build a site of place pages with nothing on them — a corpus-wide failure that
+// renders and deploys. Fail the build instead.
+if (!ACCEPTED.size) throw new Error('catalogue: the station database ships no quality verdicts')
+
+/**
+ * A provider row this site can publish.
+ *
+ * Commercially licensed, because Slackwater has a paid tier and the site
+ * promotes the app: the 674 TICON-4 rows whose GESLA provider forbids
+ * commercial use would be a licence breach on a page, not a rendering bug.
+ * Read as truthiness rather than `!== false`, so a release that drops the field
+ * withholds the corpus instead of quietly publishing them.
+ *
+ * And shipping constituents, because `predict.ts` sums constituents and nothing
+ * else. A subordinate station carries time offsets and flood/ebb speed ratios
+ * reduced against a reference station instead, and built anyway it prerenders
+ * to a page with a head and no body — which is what 1,692 of the currents did
+ * the first time the corpus grew to include them. That reduction is a
+ * prediction the site does not do yet (#80), and four NOAA tide subordinates
+ * are in the same state.
+ */
+function publishable(r: Record<string, unknown>): boolean {
+  const license = r.license as { commercial_use?: boolean } | undefined
+  if (!license) throw new Error(`catalogue: no licence on ${String(r.id)}`)
+  return Boolean(license.commercial_use) && ((r.harmonic_constituents ?? []) as unknown[]).length > 0
 }
 
 /** A subdivision code the provider published rather than the gazetteer. */
@@ -132,60 +175,54 @@ export function loadCatalogue(): Station[] {
 
   for (const kind of ['tide', 'current'] as Kind[]) {
     const curated = curatedBySlug(kind)
-    for (const id of Object.keys(slugTable[kind] as Record<string, string>)) {
-      if (!isBuildable(id)) continue
-      // The table says which stations this site publishes; the database says
-      // where. A corpus id with no route is a broken corpus, not one to skip.
-      const route = stationRoute(kind, id)
-      if (!route) throw new Error(`catalogue: no route for ${id}`)
-      const { slug, path } = route
-
-      const r = record(id)
-      // A slug with no data is a broken corpus, not a station to skip: it
-      // means the slug table and the database disagree about what exists.
-      if (!r) throw new Error(`catalogue: no ${kind} data for ${id}`)
-      const constituents = (r.harmonic_constituents ?? []) as BundledStation['constituents']
-      // A subordinate current carries no constituents of its own: NOAA
-      // publishes it as time offsets and flood/ebb speed ratios reduced
-      // against a reference station, and `predict.ts` sums constituents.
-      // Building one anyway produces a page with a head and no body, which
-      // is what 1,692 of these did the first time the slug table grew to
-      // include them. The reduction is a prediction the site does not do
-      // yet, so the station does not get a page yet — see #80.
-      if (kind === 'current' && !constituents.length) continue
-      const state = subdivision(r)
-      const area = adminArea(r)
-      const current = (r.current ?? {}) as Record<string, number | undefined>
-      out.push({
-        id, kind, slug, path,
-        source: 'bundled',
-        // Curated identity wins. The provider row names the water whatever the
-        // provider calls it; the curated record names it what a mariner calls it.
-        name: curated.get(slug)?.name ?? String(r.name),
-        latitude: Number(r.latitude), longitude: Number(r.longitude),
-        timezone: String(r.timezone),
-        // A NOAA current's own qualifier is a bearing off the named place —
-        // "0.4 nm SE of" — and heading a page by it says nothing, so a
-        // current's water comes from curated identity alone.
-        region: curated.get(slug)?.region ?? (kind === 'tide' ? waterContext(r) : undefined),
-        ...(area ? { area } : {}),
-        ...(r.country ? { country: String(r.country) } : {}),
-        ...(r.continent ? { continent: String(r.continent) } : {}),
-        ...(state ? { state } : {}),
-        ...(kind === 'tide'
-          ? {
-              constituents: constituents.map((c) => ({ ...c, amplitude: c.amplitude * FEET_PER_METRE })),
-              chartDatum: String(r.chart_datum ?? ''),
-              offset: datumShift(r),
-            }
-          : {
-              constituents,
-              // Mean flow: the constant term under the harmonic sum, in knots.
-              offset: current.mean_flow ?? 0,
-              floodDirection: current.flood_direction,
-              ebbDirection: current.ebb_direction,
-            }),
-      })
+    // The database's route index IS the corpus: every station it gives an
+    // address to, minus the ones this site may not or cannot publish. Reading
+    // the addresses from the same place the pages link to them from is what
+    // makes a published slug and a published page the same set by construction
+    // rather than by agreement between two tables.
+    for (const { slug, path, stationIds } of stationRoutes(kind)) {
+      for (const id of stationIds) {
+        if (!isBuildable(id)) continue
+        const r = record(id)
+        // A routed id with no record is a broken database, not a station to
+        // skip: the route index and the records disagree about what exists.
+        if (!r) throw new Error(`catalogue: no ${kind} data for ${id}`)
+        if (!publishable(r) || !ACCEPTED.has(id)) continue
+        const constituents = (r.harmonic_constituents ?? []) as BundledStation['constituents']
+        const state = subdivision(r)
+        const area = adminArea(r)
+        const current = (r.current ?? {}) as Record<string, number | undefined>
+        out.push({
+          id, kind, slug, path,
+          source: 'bundled',
+          // Curated identity wins. The provider row names the water whatever the
+          // provider calls it; the curated record names it what a mariner calls it.
+          name: curated.get(slug)?.name ?? String(r.name),
+          latitude: Number(r.latitude), longitude: Number(r.longitude),
+          timezone: String(r.timezone),
+          // A NOAA current's own qualifier is a bearing off the named place —
+          // "0.4 nm SE of" — and heading a page by it says nothing, so a
+          // current's water comes from curated identity alone.
+          region: curated.get(slug)?.region ?? (kind === 'tide' ? waterContext(r) : undefined),
+          ...(area ? { area } : {}),
+          ...(r.country ? { country: String(r.country) } : {}),
+          ...(r.continent ? { continent: String(r.continent) } : {}),
+          ...(state ? { state } : {}),
+          ...(kind === 'tide'
+            ? {
+                constituents: constituents.map((c) => ({ ...c, amplitude: c.amplitude * FEET_PER_METRE })),
+                chartDatum: String(r.chart_datum ?? ''),
+                offset: datumShift(r),
+              }
+            : {
+                constituents,
+                // Mean flow: the constant term under the harmonic sum, in knots.
+                offset: current.mean_flow ?? 0,
+                floodDirection: current.flood_direction,
+                ebbDirection: current.ebb_direction,
+              }),
+        })
+      }
     }
   }
 
@@ -206,4 +243,39 @@ export function loadCatalogue(): Station[] {
     if (!held || (!REGISTRY_IDS.has(held.id) && REGISTRY_IDS.has(s.id))) bySlug.set(key, s)
   }
   return [...bySlug.values()].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+}
+
+/**
+ * Every address a route the quality pass rejects can be asked for, mapped to
+ * that route's canonical path.
+ *
+ * 1,851 commercially licensed routes fail the quality rule, and 357 of them
+ * were pages here before the site read the whole corpus, so their addresses
+ * have to answer rather than 404. Keeping the set derived from the database
+ * instead of a list of the 357 is what makes it cover the other 1,494 too, and
+ * every station a later release rejects.
+ *
+ * Both addresses a reader can arrive on are keys: the canonical path under its
+ * country and subdivision, and the flat `/tides/<slug>/` the app's share sheet
+ * mints. The destination is deliberately NOT resolved here — the nearest page
+ * above a station is whichever place page exists, and only
+ * `catalogue-server.ts` holds the place tree that says which do.
+ */
+export function loadWithheld(): Map<string, string> {
+  const out = new Map<string, string>()
+  for (const kind of ['tide', 'current'] as Kind[])
+    for (const { slug, path, stationIds } of stationRoutes(kind)) {
+      const rows = stationIds.filter((id) => {
+        const r = isBuildable(id) ? record(id) : undefined
+        return r && publishable(r)
+      })
+      // A route with nothing publishable on it never had a page to withhold —
+      // a non-commercial row or a subordinate is out on its own terms, and the
+      // curated CHS records have no provider row at all. A route with one
+      // accepted row has a page, whatever else sits beside it.
+      if (!rows.length || rows.some((id) => ACCEPTED.has(id))) continue
+      out.set(path, path)
+      out.set(`${kindRoot(kind)}${slug}/`, path)
+    }
+  return out
 }
