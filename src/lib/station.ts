@@ -63,6 +63,18 @@ export interface BundledStation extends StationIdentity {
   /** Currents only: the axis the signed velocity is measured along. */
   floodDirection?: number
   ebbDirection?: number
+  /**
+   * Tides only, and only where the database labelled the station
+   * `quality.seasonal_dominant`: how many times the seasonal band exceeds the
+   * largest tidal constituent.
+   *
+   * Present or absent is the database's verdict and is never decided here — that
+   * is the point of it living upstream, so the app and this site do not describe
+   * the same water two ways. The number is the site's own, and only chooses how
+   * loudly a page says it: 1.008 at Annapolis, which has a real Chesapeake tide,
+   * and 162 at Cobourg on Lake Ontario, which has none. See `seasonalNote`.
+   */
+  seasonal?: number
 }
 
 /**

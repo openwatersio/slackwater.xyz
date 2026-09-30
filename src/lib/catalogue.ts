@@ -6,7 +6,7 @@ import { stationRoutes, stations, stationsById } from '@slackwater/database'
 import { FEET_PER_METRE } from './format'
 import { kindRoot } from './places'
 import { chsStations, curatedBySlug, REGISTRY_IDS } from './registry'
-import type { BundledStation, Kind, Station } from './station'
+import type { BundledStation, Constituent, Kind, Station } from './station'
 
 /**
  * A station is buildable when a provider row ships its constituents, which the
@@ -69,6 +69,51 @@ function publishable(r: Record<string, unknown>): boolean {
 
 /** A subdivision code the provider published rather than the gazetteer. */
 const USPS = /^[A-Z]{2}$/
+
+/**
+ * The constituents that are the tide itself, and the seasonal band measured
+ * against them.
+ *
+ * Mirrors `TIDAL_CONSTITUENTS` and `SEASONAL_CONSTITUENTS` in
+ * `@slackwater/stations`, which is private to the database repo, so the lists
+ * cannot be imported. Only the RATIO is computed here and only to choose how
+ * loudly a page speaks — the verdict is `quality.seasonal_dominant` and comes
+ * from the database — so if the lists ever drift apart a marginal station moves
+ * between bands rather than gaining or losing its label.
+ *
+ * The minor terms are not padding: at 159 stations the largest tidal
+ * constituent is one of them rather than a major, by up to 85%, and those are
+ * exactly the near-tideless stations this measures. Trimming the list to the
+ * eight majors would inflate the ratio and make those pages overstate their case.
+ */
+const TIDAL = [
+  'M2', 'S2', 'N2', 'K2', 'L2', 'T2', 'NU2', 'MU2', '2N2', 'LDA2',
+  'K1', 'O1', 'P1', 'Q1', 'J1', 'M1', 'OO1', 'RHO1', '2Q1', 'SIGMA1',
+  'CHI1', 'PI1', 'PHI1', 'THETA1', 'S1',
+]
+const SEASONAL = ['SA', 'SSA']
+
+/**
+ * How many times the seasonal band exceeds the largest tidal constituent, for a
+ * station the database labelled seasonal — and `undefined` for every other,
+ * which is what a page reads to decide whether to say anything at all.
+ *
+ * Measured on the same amplitudes the database used, in metres, before the
+ * catalogue converts to feet: a ratio has no unit, but taking it after a
+ * one-sided conversion would not.
+ */
+function seasonalRatio(r: Record<string, unknown>): number | undefined {
+  if (!(r.quality as { seasonal_dominant?: boolean } | undefined)?.seasonal_dominant) return undefined
+  const constituents = (r.harmonic_constituents ?? []) as Constituent[]
+  const amplitude = (name: string) =>
+    Math.abs(constituents.find((c) => c.name === name)?.amplitude ?? 0)
+  const seasonal = Math.max(...SEASONAL.map(amplitude))
+  const tidal = Math.max(...TIDAL.map(amplitude))
+  // The database labels nothing with a zero denominator, so this is a broken
+  // release rather than a station to quietly un-label.
+  if (!tidal) throw new Error(`catalogue: ${String(r.id)} is labelled seasonal with no tidal constituent`)
+  return seasonal / tidal
+}
 
 /**
  * The water a station sits in, for the heading above it and the line under its
@@ -189,6 +234,7 @@ export function loadCatalogue(): Station[] {
         if (!r) throw new Error(`catalogue: no ${kind} data for ${id}`)
         if (!publishable(r) || !ACCEPTED.has(id)) continue
         const constituents = (r.harmonic_constituents ?? []) as BundledStation['constituents']
+        const seasonal = kind === 'tide' ? seasonalRatio(r) : undefined
         const state = subdivision(r)
         const area = adminArea(r)
         const current = (r.current ?? {}) as Record<string, number | undefined>
@@ -213,6 +259,7 @@ export function loadCatalogue(): Station[] {
                 constituents: constituents.map((c) => ({ ...c, amplitude: c.amplitude * FEET_PER_METRE })),
                 chartDatum: String(r.chart_datum ?? ''),
                 offset: datumShift(r),
+                ...(seasonal !== undefined ? { seasonal } : {}),
               }
             : {
                 constituents,

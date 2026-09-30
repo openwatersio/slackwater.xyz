@@ -73,19 +73,49 @@ export function curatedBySlug(kind: Kind): Map<string, Curated> {
 const EXCLUDED = new Set(['chs-arran-rapids'])
 
 /**
+ * The Canadian tide ports this site publishes.
+ *
+ * Until slackwater-database#210 the database curated identity for exactly these
+ * ten and for none of the other 1,047, so the corpus was simply the data and
+ * this list would have been noise. #210 gave every live Canadian tide station a
+ * record, which is what #17 needs — and more than this site has decided to
+ * publish: a page for one of the other 1,047 carries identity and no
+ * prediction, and the on-request DFO curve it would need is the rest of #17.
+ *
+ * So the list exists to keep that a decision rather than a side effect of a
+ * database release, and it is meant to be deleted. When #17 answers, this goes
+ * and the corpus is the data again.
+ */
+const CHS_TIDE_PORTS = new Set([
+  'chs-campbell-river',
+  'chs-fulford-harbour',
+  'chs-owen-bay',
+  'chs-point-atkinson',
+  'chs-port-alberni',
+  'chs-port-renfrew',
+  'chs-sooke',
+  'chs-tofino',
+  'chs-vancouver',
+  'chs-victoria',
+])
+
+/**
  * The Canadian stations of one kind, from identity the database already
  * publishes.
  *
- * All 24 gates and ten of the tide ports are curated records with a name,
- * region, corrected position, timezone and province. The other 1,048 CHS tide
- * ports have identity nowhere published — that is the rest of #17 and needs
- * an operator run against IWLS, not a change here.
+ * All 24 gates and the ten named tide ports are curated records with a name,
+ * region, corrected position, timezone and province. Since
+ * slackwater-database#210 so are the other 1,047 tide ports, which this site
+ * does not publish yet: identity is no longer what stops them, a prediction is,
+ * and that is the rest of #17.
  */
 export function chsStations(kind: Kind): ChsStation[] {
   const out: ChsStation[] = []
   for (const s of curatedRecords) {
     if (s.source?.name !== CHS_SOURCE || s.kind !== kind) continue
     if (EXCLUDED.has(s.id)) continue
+    // Every gate is published; the tide ports are the named ten — see CHS_TIDE_PORTS.
+    if (kind === 'tide' && !CHS_TIDE_PORTS.has(s.id)) continue
     const route = stationRoute(kind, s.id)
     // A station with no published route is a broken corpus, not one to skip: it
     // means the database's records and its route index disagree about what exists.
