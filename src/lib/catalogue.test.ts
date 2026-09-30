@@ -16,6 +16,30 @@ describe('loadCatalogue', () => {
     expect(all.filter((s) => s.kind === 'current').length).toBe(865)
   })
 
+
+  it('carries the seasonal ratio for the stations the database labels, and nothing else', () => {
+    // The verdict is the database's (`quality.seasonal_dominant`) and the number
+    // is the site's, used only to pick how loudly a page speaks. 491 of the
+    // 5,843 tide pages carry it and no current page does — currents are
+    // measured in knots against no datum, so the question does not arise.
+    const seasonal = all.filter((s) => s.source === 'bundled' && s.seasonal !== undefined)
+    expect(seasonal).toHaveLength(491)
+    expect(seasonal.every((s) => s.kind === 'tide')).toBe(true)
+
+    // Cobourg on Lake Ontario, the extreme: SA 0.289 m against 0.002 m of M2.
+    const cobourg = all.find((s) => s.id === 'ticon/cobourg_ontario-13590-can-meds')
+    expect(cobourg?.source === 'bundled' && cobourg.seasonal).toBeCloseTo(161.6, 1)
+
+    // Annapolis carries the label at barely over 1, which is why the page copy
+    // has two bands rather than one sentence.
+    const annapolis = all.find((s) => s.id === 'noaa/8575512')
+    expect(annapolis?.source === 'bundled' && annapolis.seasonal).toBeCloseTo(1.008, 2)
+
+    // Seattle has a real tide and no label.
+    const seattle = all.find((s) => s.id === 'noaa/9447130')
+    expect(seattle?.source === 'bundled' && seattle.seasonal).toBeUndefined()
+  })
+
   it('skips the subordinate stations it cannot predict', () => {
     // NOAA's subordinate stations are a reduction against a reference station,
     // not constituents, and `predict.ts` sums constituents. Built anyway they

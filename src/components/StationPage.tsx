@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DayStrip, type Fetched } from './DayStrip'
 import { NearbyMap } from './NearbyMap'
-import { DATUM_NOTE, datumLine, stationHeading } from '#/lib/copy'
+import { DATUM_NOTE, datumLine, seasonalNote, stationHeading } from '#/lib/copy'
 import { compass16, dayLabel, dayStart, height, hhmm, shiftLocalDay } from '#/lib/format'
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
 import { TESTFLIGHT } from '#/lib/links'
@@ -103,6 +103,8 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
       window.history.replaceState(window.history.state, '', station.path)
     }
   }
+  const note = seasonalNote(station)
+  const lead = note?.place === 'lead' ? note : undefined
   return (
     <main className="mx-auto max-w-3xl px-5 pb-24 pt-8 sm:px-6 sm:pt-14">
       <Breadcrumb station={station} crumbs={crumbs} />
@@ -112,6 +114,10 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
       <p className="mt-3 text-sw-steel">
         {station.kind === 'tide' ? 'Tide times & tide chart' : 'Tidal currents & slack water'}
       </p>
+      {/* Above the curve rather than below it: at these stations the annual
+          cycle IS the signal, so a reader needs it before reading a high and a
+          low, not after. The quieter band renders in `Facts` instead. */}
+      {lead && <p className="mt-3 text-sw-foam">{lead.text}</p>}
       {station.source === 'chs' ? (
         !curve ? (
           <ChsGate station={station} now={now} settled={settled} hours={24} onCurve={setCurve} />
@@ -313,6 +319,11 @@ function WeekTable({ station, at }: { station: BundledStation; at: Date }) {
 function Facts({ station }: { station: Station }) {
   const bundled = station.source === 'bundled'
   const datum = bundled && station.kind === 'tide' ? datumLine(station) : undefined
+  // The band that does not lead the page says it here, beside the datum note,
+  // because it is the same kind of fact: what these heights are measured
+  // against and how they behave over a year.
+  const note = seasonalNote(station)
+  const aside = note?.place === 'aside' ? note : undefined
   const position =
     `${Math.abs(station.latitude).toFixed(4)}° ${station.latitude >= 0 ? 'N' : 'S'}, ` +
     `${Math.abs(station.longitude).toFixed(4)}° ${station.longitude >= 0 ? 'E' : 'W'}`
@@ -336,6 +347,7 @@ function Facts({ station }: { station: Station }) {
         ))}
       </dl>
       {datum && <p className="mt-3 text-sm text-sw-steel/70">{DATUM_NOTE}</p>}
+      {aside && <p className="mt-3 text-sm text-sw-steel/70">{aside.text}</p>}
     </section>
   )
 }
