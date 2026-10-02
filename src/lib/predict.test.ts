@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { predictSeries, findEvents, slackWindows, tideExtremes, SLACK_KNOTS } from './predict'
+import { predictSeries, findEvents, reduceCurrentEvents, slackWindows, tideExtremes, SLACK_KNOTS } from './predict'
 import type { BundledStation } from './station'
+import { loadCatalogue } from './catalogue'
 
 const CURRENT: BundledStation = {
   id: 'noaa/PUG1701', kind: 'current', slug: 'deception-pass', name: 'Deception Pass (Narrows)',
@@ -42,6 +43,16 @@ describe('predictSeries', () => {
     const base = predictSeries(CURRENT, start, 3)[0].level
     expect(predictSeries(shifted, start, 3)[0].level).toBeCloseTo(base + 1.5, 6)
   })
+
+  it('draws a subordinate current through its reduced NOAA maxima', () => {
+    const station = loadCatalogue().find((candidate) => candidate.id === 'noaa/ACT0091')
+    if (station?.source !== 'bundled') throw new Error('missing ACT0091')
+    const levels = predictSeries(station, new Date('2026-06-01T00:00:00Z'), 24, 60)
+      .map((sample) => sample.level)
+    expect(levels.length).toBeGreaterThan(100)
+    expect(Math.max(...levels)).toBeCloseTo(2.55, 0)
+    expect(Math.min(...levels)).toBeCloseTo(-2.97, 0)
+  })
 })
 
 describe('findEvents', () => {
@@ -66,6 +77,74 @@ describe('findEvents', () => {
   it('returns events in time order', () => {
     const times = events.map((e) => e.time.getTime())
     expect(times).toEqual([...times].sort((a, b) => a - b))
+  })
+
+  it('matches NOAA maxima for a subordinate current', () => {
+    const station = loadCatalogue().find((candidate) => candidate.id === 'noaa/ACT0091')
+    if (station?.source !== 'bundled') throw new Error('missing ACT0091')
+    const predicted = findEvents(station, new Date('2026-06-01T00:00:00Z'), 24)
+    for (const official of [
+      { kind: 'flood' as const, time: new Date('2026-06-01T02:16:00Z'), level: 2.55 },
+      { kind: 'ebb' as const, time: new Date('2026-06-01T08:21:00Z'), level: -2.97 },
+    ]) {
+      const nearest = predicted.filter((event) => event.kind === official.kind)
+        .sort((a, b) => Math.abs(a.time.getTime() - official.time.getTime()) - Math.abs(b.time.getTime() - official.time.getTime()))[0]
+      expect(Math.abs(nearest.time.getTime() - official.time.getTime()) / 60_000).toBeLessThan(30)
+      expect(Math.abs(nearest.level - official.level)).toBeLessThan(0.4)
+    }
+  })
+
+  it('stays within NOAA tolerances across the validated subordinate batch', () => {
+    const catalogue = new Map(loadCatalogue().map((station) => [station.id, station]))
+    const batch = [
+      ['PCT0236', ['2026-06-01T04:42:00Z', 0.51], ['2026-06-01T10:24:00Z', -1.78]],
+      ['ACT0101', ['2026-06-01T02:27:00Z', 2.97], ['2026-06-01T09:01:00Z', -3.22]],
+      ['ACT0221', ['2026-06-01T01:47:00Z', 0.36], ['2026-06-01T08:01:00Z', -0.33]],
+      ['ACT0116', ['2026-06-01T04:41:00Z', -0.98], ['2026-06-01T11:04:00Z', 0.88]],
+      ['ACT0121', ['2026-06-01T06:36:00Z', -1.19], ['2026-06-01T12:29:00Z', 0.88]],
+      ['ACT0091', ['2026-06-01T02:16:00Z', 2.55], ['2026-06-01T08:21:00Z', -2.97]],
+      ['COI0211', ['2026-06-01T00:23:00Z', 0.98], ['2026-06-01T07:05:00Z', -1.42]],
+      ['COR0301', ['2026-06-01T03:44:00Z', -1.86], ['2026-06-01T11:08:00Z', 1.35]],
+    ] as const
+    for (const [id, ...official] of batch) {
+      const station = catalogue.get(`noaa/${id}`)
+      if (station?.source !== 'bundled') throw new Error(`missing ${id}`)
+      const predicted = findEvents(station, new Date('2026-05-31T23:00:00Z'), 25)
+      for (const [iso, level] of official) {
+        const kind = level > 0 ? 'flood' : 'ebb'
+        const time = new Date(iso)
+        const nearest = predicted.filter((event) => event.kind === kind)
+          .sort((a, b) => Math.abs(a.time.getTime() - time.getTime()) - Math.abs(b.time.getTime() - time.getTime()))[0]
+        expect(Math.abs(nearest.time.getTime() - time.getTime()) / 60_000, id).toBeLessThan(30)
+        expect(Math.abs(nearest.level - level), id).toBeLessThan(0.4)
+      }
+    }
+  })
+})
+
+describe('reduceCurrentEvents', () => {
+  it('uses the offset and ratio for each event and the phase after each slack', () => {
+    const at = (hour: number) => new Date(`2026-06-01T${String(hour).padStart(2, '0')}:00:00Z`)
+    const events = [
+      { kind: 'slack' as const, time: at(1), level: 0 },
+      { kind: 'flood' as const, time: at(2), level: 2 },
+      { kind: 'slack' as const, time: at(3), level: 0 },
+      { kind: 'ebb' as const, time: at(4), level: -3 },
+    ]
+
+    const reduced = reduceCurrentEvents(events, {
+      referenceId: 'noaa/REF@11', referenceConstituents: [], referenceOffset: 0,
+      slackBeforeFloodOffset: 600, slackBeforeEbbOffset: -900,
+      floodTimeOffset: -1800, ebbTimeOffset: 1200,
+      floodSpeedRatio: 1.5, ebbSpeedRatio: 0.8,
+    })
+    expect(reduced).toMatchObject([
+      { kind: 'slack', time: new Date('2026-06-01T01:10:00Z'), level: 0 },
+      { kind: 'flood', time: new Date('2026-06-01T01:30:00Z'), level: 3 },
+      { kind: 'slack', time: new Date('2026-06-01T02:45:00Z'), level: 0 },
+      { kind: 'ebb', time: new Date('2026-06-01T04:20:00Z') },
+    ])
+    expect(reduced[3].level).toBeCloseTo(-2.4)
   })
 })
 

@@ -336,7 +336,7 @@ function Home() {
           </a>{' '}
           and{' '}
           <a href="/currents/" className="underline underline-offset-4">
-            865 current stations
+            2,557 current stations
           </a>
           .
         </p>

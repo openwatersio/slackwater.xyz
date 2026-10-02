@@ -6,7 +6,7 @@ import { stationRoutes, stations, stationsById } from '@slackwater/database'
 import { FEET_PER_METRE } from './format'
 import { kindRoot } from './places'
 import { chsStations, curatedBySlug, REGISTRY_IDS } from './registry'
-import type { BundledStation, Constituent, Kind, Station } from './station'
+import type { BundledStation, Constituent, CurrentReduction, Kind, Station } from './station'
 
 /**
  * A station is buildable when a provider row ships its constituents, which the
@@ -53,18 +53,16 @@ if (!ACCEPTED.size) throw new Error('catalogue: the station database ships no qu
  * Read as truthiness rather than `!== false`, so a release that drops the field
  * withholds the corpus instead of quietly publishing them.
  *
- * And shipping constituents, because `predict.ts` sums constituents and nothing
- * else. A subordinate station carries time offsets and flood/ebb speed ratios
- * reduced against a reference station instead, and built anyway it prerenders
- * to a page with a head and no body — which is what 1,692 of the currents did
- * the first time the corpus grew to include them. That reduction is a
- * prediction the site does not do yet (#80), and four NOAA tide subordinates
- * are in the same state.
+ * Harmonic constituents or, for a NOAA current, a published reduction against
+ * an exact reference row. Four NOAA tide subordinates remain excluded because
+ * their height reduction is a different model.
  */
 function publishable(r: Record<string, unknown>): boolean {
   const license = r.license as { commercial_use?: boolean } | undefined
   if (!license) throw new Error(`catalogue: no licence on ${String(r.id)}`)
-  return Boolean(license.commercial_use) && ((r.harmonic_constituents ?? []) as unknown[]).length > 0
+  const harmonic = ((r.harmonic_constituents ?? []) as unknown[]).length > 0
+  const subordinate = r.kind === 'current' && Boolean((r.current as { offsets?: unknown } | undefined)?.offsets)
+  return Boolean(license.commercial_use) && (harmonic || subordinate)
 }
 
 /** A subdivision code the provider published rather than the gazetteer. */
@@ -215,6 +213,32 @@ function record(id: string): Record<string, unknown> | undefined {
   return db instanceof Map ? db.get(id) : (db as Record<string, never>)[id]
 }
 
+function currentReduction(r: Record<string, unknown>): CurrentReduction | undefined {
+  if (((r.harmonic_constituents ?? []) as unknown[]).length) return undefined
+  const offsets = (r.current as { offsets?: Record<string, unknown> } | undefined)?.offsets
+  if (!offsets) return undefined
+  const referenceId = String(offsets.reference ?? '')
+  const reference = record(referenceId)
+  const referenceConstituents = (reference?.harmonic_constituents ?? []) as Constituent[]
+  if (!reference || !referenceConstituents.length)
+    throw new Error(`catalogue: invalid current reference ${referenceId} on ${String(r.id)}`)
+  const referenceCurrent = (reference.current ?? {}) as Record<string, number | undefined>
+  const reduction = {
+    referenceId,
+    referenceConstituents,
+    referenceOffset: referenceCurrent.mean_flow ?? 0,
+    slackBeforeFloodOffset: Number(offsets.slack_before_flood) * 60,
+    slackBeforeEbbOffset: Number(offsets.slack_before_ebb) * 60,
+    floodTimeOffset: Number(offsets.flood_time) * 60,
+    ebbTimeOffset: Number(offsets.ebb_time) * 60,
+    floodSpeedRatio: Number(offsets.flood_speed_ratio),
+    ebbSpeedRatio: Number(offsets.ebb_speed_ratio),
+  }
+  if (Object.values(reduction).some((value) => typeof value === 'number' && !Number.isFinite(value)))
+    throw new Error(`catalogue: invalid current offsets on ${String(r.id)}`)
+  return reduction
+}
+
 export function loadCatalogue(): Station[] {
   const out: Station[] = []
 
@@ -238,6 +262,7 @@ export function loadCatalogue(): Station[] {
         const state = subdivision(r)
         const area = adminArea(r)
         const current = (r.current ?? {}) as Record<string, number | undefined>
+        const reduction = kind === 'current' ? currentReduction(r) : undefined
         out.push({
           id, kind, slug, path,
           source: 'bundled',
@@ -267,6 +292,7 @@ export function loadCatalogue(): Station[] {
                 offset: current.mean_flow ?? 0,
                 floodDirection: current.flood_direction,
                 ebbDirection: current.ebb_direction,
+                ...(reduction ? { reduction } : {}),
               }),
         })
       }
@@ -317,7 +343,7 @@ export function loadWithheld(): Map<string, string> {
         return r && publishable(r)
       })
       // A route with nothing publishable on it never had a page to withhold —
-      // a non-commercial row or a subordinate is out on its own terms, and the
+      // a non-commercial row or an unimplemented tide subordinate is out on its own terms, and the
       // curated CHS records have no provider row at all. A route with one
       // accepted row has a page, whatever else sits beside it.
       if (!rows.length || rows.some((id) => ACCEPTED.has(id))) continue

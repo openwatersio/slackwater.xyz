@@ -7,6 +7,19 @@ export interface Constituent {
   phase: number
 }
 
+/** NOAA's published reduction from one harmonic current station. Offsets are seconds. */
+export interface CurrentReduction {
+  referenceId: string
+  referenceConstituents: Constituent[]
+  referenceOffset: number
+  slackBeforeFloodOffset: number
+  slackBeforeEbbOffset: number
+  floodTimeOffset: number
+  ebbTimeOffset: number
+  floodSpeedRatio: number
+  ebbSpeedRatio: number
+}
+
 interface StationIdentity {
   id: string
   kind: Kind
@@ -63,6 +76,8 @@ export interface BundledStation extends StationIdentity {
   /** Currents only: the axis the signed velocity is measured along. */
   floodDirection?: number
   ebbDirection?: number
+  /** Currents only: absent for stations with their own harmonic constituents. */
+  reduction?: CurrentReduction
   /**
    * Tides only, and only where the database labelled the station
    * `quality.seasonal_dominant`: how many times the seasonal band exceeds the

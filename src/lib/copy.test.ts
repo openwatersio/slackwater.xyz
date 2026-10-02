@@ -19,6 +19,18 @@ describe('provenance', () => {
     expect(provenance(bundled)).toBe('computed from harmonic constituents')
   })
 
+  it('names the table reduction for a subordinate station', () => {
+    expect(provenance({
+      ...bundled,
+      reduction: {
+        referenceId: 'noaa/ref', referenceConstituents: [], referenceOffset: 0,
+        slackBeforeFloodOffset: 0, slackBeforeEbbOffset: 0,
+        floodTimeOffset: 0, ebbTimeOffset: 0,
+        floodSpeedRatio: 1, ebbSpeedRatio: 1,
+      },
+    })).toBe("reduced from NOAA's current table")
+  })
+
   it('names CHS as the publisher, which is only true once the curve is drawn', () => {
     // The identity panel may not say this (#44): nine of the 23 gates are
     // never fitted on device and nothing published says which nine, so any

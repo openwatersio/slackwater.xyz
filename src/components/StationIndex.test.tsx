@@ -35,7 +35,7 @@ describe('StationIndex', () => {
 
   it('heads the current index by jurisdiction, as the tide index is', () => {
     // A current row is placed the same way a tide row is, so the worldwide
-    // list reads as states and provinces rather than 865 names in one column.
+    // list reads as states and provinces rather than 2,557 names in one column.
     const html = renderToStaticMarkup(<StationIndex kind="current" rows={rowsFor('current')} />)
     expect(html).toContain('>Washington<')
     expect(html).toContain('>Maine<')
