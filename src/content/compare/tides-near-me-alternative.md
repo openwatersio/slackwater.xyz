@@ -64,7 +64,7 @@ of its curve with a marker at now, so you read the state from the shape before y
 the number. Nothing to tap.
 
 **Offline is the whole design, not a feature.** Tides are deterministic astronomy.
-Slackwater ships the harmonic constituents for more than 2,200 NOAA stations inside the
+Slackwater ships the harmonic constituents for thousands of NOAA stations inside the
 app and computes every prediction on the phone. Canadian stations fit their own model
 from CHS published predictions the first time you open them, then work offline for good.
 The chart downloads shoreline, depths and seamarks and draws them without a connection.
