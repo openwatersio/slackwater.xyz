@@ -10,10 +10,10 @@ const CANADA = new Set(['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'P
 describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
-  it('yields every station the database routes and the quality pass accepts, plus the CHS gates and ports', () => {
-    expect(all.length).toBe(6708)
+  it('yields every predictable station the database routes and the quality pass accepts, plus the CHS gates and ports', () => {
+    expect(all.length).toBe(8400)
     expect(all.filter((s) => s.kind === 'tide').length).toBe(5843)
-    expect(all.filter((s) => s.kind === 'current').length).toBe(865)
+    expect(all.filter((s) => s.kind === 'current').length).toBe(2557)
   })
 
 
@@ -40,14 +40,20 @@ describe('loadCatalogue', () => {
     expect(seattle?.source === 'bundled' && seattle.seasonal).toBeUndefined()
   })
 
-  it('skips the subordinate stations it cannot predict', () => {
-    // NOAA's subordinate stations are a reduction against a reference station,
-    // not constituents, and `predict.ts` sums constituents. Built anyway they
-    // prerender to a head with no body. The database routes 1,692 subordinate
-    // currents and four tides; a count above zero here means blank pages
-    // shipped (#80).
-    const blank = all.filter((s) => s.source === 'bundled' && !s.constituents?.length)
-    expect(blank).toHaveLength(0)
+  it('resolves a subordinate current against the exact reference bin', () => {
+    const eastport = all.find((s) => s.id === 'noaa/ACT0091')
+    expect(eastport?.source).toBe('bundled')
+    if (eastport?.source !== 'bundled') return
+    expect(eastport.constituents).toEqual([])
+    expect(eastport.reduction?.referenceId).toBe('noaa/EPT0003@11')
+    expect(eastport.reduction?.referenceConstituents.length).toBeGreaterThan(20)
+    expect(eastport.reduction?.floodSpeedRatio).toBeCloseTo(1.2)
+  })
+
+  it('keeps a current with its own constituents harmonic', () => {
+    const waldron = all.find((s) => s.id === 'noaa/PUG1716')
+    expect(waldron?.source === 'bundled' && waldron.constituents.length).toBeGreaterThan(20)
+    expect(waldron?.source === 'bundled' && waldron.reduction).toBeUndefined()
   })
 
   it('publishes nothing a provider forbids commercial use of', () => {
@@ -118,7 +124,7 @@ describe('loadCatalogue', () => {
       expect(s.name.trim(), s.id).not.toBe('')
     }
     for (const s of all.filter((s) => s.source === 'bundled')) {
-      expect(s.constituents.length, s.id).toBeGreaterThan(0)
+      expect(s.constituents.length || s.reduction?.referenceConstituents.length, s.id).toBeGreaterThan(0)
     }
   })
 

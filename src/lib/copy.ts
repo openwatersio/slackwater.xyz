@@ -20,6 +20,8 @@ import type { Station } from './station'
 export function provenance(station: Station): string {
   return station.source === 'chs'
     ? 'published by the Canadian Hydrographic Service'
+    : station.reduction
+      ? "reduced from NOAA's current table"
     : 'computed from harmonic constituents'
 }
 

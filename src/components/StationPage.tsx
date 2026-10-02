@@ -328,11 +328,15 @@ function Facts({ station }: { station: Station }) {
     `${Math.abs(station.latitude).toFixed(4)}° ${station.latitude >= 0 ? 'N' : 'S'}, ` +
     `${Math.abs(station.longitude).toFixed(4)}° ${station.longitude >= 0 ? 'E' : 'W'}`
   const where = [station.state, station.country].filter(Boolean).join(', ')
+  const reductionSource = bundled && station.reduction && (() => {
+    const [reference, bin] = station.reduction.referenceId.replace(/^noaa\//, '').split('@')
+    return `NOAA current table reduction from ${reference}${bin ? `, bin ${bin}` : ''}`
+  })()
   const rows: [string, string | undefined][] = [
     ['Position', position],
     ['Time zone', station.timezone],
     ['Datum', datum],
-    ['Source', bundled ? (station.kind === 'tide' ? 'Harmonic constituents from the tide database' : 'NOAA harmonic constituents') : 'Canadian Hydrographic Service'],
+    ['Source', reductionSource || (bundled ? (station.kind === 'tide' ? 'Harmonic constituents from the tide database' : 'NOAA harmonic constituents') : 'Canadian Hydrographic Service')],
     [station.state ? 'Region' : 'Country', where || undefined],
   ]
   return (

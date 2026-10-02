@@ -262,4 +262,22 @@ describe('StationPage for a bundled current station', () => {
     expect(html).toContain('data-marker="actual-now"')
     expect(html).toContain('Slack water and maximums for the next 7 days')
   })
+
+  it('names a subordinate current table reduction in the station facts', () => {
+    const subordinate: BundledStation = {
+      ...station,
+      id: 'noaa/ACT0091',
+      constituents: [],
+      reduction: {
+        referenceId: 'noaa/EPT0003@11',
+        referenceConstituents: station.constituents,
+        referenceOffset: 0,
+        slackBeforeFloodOffset: 0, slackBeforeEbbOffset: 0,
+        floodTimeOffset: 0, ebbTimeOffset: 0,
+        floodSpeedRatio: 1.2, ebbSpeedRatio: 1.2,
+      },
+    }
+    const html = renderToStaticMarkup(<StationPage station={subordinate} now={actualNow} />)
+    expect(html).toContain('NOAA current table reduction from EPT0003, bin 11')
+  })
 })

@@ -18,7 +18,7 @@ const isPlace = (region: string) => !/^\d+$/.test(region)
  * `rows.some((r) => r.region && isPlace(r.region))` was the original rule:
  * group if ANY row has a placeable region. That held while no current
  * station had one at all. Then `boundary-pass` gained a curated region and
- * 23 CHS gates arrived carrying one each — 24 rows out of 865 — and `.some()`
+ * 23 CHS gates arrived carrying one each — 24 rows out of 2,557 — and `.some()`
  * fired on that alone, sorting 24 one-station headings ahead of an
  * `Elsewhere` bucket holding the other 841. A reader looking for a US
  * current station scrolled past two dozen Canadian headings to reach the
