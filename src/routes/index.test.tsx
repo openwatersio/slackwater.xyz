@@ -35,6 +35,10 @@ describe('landing page', () => {
     expect(html).toContain(`href="${TESTFLIGHT}"`)
   })
 
+  it('does not preload the hidden video fallback', () => {
+    expect(html).not.toMatch(/<link[^>]+rel="preload"[^>]+href="\/shots\/tides-night.webp"/)
+  })
+
   it('links the hero to the tides explainer', () => {
     const hero = html.match(/<header[\s\S]*?<\/header>/)?.[0]
 

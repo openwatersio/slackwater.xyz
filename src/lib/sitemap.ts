@@ -1,6 +1,7 @@
 import type { Station } from './station'
 
 const ORIGIN = 'https://slackwater.xyz'
+export const STATIC_PATHS = ['/', '/support/', '/privacy/', '/learn/tides/', '/stations/']
 
 const urlset = (locs: string[]) =>
   '<?xml version="1.0" encoding="UTF-8"?>\n' +
@@ -22,7 +23,7 @@ const stationLoc = (s: Station) => ORIGIN + s.path
 export function buildSitemaps(stations: Station[], extraStatic: string[] = []): Record<string, string> {
   const tides = stations.filter((s) => s.kind === 'tide').map(stationLoc)
   const currents = stations.filter((s) => s.kind === 'current').map(stationLoc)
-  const staticPages = ['/', '/support/', '/privacy/', '/learn/tides/', '/stations/', ...extraStatic].map(
+  const staticPages = [...STATIC_PATHS, ...extraStatic].map(
     (p) => `${ORIGIN}${p}`,
   )
 
