@@ -179,6 +179,7 @@ function Home() {
               />
               <img
                 src="/shots/tides-night.webp"
+                loading="lazy"
                 alt="Friday Harbor in Slackwater at 11:30pm under a starry sky with a full moon."
                 width={780}
                 height={1695}
