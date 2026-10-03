@@ -54,7 +54,7 @@ describe('landing page social card', () => {
     const head = await RootRoute.options.head?.({} as never)
     expect(head?.meta).toContainEqual({
       property: 'og:title',
-      content: 'A free tides & currents app that works offline.',
+      content: 'Free Tide & Current App for iPhone — Slackwater',
     })
   })
 })

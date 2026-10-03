@@ -1,11 +1,11 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import appCss from '../styles.css?url'
 
-export const SITE_TITLE = 'Slackwater — Tides & Currents'
+export const SITE_TITLE = 'Free Tide & Current App for iPhone — Slackwater'
 
 /** Shared by the meta description, og:description and the JSON-LD. */
 export const SITE_DESCRIPTION =
-  'All tide and current predictions, offline on your phone. Works on the water, on the beach, in the anchorage — no bars and nothing to load.'
+  'Free tide charts and tidal currents for iPhone. Bundled stations work offline; Canadian stations need setup, and some passes require a connection.'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -20,7 +20,7 @@ export const Route = createRootRoute({
       // property; every route sets its own og:url next to its canonical.
       { property: 'og:type', content: 'website' },
       { property: 'og:site_name', content: 'Slackwater' },
-      { property: 'og:title', content: 'A free tides & currents app that works offline.' },
+      { property: 'og:title', content: SITE_TITLE },
       { property: 'og:description', content: SITE_DESCRIPTION },
       { property: 'og:image', content: 'https://slackwater.xyz/og.png' },
       { property: 'og:image:width', content: '1200' },
