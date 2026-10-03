@@ -18,12 +18,22 @@ updates:
     # nine lockfiles that each conflict with the last one merged; a single branch
     # resolves once and gets one `pnpm build` to prove it.
     #
-    # Majors stay out of it and arrive one at a time. The first grouped run put
+    # Unrelated majors stay out of it and arrive one at a time. The first grouped run put
     # `station-metadata` 4 -> 5 in with wrangler and marked, and that major is not
     # a bump: it takes the corpus from 3,640 pages to 7,349 and renames station
     # contexts, which is a week of copy and a prerender-cost decision, not a merge.
     # A grouped PR that always fails is a grouped PR nobody reads.
     groups:
+      # Vitest companions have matching peer versions, including across majors.
+      vitest:
+        patterns:
+          - vitest
+          - '@vitest/*'
+      vitest-security:
+        applies-to: security-updates
+        patterns:
+          - vitest
+          - '@vitest/*'
       npm:
         update-types:
           - minor
