@@ -6,7 +6,8 @@ import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 import { loadCatalogue } from './src/lib/catalogue'
 import { kindRoot, placeTree } from './src/lib/places'
-import { buildSitemaps } from './src/lib/sitemap'
+import { buildSitemaps, STATIC_PATHS } from './src/lib/sitemap'
+import { buildRedirects } from './src/lib/redirects'
 import type { Kind } from './src/lib/station'
 
 const catalogue = loadCatalogue()
@@ -36,6 +37,7 @@ const comparePages = COMPARE_PATHS.map((path) => ({ path }))
 for (const [name, xml] of Object.entries(buildSitemaps(catalogue, [...COMPARE_PATHS, ...PLACE_PATHS]))) {
   writeFileSync(`./public/${name}`, xml)
 }
+writeFileSync('./public/_redirects', buildRedirects(catalogue.map((s) => s.path), [...STATIC_PATHS, ...COMPARE_PATHS, ...PLACE_PATHS]))
 
 // The prerender crawl runs against `wrangler dev`, and wrangler dev watches its
 // assets directory — which is .output/public, the directory the crawl is writing
