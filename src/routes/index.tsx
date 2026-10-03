@@ -133,12 +133,16 @@ function Home() {
       <header className="mt-12 grid gap-12 sm:mt-16 lg:grid-cols-[1fr_360px] lg:items-center lg:gap-20">
         <div>
           <h1 className="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight text-sw-paper sm:text-6xl">
-            The tide and currents app that works without signal{' '}
+            The free tide and currents app that works without signal{' '}
             <NoSignal className="inline-block size-[0.7em] align-[-0.05em] text-sw-steel" />
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-snug text-sw-foam sm:text-xl">
-            Tides worldwide, currents across the US and Canada. Every station, every date,
-            already on your phone.
+            Tides worldwide, currents across the US and Canada. Bundled stations are ready
+            offline for any date.
+          </p>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-sw-steel">
+            Canadian stations need an initial download. Some passes require a connection;
+            the app tells you which.
           </p>
           <div className="mt-8">
             <Cta />
@@ -187,10 +191,10 @@ function Home() {
       <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
         <Heading>Checked against the agencies&rsquo; own predictions.</Heading>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-sw-foam">
-          Harmonic constituents published by NOAA and the Canadian Hydrographic Service, summed
-          on your phone rather than fetched from anyone&rsquo;s server. The engine is validated
-          against those agencies&rsquo; published predictions, and the largest deviations are
-          written down.
+          NOAA predictions use published harmonic constituents. Most Canadian stations build a
+          model on your phone from Canadian Hydrographic Service predictions after a download;
+          some passes fetch predictions when online. The engine is checked against the agencies&rsquo;
+          published predictions.
         </p>
         <dl className="mt-6 grid max-w-2xl gap-6 sm:grid-cols-2">
           <div>
@@ -289,7 +293,7 @@ function Home() {
       </Feature>
 
       <Feature
-        title={<>No spinner. No &ldquo;no internet connection.&rdquo;</>}
+        title={<>Bundled predictions, without a connection.</>}
         shot={
           <Shot
             src="/shots/map.webp"
@@ -300,9 +304,9 @@ function Home() {
         }
       >
         <p>
-          Nothing is cached and nothing expires. The predictions are made on the phone from the
-          same published data the printed tables use, so every station and every date is there
-          with no connection.
+          Bundled stations predict on your phone for any date, without a download or an expiring
+          cache. Canadian stations need an initial download to build their offline model.
+          Online-only passes need a connection and are labeled in the app.
         </p>
         <p>Thousands of stations ship inside the app.</p>
       </Feature>
@@ -310,9 +314,16 @@ function Home() {
       <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
         <Heading>Free, open source, no account, no ads.</Heading>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-sw-foam">
-          The core is free and stays free: every station, every date, the curves, the slack
-          times, offline. Nothing tracked, nothing sold. It does not need a server, so it does
-          not need to earn one.
+          Tide charts, current predictions and home screen widgets are free. Choose any date
+          without a subscription. Bundled stations work offline; Canadian stations need setup,
+          and some passes require a connection. Your location stays on your phone.
+        </p>
+        <p className="mt-4 max-w-2xl text-sw-foam">
+          Comparing tide apps? See how Slackwater&rsquo;s free charts and widgets compare with{' '}
+          <a href="/alternatives/tide-guide/" className="underline underline-offset-4 hover:text-sw-paper">
+            Tide Guide&rsquo;s Pro features
+          </a>
+          .
         </p>
         <p className="mt-3 max-w-2xl text-sw-steel">
           The app is{' '}

@@ -21,8 +21,7 @@ timing at a station. It does not give you the slack window or the speed at max.
 ## Slackwater, in short
 
 Free, no ads, no account, no tracking. Tides worldwide and currents across the US and
-Canada, computed on your phone from NOAA and Canadian Hydrographic Service data. It works
-the same in the anchorage as at the dock. For a current station it gives the next slack,
+Canada. Bundled stations predict on your phone without a connection. Canadian stations need an initial download; some passes require a connection and are labeled in the app. For a current station it gives the next slack,
 how long it lasts, and max flood and ebb with direction.
 
 It is a public beta on TestFlight and needs iOS 26. It has no Watch app and no alerts.
@@ -31,14 +30,14 @@ It is a public beta on TestFlight and needs iOS 26. It has no Watch app and no a
 
 | | Tides Near Me | Slackwater |
 |---|---|---|
-| Price | Free with ads; $14.99 to remove | Free core; optional paid lock screen add-on |
-| Offline | Cache only | Predictions and chart computed on device |
+| Price | Free with ads; $14.99 to remove | Free; no subscription |
+| Offline | Cache only | Bundled predictions offline; Canadian setup, some passes online-only |
 | Tides | Worldwide | Worldwide |
 | Currents | Direction and timing | Slack time and duration, max speed and set, scrubbable curve |
 | Canada | Yes | Yes, CHS |
 | Data named per station | No | Yes, with datum |
 | Home widgets | Premium | Free |
-| Lock screen widgets | Premium | Paid add-on |
+| Lock screen widgets | Premium | Not available |
 | Apple Watch | Yes, subscribers only | No |
 | Account required | No | No |
 | Tracking | Ads SDK | None |
@@ -63,11 +62,7 @@ thing Slackwater's list had to match. Stations sort nearest first. Each card dra
 of its curve with a marker at now, so you read the state from the shape before you read
 the number. Nothing to tap.
 
-**Offline is the whole design, not a feature.** Tides are deterministic astronomy.
-Slackwater ships the harmonic constituents for thousands of NOAA stations inside the
-app and computes every prediction on the phone. Canadian stations fit their own model
-from CHS published predictions the first time you open them, then work offline for good.
-The chart downloads shoreline, depths and seamarks and draws them without a connection.
+**Offline predictions.** Slackwater bundles harmonic data for thousands of stations and computes their predictions on the phone for any date. Most Canadian stations build an offline model from CHS predictions after an initial download. Some Canadian passes remain online-only and are labeled in the app. Map areas you have already viewed are cached for use without a connection.
 
 **Currents with an answer.** Deception Pass ebbing at 3.1 kn, next slack in 5h 26m, and it
 lasts 19 minutes. That last number decides whether you go, and it is the one most tide
