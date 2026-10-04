@@ -139,6 +139,10 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
           onNow={returnToNow}
         />
       )}
+      <p className="mt-6 text-sm leading-relaxed text-sw-steel">
+        Predictions are not observations — conditions vary with weather and river flow.{' '}
+        <strong className="font-semibold text-sw-foam">Not for navigation.</strong>
+      </p>
       <Cta station={station} />
       {station.source === 'bundled' && <WeekTable station={station} at={at} />}
       <Facts station={station} />
@@ -283,6 +287,11 @@ function WeekTable({ station, at }: { station: BundledStation; at: Date }) {
         {tide ? 'Tide times for the next 7 days' : 'Slack water and maximums for the next 7 days'}
       </h2>
       <table className="mt-4 w-full text-sm">
+        <caption className="pb-3 text-left leading-relaxed text-sw-steel">
+          {dayLabel(week[0], tz)} through {dayLabel(week[6], tz)}.
+          {' '}All times are local to {station.name} ({tz}).
+          {tide && station.chartDatum && <> Heights are in feet above {station.chartDatum}.</>}
+        </caption>
         <thead className="text-left text-xs uppercase tracking-wider text-sw-leaf">
           <tr>
             <th className="py-2 pr-3 font-medium">Day</th>
@@ -298,9 +307,9 @@ function WeekTable({ station, at }: { station: BundledStation; at: Date }) {
             lastDay = day
             return (
               <tr key={t.time.getTime()} className={first ? 'border-t border-sw-steel/20' : ''}>
-                <td className="py-1.5 pr-3 text-sw-steel">{first ? day : ''}</td>
+                <td className="py-1.5 pr-3 text-sw-steel">{day}</td>
                 <td className="py-1.5 pr-3">{t.what}</td>
-                <td className="py-1.5 pr-3">{t.hhmm}</td>
+                <td className="py-1.5 pr-3"><time dateTime={t.time.toISOString()}>{t.hhmm}</time></td>
                 <td className="py-1.5">{t.value ?? ''}</td>
               </tr>
             )
@@ -339,6 +348,11 @@ function Facts({ station }: { station: Station }) {
     ['Source', reductionSource || (bundled ? (station.kind === 'tide' ? 'Harmonic constituents from the tide database' : 'NOAA harmonic constituents') : 'Canadian Hydrographic Service')],
     [station.state ? 'Region' : 'Country', where || undefined],
   ]
+  const sourceUrl = bundled
+    ? station.kind === 'tide'
+      ? 'https://github.com/openwatersio/slackwater-database#sources'
+      : 'https://tidesandcurrents.noaa.gov/noaacurrents/'
+    : 'https://tides.gc.ca/en/tides-currents-and-water-levels'
   return (
     <section className="mt-14">
       <h2 className="text-xl font-semibold text-sw-paper">Station facts</h2>
@@ -346,12 +360,18 @@ function Facts({ station }: { station: Station }) {
         {rows.map(([k, v]) => v && (
           <div key={k} className="contents">
             <dt className="text-sw-steel">{k}</dt>
-            <dd className="text-sw-foam">{v}</dd>
+            <dd className="text-sw-foam">
+              {k === 'Source' ? <a href={sourceUrl} className="underline underline-offset-4 hover:text-sw-paper">{v}</a> : v}
+            </dd>
           </div>
         ))}
       </dl>
       {datum && <p className="mt-3 text-sm text-sw-steel/70">{DATUM_NOTE}</p>}
       {aside && <p className="mt-3 text-sm text-sw-steel/70">{aside.text}</p>}
+      <p className="mt-3 text-sm text-sw-steel">
+        <a href="/accuracy/" className="underline underline-offset-4 hover:text-sw-paper">How we check predictions</a>
+        {' '}— dated samples and their limits.
+      </p>
     </section>
   )
 }
