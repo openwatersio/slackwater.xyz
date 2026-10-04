@@ -12,3 +12,10 @@ it('publishes the support page and its Markdown source', () => {
   expect(markdown).toContain('# Support')
   expect(markdown).toContain('slackwater@openwaters.io')
 })
+
+it('publishes the accuracy receipt from its maintained Markdown source', () => {
+  const page = readFileSync('.output/public/accuracy/index.html', 'utf8')
+  const markdown = readFileSync('.output/public/accuracy.md', 'utf8')
+  expect(page).toContain('href="/accuracy.md"')
+  expect(markdown).toBe(readFileSync('src/content/accuracy.md', 'utf8'))
+})

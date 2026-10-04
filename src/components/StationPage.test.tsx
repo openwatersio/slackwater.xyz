@@ -224,6 +224,30 @@ describe('StationPage for a bundled tide station', () => {
     for (let d = 11; d <= 17; d++) expect(html).toContain(`${d} Sep 2026`)
   })
 
+  it.each([
+    ['2026-12-31T20:00:00Z', 'Thu 31 Dec 2026', 'Wed 6 Jan 2027'],
+    ['2026-11-01T20:00:00Z', 'Sun 1 Nov 2026', 'Sat 7 Nov 2026'],
+  ])('keeps each extracted event dated across %s', (instant, firstDay, lastDay) => {
+    const page = renderToStaticMarkup(<StationPage station={seattle} now={new Date(instant)} />)
+    const table = page.match(/<table[\s\S]*?<\/table>/)![0]
+    const caption = table.match(/<caption[^>]*>([\s\S]*?)<\/caption>/)?.[1]
+    expect(caption).toContain(firstDay)
+    expect(caption).toContain(lastDay)
+    expect(caption).toContain('America/Los_Angeles')
+    const rows = [...table.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)].slice(1)
+    expect(rows.length).toBeGreaterThan(0)
+    for (const [, row] of rows) {
+      const date = row.match(/<td[^>]*>(.*?)<\/td>/)![1]
+      expect(date).toMatch(/\w{3} \d{1,2} \w{3} 202[67]/)
+      const time = row.match(/<time dateTime="([^"]+)"[^>]*>(\d{2}:\d{2})<\/time>/)
+      expect(time).not.toBeNull()
+      const local = new Date(time![1]).toLocaleTimeString('en-CA', {
+        timeZone: 'America/Los_Angeles', hour: '2-digit', minute: '2-digit', hour12: false,
+      })
+      expect(time![2]).toBe(local)
+    }
+  })
+
   it('states the datum under Station facts, not under the curve', () => {
     expect(html).toContain('Station facts')
     expect(html).toContain('MLLW datum')
