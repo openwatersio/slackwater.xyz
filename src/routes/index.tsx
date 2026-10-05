@@ -5,6 +5,22 @@ import { SITE_DESCRIPTION } from '#/routes/__root'
 
 const CANONICAL = 'https://slackwater.xyz/'
 const SOURCE = 'https://github.com/openwatersio/slackwater-ios'
+const LANGUAGES = [
+  ['en', '🇬🇧', 'English'],
+  ['fr-CA', '🇨🇦', 'Français'],
+  ['es-ES', '🇪🇸', 'Español'],
+  ['ja', '🇯🇵', '日本語'],
+  ['de', '🇩🇪', 'Deutsch'],
+  ['pt-BR', '🇧🇷', 'Português (Brasil)'],
+  ['nl', '🇳🇱', 'Nederlands'],
+  ['nb', '🇳🇴', 'Norsk bokmål'],
+  ['sv', '🇸🇪', 'Svenska'],
+  ['it', '🇮🇹', 'Italiano'],
+  ['ko', '🇰🇷', '한국어'],
+  ['da', '🇩🇰', 'Dansk'],
+  ['pt-PT', '🇵🇹', 'Português (Portugal)'],
+  ['fi', '🇫🇮', 'Suomi'],
+] as const
 
 export const Route = createFileRoute('/')({
   head: () => ({
@@ -148,6 +164,21 @@ function Home() {
             <Cta />
           </div>
           <p className="mt-4 text-sm text-sw-steel">Free. Open source. No account, no ads.</p>
+          <div className="mt-5 max-w-xl text-sm">
+            <p className="text-sw-steel">Available in {LANGUAGES.length} languages</p>
+            <ul
+              aria-label="Supported iOS app languages"
+              role="list"
+              className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-sw-foam"
+            >
+              {LANGUAGES.map(([locale, flag, name]) => (
+                <li key={locale} className="inline-flex items-center gap-1.5">
+                  <span aria-hidden="true">{flag}</span>
+                  <span lang={locale}>{name}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
           <a
             href="/learn/tides/"
             className="mt-5 inline-block font-medium text-sw-foam underline underline-offset-4 transition hover:text-sw-paper"
