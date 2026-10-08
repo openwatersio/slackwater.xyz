@@ -70,6 +70,7 @@ Look at any visible change before reporting it complete.
 - Do not add `devtools()` from `@tanstack/devtools-vite`; it breaks `vite dev` with an unavailable SSR environment and a transport timeout.
 - `slackwater-ios` is the source of truth for ported visuals. Match the Swift palette, geometry, and crop after reading the complete draw function and its `Theme.swift` constants. Resolve genuine inconsistencies in the app first.
 - The app's sky projection depends on both crops: fit each body's rise-to-set span to the width and fit the app's 0–62° altitude range to the band height at the call site. Keep `skyPoint` aligned with `Slackwater/Theme.swift`; the 300° projection in `openwaters.io` has a different purpose.
+- `@slackwater/database` moves with slackwater-ios: bump both to the same release in the same pass, so the site and the app name, place, and credit every station alike. slackwater-database's [CONTRIBUTING](https://github.com/openwatersio/slackwater-database/blob/main/CONTRIBUTING.md#releases) owns the rule.
 - pnpm 11 blocks very recent releases. `pnpm add` records required exceptions in `pnpm-workspace.yaml`; commit those with a fresh `@openwaters/*` dependency bump. Dependabot uses a three-day cooldown for the same reason.
 
 ## Branch and PR
