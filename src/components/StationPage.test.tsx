@@ -248,6 +248,16 @@ describe('StationPage for a bundled tide station', () => {
     }
   })
 
+  it('credits the publisher and shows its licence notice', () => {
+    const andenes = renderToStaticMarkup(<StationPage station={{
+      ...seattle, id: 'kartverket/ANX', name: 'Andenes', chartDatum: 'CD',
+      publisher: 'Kartverket / Norwegian Mapping Authority, Hydrographic Service',
+      attribution: 'Slackwater database. Source: © Kartverket. Licensed CC BY 4.0.',
+    }} now={now} />)
+    expect(andenes).toContain('Harmonic constituents from Kartverket / Norwegian Mapping Authority, Hydrographic Service')
+    expect(andenes).toContain('Source: © Kartverket. Licensed CC BY 4.0.')
+  })
+
   it('states the datum under Station facts, not under the curve', () => {
     expect(html).toContain('Station facts')
     expect(html).toContain('MLLW datum')

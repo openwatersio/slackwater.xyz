@@ -345,7 +345,7 @@ function Facts({ station }: { station: Station }) {
     ['Position', position],
     ['Time zone', station.timezone],
     ['Datum', datum],
-    ['Source', reductionSource || (bundled ? (station.kind === 'tide' ? 'Harmonic constituents from the tide database' : 'NOAA harmonic constituents') : 'Canadian Hydrographic Service')],
+    ['Source', reductionSource || (bundled ? (station.kind === 'tide' ? `Harmonic constituents from ${station.publisher || 'the tide database'}` : 'NOAA harmonic constituents') : 'Canadian Hydrographic Service')],
     [station.state ? 'Region' : 'Country', where || undefined],
   ]
   const sourceUrl = bundled
@@ -368,6 +368,7 @@ function Facts({ station }: { station: Station }) {
       </dl>
       {datum && <p className="mt-3 text-sm text-sw-steel/70">{DATUM_NOTE}</p>}
       {aside && <p className="mt-3 text-sm text-sw-steel/70">{aside.text}</p>}
+      {bundled && station.attribution && <p className="mt-3 break-words text-sm text-sw-steel/70">{station.attribution}</p>}
       <p className="mt-3 text-sm text-sw-steel">
         <a href="/accuracy/" className="underline underline-offset-4 hover:text-sw-paper">How we check predictions</a>
         {' '}— dated samples and their limits.

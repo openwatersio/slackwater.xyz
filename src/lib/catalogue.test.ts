@@ -67,6 +67,17 @@ describe('loadCatalogue', () => {
     }
   })
 
+  it('credits every tide page to its publisher, with the notice its licence asks for', () => {
+    const tides = all.filter((s) => s.source === 'bundled' && s.kind === 'tide')
+    for (const s of tides) {
+      if (s.source !== 'bundled') continue
+      expect(s.publisher, s.id).toBe(stationsById.get(s.id)?.source?.name)
+      expect(s.attribution, s.id).toBe(stationsById.get(s.id)?.attribution)
+    }
+    const andenes = tides.find((s) => s.id === 'kartverket/ANX')
+    expect(andenes?.source === 'bundled' && andenes.attribution).toContain('Kartverket')
+  })
+
   it('withholds every route the quality pass rejects, and keeps its address answerable', () => {
     // 1,851 commercially licensed routes fail `qualityFilter`, 357 of them
     // pages the site published before it read the whole corpus. A withheld
