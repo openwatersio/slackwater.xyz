@@ -283,6 +283,8 @@ export function loadCatalogue(): Station[] {
             ? {
                 constituents: constituents.map((c) => ({ ...c, amplitude: c.amplitude * FEET_PER_METRE })),
                 chartDatum: String(r.chart_datum ?? ''),
+                publisher: String((r.source as { name?: string } | undefined)?.name ?? ''),
+                attribution: String(r.attribution ?? ''),
                 offset: datumShift(r),
                 ...(seasonal !== undefined ? { seasonal } : {}),
               }

@@ -73,6 +73,13 @@ export interface BundledStation extends StationIdentity {
    * a height with no datum on it is a number, not a depth.
    */
   chartDatum?: string
+  /**
+   * Tides only: who published the constants, and the notice their licence asks
+   * a page to show, both verbatim from the database. CC BY sources such as
+   * TICON-4 and Kartverket are owed the notice on every page that uses them.
+   */
+  publisher?: string
+  attribution?: string
   /** Currents only: the axis the signed velocity is measured along. */
   floodDirection?: number
   ebbDirection?: number
