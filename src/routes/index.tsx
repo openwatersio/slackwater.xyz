@@ -5,6 +5,22 @@ import { SITE_DESCRIPTION } from '#/routes/__root'
 
 const CANONICAL = 'https://slackwater.xyz/'
 const SOURCE = 'https://github.com/openwatersio/slackwater-ios'
+const LANGUAGES = [
+  ['en', '🇬🇧', 'English'],
+  ['fr-CA', '🇨🇦', 'Français'],
+  ['es-ES', '🇪🇸', 'Español'],
+  ['ja', '🇯🇵', '日本語'],
+  ['de', '🇩🇪', 'Deutsch'],
+  ['pt-BR', '🇧🇷', 'Português (Brasil)'],
+  ['nl', '🇳🇱', 'Nederlands'],
+  ['nb', '🇳🇴', 'Norsk bokmål'],
+  ['sv', '🇸🇪', 'Svenska'],
+  ['it', '🇮🇹', 'Italiano'],
+  ['ko', '🇰🇷', '한국어'],
+  ['da', '🇩🇰', 'Dansk'],
+  ['pt-PT', '🇵🇹', 'Português (Portugal)'],
+  ['fi', '🇫🇮', 'Suomi'],
+] as const
 
 export const Route = createFileRoute('/')({
   head: () => ({
@@ -188,6 +204,22 @@ function Home() {
           </figure>
         </div>
       </header>
+
+      <div className="mx-auto mt-8 max-w-2xl text-center text-sm">
+        <p className="text-sw-steel">Available in {LANGUAGES.length} languages</p>
+        <ul
+          aria-label="Supported iOS app languages"
+          role="list"
+          className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sw-foam"
+        >
+          {LANGUAGES.map(([locale, flag, name]) => (
+            <li key={locale} className="inline-flex items-center gap-1.5">
+              <span aria-hidden="true">{flag}</span>
+              <span lang={locale}>{name}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
         <Heading>Checked against the agencies&rsquo; own predictions.</Heading>
