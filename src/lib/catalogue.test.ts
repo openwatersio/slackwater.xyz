@@ -11,19 +11,19 @@ describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
   it('yields every predictable station the database routes and the quality pass accepts, plus the CHS gates and ports', () => {
-    expect(all.length).toBe(8400)
-    expect(all.filter((s) => s.kind === 'tide').length).toBe(5843)
+    expect(all.length).toBe(8450)
+    expect(all.filter((s) => s.kind === 'tide').length).toBe(5893)
     expect(all.filter((s) => s.kind === 'current').length).toBe(2557)
   })
 
 
   it('carries the seasonal ratio for the stations the database labels, and nothing else', () => {
     // The verdict is the database's (`quality.seasonal_dominant`) and the number
-    // is the site's, used only to pick how loudly a page speaks. 491 of the
-    // 5,843 tide pages carry it and no current page does — currents are
+    // is the site's, used only to pick how loudly a page speaks. 538 of the
+    // 5,893 tide pages carry it and no current page does — currents are
     // measured in knots against no datum, so the question does not arise.
     const seasonal = all.filter((s) => s.source === 'bundled' && s.seasonal !== undefined)
-    expect(seasonal).toHaveLength(491)
+    expect(seasonal).toHaveLength(538)
     expect(seasonal.every((s) => s.kind === 'tide')).toBe(true)
 
     // Cobourg on Lake Ontario, the extreme: SA 0.289 m against 0.002 m of M2.
@@ -79,13 +79,13 @@ describe('loadCatalogue', () => {
   })
 
   it('withholds every route the quality pass rejects, and keeps its address answerable', () => {
-    // 1,851 commercially licensed routes fail `qualityFilter`, 357 of them
+    // 1,796 commercially licensed routes fail `qualityFilter`, some of them
     // pages the site published before it read the whole corpus. A withheld
     // station must not be in the catalogue and must not 404 either: both its
     // canonical path and the flat `/tides/<slug>/` the share sheet mints are
     // keys here, so `resolvePath` can answer with a 301.
     const withheld = loadWithheld()
-    expect(withheld.size).toBe(1851 * 2)
+    expect(withheld.size).toBe(1796 * 2)
     const published = new Set(all.map((s) => s.path))
     for (const [address, canonical] of withheld) {
       expect(published.has(address), address).toBe(false)
@@ -190,14 +190,12 @@ describe('loadCatalogue', () => {
   })
 
   it('names the water a river station is measured along', () => {
-    // NOAA names these by distance up a river and files the town as the
-    // qualifier; the database corrects the qualifier to the river, and a
-    // distance with no water under it says nothing. The distance itself
-    // stays in NOAA's own lowercase casing, a qualifier convention this site
-    // does not correct.
+    // NOAA names these by distance up a river; the database keeps the river on
+    // the name, because a distance with no water under it says nothing. The
+    // distance itself stays in NOAA's own lowercase casing, a qualifier
+    // convention this site does not correct.
     const madHorseCreek = all.find((s) => s.id === 'noaa/8537535')
-    expect(madHorseCreek?.name).toBe('1 nm above entrance')
-    expect(madHorseCreek?.region).toBe('Mad Horse Creek')
+    expect(madHorseCreek?.name).toBe('Mad Horse Creek, 1 nm above entrance')
   })
 
   it('gives a registry station its curated name, not the provider row name', () => {
