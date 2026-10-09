@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { stationsById } from '@slackwater/database'
-import { loadCatalogue, loadWithheld } from './catalogue'
+import { loadCatalogue, loadMoved, loadWithheld } from './catalogue'
 import { predictSeries } from './predict'
 import { nearby } from './nearby'
 
@@ -187,6 +187,19 @@ describe('loadCatalogue', () => {
     const turkey = all.find((s) => s.id === 'noaa/8518962')
     expect(turkey?.name).toBe('Turkey Point')
     expect(turkey?.region).toBe('Hudson River')
+  })
+
+  it("answers a station's former addresses with its page now", () => {
+    // A corrected subdivision and a relay folded into its gauge's page both
+    // move a published page; the database records the old address so it does
+    // not 404.
+    const moved = loadMoved()
+    expect(moved.get('/tides/us/sc/abercorn-creek-at-mouth-near-savannah-ga/'))
+      .toBe('/tides/us/ga/abercorn-creek-at-mouth-near-savannah-ga/')
+    expect(moved.get('/tides/us/nc/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck-pier/')
+    expect(moved.get('/tides/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck-pier/')
+    const published = new Set(all.map((s) => s.path))
+    expect([...moved.keys()].filter((address) => published.has(address))).toEqual([])
   })
 
   it('names the water a river station is measured along', () => {
