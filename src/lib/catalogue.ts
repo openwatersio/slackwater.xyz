@@ -354,3 +354,20 @@ export function loadWithheld(): Map<string, string> {
     }
   return out
 }
+
+/**
+ * Every address a route answered to before the database moved it — a
+ * corrected subdivision, or a relay folded into its gauge's page — mapped to
+ * the route's path now. The database records them as `formerPaths`, and the
+ * flat `/tides/<slug>/` the share sheet minted moves with each one.
+ */
+export function loadMoved(): Map<string, string> {
+  const out = new Map<string, string>()
+  for (const kind of ['tide', 'current'] as Kind[])
+    for (const { path, formerPaths } of stationRoutes(kind))
+      for (const former of formerPaths) {
+        out.set(former, path)
+        out.set(`${kindRoot(kind)}${former.split('/').at(-2)}/`, path)
+      }
+  return out
+}

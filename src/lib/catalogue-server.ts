@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
-import { loadCatalogue, loadWithheld } from './catalogue'
+import { loadCatalogue, loadMoved, loadWithheld } from './catalogue'
 import { bearing, distanceNm, neighbourMap } from './nearby'
 import { kindRoot, nearestPlace, parentPath, placeTree, type Place } from './places'
 import type { Kind, Station } from './station'
@@ -29,6 +29,12 @@ const index = (() => {
     }
     return cache
   }
+})()
+
+/** Where a route's former addresses point now, built once — see `loadMoved`. */
+const moved = (() => {
+  let cache: Map<string, string> | undefined
+  return () => (cache ??= loadMoved())
 })()
 
 /** The addresses of the routes the quality pass rejects, built once — see `loadWithheld`. */
@@ -237,6 +243,8 @@ export const resolvePath = createServerFn({ method: 'GET' })
     const slug = path.slice(kindRoot(kind).length, -1)
     const flat = !slug.includes('/') && index().bySlug.get(`${kind}/${slug}`)
     if (flat) return { page: 'redirect', path: flat.path }
+    const now = moved().get(path)
+    if (now) return { page: 'redirect', path: now }
     // A route the quality pass rejects has no page, and 357 of them had one
     // here, so the address answers with the nearest page above it rather than
     // a 404.

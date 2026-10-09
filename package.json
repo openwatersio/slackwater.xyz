@@ -17,7 +17,7 @@
     "@cf-wasm/resvg": "0.4.0",
     "@neaps/tide-predictor": "^0.11.0",
     "@openwaters/almanac": "0.6.0",
-    "@slackwater/database": "1.0.0-beta.20260930",
+    "@slackwater/database": "1.0.0-beta.20261009",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-router": "^1.170.40",
     "@tanstack/react-start": "^1.168.59",

@@ -8,7 +8,7 @@ currents across the US and Canada.
 ## What this is
 
 The marketing site — and, now, a page per station. It explains the app, points people at the
-beta, and prerenders a page under its country and subdivision (`/tides/us/pa/bridesburg/`, `/currents/ca/bc/dodd-narrows/`) for 8,400 stations — a
+beta, and prerenders a page under its country and subdivision (`/tides/us/pa/bridesburg/`, `/currents/ca/bc/dodd-narrows/`) for 8,450 stations — a
 real computed curve for 8,367 of them, and identity only for 33 Canadian ones: the
 share-landing surface for anyone sent a link, and indexable content the site previously had
 none of.
@@ -20,11 +20,11 @@ argument is "correct, and it works with no signal" demonstrates that on every st
 asserting it.
 
 The corpus is every station the station database routes, less two groups it withholds: 674
-rows whose GESLA provider forbids commercial use and the 1,851 the database's own quality pass
+rows whose GESLA provider forbids commercial use and the 1,796 the database's own quality pass
 rejects. A rejected station's address still answers — a 301 to the nearest place page above it,
-because 357 of them were pages here before the site read the whole corpus.
+because some of them were pages here before the site read the whole corpus.
 
-8,400 pages: 8,367 get a computed curve, and 33 Canadian (CHS)
+8,450 pages: 8,417 get a computed curve, and 33 Canadian (CHS)
 stations — 23 current gates and 10 tide ports — get identity only. DFO's terms don't allow
 re-serving predictions, so nothing about those 33 is prerendered; the reader's own browser
 fetches DFO's published numbers and draws them. This work builds 10 of the 1,058 Canadian
