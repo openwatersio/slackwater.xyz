@@ -19,3 +19,22 @@ it('publishes the accuracy receipt from its maintained Markdown source', () => {
   expect(page).toContain('href="/accuracy.md"')
   expect(markdown).toBe(readFileSync('src/content/accuracy.md', 'utf8'))
 })
+
+it('links the OpenCPN download to the database release the site is built against', async () => {
+  const { version } = await import('@slackwater/database/package.json')
+  const date = version.slice(-8)
+  const page = readFileSync('.output/public/opencpn/index.html', 'utf8')
+  expect(page).toContain(
+    `href="https://github.com/openwatersio/slackwater-database/releases/download/v${version}/slackwater-${date}.tcd"`,
+  )
+})
+
+it('counts the OpenCPN comparison from the database release the site is built against', async () => {
+  // The station counts and quality figures in opencpn.md are written by hand
+  // from one release. This can't check the figures themselves; it fails on a
+  // database bump as a reminder to recount them and update the release refs.
+  const { version } = await import('@slackwater/database/package.json')
+  const markdown = readFileSync('src/content/opencpn.md', 'utf8')
+  expect(markdown).toContain(`slackwater-${version.slice(-8)}.tcd`)
+  expect(markdown).toContain(`slackwater-database/blob/v${version}/quality.json`)
+})

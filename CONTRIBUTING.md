@@ -26,7 +26,7 @@ pnpm deploy     # build, then wrangler deploy with nitro's generated config
 | `src/routes/` | File-based routes. `__root.tsx` is the document shell and `<head>`. |
 | `src/lib/` | Prediction maths — `currents.ts` (harmonic synthesis) and `ramp.ts` (speed → colour). Both tested. |
 | `src/components/` | Presentational React. No data fetching. |
-| `src/content/` | Support and privacy Markdown, rendered as pages and served raw from their `.md` URLs. |
+| `src/content/` | Markdown rendered as pages: support, privacy, accuracy, the comparisons and OpenCPN. Support, privacy and accuracy are also served raw from their `.md` URLs. |
 | `src/styles.css` | Colour tokens. Components reference these, never a literal hex. |
 | `src/data/` | Bundled harmonic constituents for Deception Pass, the fixture `currents.test.ts` checks `predict.ts` against. |
 | `wrangler.jsonc` | Worker *source* config. Not the deployable one — see the gotchas. |
