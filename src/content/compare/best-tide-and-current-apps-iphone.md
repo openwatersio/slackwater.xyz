@@ -50,9 +50,9 @@ Free, no ads, no account. Tides worldwide, currents across the US and Canada. Bu
 how long it lasts, the speed and set at max flood and max ebb, and a curve you can scrub
 through the week. Charts for bundled and downloaded models draw offline too.
 
-![Slackwater: Nakwakto Rapids scrubbed to 5:40am, slack at 0.5 kn, flood 12 minutes later, with the 10.3 kn ebb and 5.2 kn flood marked on the curve and green slack runs drawn on the line](/shots/compare/slackwater-nakwakto-slack.webp)
+![Slackwater beta: Deception Pass scrubbed to 3:46 PM, slack at 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM](/shots/compare/slackwater-deception-slack.webp)
 
-Nakwakto Rapids at slack: 0.5 kn, flood 12 minutes later, with the 10.3 kn ebb and 5.2 kn flood either side. The green runs on the line are the slack windows.
+Deception Pass at slack: 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM. The green parts of the curve show the slack windows. Beta screenshot captured October 8, 2026.
 
 The standalone Apple Watch app and home screen widgets are free. Optional Premium adds alerts, station calendars, lock-screen widgets and Watch complications, with annual and lifetime purchase options. Marine weather is not included. It is in public beta on TestFlight and needs iOS 26.
 
