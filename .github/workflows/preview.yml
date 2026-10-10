@@ -32,38 +32,34 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          version: 11
-
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: pnpm
+          cache: npm
 
-      - run: pnpm install --frozen-lockfile
+      - run: npm ci
 
       # "ERROR [nitro] Preview server exited with code 143" here is normal — see
       # CONTRIBUTING.md "Gotchas". The step's exit code is what matters.
-      - run: pnpm run build
+      - run: npm run build
 
       # After the build, not before it: src/routeTree.gen.ts is gitignored and
       # only exists as a vite build side effect, so tsc on a fresh checkout
       # fails with "Cannot find module './routeTree.gen'" - a missing file,
       # not a type error. The job still fails on a real one.
-      - run: pnpm run typecheck
+      - run: npm run typecheck
 
       # A PR that breaks the test suite went green until this ran only in
       # Deploy, i.e. after merge. After the build for the same generated-file
       # reason as typecheck above: the route tests assert against .output/public.
-      - run: pnpm run test
+      - run: npm test
 
       # Not wrangler-action: this needs the alias URL back out, and grepping the
       # command is less indirection than parsing the action's outputs.
       # Dependabot's runs read Dependabot's secrets, not the repository's, so
       # CLOUDFLARE_API_TOKEN arrives empty and wrangler stops on it — a red
       # check on a green build. The fix is not to copy the token into that
-      # store: a dependency PR is the one place where `pnpm install` runs code
+      # store: a dependency PR is the one place where `npm ci` runs code
       # this repo has not seen, and the cooldown in dependabot.yml exists
       # because we would rather miss a release than install it. A bump is
       # reviewed by its diff and its build; there is nothing to look at.
@@ -79,7 +75,7 @@ jobs:
         # <account>.workers.dev), so the character class has to allow dots.
         shell: bash
         run: |
-          pnpm exec wrangler versions upload \
+          npx wrangler versions upload \
             -c .output/server/wrangler.json \
             --preview-alias "pr-$PR" \
             --message "PR #$PR at ${GITHUB_SHA::7}" 2>&1 | tee upload.log

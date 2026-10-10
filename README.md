@@ -75,8 +75,8 @@ are the app.
 ## Development
 
 ```bash
-pnpm install
-pnpm dev        # http://localhost:5174
+npm install
+npm run dev    # http://localhost:5174
 ```
 
 Layout, testing, deploys, and the handful of gotchas that will otherwise cost you an hour are

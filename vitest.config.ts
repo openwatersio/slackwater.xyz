@@ -8,7 +8,7 @@ import { existsSync } from 'node:fs'
  * Three suites assert against real artifacts rather than mocks: the prerendered
  * pages under `.output/public`, the client bundle, and `src/routeTree.gen.ts`,
  * which is generated and git-ignored. None of it exists on a fresh clone, so
- * `pnpm test` failed there with three errors that read like a broken checkout.
+ * `npm test` failed there with three errors that read like a broken checkout.
  *
  * Skip them when the artifacts are absent so a clean clone gets a meaningful
  * run, and hard-fail instead under CI, where absence means the workflow ran the
@@ -30,11 +30,11 @@ const BUILT = existsSync('.output/public') && existsSync('src/routeTree.gen.ts')
 
 if (!BUILT && process.env.CI) {
   throw new Error(
-    'Build artifacts missing under CI. The workflow must run `pnpm build` before `pnpm test`.',
+    'Build artifacts missing under CI. The workflow must run `npm run build` before `npm test`.',
   )
 }
 if (!BUILT) {
-  console.warn(`[vitest] no build artifacts - skipping ${NEEDS_BUILD.length} suites. \`pnpm build\` to include them.`)
+  console.warn(`[vitest] no build artifacts - skipping ${NEEDS_BUILD.length} suites. \`npm run build\` to include them.`)
 }
 
 export default defineConfig({

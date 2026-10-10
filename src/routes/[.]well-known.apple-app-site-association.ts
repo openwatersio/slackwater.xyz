@@ -53,8 +53,8 @@ const APP_IDS = [
  * - **`application/json`, and no `.json` on the path.** Apple requires both.
  *   The `[.]` in this file's name is the escape for a literal dot, so the
  *   route is `/.well-known/apple-app-site-association` exactly.
- * - **`pnpm dev` will 404 this.** It is a Worker-owned route; check it with
- *   `pnpm build && npx wrangler dev -c .output/server/wrangler.json`.
+ * - **`npm run dev` will 404 this.** It is a Worker-owned route; check it with
+ *   `npm run build && npx wrangler dev -c .output/server/wrangler.json`.
  *
  * Apple fetches this through its own CDN and caches it, so a change here is
  * not picked up instantly by devices in the field.

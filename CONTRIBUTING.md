@@ -9,14 +9,14 @@ looks the way it does is in [README.md](README.md).
 
 ## Getting started
 
-The tested toolchain is Node 24 and pnpm 11. `mise install` reads those versions from `mise.toml`.
+The tested toolchain is Node 24 and its bundled npm 11. `mise install` reads those versions from `mise.toml`.
 
 ```bash
-pnpm install
-pnpm dev        # http://localhost:5174
-pnpm test       # vitest, the prediction maths
-pnpm build      # prerender + Worker bundle in .output/
-pnpm deploy     # build, then wrangler deploy with nitro's generated config
+npm install
+npm run dev     # http://localhost:5174
+npm test        # vitest, the prediction maths
+npm run build   # prerender + Worker bundle in .output/
+npm run deploy  # build, then wrangler deploy with nitro's generated config
 ```
 
 ## Layout
@@ -36,10 +36,10 @@ pnpm deploy     # build, then wrangler deploy with nitro's generated config
 CI runs these commands in order:
 
 ```bash
-pnpm install --frozen-lockfile
-pnpm build
-pnpm typecheck
-pnpm test
+npm ci
+npm run build
+npm run typecheck
+npm test
 ```
 
 The build comes before typechecking and tests because it generates `src/routeTree.gen.ts` and the prerendered artifacts that four integration suites inspect. Prediction changes arrive with a focused test; errors there can look plausible and matter on the water.
@@ -49,10 +49,10 @@ three templates, so a representative tide page, a representative current page, a
 representative CHS identity-only page (`/currents/dodd-narrows`) is the check, and a diff
 across thousands of near-identical generated pages would be noise, not signal.
 
-Anything touching a Worker route, including the analytics proxy, `/privacy.md`, or `/support.md`, must be checked against a real Worker because those routes do not resolve under `pnpm dev`:
+Anything touching a Worker route, including the analytics proxy, `/privacy.md`, or `/support.md`, must be checked against a real Worker because those routes do not resolve under `npm run dev`:
 
 ```bash
-pnpm build && pnpm preview
+npm run build && npm run preview
 ```
 
 Look at any visible change before reporting it complete.
@@ -71,7 +71,8 @@ Look at any visible change before reporting it complete.
 - `slackwater-ios` is the source of truth for ported visuals. Match the Swift palette, geometry, and crop after reading the complete draw function and its `Theme.swift` constants. Resolve genuine inconsistencies in the app first.
 - The app's sky projection depends on both crops: fit each body's rise-to-set span to the width and fit the app's 0–62° altitude range to the band height at the call site. Keep `skyPoint` aligned with `Slackwater/Theme.swift`; the 300° projection in `openwaters.io` has a different purpose.
 - `@slackwater/database` moves with slackwater-ios: bump both to the same release in the same pass, so the site and the app name, place, and credit every station alike. slackwater-database's [CONTRIBUTING](https://github.com/openwatersio/slackwater-database/blob/main/CONTRIBUTING.md#releases) owns the rule.
-- pnpm 11 blocks very recent releases. `pnpm add` records required exceptions in `pnpm-workspace.yaml`; commit those with a fresh `@openwaters/*` dependency bump. Dependabot uses a three-day cooldown for the same reason.
+- `.npmrc` sets `min-release-age=1`, so npm won't resolve a release less than a day old. To take a fresh `@openwaters/*` or `@slackwater/*` release the day it ships, pass `--min-release-age=0` to that one `npm install`; the lockfile keeps the version afterwards. Dependabot uses a three-day cooldown for the same reason.
+- Install scripts run only for packages listed in `allowScripts` in `package.json`, and `strict-allow-scripts` in `.npmrc` fails the install on any other package that has one. Read what a new script does before approving it with `npm approve-scripts --no-allow-scripts-pin <pkg>`, or skip it with `npm deny-scripts <pkg>`.
 
 ## Branch and PR
 
@@ -118,7 +119,7 @@ That workflow exists because the manual step got skipped. `/privacy` and the Pla
 were both merged and neither reached the apex, which went on serving an older build; nothing
 failed and nothing said so.
 
-`pnpm deploy` still publishes from a laptop, for a rollback or when the token is being
+`npm run deploy` still publishes from a laptop, for a rollback or when the token is being
 rotated. `workflow_dispatch` on the Deploy workflow does the same thing from Actions.
 
 Publishing needs a Cloudflare API token with **Workers Scripts → Edit** and **Workers KV →
@@ -157,7 +158,7 @@ that changes what the site measures changes that file in the same commit.
 
 - **Don't add `devtools()` from `@tanstack/devtools-vite` to `vite.config.ts`.** It breaks
   `vite dev` with `Vite environment "ssr" is unavailable` and a 60s `getBuiltins` transport
-  timeout — every request 500s, while `pnpm build` stays perfectly green, because the plugin
+  timeout — every request 500s, while `npm run build` stays perfectly green, because the plugin
   only runs in dev. It is not the nitro beta, the Vite version, or the presence of wrangler;
   all three were ruled out one at a time. The site isn't too simple to want router devtools
   anymore — there are parameterised routes and a server boundary now — the plugin is just
@@ -167,21 +168,21 @@ that changes what the site measures changes that file in the same commit.
   Nitro spins up a preview server to prerender against and SIGTERMs it when done. The build
   exits 0 — check that, not the log.
 
-- **`/js/script.js` 404s under `pnpm dev`.** Vite's dev middleware claims `.js` URLs before
+- **`/js/script.js` 404s under `npm run dev`.** Vite's dev middleware claims `.js` URLs before
   nitro's route rules see them, so the analytics proxy only resolves in a real Worker:
-  `pnpm build && npx wrangler dev -c .output/server/wrangler.json`. Nothing is lost in dev —
+  `npm run build && npx wrangler dev -c .output/server/wrangler.json`. Nothing is lost in dev —
   the Plausible script ignores localhost regardless.
 
 - **`npx vite preview` serves pages with no CSS or JS.** `vite.config.ts` overrides nitro's
   preview command to mount an empty assets directory: the prerender crawl runs against that
   same server, and `wrangler dev` restarts on every write into the directory it serves assets
   from — which is the directory the crawl is filling. That cost one deploy and one PR run
-  (issue #48). Use `pnpm preview`, which runs `wrangler dev` against the generated config and
+  (issue #48). Use `npm run preview`, which runs `wrangler dev` against the generated config and
   serves the real assets.
 
 - **`wrangler.jsonc` at the root is the *source*, not the deployable config.** Nitro reads it
   and emits `.output/server/wrangler.json` with `main` and `assets` rewritten to the right
-  relative paths. Deploy with that one; `pnpm deploy` already does.
+  relative paths. Deploy with that one; `npm run deploy` already does.
 
 - **A fresh custom domain can look dead from your machine while being perfectly live.** A
   resolver that cached the NXDOMAIN from before the record published will keep serving it —
@@ -190,9 +191,9 @@ that changes what the site measures changes that file in the same commit.
   `curl --resolve slackwater.xyz:443:<edge-ip>` before believing a deploy failed. On macOS,
   `sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder`.
 
-- **`unstorage@2` alpha (via nitro) imports `destr` without declaring it**, which breaks the
-  vite config under pnpm's strict `node_modules`. It is declared on unstorage's behalf via
-  `packageExtensions` in `pnpm-workspace.yaml` rather than hoisting everything.
+- **`unstorage@2` alpha (via nitro) imports `destr` without declaring it**, so the vite config
+  fails to load wherever `destr` isn't hoisted. `destr` is a direct dependency so the import
+  resolves however npm lays out `node_modules`.
 
 ## Agents
 
