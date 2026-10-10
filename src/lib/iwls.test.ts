@@ -91,7 +91,7 @@ describe('gateEvents', () => {
 })
 
 describe('nearestStation', () => {
-  // The curated positions station-metadata publishes. The IWLS station id is
+  // The curated positions the database publishes. The IWLS station id is
   // resolved from these at runtime and never bundled — that omission is the
   // posture, not an optimisation, so this is the join the whole feature rests
   // on.
@@ -196,7 +196,7 @@ const VICTORIA = portFixture.ports['Victoria Harbour']
 const TOFINO = portFixture.ports.Tofino
 
 describe('fetchPortTides', () => {
-  // The curated position station-metadata publishes for chs-victoria.
+  // The curated position the database publishes for chs-victoria.
   const VICTORIA_POSITION = { latitude: 48.424, longitude: -123.371 }
   const START = new Date('2026-09-01T00:00:00Z')
 

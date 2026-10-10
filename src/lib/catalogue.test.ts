@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import tzLookup from 'tz-lookup'
-import { loadCatalogue } from './catalogue'
+import { stationsById } from '@slackwater/database'
+import { loadCatalogue, loadMoved, loadWithheld } from './catalogue'
 import { predictSeries } from './predict'
 import { nearby } from './nearby'
 
@@ -10,19 +10,87 @@ const CANADA = new Set(['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'P
 describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
-  it('yields every station whose data ships on npm, plus the CHS gates and ports', () => {
-    expect(all.length).toBe(5657)
-    expect(all.filter((s) => s.kind === 'tide').length).toBe(4792)
-    expect(all.filter((s) => s.kind === 'current').length).toBe(865)
+  it('yields every predictable station the database routes and the quality pass accepts, plus the CHS gates and ports', () => {
+    expect(all.length).toBe(8450)
+    expect(all.filter((s) => s.kind === 'tide').length).toBe(5893)
+    expect(all.filter((s) => s.kind === 'current').length).toBe(2557)
   })
 
-  it('skips the subordinate current stations it cannot predict', () => {
-    // NOAA's subordinate stations are a reduction against a reference station,
-    // not constituents, and `predict.ts` sums constituents. Built anyway they
-    // prerender to a head with no body. The slug table names 1,692 of them; a
-    // count above zero here means blank pages shipped (#80).
-    const blank = all.filter((s) => s.source === 'bundled' && !s.constituents?.length)
-    expect(blank).toHaveLength(0)
+
+  it('carries the seasonal ratio for the stations the database labels, and nothing else', () => {
+    // The verdict is the database's (`quality.seasonal_dominant`) and the number
+    // is the site's, used only to pick how loudly a page speaks. 538 of the
+    // 5,893 tide pages carry it and no current page does — currents are
+    // measured in knots against no datum, so the question does not arise.
+    const seasonal = all.filter((s) => s.source === 'bundled' && s.seasonal !== undefined)
+    expect(seasonal).toHaveLength(538)
+    expect(seasonal.every((s) => s.kind === 'tide')).toBe(true)
+
+    // Cobourg on Lake Ontario, the extreme: SA 0.289 m against 0.002 m of M2.
+    const cobourg = all.find((s) => s.id === 'ticon/cobourg_ontario-13590-can-meds')
+    expect(cobourg?.source === 'bundled' && cobourg.seasonal).toBeCloseTo(161.6, 1)
+
+    // Annapolis carries the label at barely over 1, which is why the page copy
+    // has two bands rather than one sentence.
+    const annapolis = all.find((s) => s.id === 'noaa/8575512')
+    expect(annapolis?.source === 'bundled' && annapolis.seasonal).toBeCloseTo(1.008, 2)
+
+    // Seattle has a real tide and no label.
+    const seattle = all.find((s) => s.id === 'noaa/9447130')
+    expect(seattle?.source === 'bundled' && seattle.seasonal).toBeUndefined()
+  })
+
+  it('resolves a subordinate current against the exact reference bin', () => {
+    const eastport = all.find((s) => s.id === 'noaa/ACT0091')
+    expect(eastport?.source).toBe('bundled')
+    if (eastport?.source !== 'bundled') return
+    expect(eastport.constituents).toEqual([])
+    expect(eastport.reduction?.referenceId).toBe('noaa/EPT0003@11')
+    expect(eastport.reduction?.referenceConstituents.length).toBeGreaterThan(20)
+    expect(eastport.reduction?.floodSpeedRatio).toBeCloseTo(1.2)
+  })
+
+  it('keeps a current with its own constituents harmonic', () => {
+    const waldron = all.find((s) => s.id === 'noaa/PUG1716')
+    expect(waldron?.source === 'bundled' && waldron.constituents.length).toBeGreaterThan(20)
+    expect(waldron?.source === 'bundled' && waldron.reduction).toBeUndefined()
+  })
+
+  it('publishes nothing a provider forbids commercial use of', () => {
+    // 674 routed tide stations are TICON-4 rows whose GESLA provider restricts
+    // commercial use. Slackwater has a paid tier and this site promotes the
+    // app, so one of those on a page is a licence breach rather than a
+    // rendering bug — and the filter reads `commercial_use` as truthiness, so
+    // a release that drops the field fails this rather than publishing them.
+    for (const s of all.filter((x) => x.source === 'bundled')) {
+      expect(stationsById.get(s.id)?.license?.commercial_use, s.id).toBe(true)
+    }
+  })
+
+  it('credits every tide page to its publisher, with the notice its licence asks for', () => {
+    const tides = all.filter((s) => s.source === 'bundled' && s.kind === 'tide')
+    for (const s of tides) {
+      if (s.source !== 'bundled') continue
+      expect(s.publisher, s.id).toBe(stationsById.get(s.id)?.source?.name)
+      expect(s.attribution, s.id).toBe(stationsById.get(s.id)?.attribution)
+    }
+    const andenes = tides.find((s) => s.id === 'kartverket/ANX')
+    expect(andenes?.source === 'bundled' && andenes.attribution).toContain('Kartverket')
+  })
+
+  it('withholds every route the quality pass rejects, and keeps its address answerable', () => {
+    // 1,796 commercially licensed routes fail `qualityFilter`, some of them
+    // pages the site published before it read the whole corpus. A withheld
+    // station must not be in the catalogue and must not 404 either: both its
+    // canonical path and the flat `/tides/<slug>/` the share sheet mints are
+    // keys here, so `resolvePath` can answer with a 301.
+    const withheld = loadWithheld()
+    expect(withheld.size).toBe(1796 * 2)
+    const published = new Set(all.map((s) => s.path))
+    for (const [address, canonical] of withheld) {
+      expect(published.has(address), address).toBe(false)
+      expect(canonical.endsWith('/'), canonical).toBe(true)
+    }
   })
 
   it('builds the ten CHS tide ports whose identity IS published, and no more', () => {
@@ -67,7 +135,7 @@ describe('loadCatalogue', () => {
       expect(s.name.trim(), s.id).not.toBe('')
     }
     for (const s of all.filter((s) => s.source === 'bundled')) {
-      expect(s.constituents.length, s.id).toBeGreaterThan(0)
+      expect(s.constituents.length || s.reduction?.referenceConstituents.length, s.id).toBeGreaterThan(0)
     }
   })
 
@@ -89,24 +157,29 @@ describe('loadCatalogue', () => {
   })
 
   it('gives Deception Pass its real local zone, not UTC', () => {
-    // The current bundle carries no timezone field at all - catalogue.ts must
-    // derive one from coordinates. Asserting the zone itself, not merely that
-    // one is present, is the point: a "has a timezone" check passes on 'UTC'.
+    // Asserting the zone itself, not merely that one is present, is the
+    // point: a "has a timezone" check passes on 'UTC'.
     const d = all.find((s) => s.id === 'noaa/PUG1701')
     expect(d?.timezone).toBe('America/Los_Angeles')
   })
 
-  it('never silently defaults a current station to UTC', () => {
-    // Every current station's timezone must match what its own coordinates
-    // resolve to. A station whose zone happens to genuinely be UTC would
-    // still pass, since tzLookup itself would agree - the point is that a
-    // UTC result can never come from a missing-data fallback instead.
-    for (const s of all.filter((s) => s.kind === 'current')) {
-      expect(s.timezone, s.id).toBe(tzLookup(s.latitude, s.longitude))
+  it('takes a current station\'s zone from the database, not from its coordinates', () => {
+    // The database publishes the zone NOAA files each station under. A
+    // coordinate lookup disagrees on 27 of them, and is wrong where it does:
+    // it puts Wrangell Narrows, Alaska, in Vancouver's zone and Discovery
+    // Island, a US station off Victoria, in Canada's.
+    const byId = new Map(all.map((s) => [s.id, s]))
+    expect(byId.get('noaa/SEA0103')?.timezone).toBe('America/Sitka')
+    expect(byId.get('noaa/PUG1636')?.timezone).toBe('America/Los_Angeles')
+    for (const s of all.filter((s) => s.kind === 'current' && s.source === 'bundled')) {
+      expect(s.timezone, s.id).not.toBe('UTC')
     }
   })
-  it('cleans provider names instead of shouting them', () => {
+  it('takes the database\'s cased name, not the provider\'s shouted one', () => {
     // NOAA publishes 86 of its tide stations all-caps ("ALBANY"); issue #31.
+    // The database cases them, and spells out NOAA's abbreviations, so the
+    // site applies no rule of its own — one that did title-cased "GPS Buoy"
+    // to "Gps Buoy" on 70 pages.
     const albany = all.find((s) => s.id === 'noaa/8518995')
     expect(albany?.name).toBe('Albany')
     // The database splits a provider's comma-joined name into the place and
@@ -116,9 +189,26 @@ describe('loadCatalogue', () => {
     expect(turkey?.region).toBe('Hudson River')
   })
 
-  it('applies station-metadata corrections to provider stations', () => {
+  it("answers a station's former addresses with its page now", () => {
+    // A corrected subdivision and a relay folded into its gauge's page both
+    // move a published page; the database records the old address so it does
+    // not 404.
+    const moved = loadMoved()
+    expect(moved.get('/tides/us/sc/abercorn-creek-at-mouth-near-savannah-ga/'))
+      .toBe('/tides/us/ga/abercorn-creek-at-mouth-near-savannah-ga/')
+    expect(moved.get('/tides/us/nc/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck-pier/')
+    expect(moved.get('/tides/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck-pier/')
+    const published = new Set(all.map((s) => s.path))
+    expect([...moved.keys()].filter((address) => published.has(address))).toEqual([])
+  })
+
+  it('names the water a river station is measured along', () => {
+    // NOAA names these by distance up a river; the database keeps the river on
+    // the name, because a distance with no water under it says nothing. The
+    // distance itself stays in NOAA's own lowercase casing, a qualifier
+    // convention this site does not correct.
     const madHorseCreek = all.find((s) => s.id === 'noaa/8537535')
-    expect(madHorseCreek?.name).toBe('1 nm above entrance, Mad Horse Creek')
+    expect(madHorseCreek?.name).toBe('Mad Horse Creek, 1 nm above entrance')
   })
 
   it('gives a registry station its curated name, not the provider row name', () => {
@@ -152,8 +242,7 @@ describe('loadCatalogue', () => {
     )
     expect(strays.map((s) => `${s.id}:${s.state}`)).toEqual([])
 
-    // The NOAA current bundle carries neither field, so the country is the one
-    // fact the corpus itself establishes.
+    // A current row is placed the same way a tide row is.
     const pass = all.find((s) => s.kind === 'current' && s.id === 'noaa/PUG1701')
     expect(pass?.country).toBe('United States')
 
@@ -171,7 +260,7 @@ describe('loadCatalogue', () => {
   })
 
   it('collapses a merged pair to one row', () => {
-    // station-metadata 4.1.2 points both ids of a merged pair at one slug. Only
+    // The database puts both ids of a merged pair on one route. Only
     // one half is buildable today, so this passes before the dedupe exists - it
     // is here as the tripwire for the CHS gates, where both halves build.
     const rows = all.filter((s) => s.kind === 'current' && s.slug === 'boundary-pass')
@@ -217,7 +306,7 @@ describe('chart datum', () => {
   })
 
   it('uses each station its own datum, not MLLW everywhere', () => {
-    // The corpus spans 8 chart datums and MLLW covers 1,418 of 2,765 bundled tide
+    // The corpus spans 9 chart datums and MLLW covers 4,313 of 5,833 bundled tide
     // stations. Shifting a Greenland or Canadian station by an MLLW offset —
     // or labelling it MLLW — is wrong for more than half the world.
     const aasiaat = bundled('ticon/aasiaat-aas-grl-gloss')
@@ -230,10 +319,11 @@ describe('chart datum', () => {
   })
 
   it('leaves a station already quoted on MSL exactly where it was', () => {
-    // 117 stations chart to MSL, so MSL - MSL = 0 and the curve must not move.
-    const althagen = bundled('ticon/althagen-9650024-deu-wsv')
-    expect(althagen.chartDatum).toBe('MSL')
-    expect(althagen.offset).toBe(0)
+    // 112 published stations chart to MSL, so MSL - MSL = 0 and the curve must
+    // not move.
+    const arko = bundled('ticon/arko-2545-swe-smhi')
+    expect(arko.chartDatum).toBe('MSL')
+    expect(arko.offset).toBe(0)
   })
 
   it('shifts nothing when the provider ships no datums', () => {

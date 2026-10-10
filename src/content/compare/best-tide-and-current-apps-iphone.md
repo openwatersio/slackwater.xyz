@@ -28,33 +28,33 @@ own boats and kayaks and will check.
 - **What is actually paid.** Several free tiers end at a date range, an ad, or a three-hour
   window.
 
+Slackwater beta features checked October 9, 2026. Competitor dates are listed below.
+
 ## At a glance
 
 | App | Currents | Offline | Canada | Price | Rating |
 |---|---|---|---|---|---|
-| **Slackwater** | Slack, max, set, curve | Predictions and chart | Yes (CHS) | Free core | Beta |
+| **Slackwater** | Slack, max, set, curve | Bundled predictions offline; Canadian setup, some passes online-only | Yes (CHS) | Free core; optional Premium | Beta |
 | AyeTides XL | Station predictions | Yes | Sparse | $7.99 once | 4.8 (1.3K) |
 | Tide Alert | Estimated slack on tide chart | Favourites | Yes | $19.99/yr | 4.8 (44K) |
-| Tide Guide | One number | Partial | Weak accuracy reports | $29.99/yr or $49.99 once | 4.7 (9.8K) |
+| Tide Guide | Current conditions | Check feature availability | Yes; availability varies | Free download; Pro subscription or lifetime | See listing |
 | Tides Near Me | Timing only | Cache | Yes | Free + ads | 4.8 (161K) |
 | Actual Currents | Animated flow, stations | No | Yes | $39.99/yr | 4.7 (20) |
 | Tides and Currents-USA | Station predictions | Yes | No | $19.99/yr | 4.2 (27) |
 
-Prices and ratings from the US App Store, September 2026.
+Prices and ratings are from the US App Store, September 2026, except Tide Guide's feature and purchase information, checked October 9, 2026. See each comparison's sources and limits.
 
 ## Slackwater
 
-Free, no ads, no account. Tides worldwide, currents across the US and Canada, all
-computed on the phone from NOAA and CHS data. A current station shows the next slack and
+Free, no ads, no account. Tides worldwide, currents across the US and Canada. Bundled stations compute predictions on the phone without a connection. Canadian stations need an initial download; some passes remain online-only and are labeled in the app. A current station shows the next slack and
 how long it lasts, the speed and set at max flood and max ebb, and a curve you can scrub
-through the week. The chart draws offline too.
+through the week. Charts for bundled and downloaded models draw offline too.
 
-![Slackwater: Nakwakto Rapids scrubbed to 5:40am, slack at 0.5 kn, flood 12 minutes later, with the 10.3 kn ebb and 5.2 kn flood marked on the curve and green slack runs drawn on the line](/shots/compare/slackwater-nakwakto-slack.webp)
+![Slackwater beta: Deception Pass scrubbed to 3:46 PM, slack at 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM](/shots/compare/slackwater-deception-slack.webp)
 
-Nakwakto Rapids at slack: 0.5 kn, flood 12 minutes later, with the 10.3 kn ebb and 5.2 kn flood either side. The green runs on the line are the slack windows.
+Deception Pass at slack: 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM. The green parts of the curve show the slack windows. Beta screenshot captured October 8, 2026.
 
-What it lacks: a Watch app, alerts, weather. It is in public beta on TestFlight and needs
-iOS 26. If you want a tide app on your wrist today, it is not this one yet.
+The standalone Apple Watch app and home screen widgets are free. Optional Premium adds alerts, station calendars, lock-screen widgets and Watch complications, with annual and lifetime purchase options. Marine weather is not included. It is in public beta on TestFlight and needs iOS 26.
 
 **Best for:** boaters and paddlers who need the slack answer with no bars, on either side
 of the border.
@@ -86,11 +86,9 @@ for life.
 
 The best-looking tide app on the platform, with an Apple Design Award to prove it. Full
 Watch app, Live Activities, a dozen marine weather conditions beside the tide, 15
-languages. Currents are one number in a data box, no stations, no slack. Widgets and
-complications need Pro. Reviewers outside the US report datum and timing errors, and the
-app does not say where its data comes from.
+languages. Its [help center](https://tideguide.com/help) describes current conditions alongside tide and weather charts and names providers including NOAA and the UK Hydrographic Office. Widgets, complications, detailed charts and future table data require Pro. It is a free download with subscription and lifetime purchase options; offers vary by storefront and account.
 
-[Read the full comparison](/alternatives/tide-guide/).
+[Compare Slackwater as a free Tide Guide alternative](/alternatives/tide-guide/).
 
 **Best for:** beach and surf conditions at a glance, on a Watch.
 
@@ -130,7 +128,8 @@ Each app above has its own page with a side-by-side screenshot and the full tabl
 [Tides Near Me](/alternatives/tides-near-me/) ·
 [Actual Currents](/compare/slackwater-vs-actual-currents/).
 
-- **Transiting passes in BC or Washington:** Slackwater. Second choice AyeTides.
+- **Free tide charts and home screen widgets:** Slackwater.
+- **Transiting passes in BC or Washington:** Slackwater. Download Canadian stations first and check for online-only passes. Second choice AyeTides.
 - **Alerts on your wrist:** Tide Alert.
 - **Weather and a Watch face:** Tide Guide.
 - **A picture of the whole strait moving:** Actual Currents, with signal.

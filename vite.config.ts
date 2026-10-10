@@ -5,20 +5,22 @@ import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 import { loadCatalogue } from './src/lib/catalogue'
-import { placePaths, placeTree } from './src/lib/places'
+import { kindRoot, placeTree } from './src/lib/places'
+import { buildSitemaps, STATIC_PATHS } from './src/lib/sitemap'
 import { buildRedirects } from './src/lib/redirects'
-import { buildSitemaps } from './src/lib/sitemap'
+import type { Kind } from './src/lib/station'
 
 const catalogue = loadCatalogue()
 
-const stationPages = catalogue.map((s) => ({
-  path: `/${s.kind === 'tide' ? 'tides' : 'currents'}/${s.slug}/`,
-}))
-// The browse index's country and subdivision pages. Parameterised like the
-// station pages, so listed for the same reason — and derived from the same
-// catalogue the routes read, so the list cannot disagree with what the pages
-// link to.
-const PLACE_PATHS = placePaths('tide', placeTree(catalogue.filter((s) => s.kind === 'tide')))
+const stationPages = catalogue.map((s) => ({ path: s.path }))
+// Each kind's index and every country and subdivision under it. Parameterised
+// like the station pages, so listed for the same reason — and derived from the
+// same catalogue the routes read, so the list cannot disagree with what the
+// pages link to.
+const PLACE_PATHS = (['tide', 'current'] as Kind[]).flatMap((kind) => [
+  kindRoot(kind),
+  ...placeTree(catalogue.filter((s) => s.kind === kind)).keys(),
+])
 const placePages = PLACE_PATHS.map((path) => ({ path }))
 // Comparison pages are parameterised routes too, so they need listing here for
 // the same reason the stations do. `src/lib/compare.ts` parses the same
@@ -35,9 +37,7 @@ const comparePages = COMPARE_PATHS.map((path) => ({ path }))
 for (const [name, xml] of Object.entries(buildSitemaps(catalogue, [...COMPARE_PATHS, ...PLACE_PATHS]))) {
   writeFileSync(`./public/${name}`, xml)
 }
-// Same mechanism for the redirects: Cloudflare reads `_redirects` from the
-// assets directory, ahead of the Worker and whether or not an asset matches.
-writeFileSync('./public/_redirects', buildRedirects(catalogue))
+writeFileSync('./public/_redirects', buildRedirects(catalogue.map((s) => s.path), [...STATIC_PATHS, ...COMPARE_PATHS, ...PLACE_PATHS]))
 
 // The prerender crawl runs against `wrangler dev`, and wrangler dev watches its
 // assets directory — which is .output/public, the directory the crawl is writing

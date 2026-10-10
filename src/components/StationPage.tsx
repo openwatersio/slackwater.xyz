@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DayStrip, type Fetched } from './DayStrip'
 import { NearbyMap } from './NearbyMap'
-import { DATUM_NOTE, datumLine, stationHeading } from '#/lib/copy'
+import { DATUM_NOTE, datumLine, seasonalNote, stationHeading } from '#/lib/copy'
 import { compass16, dayLabel, dayStart, height, hhmm, shiftLocalDay } from '#/lib/format'
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
 import { TESTFLIGHT } from '#/lib/links'
-import type { NearbyRow } from '#/lib/catalogue-server'
+import type { Crumb, NearbyRow } from '#/lib/catalogue-server'
 import { findEvents, tideExtremes } from '#/lib/predict'
-import { stationPath, type BundledStation, type ChsStation, type Station } from '#/lib/station'
-import { currentInstantPath, tideInstantPath } from '#/routes/instant-url'
+import type { BundledStation, ChsStation, Station } from '#/lib/station'
+import { instantPath } from '#/routes/instant-url'
 
 /**
  * One Canadian station's day, once DFO has sent it back.
@@ -57,6 +57,8 @@ interface Props {
   settled?: boolean
   /** Nearest stations of the same kind. Empty is fine — the section hides. */
   nearby?: NearbyRow[]
+  /** The pages above this one, from the kind's index down to the station's place. */
+  crumbs?: Crumb[]
 }
 
 /**
@@ -69,7 +71,7 @@ interface Props {
  * Order is the argument: the selected day first, the app, then everything a
  * reader or a crawler goes on to want.
  */
-export function StationPage({ station, now, selectedAt: initialSelection, live = false, settled = live, nearby = [] }: Props) {
+export function StationPage({ station, now, selectedAt: initialSelection, live = false, settled = live, nearby = [], crumbs = [] }: Props) {
   const [selectedAt, setSelectedAt] = useState(initialSelection ?? now)
   const [trackingNow, setTrackingNow] = useState(initialSelection === undefined)
   useEffect(() => {
@@ -91,31 +93,31 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
   const commit = (next: Date) => {
     select(next)
     if (typeof window !== 'undefined') {
-      window.history.replaceState(
-        window.history.state,
-        '',
-        station.kind === 'tide'
-          ? tideInstantPath(station.slug, next, station.timezone)
-          : currentInstantPath(station.slug, next, station.timezone),
-      )
+      window.history.replaceState(window.history.state, '', instantPath(station.path, next, station.timezone))
     }
   }
   const returnToNow = () => {
     setTrackingNow(true)
     setSelectedAt(now)
     if (typeof window !== 'undefined') {
-      window.history.replaceState(window.history.state, '', stationPath(station.kind, station.slug))
+      window.history.replaceState(window.history.state, '', station.path)
     }
   }
+  const note = seasonalNote(station)
+  const lead = note?.place === 'lead' ? note : undefined
   return (
     <main className="mx-auto max-w-3xl px-5 pb-24 pt-8 sm:px-6 sm:pt-14">
-      <Breadcrumb station={station} />
+      <Breadcrumb station={station} crumbs={crumbs} />
       <h1 className="mt-4 text-3xl font-semibold tracking-tight text-sw-paper sm:text-5xl">
         {stationHeading(station)}
       </h1>
       <p className="mt-3 text-sw-steel">
         {station.kind === 'tide' ? 'Tide times & tide chart' : 'Tidal currents & slack water'}
       </p>
+      {/* Above the curve rather than below it: at these stations the annual
+          cycle IS the signal, so a reader needs it before reading a high and a
+          low, not after. The quieter band renders in `Facts` instead. */}
+      {lead && <p className="mt-3 text-sw-foam">{lead.text}</p>}
       {station.source === 'chs' ? (
         !curve ? (
           <ChsGate station={station} now={now} settled={settled} hours={24} onCurve={setCurve} />
@@ -137,6 +139,10 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
           onNow={returnToNow}
         />
       )}
+      <p className="mt-6 text-sm leading-relaxed text-sw-steel">
+        Predictions are not observations — conditions vary with weather and river flow.{' '}
+        <strong className="font-semibold text-sw-foam">Not for navigation.</strong>
+      </p>
       <Cta station={station} />
       {station.source === 'bundled' && <WeekTable station={station} at={at} />}
       <Facts station={station} />
@@ -146,29 +152,33 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
 }
 
 /**
- * Real pages only. The country and region crumbs arrive with the geographic
- * hierarchy; until then a crumb pointing nowhere would be a broken link in the
- * one place search engines read links most carefully. `json-ld.ts` emits the
- * same three items — keep them in step.
+ * Every segment of the station's path, each a real page: the kind's index, the
+ * country, the subdivision where there is one. `json-ld.ts` emits the same
+ * items — keep them in step.
  */
-function Breadcrumb({ station }: { station: Station }) {
-  const tide = station.kind === 'tide'
+function Breadcrumb({ station, crumbs }: { station: Station; crumbs: Crumb[] }) {
+  const trail = crumbs.length ? crumbs : [kindIndex(station)]
   return (
     <nav aria-label="Breadcrumb" className="text-sm text-sw-steel">
       <ol className="flex flex-wrap gap-x-2">
         <li><a href="/" className="hover:text-sw-paper">Slackwater</a></li>
-        <li aria-hidden="true">›</li>
-        <li>
-          <a href={tide ? '/stations/tides/' : '/stations/currents/'} className="hover:text-sw-paper">
-            {tide ? 'Tide stations' : 'Current stations'}
-          </a>
-        </li>
+        {trail.map((c) => (
+          <li key={c.href} className="contents">
+            <span aria-hidden="true">›</span>
+            <a href={c.href} className="hover:text-sw-paper">{c.label}</a>
+          </li>
+        ))}
         <li aria-hidden="true">›</li>
         <li aria-current="page" className="text-sw-foam">{station.name}</li>
       </ol>
     </nav>
   )
 }
+
+const kindIndex = (station: Station): Crumb =>
+  station.kind === 'tide'
+    ? { href: '/tides/', label: 'Tide stations' }
+    : { href: '/currents/', label: 'Current stations' }
 
 /** The station-local day `at` falls in, and the ones after it. */
 function days(at: Date, timeZone: string, count: number): Date[] {
@@ -277,6 +287,11 @@ function WeekTable({ station, at }: { station: BundledStation; at: Date }) {
         {tide ? 'Tide times for the next 7 days' : 'Slack water and maximums for the next 7 days'}
       </h2>
       <table className="mt-4 w-full text-sm">
+        <caption className="pb-3 text-left leading-relaxed text-sw-steel">
+          {dayLabel(week[0], tz)} through {dayLabel(week[6], tz)}.
+          {' '}All times are local to {station.name} ({tz}).
+          {tide && station.chartDatum && <> Heights are in feet above {station.chartDatum}.</>}
+        </caption>
         <thead className="text-left text-xs uppercase tracking-wider text-sw-leaf">
           <tr>
             <th className="py-2 pr-3 font-medium">Day</th>
@@ -292,9 +307,9 @@ function WeekTable({ station, at }: { station: BundledStation; at: Date }) {
             lastDay = day
             return (
               <tr key={t.time.getTime()} className={first ? 'border-t border-sw-steel/20' : ''}>
-                <td className="py-1.5 pr-3 text-sw-steel">{first ? day : ''}</td>
+                <td className="py-1.5 pr-3 text-sw-steel">{day}</td>
                 <td className="py-1.5 pr-3">{t.what}</td>
-                <td className="py-1.5 pr-3">{t.hhmm}</td>
+                <td className="py-1.5 pr-3"><time dateTime={t.time.toISOString()}>{t.hhmm}</time></td>
                 <td className="py-1.5">{t.value ?? ''}</td>
               </tr>
             )
@@ -313,17 +328,31 @@ function WeekTable({ station, at }: { station: BundledStation; at: Date }) {
 function Facts({ station }: { station: Station }) {
   const bundled = station.source === 'bundled'
   const datum = bundled && station.kind === 'tide' ? datumLine(station) : undefined
+  // The band that does not lead the page says it here, beside the datum note,
+  // because it is the same kind of fact: what these heights are measured
+  // against and how they behave over a year.
+  const note = seasonalNote(station)
+  const aside = note?.place === 'aside' ? note : undefined
   const position =
     `${Math.abs(station.latitude).toFixed(4)}° ${station.latitude >= 0 ? 'N' : 'S'}, ` +
     `${Math.abs(station.longitude).toFixed(4)}° ${station.longitude >= 0 ? 'E' : 'W'}`
   const where = [station.state, station.country].filter(Boolean).join(', ')
+  const reductionSource = bundled && station.reduction && (() => {
+    const [reference, bin] = station.reduction.referenceId.replace(/^noaa\//, '').split('@')
+    return `NOAA current table reduction from ${reference}${bin ? `, bin ${bin}` : ''}`
+  })()
   const rows: [string, string | undefined][] = [
     ['Position', position],
     ['Time zone', station.timezone],
     ['Datum', datum],
-    ['Source', bundled ? (station.kind === 'tide' ? 'Harmonic constituents from the tide database' : 'NOAA harmonic constituents') : 'Canadian Hydrographic Service'],
+    ['Source', reductionSource || (bundled ? (station.kind === 'tide' ? `Harmonic constituents from ${station.publisher || 'the tide database'}` : 'NOAA harmonic constituents') : 'Canadian Hydrographic Service')],
     [station.state ? 'Region' : 'Country', where || undefined],
   ]
+  const sourceUrl = bundled
+    ? station.kind === 'tide'
+      ? 'https://github.com/openwatersio/slackwater-database#sources'
+      : 'https://tidesandcurrents.noaa.gov/noaacurrents/'
+    : 'https://tides.gc.ca/en/tides-currents-and-water-levels'
   return (
     <section className="mt-14">
       <h2 className="text-xl font-semibold text-sw-paper">Station facts</h2>
@@ -331,11 +360,19 @@ function Facts({ station }: { station: Station }) {
         {rows.map(([k, v]) => v && (
           <div key={k} className="contents">
             <dt className="text-sw-steel">{k}</dt>
-            <dd className="text-sw-foam">{v}</dd>
+            <dd className="text-sw-foam">
+              {k === 'Source' ? <a href={sourceUrl} className="underline underline-offset-4 hover:text-sw-paper">{v}</a> : v}
+            </dd>
           </div>
         ))}
       </dl>
       {datum && <p className="mt-3 text-sm text-sw-steel/70">{DATUM_NOTE}</p>}
+      {aside && <p className="mt-3 text-sm text-sw-steel/70">{aside.text}</p>}
+      {bundled && station.attribution && <p className="mt-3 break-words text-sm text-sw-steel/70">{station.attribution}</p>}
+      <p className="mt-3 text-sm text-sw-steel">
+        <a href="/accuracy/" className="underline underline-offset-4 hover:text-sw-paper">How we check predictions</a>
+        {' '}— dated samples and their limits.
+      </p>
     </section>
   )
 }
@@ -476,7 +513,7 @@ function ChsGate({
  */
 function Nearby({ station, rows }: { station: Station; rows: NearbyRow[] }) {
   if (!rows.length) return null
-  const all = station.kind === 'tide' ? '/stations/tides/' : '/stations/currents/'
+  const all = kindIndex(station).href
   return (
     <section className="mt-14">
       <h2 className="text-xl font-semibold text-sw-paper">Nearby</h2>
@@ -484,7 +521,7 @@ function Nearby({ station, rows }: { station: Station; rows: NearbyRow[] }) {
         {rows.map((r) => (
           <li key={r.slug} className="flex items-baseline justify-between gap-3">
             <span>
-              <a href={stationPath(station.kind, r.slug)} className="text-sw-paper/90 underline underline-offset-4 decoration-sw-steel/40 hover:text-sw-leaf">
+              <a href={r.path} className="text-sw-paper/90 underline underline-offset-4 decoration-sw-steel/40 hover:text-sw-leaf">
                 {r.name}
               </a>
               {r.region && <span className="ml-2 text-sm text-sw-steel">{r.region}</span>}
@@ -497,7 +534,7 @@ function Nearby({ station, rows }: { station: Station; rows: NearbyRow[] }) {
       </ul>
       <NearbyMap
         station={station}
-        rows={rows.map((r) => ({ name: r.name, latitude: r.latitude, longitude: r.longitude, href: stationPath(station.kind, r.slug) }))}
+        rows={rows.map((r) => ({ name: r.name, latitude: r.latitude, longitude: r.longitude, href: r.path }))}
       />
       <p className="mt-4">
         <a href={all} className="text-sw-steel underline underline-offset-4 hover:text-sw-paper">

@@ -8,18 +8,23 @@ currents across the US and Canada.
 ## What this is
 
 The marketing site — and, now, a page per station. It explains the app, points people at the
-beta, and prerenders a page at `/tides/<slug>` and `/currents/<slug>` for 5,657 stations — a
-real computed curve for 5,624 of them, and identity only for 33 Canadian ones: the
+beta, and prerenders a page under its country and subdivision (`/tides/us/pa/bridesburg/`, `/currents/ca/bc/dodd-narrows/`) for 8,450 stations — a
+real computed curve for 8,367 of them, and identity only for 33 Canadian ones: the
 share-landing surface for anyone sent a link, and indexable content the site previously had
 none of.
 
 The landing page is the app's own screenshots around one call to action — real output from
 `slackwater-ios`'s screenshot walk, not mockups. Every station page computes a real prediction
-in your browser from bundled NOAA harmonic constituents, the same way the app does. A site whose
+in your browser from bundled harmonic constituents or NOAA's subordinate current tables, the same way the app does. A site whose
 argument is "correct, and it works with no signal" demonstrates that on every station rather than
 asserting it.
 
-5,657 pages, not the full catalogue: 5,624 get a computed curve, and 33 Canadian (CHS)
+The corpus is every station the station database routes, less two groups it withholds: 674
+rows whose GESLA provider forbids commercial use and the 1,796 the database's own quality pass
+rejects. A rejected station's address still answers — a 301 to the nearest place page above it,
+because some of them were pages here before the site read the whole corpus.
+
+8,450 pages: 8,417 get a computed curve, and 33 Canadian (CHS)
 stations — 23 current gates and 10 tide ports — get identity only. DFO's terms don't allow
 re-serving predictions, so nothing about those 33 is prerendered; the reader's own browser
 fetches DFO's published numbers and draws them. This work builds 10 of the 1,058 Canadian

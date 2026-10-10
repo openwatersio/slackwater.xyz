@@ -40,4 +40,12 @@ describe('compare pages', () => {
       }
     }
   })
+
+  it('does not hard-code Slackwater tide station counts', () => {
+    for (const p of Object.values(COMPARE_PAGES)) {
+      expect(p.markdown, p.path).not.toMatch(
+        /Slackwater ships [\d,]+ tide stations|\| Tides \|.*\| [\d,]+ stations worldwide \|/,
+      )
+    }
+  })
 })

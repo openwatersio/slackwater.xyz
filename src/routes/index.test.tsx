@@ -35,6 +35,10 @@ describe('landing page', () => {
     expect(html).toContain(`href="${TESTFLIGHT}"`)
   })
 
+  it('does not preload the hidden video fallback', () => {
+    expect(html).not.toMatch(/<link[^>]+rel="preload"[^>]+href="\/shots\/tides-night.webp"/)
+  })
+
   it('links the hero to the tides explainer', () => {
     const hero = html.match(/<header[\s\S]*?<\/header>/)?.[0]
 
@@ -54,7 +58,7 @@ describe('landing page social card', () => {
     const head = await RootRoute.options.head?.({} as never)
     expect(head?.meta).toContainEqual({
       property: 'og:title',
-      content: 'A free tides & currents app that works offline.',
+      content: 'Free Tide & Current App for iPhone — Slackwater',
     })
   })
 })

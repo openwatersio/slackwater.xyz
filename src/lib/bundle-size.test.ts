@@ -36,16 +36,14 @@ describe('client bundle', () => {
     // station names were minified, split or otherwise made unsearchable.
     for (const f of js()) {
       const src = readFileSync(`${ASSETS}/${f}`, 'utf8')
-      expect(src.includes('tide-database'), f).toBe(false)
-      expect(src.includes('noaa-current-stations'), f).toBe(false)
-      expect(src.includes('station-metadata/data'), f).toBe(false)
+      expect(src.includes('@slackwater/database'), f).toBe(false)
     }
   })
 })
 
 describe('the nearby map', () => {
   // The two pages the rest of the suite reads, one of each kind.
-  const PAGES = ['currents/deception-pass-narrows', 'tides/seattle']
+  const PAGES = ['currents/us/wa/deception-pass-narrows', 'tides/us/wa/seattle']
   const page = (p: string) => readFileSync(`.output/public/${p}/index.html`, 'utf8')
 
   it('keeps leaflet out of every chunk a station page preloads', () => {

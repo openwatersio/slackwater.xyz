@@ -7,10 +7,30 @@ export interface Constituent {
   phase: number
 }
 
+/** NOAA's published reduction from one harmonic current station. Offsets are seconds. */
+export interface CurrentReduction {
+  referenceId: string
+  referenceConstituents: Constituent[]
+  referenceOffset: number
+  slackBeforeFloodOffset: number
+  slackBeforeEbbOffset: number
+  floodTimeOffset: number
+  ebbTimeOffset: number
+  floodSpeedRatio: number
+  ebbSpeedRatio: number
+}
+
 interface StationIdentity {
   id: string
   kind: Kind
   slug: string
+  /**
+   * The station's URL, as the tide database publishes it for the route:
+   * `/tides/us/pa/bridesburg/`, or `/tides/jp/kushiro/` where the database
+   * vouches for no subdivision. Every link to a station is this string; the
+   * site never builds one.
+   */
+  path: string
   name: string
   latitude: number
   longitude: number
@@ -33,21 +53,12 @@ interface StationIdentity {
    */
   continent?: string
   /**
-   * The first-level subdivision code as `@neaps/tide-database` publishes it —
+   * The first-level subdivision code as `@slackwater/database` publishes it —
    * `WA`, `BC`. Only set where the provider publishes a code a reader can
    * place: Canadian rows carry GeoNames numerics ("02") and get none.
    * `region` stays the curated water-body context, which is a different thing.
    */
   state?: string
-}
-
-/**
- * The single place a station URL is built, so the planned move to a geographic
- * hierarchy (`/tides/us/wa/seattle/`) is one function plus a redirect table
- * rather than a hunt through every route, component and sitemap.
- */
-export function stationPath(kind: Kind, slug: string): string {
-  return `/${kind === 'tide' ? 'tides' : 'currents'}/${slug}/`
 }
 
 /** Constituents ship with the page; the curve is synthesised at build time. */
@@ -62,9 +73,30 @@ export interface BundledStation extends StationIdentity {
    * a height with no datum on it is a number, not a depth.
    */
   chartDatum?: string
+  /**
+   * Tides only: who published the constants, and the notice their licence asks
+   * a page to show, both verbatim from the database. CC BY sources such as
+   * TICON-4 and Kartverket are owed the notice on every page that uses them.
+   */
+  publisher?: string
+  attribution?: string
   /** Currents only: the axis the signed velocity is measured along. */
   floodDirection?: number
   ebbDirection?: number
+  /** Currents only: absent for stations with their own harmonic constituents. */
+  reduction?: CurrentReduction
+  /**
+   * Tides only, and only where the database labelled the station
+   * `quality.seasonal_dominant`: how many times the seasonal band exceeds the
+   * largest tidal constituent.
+   *
+   * Present or absent is the database's verdict and is never decided here — that
+   * is the point of it living upstream, so the app and this site do not describe
+   * the same water two ways. The number is the site's own, and only chooses how
+   * loudly a page says it: 1.008 at Annapolis, which has a real Chesapeake tide,
+   * and 162 at Cobourg on Lake Ontario, which has none. See `seasonalNote`.
+   */
+  seasonal?: number
 }
 
 /**

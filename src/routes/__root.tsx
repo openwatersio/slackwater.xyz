@@ -1,11 +1,11 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import appCss from '../styles.css?url'
 
-export const SITE_TITLE = 'Slackwater — Tides & Currents'
+export const SITE_TITLE = 'Free Tide & Current App for iPhone — Slackwater'
 
 /** Shared by the meta description, og:description and the JSON-LD. */
 export const SITE_DESCRIPTION =
-  'All tide and current predictions, offline on your phone. Works on the water, on the beach, in the anchorage — no bars and nothing to load.'
+  'Free tide charts and tidal currents for iPhone. Bundled stations work offline; Canadian stations need setup, and some passes require a connection.'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -20,7 +20,7 @@ export const Route = createRootRoute({
       // property; every route sets its own og:url next to its canonical.
       { property: 'og:type', content: 'website' },
       { property: 'og:site_name', content: 'Slackwater' },
-      { property: 'og:title', content: 'A free tides & currents app that works offline.' },
+      { property: 'og:title', content: SITE_TITLE },
       { property: 'og:description', content: SITE_DESCRIPTION },
       { property: 'og:image', content: 'https://slackwater.xyz/og.png' },
       { property: 'og:image:width', content: '1200' },
@@ -46,9 +46,8 @@ export const Route = createRootRoute({
     ],
   }),
   shellComponent: RootDocument,
-  // 2,740 of the 8,397 known station URLs still 404 by design: 1,047 Canadian
-  // (CHS) tide ports whose identity nobody publishes, 1,692 NOAA subordinate
-  // current stations the site cannot predict yet (#80), and
+  // 1,048 of the 8,397 known station URLs still 404 by design: 1,047 Canadian
+  // (CHS) tide ports whose identity nobody publishes, and
   // `chs-arran-rapids`, a gate excluded by name pending an owner decision.
   // `dodd-narrows`, the former flagship share case, resolves.
   // The router's default is a bare title, so the receiver of that link got a
@@ -64,7 +63,7 @@ function NotFound() {
       </h1>
       <p className="mt-4 max-w-xl text-lg leading-snug text-sw-foam">
         There is no page here. If you followed a link to a station, that station isn't published
-        yet — the site covers 5,657 US and Canadian stations, with more on the way.
+        yet — the site covers 7,349 US and Canadian stations, with more on the way.
       </p>
       <p className="mt-6">
         <a className="text-sw-leaf underline underline-offset-4" href="/">

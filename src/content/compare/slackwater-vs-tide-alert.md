@@ -1,7 +1,7 @@
 ---
 url: https://slackwater.xyz/compare/slackwater-vs-tide-alert/
 title: Slackwater vs Tide Alert (NOAA) — alerts or the slack window
-description: Tide Alert notifies you at a tide level and runs on the Watch. Slackwater predicts current stations offline with the slack window. An honest comparison.
+description: Compare Tide Alert's notifications with Slackwater's free current-station curves and slack windows. Bundled predictions work offline; Canadian limits apply.
 verified: 2026-09-04
 ---
 
@@ -9,24 +9,26 @@ verified: 2026-09-04
 
 **Short version.** Tide Alert is built around one feature its name promises: the phone
 tells you when the tide reaches a level or a time. It has a full Watch app, Siri, and now
-covers Canada and Mexico. Slackwater has none of those. What Slackwater has is current
-stations predicted offline with the slack window and max, and a free core with no ads.
+covers Canada and Mexico. Slackwater has a free Watch app and optional Premium alerts and station calendars. Its current
+stations show the slack window and max, free with no ads. Bundled predictions work offline. Canadian stations need setup, and some passes remain online-only.
 
-If alerts are why you have a tide app, Tide Alert is the better app for you today.
+Compare the alert types you need as well as the tide and current views.
+
+Slackwater beta features checked October 9, 2026; competitor details checked September 4, 2026.
 
 ## At a glance
 
 | | Tide Alert (NOAA) | Slackwater |
 |---|---|---|
-| Price | Free + $6.99/3 mo, $19.99/yr, Gold $99.99 lifetime | Free core; optional paid lock screen add-on |
-| Alerts | Tide level and time, phone and Watch | No |
-| Apple Watch | Full app | No |
+| Price | Free + $6.99/3 mo, $19.99/yr, Gold $99.99 lifetime | Free core; optional Premium |
+| Alerts | Tide level and time, phone and Watch | Premium; phone notifications and alarms |
+| Apple Watch | Full app | Free standalone app; complications Premium |
 | Siri | Yes | No |
 | Tides | US, Canada, Mexico, Latin America | Worldwide |
 | Currents | Speed overlaid on the tide chart, estimated slack windows | Current stations: slack time and duration, max flood/ebb with set, own curve |
-| Offline | Favourite stations and month tables | Every prediction and the chart |
+| Offline | Favourite stations and month tables | Bundled predictions offline; Canadian setup, some passes online-only |
 | Data | NOAA | NOAA and CHS, named per station with datum |
-| Widgets | Home and lock screen | Home free; lock screen paid |
+| Widgets | Home and lock screen | Home screen free; lock screen Premium |
 | Ads | No | No |
 | Rating | 4.8 (44K) | Beta |
 
@@ -50,29 +52,23 @@ tide chart and a predicted 19-minute window is the difference between a guess an
 
 ## Offline
 
-Tide Alert keeps favourites and month tables offline, which covers most days. Slackwater
-computes everything on the phone, every station, any date, and the chart draws without
-a connection. If you are somewhere you did not favourite in advance, that is the case
-that separates them.
+Tide Alert keeps favourites and month tables offline. Slackwater's bundled stations compute predictions and draw their curves on the phone for any date. Canadian stations need an initial download to build their offline model; some Canadian passes require a connection and are labeled in the app.
 
 ## Alerts and the Watch
 
-Tide Alert wins both, plainly. Slackwater does not notify you and is not on the wrist.
-Slackwater's home screen widget shows the next slack or tide turn, which is a
-glance, not an alert.
+Slackwater includes a free Apple Watch app that runs without the phone. Premium adds phone alerts, station calendars and Watch complications. Home screen widgets remain free. Compare Tide Alert's tide-level and time alerts with the events you want Slackwater to notify you about.
 
 ## Price
 
 Tide Alert's full access is $19.99 a year or $99.99 for life. Slackwater's core is free
-and stays free; a paid add-on for the lock screen funds development.
+and stays free, including home screen widgets. Optional Premium adds alerts, station calendars, lock-screen widgets and Watch complications, with annual and lifetime purchase options.
 
 ## Who should pick which
 
-**Tide Alert** if you want to be told when the tide hits a level, wear a Watch, or use
-Siri.
+**Tide Alert** if its tide-level alerts, Watch interface or Siri support suit you.
 
 **Slackwater** if you need the slack window at a current station, want every prediction
-offline without favouriting first, or want free with no subscription.
+at bundled stations offline without favoriting first, or want free charts with no subscription. Download Canadian stations before leaving signal and check for online-only passes.
 
 Nothing imports. Star your stations in Slackwater by search.
 

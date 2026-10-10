@@ -1,6 +1,6 @@
 import type { PlaceLink, StationRow } from '#/lib/catalogue-server'
 import { UNPLACED } from '#/lib/places'
-import { stationPath, type Kind } from '#/lib/station'
+import type { Kind } from '#/lib/station'
 import { DirectoryNav } from './DirectoryNav'
 import { TidesExplainerCard } from './TidesExplainerCard'
 
@@ -18,7 +18,7 @@ const isPlace = (region: string) => !/^\d+$/.test(region)
  * `rows.some((r) => r.region && isPlace(r.region))` was the original rule:
  * group if ANY row has a placeable region. That held while no current
  * station had one at all. Then `boundary-pass` gained a curated region and
- * 23 CHS gates arrived carrying one each — 24 rows out of 865 — and `.some()`
+ * 23 CHS gates arrived carrying one each — 24 rows out of 2,557 — and `.some()`
  * fired on that alone, sorting 24 one-station headings ahead of an
  * `Elsewhere` bucket holding the other 841. A reader looking for a US
  * current station scrolled past two dozen Canadian headings to reach the
@@ -112,12 +112,12 @@ export function StationIndex({
         group(rows).map(([region, list]) => (
           <section key={region} className="mt-10">
             <h2 className="text-sm font-medium uppercase tracking-wider text-sw-leaf">{region}</h2>
-            <List kind={kind} rows={list} />
+            <List rows={list} />
           </section>
         ))
       ) : rows.length > 0 ? (
         <div className="mt-10">
-          <List kind={kind} rows={rows} />
+          <List rows={rows} />
         </div>
       ) : null}
     </main>
@@ -165,12 +165,12 @@ function Places({ places }: { places: PlaceLink[] }) {
   )
 }
 
-function List({ kind, rows }: { kind: Kind; rows: StationRow[] }) {
+function List({ rows }: { rows: StationRow[] }) {
   return (
     <ul className="mt-3 grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
       {rows.map((r) => (
         <li key={r.slug}>
-          <a href={stationPath(kind, r.slug)} className="text-sw-paper/90 hover:text-sw-leaf">
+          <a href={r.path} className="text-sw-paper/90 hover:text-sw-leaf">
             {r.name}
           </a>
         </li>

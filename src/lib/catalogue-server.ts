@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
-import { loadCatalogue } from './catalogue'
+import { loadCatalogue, loadMoved, loadWithheld } from './catalogue'
 import { bearing, distanceNm, neighbourMap } from './nearby'
-import { placePath, placeTree, stationPlace } from './places'
+import { kindRoot, nearestPlace, parentPath, placeTree, type Place } from './places'
 import type { Kind, Station } from './station'
 
 /**
@@ -18,25 +18,42 @@ import type { Kind, Station } from './station'
  * prerender-list generators.
  */
 const index = (() => {
-  let cache: Map<string, Station> | undefined
+  let cache: { bySlug: Map<string, Station>; byPath: Map<string, Station> } | undefined
   return () => {
     if (!cache) {
-      cache = new Map()
-      for (const s of loadCatalogue()) cache.set(`${s.kind}/${s.slug}`, s)
+      cache = { bySlug: new Map(), byPath: new Map() }
+      for (const s of loadCatalogue()) {
+        cache.bySlug.set(`${s.kind}/${s.slug}`, s)
+        cache.byPath.set(s.path, s)
+      }
     }
     return cache
   }
 })()
 
+/** Where a route's former addresses point now, built once — see `loadMoved`. */
+const moved = (() => {
+  let cache: Map<string, string> | undefined
+  return () => (cache ??= loadMoved())
+})()
+
+/** The addresses of the routes the quality pass rejects, built once — see `loadWithheld`. */
+const withheld = (() => {
+  let cache: Map<string, string> | undefined
+  return () => (cache ??= loadWithheld())
+})()
+
 /** One row of the browse index: enough to render a link, and nothing else. */
 export interface StationRow {
   slug: string
+  path: string
   name: string
   region?: string
 }
 
-const toRow = (s: Pick<Station, 'slug' | 'name' | 'region'>): StationRow => ({
+const toRow = (s: Pick<Station, 'slug' | 'path' | 'name' | 'region'>): StationRow => ({
   slug: s.slug,
+  path: s.path,
   name: s.name,
   ...(s.region ? { region: s.region } : {}),
 })
@@ -46,30 +63,13 @@ const toRow = (s: Pick<Station, 'slug' | 'name' | 'region'>): StationRow => ({
  *
  * A page that spans jurisdictions wants them as headings: Japan's 198 stations
  * have no other structure, and a US state code still tells a reader something
- * on the worldwide list. A page already titled for one jurisdiction does not —
+ * on a country page. A page already titled for one jurisdiction does not —
  * see the subdivision branch below.
  */
-const toAreaRow = (s: Pick<Station, 'slug' | 'name' | 'region' | 'area'>): StationRow =>
+const toAreaRow = (s: Pick<Station, 'slug' | 'path' | 'name' | 'region' | 'area'>): StationRow =>
   toRow({ ...s, region: s.region ?? s.area })
 
-const byName = (a: StationRow, b: StationRow) => a.name.localeCompare(b.name)
-
-/**
- * Every station of one kind, for the browse index.
- *
- * Deliberately NOT `Station[]`: the full record carries the harmonic
- * constituents, and 4,792 of those serialised into a page's loader data would
- * put the tide database back on the wire that `stationBySlug` exists to keep it
- * off. Three fields per station is the whole payload.
- */
-export const stationList = createServerFn({ method: 'GET' })
-  .validator((data: { kind: Kind }) => data)
-  .handler(({ data }): StationRow[] =>
-    [...index().values()]
-      .filter((s) => s.kind === data.kind)
-      .map(toRow)
-      .sort(byName),
-  )
+const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name)
 
 /** One child page of a browse index: a country, or a subdivision of one. */
 export interface PlaceLink {
@@ -80,12 +80,18 @@ export interface PlaceLink {
   continent?: string
 }
 
+/** A link one level up, or one step of a breadcrumb. */
+export interface Crumb {
+  href: string
+  label: string
+}
+
 /** What one page of the browse hierarchy renders. */
 export interface PlaceIndex {
   /** The place this page is of. Absent on the worldwide index, which is of no place. */
   name?: string
   /** The page one level up, resolved here because only this side knows the names. */
-  up?: { href: string; label: string }
+  up?: Crumb
   /** Pages below this one. Empty on a page that holds stations and nothing else. */
   places: PlaceLink[]
   /** The stations that live on this page rather than on a child of it. */
@@ -97,8 +103,8 @@ export interface PlaceIndex {
 /**
  * One kind's stations, and the place tree over them, built once each.
  *
- * Both are the same for all 149 place pages the prerender asks for, and
- * rebuilding the tree per page walked the whole catalogue 149 times. Same
+ * Both are the same for every place page the prerender asks for, and
+ * rebuilding the tree per page walked the whole catalogue once a page. Same
  * reason `neighbours` below is cached, and the same lesson: a per-request
  * scan of the catalogue is what put the first prerender past three seconds a
  * page.
@@ -111,87 +117,64 @@ const memoByKind = <T,>(build: (kind: Kind) => T) => {
     return held
   }
 }
-const stationsOfKind = memoByKind((kind) => [...index().values()].filter((s) => s.kind === kind))
+const stationsOfKind = memoByKind((kind) => [...index().bySlug.values()].filter((s) => s.kind === kind))
 const trees = memoByKind((kind) => placeTree(stationsOfKind(kind)))
+/** Each place page's stations and child places, grouped once rather than filtered per page. */
+const children = memoByKind((kind) => {
+  const out = new Map<string, { places: Place[]; stations: Station[] }>()
+  const at = (path: string) => {
+    let held = out.get(path)
+    if (!held) out.set(path, (held = { places: [], stations: [] }))
+    return held
+  }
+  for (const p of trees(kind).values()) at(p.up).places.push(p)
+  for (const s of stationsOfKind(kind)) at(parentPath(s.path)).stations.push(s)
+  return out
+})
+
+const rootLabel = (kind: Kind) => (kind === 'tide' ? 'Tide stations' : 'Current stations')
+
+/** The pages above `path`, from the kind's index down to its parent. */
+function crumbs(kind: Kind, path: string): Crumb[] {
+  const tree = trees(kind)
+  const out: Crumb[] = []
+  for (let p = parentPath(path); tree.has(p); p = parentPath(p)) out.unshift({ href: p, label: tree.get(p)!.name })
+  return [{ href: kindRoot(kind), label: rootLabel(kind) }, ...out]
+}
 
 /**
- * One page of the geographic browse hierarchy: `/stations/tides/`, a country
- * under it, or a subdivision under that.
+ * One page of the geographic browse hierarchy: `/tides/`, a country under it,
+ * or a subdivision under that.
  *
- * The whole point of this function is what it does NOT return. The flat index
- * it replaces serialised 4,792 rows into one page's loader data — 322 KB of a
- * 922 KB page, for a list nothing on the client ever reads back. Asking for
- * one place at a time keeps both the rendered list and that payload
+ * The whole point of this function is what it does NOT return. A flat index
+ * of every station serialised 4,792 rows into one page's loader data — 322 KB
+ * of a 922 KB page, for a list nothing on the client ever reads back. Asking
+ * for one place at a time keeps both the rendered list and that payload
  * proportional to the place, so neither grows when the corpus does. See #33.
  *
- * `undefined` for a country or subdivision the catalogue does not have, so the
- * route can 404 rather than render an empty page for any URL that parses.
+ * `undefined` for a path that is no place, so the route can 404 rather than
+ * render an empty page for any URL that parses.
  */
-export const placeIndex = createServerFn({ method: 'GET' })
-  .validator((data: { kind: Kind; country?: string; state?: string }) => data)
-  .handler(({ data }): PlaceIndex | undefined => {
-    const { kind, country, state } = data
-    const mine = stationsOfKind(kind)
-    const tree = trees(kind)
-
-    if (!country) {
-      return {
-        places: tree.map((c) => ({
-          href: placePath(kind, c.slug),
-          name: c.name,
-          count: c.count,
-          continent: c.continent,
-        })),
-        rows: [],
-        count: mine.length,
-      }
-    }
-
-    const node = tree.find((c) => c.slug === country)
-    if (!node) return undefined
-    const placed = mine
-      .map((s) => ({ s, at: stationPlace(tree, s) }))
-      .filter(({ at }) => at?.country.slug === node.slug)
-
-    if (!state) {
-      // A split country keeps only the stations its subdivisions do not claim:
-      // the handful with no subdivision code would otherwise be unreachable
-      // from anywhere but the sitemap.
-      const rows = placed.filter(({ at }) => !at!.state).map(({ s }) => s)
-      return {
-        name: node.name,
-        up: { href: placePath(kind), label: kind === 'tide' ? 'Tide stations' : 'Current stations' },
-        places: node.states.map((s) => ({
-          href: placePath(kind, node.slug, s.slug),
-          name: s.name,
-          count: s.count,
-        })),
-        rows: rows.map(toAreaRow).sort(byName),
-        count: node.count,
-      }
-    }
-
-    const sub = node.states.find((s) => s.slug === state)
-    if (!sub) return undefined
-    return {
-      // The subdivision code alone is not a place a reader can put on a map, so
-      // it is named the way `copy.ts` names one on a station page: code, then
-      // country in full.
-      name: `${sub.name}, ${node.name}`,
-      up: { href: placePath(kind, node.slug), label: node.name },
-      places: [],
-      // Water headings only. The jurisdiction is the page's own title, so
-      // repeating it says nothing — and the provider rows near a border carry
-      // the neighbouring one, which on a page titled "BC, Canada" reads as a
-      // contradiction rather than a heading. `area` is dropped here for that
-      // reason; `region` is the water and stays.
-      rows: placed
-        .filter(({ at }) => at!.state?.slug === state)
-        .map(({ s }) => toRow(s))
-        .sort(byName),
-      count: sub.count,
-    }
-  })
+function placeIndex(kind: Kind, path: string): PlaceIndex | undefined {
+  const root = path === kindRoot(kind)
+  const place = trees(kind).get(path)
+  if (!root && !place) return undefined
+  const below = children(kind).get(path) ?? { places: [], stations: [] }
+  const subdivision = place && place.up !== kindRoot(kind)
+  return {
+    ...(place ? { name: place.title, up: crumbs(kind, path).at(-1) } : {}),
+    places: below.places
+      .map((p) => ({ href: p.path, name: p.name, count: p.count, ...(p.continent ? { continent: p.continent } : {}) }))
+      .sort(byName),
+    // Water headings only on a subdivision. The jurisdiction is the page's own
+    // title, so repeating it says nothing — and the provider rows near a border
+    // carry the neighbouring one, which on a page titled "BC, Canada" reads as a
+    // contradiction rather than a heading. `area` is dropped there for that
+    // reason; `region` is the water and stays.
+    rows: below.stations.map(subdivision ? toRow : toAreaRow).sort(byName),
+    count: root ? stationsOfKind(kind).length : place!.count,
+  }
+}
 
 /**
  * The nearest stations of the same kind, for the "Nearby" list on a station page.
@@ -204,16 +187,15 @@ export const placeIndex = createServerFn({ method: 'GET' })
  */
 const neighbours = (() => {
   let cache: Map<string, Station[]> | undefined
-  return () => (cache ??= neighbourMap([...index().values()]))
+  return () => (cache ??= neighbourMap([...index().bySlug.values()]))
 })()
 
 /**
  * A neighbour carries its position and its leg from the page's station.
  *
- * Only the nearby list is widened, NOT `StationRow`: `stationList` serialises
- * every station of a kind into the browse index's loader data, and four more
- * numbers each is the whole payload growing by more than half for fields that
- * page never renders.
+ * Only the nearby list is widened, NOT `StationRow`: a browse page serialises
+ * every row it lists into its loader data, and four more numbers each is the
+ * payload growing by more than half for fields that page never renders.
  */
 export interface NearbyRow extends StationRow {
   latitude: number
@@ -224,22 +206,52 @@ export interface NearbyRow extends StationRow {
   bearing: number
 }
 
-export const nearbyStations = createServerFn({ method: 'GET' })
-  .validator((data: { kind: Kind; slug: string }) => data)
-  .handler(({ data }): NearbyRow[] => {
-    const station = index().get(`${data.kind}/${data.slug}`)
-    if (!station) return []
-    return (neighbours().get(station.id) ?? []).map((s) => ({
-      slug: s.slug,
-      name: s.name,
-      ...(s.region ? { region: s.region } : {}),
-      latitude: s.latitude,
-      longitude: s.longitude,
-      nm: distanceNm(station, s),
-      bearing: bearing(station, s),
-    }))
+function nearby(station: Station): NearbyRow[] {
+  return (neighbours().get(station.id) ?? []).map((s) => ({
+    ...toRow(s),
+    latitude: s.latitude,
+    longitude: s.longitude,
+    nm: distanceNm(station, s),
+    bearing: bearing(station, s),
+  }))
+}
+
+/** What a path under `/tides/` or `/currents/` is. */
+export type Resolved =
+  | { page: 'station'; station: Station; nearby: NearbyRow[]; crumbs: Crumb[] }
+  | { page: 'place'; path: string; index: PlaceIndex }
+  | { page: 'redirect'; path: string }
+
+/**
+ * One lookup for every page under a kind's index.
+ *
+ * A place and a station can share a path's shape — `/tides/us/pa/` is a
+ * subdivision, `/tides/jp/kushiro/` a station in a country the database gives
+ * no subdivisions — so only the catalogue can say which a path is.
+ *
+ * A bare `/tides/<slug>/` is the address Slackwater's share sheet mints, and it
+ * answers with the station's path so the route can send the reader there. A
+ * slug is never two letters, so it cannot be read as a country.
+ */
+export const resolvePath = createServerFn({ method: 'GET' })
+  .validator((data: { kind: Kind; path: string }) => data)
+  .handler(({ data: { kind, path } }): Resolved | undefined => {
+    const station = index().byPath.get(path)
+    if (station?.kind === kind) return { page: 'station', station, nearby: nearby(station), crumbs: crumbs(kind, path) }
+    const place = placeIndex(kind, path)
+    if (place) return { page: 'place', path, index: place }
+    const slug = path.slice(kindRoot(kind).length, -1)
+    const flat = !slug.includes('/') && index().bySlug.get(`${kind}/${slug}`)
+    if (flat) return { page: 'redirect', path: flat.path }
+    const now = moved().get(path)
+    if (now) return { page: 'redirect', path: now }
+    // A route the quality pass rejects has no page, and 357 of them had one
+    // here, so the address answers with the nearest page above it rather than
+    // a 404.
+    const gone = withheld().get(path)
+    return gone ? { page: 'redirect', path: nearestPlace(trees(kind), kind, gone) } : undefined
   })
 
 export const stationBySlug = createServerFn({ method: 'GET' })
   .validator((data: { kind: Kind; slug: string }) => data)
-  .handler(({ data }) => index().get(`${data.kind}/${data.slug}`))
+  .handler(({ data }) => index().bySlug.get(`${data.kind}/${data.slug}`))

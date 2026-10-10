@@ -5,6 +5,7 @@ import type { BundledStation, ChsStation } from '#/lib/station'
 
 const dodd = {
   id: 'chs-dodd-narrows', kind: 'current', slug: 'dodd-narrows', name: 'Dodd Narrows',
+  path: '/currents/ca/bc/dodd-narrows/',
   source: 'chs', region: 'Nanaimo',
   latitude: 49.13546639419797, longitude: -123.81735084108287, timezone: 'America/Vancouver',
 } satisfies ChsStation
@@ -86,6 +87,7 @@ describe('StationPage for a derived gate', () => {
   const malibu = {
     ...dodd,
     id: 'chs-malibu-rapids', slug: 'malibu-rapids', name: 'Malibu Rapids',
+    path: '/currents/ca/bc/malibu-rapids/',
     region: 'Princess Louisa Inlet',
     latitude: 50.1626, longitude: -123.8515,
     derived: true,
@@ -108,6 +110,7 @@ describe('StationPage for a derived gate', () => {
 describe('StationPage for a CHS tide port', () => {
   const victoria = {
     id: 'chs-victoria', kind: 'tide', slug: 'victoria', name: 'Victoria',
+    path: '/tides/ca/bc/victoria/',
     source: 'chs', region: 'Inner Harbour',
     latitude: 48.424, longitude: -123.371, timezone: 'America/Vancouver',
   } satisfies ChsStation
@@ -142,13 +145,14 @@ describe('StationPage for a CHS tide port', () => {
 describe('StationPage for a bundled tide station', () => {
   const seattle: BundledStation = {
     id: 'noaa/9447130', kind: 'tide', slug: 'seattle', name: 'Seattle',
+    path: '/tides/us/wa/seattle/',
     latitude: 47.6, longitude: -122.34, timezone: 'America/Los_Angeles',
     source: 'bundled', chartDatum: 'MLLW', state: 'WA', country: 'United States',
     constituents: [{ name: 'M2', amplitude: 3.487, phase: 10.8 }, { name: 'K1', amplitude: 2.625, phase: 300 }],
   }
   const now = new Date('2026-09-11T20:00:00Z')
   const nearby = [
-    { slug: 'tacoma', name: 'Tacoma', latitude: 47.27, longitude: -122.41, nm: 20.1, bearing: 190 },
+    { slug: 'tacoma', name: 'Tacoma', path: '/tides/us/wa/tacoma/', latitude: 47.27, longitude: -122.41, nm: 20.1, bearing: 190 },
   ]
   const html = renderToStaticMarkup(<StationPage station={seattle} now={now} nearby={nearby} />)
   const live = renderToStaticMarkup(<StationPage station={seattle} now={now} live nearby={nearby} />)
@@ -162,7 +166,7 @@ describe('StationPage for a bundled tide station', () => {
   it('walks a breadcrumb of real pages, home first', () => {
     expect(html).toMatch(/<nav aria-label="Breadcrumb"/)
     expect(html).toMatch(/<a href="\/"/)
-    expect(html).toMatch(/<a href="\/stations\/tides\/"/)
+    expect(html).toMatch(/<a href="\/tides\/"/)
   })
 
   it('reads the water now only once the clock is live', () => {
@@ -220,6 +224,40 @@ describe('StationPage for a bundled tide station', () => {
     for (let d = 11; d <= 17; d++) expect(html).toContain(`${d} Sep 2026`)
   })
 
+  it.each([
+    ['2026-12-31T20:00:00Z', 'Thu 31 Dec 2026', 'Wed 6 Jan 2027'],
+    ['2026-11-01T20:00:00Z', 'Sun 1 Nov 2026', 'Sat 7 Nov 2026'],
+  ])('keeps each extracted event dated across %s', (instant, firstDay, lastDay) => {
+    const page = renderToStaticMarkup(<StationPage station={seattle} now={new Date(instant)} />)
+    const table = page.match(/<table[\s\S]*?<\/table>/)![0]
+    const caption = table.match(/<caption[^>]*>([\s\S]*?)<\/caption>/)?.[1]
+    expect(caption).toContain(firstDay)
+    expect(caption).toContain(lastDay)
+    expect(caption).toContain('America/Los_Angeles')
+    const rows = [...table.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)].slice(1)
+    expect(rows.length).toBeGreaterThan(0)
+    for (const [, row] of rows) {
+      const date = row.match(/<td[^>]*>(.*?)<\/td>/)![1]
+      expect(date).toMatch(/\w{3} \d{1,2} \w{3} 202[67]/)
+      const time = row.match(/<time dateTime="([^"]+)"[^>]*>(\d{2}:\d{2})<\/time>/)
+      expect(time).not.toBeNull()
+      const local = new Date(time![1]).toLocaleTimeString('en-CA', {
+        timeZone: 'America/Los_Angeles', hour: '2-digit', minute: '2-digit', hour12: false,
+      })
+      expect(time![2]).toBe(local)
+    }
+  })
+
+  it('credits the publisher and shows its licence notice', () => {
+    const andenes = renderToStaticMarkup(<StationPage station={{
+      ...seattle, id: 'kartverket/ANX', name: 'Andenes', chartDatum: 'CD',
+      publisher: 'Kartverket / Norwegian Mapping Authority, Hydrographic Service',
+      attribution: 'Slackwater database. Source: © Kartverket. Licensed CC BY 4.0.',
+    }} now={now} />)
+    expect(andenes).toContain('Harmonic constituents from Kartverket / Norwegian Mapping Authority, Hydrographic Service')
+    expect(andenes).toContain('Source: © Kartverket. Licensed CC BY 4.0.')
+  })
+
   it('states the datum under Station facts, not under the curve', () => {
     expect(html).toContain('Station facts')
     expect(html).toContain('MLLW datum')
@@ -229,7 +267,7 @@ describe('StationPage for a bundled tide station', () => {
   })
 
   it('links each neighbour with its leg, and leaves the map to the browser', () => {
-    expect(html).toMatch(/<a href="\/tides\/tacoma\/"[^>]*>Tacoma<\/a>/)
+    expect(html).toMatch(/<a href="\/tides\/us\/wa\/tacoma\/"[^>]*>Tacoma<\/a>/)
     expect(html).toContain('20.1 nm S')
     expect(html).not.toContain('leaflet')
     expect(html).not.toContain('tile.openstreetmap.org')
@@ -239,6 +277,7 @@ describe('StationPage for a bundled tide station', () => {
 describe('StationPage for a bundled current station', () => {
   const station: BundledStation = {
     id: 'noaa/PUG1701', kind: 'current', slug: 'deception-pass-narrows', name: 'Deception Pass (Narrows)',
+    path: '/currents/us/wa/deception-pass-narrows/',
     latitude: 48.4, longitude: -122.64, timezone: 'America/Los_Angeles',
     source: 'bundled', floodDirection: 101.5, ebbDirection: 281.5,
     constituents: [{ name: 'M2', amplitude: 3.2, phase: 100 }, { name: 'K1', amplitude: 1.1, phase: 250 }],
@@ -256,5 +295,23 @@ describe('StationPage for a bundled current station', () => {
     expect(html).toMatch(/>Now<\/button>/)
     expect(html).toContain('data-marker="actual-now"')
     expect(html).toContain('Slack water and maximums for the next 7 days')
+  })
+
+  it('names a subordinate current table reduction in the station facts', () => {
+    const subordinate: BundledStation = {
+      ...station,
+      id: 'noaa/ACT0091',
+      constituents: [],
+      reduction: {
+        referenceId: 'noaa/EPT0003@11',
+        referenceConstituents: station.constituents,
+        referenceOffset: 0,
+        slackBeforeFloodOffset: 0, slackBeforeEbbOffset: 0,
+        floodTimeOffset: 0, ebbTimeOffset: 0,
+        floodSpeedRatio: 1.2, ebbSpeedRatio: 1.2,
+      },
+    }
+    const html = renderToStaticMarkup(<StationPage station={subordinate} now={actualNow} />)
+    expect(html).toContain('NOAA current table reduction from EPT0003, bin 11')
   })
 })

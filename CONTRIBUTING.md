@@ -44,7 +44,7 @@ pnpm test
 
 The build comes before typechecking and tests because it generates `src/routeTree.gen.ts` and the prerendered artifacts that four integration suites inspect. Prediction changes arrive with a focused test; errors there can look plausible and matter on the water.
 
-Presentation is checked by looking at it. There is no snapshot suite: 5,657 pages come from
+Presentation is checked by looking at it. There is no snapshot suite: 8,450 pages come from
 three templates, so a representative tide page, a representative current page, and a
 representative CHS identity-only page (`/currents/dodd-narrows`) is the check, and a diff
 across thousands of near-identical generated pages would be noise, not signal.
@@ -59,9 +59,9 @@ Look at any visible change before reporting it complete.
 
 ## Project rules
 
-- Keep dependencies, abstractions, and build steps to the minimum. Their cost is multiplied across 5,657 station pages.
+- Keep dependencies, abstractions, and build steps to the minimum. Their cost is multiplied across 8,450 station pages.
 - Every rendered curve comes from `src/lib/predict.ts` and bundled constituents. The landing page only shows the app's screenshots. Changes to `predict.ts`, `src/lib/ramp.ts`, or `src/lib/iwls.ts` require a test.
-- `catalogue.ts` excludes NOAA subordinate current stations until reference-station reductions are implemented in issue #80. Without that reduction, they render blank bodies.
+- NOAA subordinate current stations reduce an exact reference station and bin through their published time offsets and speed ratios. A row with its own constituents remains harmonic regardless of NOAA's type label.
 - The 33 CHS pages ship identity without a prerendered prediction. The visitor's browser fetches 32 station predictions directly from DFO; `chs-malibu-rapids` is derived and has no station to fetch. Never proxy or re-serve IWLS predictions, and never prerender them. `src/lib/iwls.ts` converts DFO metres on chart datum to feet; CHS pages name chart datum without borrowing another datum code. The site covers 10 of 1,058 Canadian tide ports and must not imply complete coverage. Issue #17 tracks the missing identities and `chs-arran-rapids`.
 - Never claim a feature the app does not ship. The app has one external TestFlight group; its URL lives in `src/lib/links.ts`, and the six pages under `src/content/compare` repeat it in prose.
 - `src/content/privacy.md` names what the site collects. Any analytics, embed, font CDN, third-party script, or change to the IWLS request timing updates that policy in the same commit.
@@ -70,6 +70,7 @@ Look at any visible change before reporting it complete.
 - Do not add `devtools()` from `@tanstack/devtools-vite`; it breaks `vite dev` with an unavailable SSR environment and a transport timeout.
 - `slackwater-ios` is the source of truth for ported visuals. Match the Swift palette, geometry, and crop after reading the complete draw function and its `Theme.swift` constants. Resolve genuine inconsistencies in the app first.
 - The app's sky projection depends on both crops: fit each body's rise-to-set span to the width and fit the app's 0–62° altitude range to the band height at the call site. Keep `skyPoint` aligned with `Slackwater/Theme.swift`; the 300° projection in `openwaters.io` has a different purpose.
+- `@slackwater/database` moves with slackwater-ios: bump both to the same release in the same pass, so the site and the app name, place, and credit every station alike. slackwater-database's [CONTRIBUTING](https://github.com/openwatersio/slackwater-database/blob/main/CONTRIBUTING.md#releases) owns the rule.
 - pnpm 11 blocks very recent releases. `pnpm add` records required exceptions in `pnpm-workspace.yaml`; commit those with a fresh `@openwaters/*` dependency bump. Dependabot uses a three-day cooldown for the same reason.
 
 ## Branch and PR

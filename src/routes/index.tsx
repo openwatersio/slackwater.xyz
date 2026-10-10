@@ -5,6 +5,22 @@ import { SITE_DESCRIPTION } from '#/routes/__root'
 
 const CANONICAL = 'https://slackwater.xyz/'
 const SOURCE = 'https://github.com/openwatersio/slackwater-ios'
+const LANGUAGES = [
+  ['en', '🇬🇧', 'English'],
+  ['fr-CA', '🇨🇦', 'Français'],
+  ['es-ES', '🇪🇸', 'Español'],
+  ['ja', '🇯🇵', '日本語'],
+  ['de', '🇩🇪', 'Deutsch'],
+  ['pt-BR', '🇧🇷', 'Português (Brasil)'],
+  ['nl', '🇳🇱', 'Nederlands'],
+  ['nb', '🇳🇴', 'Norsk bokmål'],
+  ['sv', '🇸🇪', 'Svenska'],
+  ['it', '🇮🇹', 'Italiano'],
+  ['ko', '🇰🇷', '한국어'],
+  ['da', '🇩🇰', 'Dansk'],
+  ['pt-PT', '🇵🇹', 'Português (Portugal)'],
+  ['fi', '🇫🇮', 'Suomi'],
+] as const
 
 export const Route = createFileRoute('/')({
   head: () => ({
@@ -22,7 +38,7 @@ export const Route = createFileRoute('/')({
           url: CANONICAL,
           image: 'https://slackwater.xyz/og.png',
           applicationCategory: 'UtilitiesApplication',
-          operatingSystem: 'iOS',
+          operatingSystem: 'iOS 26 or later; iPadOS 26 or later',
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
           publisher: {
             '@type': 'Organization',
@@ -133,12 +149,16 @@ function Home() {
       <header className="mt-12 grid gap-12 sm:mt-16 lg:grid-cols-[1fr_360px] lg:items-center lg:gap-20">
         <div>
           <h1 className="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight text-sw-paper sm:text-6xl">
-            The tide and currents app that works without signal{' '}
+            The free tide and currents app that works without signal{' '}
             <NoSignal className="inline-block size-[0.7em] align-[-0.05em] text-sw-steel" />
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-snug text-sw-foam sm:text-xl">
-            Tides worldwide, currents across the US and Canada. Every station, every date,
-            already on your phone.
+            Tides worldwide, currents across the US and Canada. Bundled stations are ready
+            offline for any date.
+          </p>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-sw-steel">
+            Canadian stations need an initial download. Some passes require a connection;
+            the app tells you which.
           </p>
           <div className="mt-8">
             <Cta />
@@ -175,6 +195,7 @@ function Home() {
               />
               <img
                 src="/shots/tides-night.webp"
+                loading="lazy"
                 alt="Friday Harbor in Slackwater at 11:30pm under a starry sky with a full moon."
                 width={780}
                 height={1695}
@@ -184,32 +205,52 @@ function Home() {
         </div>
       </header>
 
+      <div className="mx-auto mt-8 max-w-2xl text-center text-sm">
+        <p className="text-sw-steel">Available in {LANGUAGES.length} languages</p>
+        <ul
+          aria-label="Supported iOS app languages"
+          role="list"
+          className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sw-foam"
+        >
+          {LANGUAGES.map(([locale, flag, name]) => (
+            <li key={locale} className="inline-flex items-center gap-1.5">
+              <span aria-hidden="true">{flag}</span>
+              <span lang={locale}>{name}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
         <Heading>Checked against the agencies&rsquo; own predictions.</Heading>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-sw-foam">
-          Harmonic constituents published by NOAA and the Canadian Hydrographic Service, summed
-          on your phone rather than fetched from anyone&rsquo;s server. The engine is validated
-          against those agencies&rsquo; published predictions, and the largest deviations are
-          written down.
+          NOAA predictions use published harmonic constituents. Most Canadian stations build a
+          model on your phone from Canadian Hydrographic Service predictions after a download;
+          some passes fetch predictions when online. The engine is checked against the agencies&rsquo;
+          published predictions.
         </p>
         <dl className="mt-6 grid max-w-2xl gap-6 sm:grid-cols-2">
           <div>
-            <dt className="text-sm text-sw-steel">Tides at Friday Harbor</dt>
+            <dt className="text-sm text-sw-steel">Friday Harbor high and low tides</dt>
             <dd className="mt-1 text-xl text-sw-paper [font-variant-numeric:tabular-nums]">
               Within 7.9 minutes and 3.5 cm of NOAA
             </dd>
           </div>
           <div>
-            <dt className="text-sm text-sw-steel">Currents in Bellingham Channel</dt>
+            <dt className="text-sm text-sw-steel">Bellingham Channel maximum flood and ebb</dt>
             <dd className="mt-1 text-xl text-sw-paper [font-variant-numeric:tabular-nums]">
               Within 9.7 minutes and 0.055 knots of NOAA
             </dd>
           </div>
         </dl>
-        {/* The live "yesterday's max deviation" receipt goes here once the
-            nightly verification job exists — slackwater-engine#4. Until then
-            this section shows point-in-time validation, which is true, rather
-            than a live number, which would not be. */}
+        <p className="mt-6 max-w-2xl text-sw-steel">
+          These July 2026 validation reports compare predictions at two stations, not measured
+          water conditions. The current sample excludes slack timing.{' '}
+          <a href="/accuracy/" className="underline underline-offset-4 hover:text-sw-foam">
+            Read the dates, methods and limits
+          </a>
+          .
+        </p>
         <p className="mt-6 max-w-2xl text-sw-steel">
           Where a source is online-only or lower confidence, the app says so rather than
           presenting it as settled.
@@ -289,7 +330,7 @@ function Home() {
       </Feature>
 
       <Feature
-        title={<>No spinner. No &ldquo;no internet connection.&rdquo;</>}
+        title={<>Bundled predictions, without a connection.</>}
         shot={
           <Shot
             src="/shots/map.webp"
@@ -300,9 +341,9 @@ function Home() {
         }
       >
         <p>
-          Nothing is cached and nothing expires. The predictions are made on the phone from the
-          same published data the printed tables use, so every station and every date is there
-          with no connection.
+          Bundled stations predict on your phone for any date, without a download or an expiring
+          cache. Canadian stations need an initial download to build their offline model.
+          Online-only passes need a connection and are labeled in the app.
         </p>
         <p>Thousands of stations ship inside the app.</p>
       </Feature>
@@ -310,9 +351,16 @@ function Home() {
       <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
         <Heading>Free, open source, no account, no ads.</Heading>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-sw-foam">
-          The core is free and stays free: every station, every date, the curves, the slack
-          times, offline. Nothing tracked, nothing sold. It does not need a server, so it does
-          not need to earn one.
+          Tide charts, current predictions and home screen widgets are free. Choose any date
+          without a subscription. Bundled stations work offline; Canadian stations need setup,
+          and some passes require a connection. Your location stays on your phone.
+        </p>
+        <p className="mt-4 max-w-2xl text-sw-foam">
+          Comparing tide apps? See how Slackwater&rsquo;s free charts and widgets compare with{' '}
+          <a href="/alternatives/tide-guide/" className="underline underline-offset-4 hover:text-sw-paper">
+            Tide Guide&rsquo;s Pro features
+          </a>
+          .
         </p>
         <p className="mt-3 max-w-2xl text-sw-steel">
           The app is{' '}
@@ -327,16 +375,84 @@ function Home() {
         </div>
       </section>
 
+      <section id="app-facts" className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
+        <Heading>Questions about Slackwater.</Heading>
+        <div className="mt-6 max-w-2xl space-y-7 text-sw-foam [&_h3]:font-semibold [&_h3]:text-sw-paper [&_p]:mt-2 [&_p]:leading-relaxed [&_a]:underline [&_a]:underline-offset-4">
+          <div>
+            <h3>What is Slackwater?</h3>
+            <p>
+              Slackwater is a tide and tidal currents app for planning time on the water or at
+              its edge. Check high and low tides, current speed and direction, and slack-water
+              times for a beach visit, fishing trip or passage.
+            </p>
+          </div>
+          <div>
+            <h3>Which devices does it support?</h3>
+            <p>
+              The public beta runs on iPhone and iPad with iOS or iPadOS 26 or later,
+              and Apple Watch with watchOS 26 or later.{' '}
+              <a href={TESTFLIGHT ?? '/support/'}>Get the beta through TestFlight</a>.
+            </p>
+          </div>
+          <div>
+            <h3>What is free?</h3>
+            <p>
+              Tide charts, current predictions, station search, favorites and home screen
+              widgets are free, with no account or ads. You can choose any prediction date
+              without a subscription. The Apple Watch app is free too. Optional Premium adds
+              alerts, station calendars, lock-screen widgets and Watch complications, with
+              annual and lifetime purchase options.
+            </p>
+          </div>
+          <div>
+            <h3>Does it work without a connection?</h3>
+            <p>
+              Bundled stations work offline from first launch. Supported Canadian stations
+              need an initial download to build their offline model. Some Canadian passes
+              require a connection and are labeled in the app. Set up your Canadian stations
+              before leaving signal.
+            </p>
+          </div>
+          <div>
+            <h3>Where does Slackwater have coverage?</h3>
+            <p>
+              Tide stations are available around the world; current stations cover the US
+              and Canada. Coverage varies by place. Browse the{' '}
+              <a href="/stations/">station directory</a> to find your water.
+            </p>
+          </div>
+          <div>
+            <h3>Do I need to share my location?</h3>
+            <p>
+              No. Location permission helps find nearby stations, and your device&rsquo;s
+              GPS coordinates stay on your device. You can search and browse without it.
+              The app has no Open Waters account; favorites can sync through Apple&rsquo;s
+              iCloud. The website counts visits without cookies. Read the{' '}
+              <a href="/privacy/">privacy policy</a> for details.
+            </p>
+          </div>
+          <div>
+            <h3>Where can I get help or inspect the source?</h3>
+            <p>
+              <a href="/support/">Contact support</a> with the station name and date if a
+              prediction looks wrong. The app&rsquo;s{' '}
+              <a href={SOURCE}>source code is public</a>. Predictions are not observations;
+              weather and river flow affect conditions. Slackwater is not for navigation.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <footer className="mt-20 border-t border-white/10 pt-6 text-sm text-sw-steel">
         <p>
           Every station has its own page, so a link you send works for someone who hasn&rsquo;t
           installed anything:{' '}
-          <a href="/stations/tides/" className="underline underline-offset-4">
-            4,792 tide stations
+          <a href="/tides/" className="underline underline-offset-4">
+            5,893 tide stations
           </a>{' '}
           and{' '}
-          <a href="/stations/currents/" className="underline underline-offset-4">
-            865 current stations
+          <a href="/currents/" className="underline underline-offset-4">
+            2,557 current stations
           </a>
           .
         </p>

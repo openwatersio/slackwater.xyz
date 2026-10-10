@@ -9,14 +9,14 @@ describe('curatedBySlug', () => {
   })
 
   it('keys by slug, so a provider row and its registry twin agree', () => {
-    // noaa-boundary-pass (registry) and noaa/PUG1717 (provider) are one
-    // station 1.5 m apart, merged onto one slug in station-metadata 4.1.2.
+    // noaa-boundary-pass (curated) and noaa/PUG1717 (provider) are one
+    // station 1.5 m apart, merged onto one route in the database.
     expect(curatedBySlug('current').has('boundary-pass')).toBe(true)
   })
 })
 
 describe('chsStations for the current gates', () => {
-  it('yields every CHS current gate the registry publishes, less the excluded one', () => {
+  it('yields every CHS current gate the database publishes, less the excluded one', () => {
     const gates = chsStations('current')
     expect(gates.length).toBe(23)
     expect(gates.every((g) => g.source === 'chs')).toBe(true)
@@ -25,7 +25,7 @@ describe('chsStations for the current gates', () => {
   it('excludes chs-arran-rapids by name', () => {
     // slackwater-ios excludes it fully as a hazard call - wrong water under a
     // trusted name - and whether the web may name it is an open owner
-    // decision. The registry publishes it, so only an explicit rule keeps it
+    // decision. The database publishes it, so only an explicit rule keeps it
     // out. Do not remove this without that decision.
     expect(chsStations('current').some((g) => g.id === 'chs-arran-rapids')).toBe(false)
   })
@@ -36,6 +36,15 @@ describe('chsStations for the current gates', () => {
     expect(dodd?.slug).toBe('dodd-narrows')
     expect(dodd?.region).toBe('Northumberland Channel')
     expect(dodd?.timezone).toBe('America/Vancouver')
+  })
+
+  it('takes a gate\'s zone from the database, which places the offshore ones', () => {
+    // Juan de Fuca East and Port Renfrew sit far enough off the coastline
+    // that a coordinate lookup files them under an ocean zone. The database
+    // says Vancouver, which is what a mariner there keeps their watch in.
+    const gates = chsStations('current')
+    expect(gates.find((g) => g.id === 'chs-juan-de-fuca-east')?.timezone).toBe('America/Vancouver')
+    expect(chsStations('tide').find((g) => g.id === 'chs-port-renfrew')?.timezone).toBe('America/Vancouver')
   })
 })
 

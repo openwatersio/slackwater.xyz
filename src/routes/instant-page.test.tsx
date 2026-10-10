@@ -23,14 +23,15 @@ import type { BundledStation } from '#/lib/station'
  */
 
 const DECEPTION: BundledStation = {
-  id: 'noaa/PUG1701', kind: 'current', slug: 'deception-pass-narrows', name: 'Deception Pass (Narrows)',
+  id: 'noaa/PUG1701', kind: 'current', slug: 'deception-pass-narrows', path: '/currents/us/wa/deception-pass-narrows/',
+  name: 'Deception Pass (Narrows)',
   latitude: 48.4, longitude: -122.64, timezone: 'America/Los_Angeles',
   source: 'bundled',
   offset: 0, floodDirection: 101.5, ebbDirection: 281.5,
   constituents: [{ name: 'M2', amplitude: 3.2, phase: 100 }, { name: 'K1', amplitude: 1.1, phase: 250 }],
 }
 const SEATTLE: BundledStation = {
-  id: 'noaa/9447130', kind: 'tide', slug: 'seattle', name: 'SEATTLE (Madison St.), Elliott Bay',
+  id: 'noaa/9447130', kind: 'tide', slug: 'seattle', path: '/tides/us/wa/seattle/', name: 'SEATTLE (Madison St.), Elliott Bay',
   latitude: 47.6, longitude: -122.34, timezone: 'America/Los_Angeles',
   source: 'bundled',
   constituents: [{ name: 'M2', amplitude: 3.487, phase: 10.8 }, { name: 'K1', amplitude: 2.625, phase: 300 }],
@@ -39,18 +40,21 @@ const SEATTLE: BundledStation = {
 // The loader reaches the catalogue through a server function, which needs a
 // Start server context this test has no business standing up. The subject here
 // is routing and rendering, not the lookup.
+//
+// Every server function a route imports must be mocked here. A missing one
+// throws inside the loader, and the router then renders the SAME error page for
+// both instants - which looks exactly like the nesting bug this file exists to
+// catch, and sends you hunting in the wrong place.
 vi.mock('#/lib/catalogue-server', () => ({
+  resolvePath: async ({ data }: { data: { kind: string; path: string } }) => {
+    const mine = [DECEPTION, SEATTLE].filter((s) => s.kind === data.kind)
+    const station = mine.find((s) => s.path === data.path)
+    if (station) return { page: 'station', station, nearby: [], crumbs: [] }
+    const flat = mine.find((s) => data.path.endsWith(`s/${s.slug}/`))
+    return flat ? { page: 'redirect', path: flat.path } : undefined
+  },
   stationBySlug: async ({ data }: { data: { kind: string; slug: string } }) =>
     [DECEPTION, SEATTLE].find((s) => s.kind === data.kind && s.slug === data.slug),
-  // Every server function a station route imports must be mocked here. A
-  // missing one throws inside the loader, and the router then renders the SAME
-  // error page for both instants - which looks exactly like the nesting bug
-  // this file exists to catch, and sends you hunting in the wrong place.
-  nearbyStations: async () => [],
-  // The browse index's place routes are in the same route tree, so their
-  // import of this module is evaluated here too even though nothing in this
-  // file navigates to one.
-  placeIndex: async () => ({ places: [], rows: [], count: 0 }),
 }))
 
 const { routeTree } = await import('#/routeTree.gen')
@@ -84,8 +88,8 @@ describe('the instant URL renders its own moment', () => {
   const MAYDAY = '2027-05-01T09:00Z'
 
   it('renders two different current instants as two different pages', async () => {
-    const a = await body(`/currents/deception-pass-narrows/${CHRISTMAS}`)
-    const b = await body(`/currents/deception-pass-narrows/${MAYDAY}`)
+    const a = await body(`/currents/us/wa/deception-pass-narrows/${CHRISTMAS}`)
+    const b = await body(`/currents/us/wa/deception-pass-narrows/${MAYDAY}`)
     expect(a).not.toBe(b)
     expect(a).toContain(dayLabel(new Date(CHRISTMAS), DECEPTION.timezone))
     expect(b).toContain(dayLabel(new Date(MAYDAY), DECEPTION.timezone))
@@ -95,8 +99,8 @@ describe('the instant URL renders its own moment', () => {
   })
 
   it('renders two different tide instants as two different pages', async () => {
-    const a = await body(`/tides/seattle/${CHRISTMAS}`)
-    const b = await body(`/tides/seattle/${MAYDAY}`)
+    const a = await body(`/tides/us/wa/seattle/${CHRISTMAS}`)
+    const b = await body(`/tides/us/wa/seattle/${MAYDAY}`)
     expect(a).not.toBe(b)
     expect(a).toContain(dayLabel(new Date(CHRISTMAS), SEATTLE.timezone))
     expect(b).toContain(dayLabel(new Date(MAYDAY), SEATTLE.timezone))
@@ -105,27 +109,37 @@ describe('the instant URL renders its own moment', () => {
   it('does not render the canonical page instead', async () => {
     // The canonical page freezes at the build clock for the server render. If
     // the instant route stops mounting again, that date is what comes back.
-    const a = await body(`/currents/deception-pass-narrows/${CHRISTMAS}`)
-    const canonical = await body('/currents/deception-pass-narrows')
+    const a = await body(`/currents/us/wa/deception-pass-narrows/${CHRISTMAS}`)
+    const canonical = await body('/currents/us/wa/deception-pass-narrows')
     expect(a).not.toBe(canonical)
     expect(canonical).toContain(dayLabel(SERVER_NOW, DECEPTION.timezone))
   })
 
+  it('sends the app\'s short share link to the same moment at the station\'s own path', async () => {
+    // The app shares `/<kind>/<slug>/<instant>`; the page lives under its country.
+    const { loadDirectory } = await import('./-directory')
+    const sent = await loadDirectory('current', `deception-pass-narrows/${CHRISTMAS}`).catch((e) => e)
+    expect(sent.options).toMatchObject({
+      href: `/currents/us/wa/deception-pass-narrows/${CHRISTMAS}`,
+      statusCode: 301,
+    })
+  })
+
   it('404s a malformed instant rather than rendering some other moment', async () => {
-    const html = await body('/currents/deception-pass-narrows/not-a-time')
+    const html = await body('/currents/us/wa/deception-pass-narrows/not-a-time')
     expect(html).toContain('Not published')
   })
 })
 
 describe('the server render claims nothing about now', () => {
   it('leaves the relative "in Xm" countdown to the hydrated client', async () => {
-    for (const url of ['/currents/deception-pass-narrows', '/currents/deception-pass-narrows/2026-12-25T03:15-08:00']) {
+    for (const url of ['/currents/us/wa/deception-pass-narrows', '/currents/us/wa/deception-pass-narrows/2026-12-25T03:15-08:00']) {
       expect(await body(url), url).not.toMatch(/in \d+[hm]/)
     }
   })
 
   it('says nothing about the device that computed it', async () => {
     // "computed on this device" is false in prerendered HTML.
-    expect(await body('/currents/deception-pass-narrows')).not.toContain('this device')
+    expect(await body('/currents/us/wa/deception-pass-narrows')).not.toContain('this device')
   })
 })

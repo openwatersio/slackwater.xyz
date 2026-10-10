@@ -5,3 +5,5 @@ Email [slackwater@openwaters.io](mailto:slackwater@openwaters.io). A person read
 It helps to include your iOS version, the station name, and the date and time you were looking at.
 
 There are no accounts and nothing to reset. Slackwater keeps its data on your device. See the [privacy policy](/privacy/) for what that means.
+
+For compatibility, free features, coverage and offline setup, see [questions about Slackwater](/#app-facts).

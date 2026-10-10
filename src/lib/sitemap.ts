@@ -1,6 +1,7 @@
-import { stationPath, type Station } from './station'
+import type { Station } from './station'
 
 const ORIGIN = 'https://slackwater.xyz'
+export const STATIC_PATHS = ['/', '/support/', '/privacy/', '/accuracy/', '/learn/tides/', '/stations/']
 
 const urlset = (locs: string[]) =>
   '<?xml version="1.0" encoding="UTF-8"?>\n' +
@@ -11,7 +12,7 @@ const urlset = (locs: string[]) =>
 // No /currents/<slug>/<instant> URLs here on purpose: that path is unbounded
 // and every instant canonicalises back to its bare station URL, so listing
 // them would just hand crawlers an infinite space to fall into.
-const stationLoc = (s: Station) => ORIGIN + stationPath(s.kind, s.slug)
+const stationLoc = (s: Station) => ORIGIN + s.path
 
 /**
  * Four files, not three: a <sitemapindex> may only contain <sitemap><loc>
@@ -22,7 +23,7 @@ const stationLoc = (s: Station) => ORIGIN + stationPath(s.kind, s.slug)
 export function buildSitemaps(stations: Station[], extraStatic: string[] = []): Record<string, string> {
   const tides = stations.filter((s) => s.kind === 'tide').map(stationLoc)
   const currents = stations.filter((s) => s.kind === 'current').map(stationLoc)
-  const staticPages = ['/', '/support/', '/privacy/', '/learn/tides/', '/stations/', '/stations/tides/', '/stations/currents/', ...extraStatic].map(
+  const staticPages = [...STATIC_PATHS, ...extraStatic].map(
     (p) => `${ORIGIN}${p}`,
   )
 

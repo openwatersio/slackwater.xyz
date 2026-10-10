@@ -1,47 +1,24 @@
-import slugTable from '@openwaters/station-metadata/data/slugs.json' with { type: 'json' }
-import { formerSlugs } from './routes'
-import { stationPath, type Station } from './station'
-
-/**
- * Cloudflare reads at most this many static rules from `_redirects`; past it
- * the file is rejected whole, so the build fails here rather than at deploy.
- */
-export const REDIRECT_LIMIT = 2000
-
-/**
- * Every path this site once published for a station, sent to where it is now.
- *
- * Two sources, because the two halves of the history live in different
- * places. The database records a slug it retired as a former path. The slug
- * table this site published from before it read routes is the other half:
- * for a station the database never renamed but this site addressed
- * differently, only that table knows the old URL.
- *
- * A rule whose source is still a live page would shadow it — Cloudflare
- * follows `_redirects` whether or not an asset matches — so that is an error
- * here, not a rule.
- */
-export function buildRedirects(stations: Station[]): string {
-  const live = new Set(stations.map((s) => stationPath(s.kind, s.slug)))
-  const rules = new Map<string, string>()
-  for (const s of stations) {
-    const published = (slugTable[s.kind] as Record<string, string>)[s.id]
-    for (const old of new Set([published, ...formerSlugs(s.kind, s.id)])) {
-      if (!old || old === s.slug) continue
-      const from = stationPath(s.kind, old)
-      if (live.has(from)) throw new Error(`redirects: ${from} is still a live page`)
-      rules.set(from, stationPath(s.kind, s.slug))
-    }
+/** Cloudflare allows 100 dynamic and 2,000 static rules in `_redirects`. */
+export function buildRedirects(stations: string[], pages: string[] = []): string {
+  const groups = new Map<string, string[]>()
+  for (const path of stations) {
+    const parent = path.slice(0, path.lastIndexOf('/', path.length - 2))
+    const group = groups.get(parent) ?? []
+    group.push(path)
+    groups.set(parent, group)
   }
-  if (rules.size * 2 > REDIRECT_LIMIT)
-    throw new Error(`redirects: ${rules.size * 2} rules, Cloudflare stops reading at ${REDIRECT_LIMIT}`)
-  // Both spellings of every source. `_redirects` matches a path exactly, and
-  // a shared link from the app carries no trailing slash — today the asset
-  // layer adds one and finds the page, but a page that has moved is not there
-  // to find, so the bare form would fall through to a 404.
-  return [...rules]
-    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-    .flatMap(([from, to]) => [`${from.slice(0, -1)} ${to} 301`, `${from} ${to} 301`])
-    .join('\n')
-    .concat('\n')
+  const dynamic = new Set(
+    [...groups].filter(([, paths]) => paths.length > 1)
+      .sort(([a, x], [b, y]) => y.length - x.length || a.localeCompare(b))
+      .slice(0, 100).map(([parent]) => parent),
+  )
+  const exact = new Set(pages.filter((path) => path !== '/'))
+  for (const [parent, paths] of groups) {
+    if (!dynamic.has(parent)) for (const path of paths) exact.add(path)
+  }
+  if (exact.size > 2000) throw new Error('Canonical redirects exceed Cloudflare\'s 2,000 static rule limit')
+  return [
+    ...[...exact].sort().map((path) => `${path.slice(0, -1)} ${path} 308`),
+    ...[...dynamic].sort().map((parent) => `${parent}/:page ${parent}/:page/ 308`),
+  ].join('\n') + '\n'
 }

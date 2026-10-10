@@ -4,7 +4,7 @@ import { compass16 } from './format'
 import type { Station } from './station'
 
 const at = (id: string, kind: Station['kind'], lat: number, lon: number): Station => ({
-  id, kind, slug: id, name: id, latitude: lat, longitude: lon, timezone: 'UTC',
+  id, kind, slug: id, name: id, path: `/${kind}s/us/${id}/`, latitude: lat, longitude: lon, timezone: 'UTC',
   source: 'bundled', constituents: [],
 })
 

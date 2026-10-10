@@ -1,5 +1,5 @@
 import { createTidePredictor } from '@neaps/tide-predictor'
-import type { BundledStation } from './station'
+import type { BundledStation, CurrentReduction } from './station'
 
 export interface Sample {
   time: Date
@@ -14,6 +14,26 @@ export interface StationEvent {
   time: Date
   /** Signed for flood/ebb, exactly 0 for slack. */
   level: number
+}
+
+export function reduceCurrentEvents(events: StationEvent[], reduction: CurrentReduction): StationEvent[] {
+  return events.map((event, index) => {
+    if (event.kind === 'flood') return {
+      ...event,
+      time: new Date(event.time.getTime() + reduction.floodTimeOffset * 1000),
+      level: event.level * reduction.floodSpeedRatio,
+    }
+    if (event.kind === 'ebb') return {
+      ...event,
+      time: new Date(event.time.getTime() + reduction.ebbTimeOffset * 1000),
+      level: event.level * reduction.ebbSpeedRatio,
+    }
+    const next = events.slice(index + 1).find((candidate) => candidate.kind !== 'slack')
+    const offset = next?.kind === 'ebb'
+      ? reduction.slackBeforeEbbOffset
+      : reduction.slackBeforeFloodOffset
+    return { ...event, time: new Date(event.time.getTime() + offset * 1000) }
+  }).sort((a, b) => a.time.getTime() - b.time.getTime())
 }
 
 /**
@@ -54,6 +74,29 @@ export function predictSeries(
   fidelitySeconds = 600,
 ): Sample[] {
   const end = new Date(start.getTime() + hours * 3600_000)
+  if (station.reduction) {
+    const pad = 8 * 3600_000
+    const events = findEvents(
+      station,
+      new Date(start.getTime() - pad),
+      hours + 2 * pad / 3600_000,
+    )
+    const samples: Sample[] = []
+    let event = 0
+    for (let time = start.getTime(); time <= end.getTime(); time += fidelitySeconds * 1000) {
+      while (event + 1 < events.length && events[event + 1].time.getTime() < time) event++
+      const a = events[event]
+      const b = events[event + 1]
+      if (!a || !b) {
+        samples.push({ time: new Date(time), level: 0 })
+        continue
+      }
+      const fraction = (time - a.time.getTime()) / (b.time.getTime() - a.time.getTime())
+      const eased = (1 - Math.cos(Math.PI * fraction)) / 2
+      samples.push({ time: new Date(time), level: a.level + (b.level - a.level) * eased })
+    }
+    return samples
+  }
   return predictorFor(station)
     .getTimelinePrediction({ start, end, timeFidelity: fidelitySeconds })
     .map((p) => ({ time: new Date(p.time), level: p.level }))
@@ -74,6 +117,24 @@ export function predictSeries(
  *    agreeing with slackwater-web's noaaCurrentState.
  */
 export function findEvents(station: BundledStation, start: Date, hours: number): StationEvent[] {
+  if (station.reduction) {
+    const reduction = station.reduction
+    const pad = Math.max(
+      Math.abs(reduction.slackBeforeFloodOffset), Math.abs(reduction.slackBeforeEbbOffset),
+      Math.abs(reduction.floodTimeOffset), Math.abs(reduction.ebbTimeOffset),
+    ) + 3600
+    const from = new Date(start.getTime() - pad * 1000)
+    const reference = {
+      ...station,
+      id: reduction.referenceId,
+      constituents: reduction.referenceConstituents,
+      offset: reduction.referenceOffset,
+      reduction: undefined,
+    }
+    const end = new Date(start.getTime() + hours * 3600_000)
+    return reduceCurrentEvents(findEvents(reference, from, hours + 2 * pad / 3600), reduction)
+      .filter((event) => event.time >= start && event.time <= end)
+  }
   const end = new Date(start.getTime() + hours * 3600_000)
 
   const extremes: StationEvent[] = predictorFor(station)
