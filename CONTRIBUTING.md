@@ -42,7 +42,7 @@ npm run typecheck
 npm test
 ```
 
-The build comes before typechecking and tests because it generates `src/routeTree.gen.ts` and the prerendered artifacts that four integration suites inspect. Prediction changes arrive with a focused test; errors there can look plausible and matter on the water.
+The build comes before typechecking and tests because it generates `src/routeTree.gen.ts` and the prerendered artifacts that five integration suites inspect. Prediction changes arrive with a focused test; errors there can look plausible and matter on the water.
 
 Presentation is checked by looking at it. There is no snapshot suite: 8,450 pages come from
 three templates, so a representative tide page, a representative current page, and a

@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs'
 // for a unit test spins up a Worker preview server that then won't shut down.
 
 /**
- * Three suites assert against real artifacts rather than mocks: the prerendered
+ * Five suites assert against real artifacts rather than mocks: the prerendered
  * pages under `.output/public`, the client bundle, and `src/routeTree.gen.ts`,
  * which is generated and git-ignored. None of it exists on a fresh clone, so
  * `npm test` failed there with three errors that read like a broken checkout.
@@ -25,6 +25,7 @@ const NEEDS_BUILD = [
   'src/lib/content-routes.test.ts',
   'src/routes/station-routes.test.ts',
   'src/routes/instant-page.test.tsx',
+  'src/router.test.ts',
 ]
 const BUILT = existsSync('.output/public') && existsSync('src/routeTree.gen.ts')
 

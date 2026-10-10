@@ -7,6 +7,10 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
+    // `public/_redirects` owns the trailing slash. The default, 'never', makes
+    // the server 307 `/x/` to `/x`, which loops against a 308 rule sending `/x`
+    // back to `/x/` on any such path without a prerendered page.
+    trailingSlash: 'preserve',
   })
 
   return router
