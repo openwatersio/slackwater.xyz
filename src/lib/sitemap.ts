@@ -1,7 +1,7 @@
 import type { Station } from './station'
 
 const ORIGIN = 'https://slackwater.xyz'
-export const STATIC_PATHS = ['/', '/support/', '/privacy/', '/accuracy/', '/learn/tides/', '/stations/']
+export const STATIC_PATHS = ['/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/learn/tides/', '/stations/']
 
 const urlset = (locs: string[]) =>
   '<?xml version="1.0" encoding="UTF-8"?>\n' +

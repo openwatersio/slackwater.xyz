@@ -478,6 +478,10 @@ function Home() {
             Compare
           </a>
           .{' '}
+          <a href="/opencpn/" className="underline underline-offset-4">
+            OpenCPN
+          </a>
+          .{' '}
           <a href="/privacy/" className="underline underline-offset-4">
             Privacy
           </a>
