@@ -13,15 +13,15 @@ importers:
       '@cf-wasm/resvg':
         specifier: 0.4.0
         version: 0.4.0
-      '@neaps/tide-predictor':
-        specifier: ^0.11.0
-        version: 0.11.0
       '@openwaters/almanac':
         specifier: 0.6.0
         version: 0.6.0
       '@slackwater/database':
         specifier: 1.0.0-beta.20261009
         version: 1.0.0-beta.20261009
+      '@slackwater/engine':
+        specifier: ^1.0.0-beta.5
+        version: 1.0.0-beta.5
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.3.3(vite@8.3.1(@types/node@26.6.3)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
@@ -549,9 +549,6 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
-  '@neaps/tide-predictor@0.11.0':
-    resolution: {integrity: sha512-aBjaTMthLvkAmTURoGsdfjobd2PwNm1FJ6laoAmi3ZlM9IMrAjcAerdUtGJ39de0mXl6wTZRH+CAXY4AmCi6Xg==}
-
   '@oozcitak/dom@2.0.2':
     resolution: {integrity: sha512-GjpKhkSYC3Mj4+lfwEyI1dqnsKTgwGy48ytZEhm4A/xnH/8z9M3ZVXKr/YGQi3uCLs1AEBS+x5T2JPiueEDW8w==}
     engines: {node: '>=20.0'}
@@ -795,6 +792,9 @@ packages:
 
   '@slackwater/database@1.0.0-beta.20261009':
     resolution: {integrity: sha512-B5aW0aJIEMnwQr5RSZ72q6o1Zfa6gYUo0mpVnJCUJD8AsvzWKA34kh41/OB0lBft6BzrutxKFcxN/ODPC6iUng==}
+
+  '@slackwater/engine@1.0.0-beta.5':
+    resolution: {integrity: sha512-Z6GBfi2JWI+OJ9RdxXWexk32EnKLYXR8D8j4+ttwKjKFYoE6Wr1tSPDW9gi4KUkRZ/9ZGTu6nfrfbc7wKzhCrw==}
 
   '@speed-highlight/core@1.2.24':
     resolution: {integrity: sha512-qeW2e1l78afw8VhRPfPQ1Gjj+KU5XFQ/OFV5ti6eTa9bruO7mJyZtA4vw0ofqmA3tKCkROE9xLk3VZoeRc98nw==}
@@ -1420,6 +1420,9 @@ packages:
   httpxy@0.5.5:
     resolution: {integrity: sha512-uDjmnPyp1q4Sgzf3w+J/Fc6UqcCEj0x4Wjp7OqK5dGhNeDgpyrAmnS6ey8QWrX3SWDon2DMKf9sBa5X9+CVyMA==}
 
+  is-any-array@3.0.0:
+    resolution: {integrity: sha512-o4h+tylWykC4BD1vaejp6gDxoM13bwW8FGuNs4yIKpj8xbBJcRxJx8vZpq0dCr7ZDEfeKjmsi/euolKhX6f/ww==}
+
   isbot@5.2.1:
     resolution: {integrity: sha512-dJ+LpKyClQZ7NG+j3OensC/mAZkGpukE9YUrgPYvAZj2doVL0edfDgywTUh5CXa0o+nW9a1V9e5+CJTX8+SxRw==}
     engines: {node: '>=18'}
@@ -1623,6 +1626,18 @@ packages:
 
   minisearch@7.2.0:
     resolution: {integrity: sha512-dqT2XBYUOZOiC5t2HRnwADjhNS2cecp9u+TJRiJ1Qp/f5qjkeT5APcGPjHw+bz89Ms8Jp+cG4AlE+QZ/QnDglg==}
+
+  ml-array-max@2.0.0:
+    resolution: {integrity: sha512-QQZ4kENwpWmyNb98UXRDFXrmtIXuXtt1+bSbda/2KA85+F+rrJP8hZk6QOkCQXM2Th9mUDYdq/PNByPdT9ID4A==}
+
+  ml-array-min@2.0.0:
+    resolution: {integrity: sha512-GRj6Ky6sW9vGL6yIjgsHmXZ9YgrdmcQ8nCxPqEGeKc6dkfYg1XDYxGFxADUjNuZyoCd5PUscWAS4N+cFaX6hFg==}
+
+  ml-array-rescale@2.0.0:
+    resolution: {integrity: sha512-2GGtKfSno94/kIloWGvpp/U5Q5vLvLrza+SAaGsLeo6Xj4mEbA6Gqx+oTfZFkxnd1grT2X007HfJNs3T5BsiVg==}
+
+  ml-matrix@6.15.0:
+    resolution: {integrity: sha512-wFa1v6KP8bKp+fj0nYmRs1Pb5K4zRkXGKsOvLinvILENFIADncm4XlOI+S1M7yuACMGfI6cfk0IifDgd4j5xmw==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -2380,8 +2395,6 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@neaps/tide-predictor@0.11.0': {}
-
   '@oozcitak/dom@2.0.2':
     dependencies:
       '@oozcitak/infra': 2.0.2
@@ -2521,6 +2534,10 @@ snapshots:
       geokdbush: 2.1.0
       kdbush: 4.1.0
       minisearch: 7.2.0
+
+  '@slackwater/engine@1.0.0-beta.5':
+    dependencies:
+      ml-matrix: 6.15.0
 
   '@speed-highlight/core@1.2.24': {}
 
@@ -3073,6 +3090,8 @@ snapshots:
 
   httpxy@0.5.5: {}
 
+  is-any-array@3.0.0: {}
+
   isbot@5.2.1: {}
 
   jiti@2.7.0: {}
@@ -3219,6 +3238,25 @@ snapshots:
       - utf-8-validate
 
   minisearch@7.2.0: {}
+
+  ml-array-max@2.0.0:
+    dependencies:
+      is-any-array: 3.0.0
+
+  ml-array-min@2.0.0:
+    dependencies:
+      is-any-array: 3.0.0
+
+  ml-array-rescale@2.0.0:
+    dependencies:
+      is-any-array: 3.0.0
+      ml-array-max: 2.0.0
+      ml-array-min: 2.0.0
+
+  ml-matrix@6.15.0:
+    dependencies:
+      is-any-array: 3.0.0
+      ml-array-rescale: 2.0.0
 
   ms@2.1.3: {}
 

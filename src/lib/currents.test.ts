@@ -16,9 +16,9 @@ describe('hero station currents', () => {
     const s = predictSeries(HERO_STATION, START, 24)
     expect(s.length).toBeGreaterThan(100)
 
-    // getWaterLevelAtTime snaps to a ~10-minute grid; sampling it in a loop
-    // yields runs of identical values that then read as turning points. If
-    // this drops, someone has gone back to per-sample calls.
+    // A series built by repeated per-sample calls can repeat values, which
+    // then read as turning points. If this drops, someone has gone back to
+    // per-sample calls.
     const distinct = new Set(s.map((x) => x.level)).size
     expect(distinct).toBeGreaterThan(s.length * 0.95)
     const speeds = s.map((x) => Math.abs(x.level))
