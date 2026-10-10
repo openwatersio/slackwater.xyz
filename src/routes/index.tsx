@@ -389,7 +389,8 @@ function Home() {
           <div>
             <h3>Which devices does it support?</h3>
             <p>
-              The public beta runs on iPhone and iPad with iOS or iPadOS 26 or later.{' '}
+              The public beta runs on iPhone and iPad with iOS or iPadOS 26 or later,
+              and Apple Watch with watchOS 26 or later.{' '}
               <a href={TESTFLIGHT ?? '/support/'}>Get the beta through TestFlight</a>.
             </p>
           </div>
@@ -398,7 +399,9 @@ function Home() {
             <p>
               Tide charts, current predictions, station search, favorites and home screen
               widgets are free, with no account or ads. You can choose any prediction date
-              without a subscription.
+              without a subscription. The Apple Watch app is free too. Optional Premium adds
+              alerts, station calendars, lock-screen widgets and Watch complications, with
+              annual and lifetime purchase options.
             </p>
           </div>
           <div>

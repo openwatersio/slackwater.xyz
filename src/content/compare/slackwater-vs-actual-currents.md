@@ -14,18 +14,20 @@ tier is a three-hour window. Slackwater's bundled stations predict on the phone 
 
 They are different tools and plenty of people will want both.
 
+Slackwater beta features checked October 9, 2026; competitor details checked September 4, 2026.
+
 ## At a glance
 
 | | Actual Currents | Slackwater |
 |---|---|---|
-| Price | Free ±3 h window; Pro $2.99/mo; Unlimited $4.99/mo or $39.99/yr | Free; no subscription |
+| Price | Free ±3 h window; Pro $2.99/mo; Unlimited $4.99/mo or $39.99/yr | Free core; optional Premium |
 | Currents | Animated flow field on ENC charts, station points, route analysis | Station predictions: slack time and duration, max flood/ebb with set, curve |
 | Tides | No | Worldwide |
 | Offline | No | Bundled predictions offline; Canadian setup, some passes online-only |
 | Canada | CHS station points since v2.04 | 23 CHS gates, checked against CHS predictions |
 | Data | NOAA model and PORTS, CHS | NOAA constituents, CHS; named per station |
-| Widgets | No | Home screen free; lock screen not available |
-| Apple Watch | No | No |
+| Widgets | No | Home screen free; lock screen Premium |
+| Apple Watch | No | Free standalone app; complications Premium |
 | Launched | April 2026 | 2026, public beta |
 | Rating | 4.7 (20) | Beta |
 
@@ -54,7 +56,7 @@ Actual Currents streams its model and needs a connection. Slackwater computes bu
 ## Free tier
 
 Actual Currents' free tier is three hours either side of now. Planning tomorrow's departure
-is $4.99 a month or $39.99 a year. Slackwater's predictions are free for any date.
+is $4.99 a month or $39.99 a year. Slackwater's predictions are free for any date. Optional Premium adds alerts, station calendars, lock-screen widgets and Watch complications, with annual and lifetime purchase options.
 
 ## What Actual Currents has that Slackwater does not
 
