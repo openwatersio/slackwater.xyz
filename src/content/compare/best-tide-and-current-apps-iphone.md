@@ -28,11 +28,13 @@ own boats and kayaks and will check.
 - **What is actually paid.** Several free tiers end at a date range, an ad, or a three-hour
   window.
 
+Slackwater beta features checked October 9, 2026. Competitor dates are listed below.
+
 ## At a glance
 
 | App | Currents | Offline | Canada | Price | Rating |
 |---|---|---|---|---|---|
-| **Slackwater** | Slack, max, set, curve | Bundled predictions offline; Canadian setup, some passes online-only | Yes (CHS) | Free | Beta |
+| **Slackwater** | Slack, max, set, curve | Bundled predictions offline; Canadian setup, some passes online-only | Yes (CHS) | Free core; optional Premium | Beta |
 | AyeTides XL | Station predictions | Yes | Sparse | $7.99 once | 4.8 (1.3K) |
 | Tide Alert | Estimated slack on tide chart | Favourites | Yes | $19.99/yr | 4.8 (44K) |
 | Tide Guide | Current conditions | Check feature availability | Yes; availability varies | Free download; Pro subscription or lifetime | See listing |
@@ -40,7 +42,7 @@ own boats and kayaks and will check.
 | Actual Currents | Animated flow, stations | No | Yes | $39.99/yr | 4.7 (20) |
 | Tides and Currents-USA | Station predictions | Yes | No | $19.99/yr | 4.2 (27) |
 
-Prices and ratings are from the US App Store, September 2026, except Tide Guide's feature and purchase information, checked October 3, 2026. See each comparison's sources and limits.
+Prices and ratings are from the US App Store, September 2026, except Tide Guide's feature and purchase information, checked October 9, 2026. See each comparison's sources and limits.
 
 ## Slackwater
 
@@ -52,8 +54,7 @@ through the week. Charts for bundled and downloaded models draw offline too.
 
 Nakwakto Rapids at slack: 0.5 kn, flood 12 minutes later, with the 10.3 kn ebb and 5.2 kn flood either side. The green runs on the line are the slack windows.
 
-What it lacks: a Watch app, alerts, weather. It is in public beta on TestFlight and needs
-iOS 26. If you want a tide app on your wrist today, it is not this one yet.
+The standalone Apple Watch app and home screen widgets are free. Optional Premium adds alerts, station calendars, lock-screen widgets and Watch complications, with annual and lifetime purchase options. Marine weather is not included. It is in public beta on TestFlight and needs iOS 26.
 
 **Best for:** boaters and paddlers who need the slack answer with no bars, on either side
 of the border.

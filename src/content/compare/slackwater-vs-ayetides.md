@@ -13,11 +13,13 @@ a table, covers Canadian passes from CHS data, and is in beta.
 
 If you already own AyeTides and it answers your questions, there is no reason to leave it.
 
+Slackwater beta features checked October 9, 2026; competitor details checked September 4, 2026.
+
 ## At a glance
 
 | | AyeTides XL | Slackwater |
 |---|---|---|
-| Price | $7.99 once, no IAP, no ads | Free; no subscription |
+| Price | $7.99 once, no IAP, no ads | Free core; optional Premium |
 | Shipping since | ~2010 | 2026, public beta |
 | Tides | 12,500+ locations worldwide, tides and/or currents | Thousands of stations worldwide |
 | Currents | Harmonic current stations, table of slack and max | Stations with slack time and duration, max flood/ebb speed and set, scrubbable curve |
@@ -25,8 +27,8 @@ If you already own AyeTides and it answers your questions, there is no reason to
 | Canada currents | Sparse; BC stations mostly placed to the nearest arc-minute | 23 CHS gates from Salish Sea to Cape Breton, checked against CHS predictions |
 | Offline | Predictions yes; map and sharing online | Bundled predictions offline; Canadian setup, some passes online-only |
 | Data | XTide harmonics plus licensed station database | Bundled harmonics; CHS models fitted after download, some passes fetch online |
-| Widgets | Yes | Home screen free; lock screen not available |
-| Apple Watch | Yes | No |
+| Widgets | Yes | Home screen free; lock screen Premium |
+| Apple Watch | Yes | Free standalone app; complications Premium |
 | Integrations | iNavX, SEAiq | None |
 | Source | Proprietary | Open source (GPL app, MIT engine) |
 | Rating | 4.8 (1.3K) | Beta |
@@ -92,12 +94,12 @@ on how you read a table.
 ## Price and trust
 
 $7.99 once, held for fifteen years, is the most trustworthy pricing in the category and
-AyeTides earned its reputation on it. Slackwater's tide charts, current predictions and home screen widgets are free, without a subscription. Lock-screen widgets are not available in the free release. The engine, the app and the station data are
+AyeTides earned its reputation on it. Slackwater's tide charts, current predictions and home screen widgets are free, without a subscription. Optional Premium adds alerts, station calendars, lock-screen widgets and Watch complications, with annual and lifetime purchase options. The engine, the app and the station data are
 open source, so the numbers can be checked by anyone.
 
 ## Who should pick which
 
-**AyeTides** if you need current stations outside the US and Canada, want it on your Watch, use iNavX or
+**AyeTides** if you need current stations outside the US and Canada, use iNavX or
 SEAiq, or want a finished product with a decade of updates behind it.
 
 **Slackwater** if you transit passes in BC or the Pacific Northwest, want the slack window

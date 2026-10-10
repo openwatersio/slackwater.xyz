@@ -24,21 +24,23 @@ Free, no ads, no account, no tracking. Tides worldwide and currents across the U
 Canada. Bundled stations predict on your phone without a connection. Canadian stations need an initial download; some passes require a connection and are labeled in the app. For a current station it gives the next slack,
 how long it lasts, and max flood and ebb with direction.
 
-It is a public beta on TestFlight and needs iOS 26. It has no Watch app and no alerts.
+It is a public beta on TestFlight and needs iOS 26. Its standalone Apple Watch app is free. Alerts, station calendars, lock-screen widgets and Watch complications are optional Premium features, with annual and lifetime purchase options.
+
+Slackwater beta features checked October 9, 2026; competitor details checked September 4, 2026.
 
 ## Side by side
 
 | | Tides Near Me | Slackwater |
 |---|---|---|
-| Price | Free with ads; $14.99 to remove | Free; no subscription |
+| Price | Free with ads; $14.99 to remove | Free core; optional Premium |
 | Offline | Cache only | Bundled predictions offline; Canadian setup, some passes online-only |
 | Tides | Worldwide | Worldwide |
 | Currents | Direction and timing | Slack time and duration, max speed and set, scrubbable curve |
 | Canada | Yes | Yes, CHS |
 | Data named per station | No | Yes, with datum |
 | Home widgets | Premium | Free |
-| Lock screen widgets | Premium | Not available |
-| Apple Watch | Yes, subscribers only | No |
+| Lock screen widgets | Premium | Premium |
+| Apple Watch | Yes, subscribers only | Free standalone app; complications Premium |
 | Account required | No | No |
 | Tracking | Ads SDK | None |
 
@@ -76,7 +78,7 @@ written down on slackwater.xyz.
 
 Switch if you use the app on the water, want currents, or are done with ads.
 
-Stay with Tides Near Me if you want it on your Watch, or you check the tide from a beach
+Stay with Tides Near Me if you prefer its simple next-tide view, check from a beach
 with signal and the ads do not bother you. It still answers that question well.
 
 ## Moving over
