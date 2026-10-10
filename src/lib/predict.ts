@@ -1,4 +1,4 @@
-import { createTidePredictor } from '@neaps/tide-predictor'
+import { createTidePredictor } from '@slackwater/engine'
 import type { BundledStation, CurrentReduction } from './station'
 
 export interface Sample {
@@ -62,10 +62,9 @@ function predictorFor(station: BundledStation) {
 /**
  * The curve, for drawing.
  *
- * GOTCHA carried over from the single-station version: `getWaterLevelAtTime`
- * snaps to a ~10-minute grid, so sampling it in a loop returns a staircase and
- * scanning that for turning points invents an extreme at every plateau edge.
- * Use the library's own timeline.
+ * Use the library's own timeline rather than calling `getWaterLevelAtTime` per
+ * sample: the timeline is computed in one pass and aligned to clock boundaries,
+ * which the frame-edge logic below relies on.
  */
 export function predictSeries(
   station: BundledStation,

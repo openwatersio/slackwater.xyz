@@ -490,7 +490,7 @@ function Home() {
             Source
           </a>
           .{' '}
-          <a href="https://openwaters.io/tides/slackwater" className="underline underline-offset-4">
+          <a href="https://openwaters.io/tides/slackwater/" className="underline underline-offset-4">
             Developers
           </a>
           .
