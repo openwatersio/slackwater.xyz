@@ -4,19 +4,15 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    # pnpm 11 refuses to install a release younger than about a day - its own
-    # default supply-chain gate - and works around it by writing the version
-    # into `minimumReleaseAgeExclude` in pnpm-workspace.yaml, which is where
-    # the two @openwaters pins there came from. Dependabot never edits that
-    # file, so a PR it raises the day of a release would fail `pnpm install`
-    # with nothing in the diff explaining why. Waiting clears the gate, and
-    # waiting is the point of the gate: a compromised release is usually
-    # yanked within days, and this site would rather miss it than install it.
+    # `.npmrc` keeps npm from resolving a release younger than a day, and this
+    # keeps Dependabot from proposing one younger than three. Waiting is the
+    # point: a compromised release is usually yanked within days, and this
+    # site would rather miss it than install it.
     cooldown:
       default-days: 3
     # One PR a week for the routine bumps, not one per package. Nine open PRs is
     # nine lockfiles that each conflict with the last one merged; a single branch
-    # resolves once and gets one `pnpm build` to prove it.
+    # resolves once and gets one `npm run build` to prove it.
     #
     # Unrelated majors stay out of it and arrive one at a time. The first grouped run put
     # `station-metadata` 4 -> 5 in with wrangler and marked, and that major is not

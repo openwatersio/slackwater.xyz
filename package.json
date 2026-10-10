@@ -9,7 +9,7 @@
     "dev": "vite dev --port 5174",
     "build": "NITRO_PRESET=cloudflare_module vite build",
     "preview": "wrangler dev -c .output/server/wrangler.json",
-    "deploy": "pnpm build && wrangler deploy -c .output/server/wrangler.json",
+    "deploy": "npm run build && wrangler deploy -c .output/server/wrangler.json",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
@@ -22,6 +22,7 @@
     "@tanstack/react-router": "^1.170.41",
     "@tanstack/react-start": "^1.168.60",
     "@tanstack/router-plugin": "^1.168.42",
+    "destr": "^2.0.5",
     "leaflet": "^1.9.4",
     "marked": "^18.1.0",
     "nitro": "3.0.260522-beta",
@@ -41,5 +42,10 @@
     "vite": "8.3.3",
     "vitest": "^5.0.3",
     "wrangler": "^4.148.0"
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "workerd": true,
+    "fsevents": false
   }
 }

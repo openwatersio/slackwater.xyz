@@ -15,7 +15,7 @@ const page = (kind: Kind, slug: string) => {
 
 describe('prerendered station pages', () => {
   it('emits one non-empty page per station', () => {
-    if (!existsSync(OUT)) return expect.fail('run `pnpm build` before this test')
+    if (!existsSync(OUT)) return expect.fail('run `npm run build` before this test')
     // A truncated prerender write leaves a file that exists and holds nothing,
     // which existsSync alone called present. It happened once (issue #48) and
     // was caught only because it landed on `seattle`, one of the two slugs any

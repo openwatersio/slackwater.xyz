@@ -7,7 +7,7 @@ describe('client bundle', () => {
   const js = () => readdirSync(ASSETS).filter((f) => f.endsWith('.js'))
 
   it('ships no station catalogue', () => {
-    if (!existsSync(ASSETS)) return expect.fail('run `pnpm build` first')
+    if (!existsSync(ASSETS)) return expect.fail('run `npm run build` first')
     for (const f of js()) {
       const src = readFileSync(`${ASSETS}/${f}`, 'utf8')
       // Two stations that must never both appear in one client chunk: their
