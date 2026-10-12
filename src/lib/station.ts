@@ -87,14 +87,16 @@ export interface BundledStation extends StationIdentity {
   reduction?: CurrentReduction
   /**
    * Tides only, and only where the database labelled the station
-   * `quality.seasonal_dominant`: how many times the seasonal band exceeds the
-   * largest tidal constituent.
+   * `quality.seasonal_dominant`: how many times the peak of the seasonal curve
+   * exceeds the principal tide, M2+S2+K1+O1. `Infinity` where the principal
+   * tide is zero.
    *
    * Present or absent is the database's verdict and is never decided here — that
    * is the point of it living upstream, so the app and this site do not describe
    * the same water two ways. The number is the site's own, and only chooses how
-   * loudly a page says it: 1.008 at Annapolis, which has a real Chesapeake tide,
-   * and 162 at Cobourg on Lake Ontario, which has none. See `seasonalNote`.
+   * loudly a page says it: 2.9 at Lafitte, which has a small real tide on the
+   * Barataria Waterway, and 89 at Cobourg on Lake Ontario, which has almost
+   * none. See `seasonalNote`.
    */
   seasonal?: number
 }
