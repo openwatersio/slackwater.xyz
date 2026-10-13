@@ -37,14 +37,14 @@ Slackwater features checked October 9, 2026; competitor details checked Septembe
 
 | AyeTides | Slackwater |
 |---|---|
-| ![AyeTides: Poulsbo, Liberty Bay, Puget Sound on Monday July 4 2016, a list of highs, lows, sun and moon times, and a gridded tide graph below](/shots/compare/ayetides-poulsbo-tide.webp) | ![Slackwater: St Martins, Bay of Fundy, rising at 14.3 ft, high in 3h 41m, over a scrubbable curve marked 29.3 and 30.4 ft highs and a 25.3 ft range](/shots/compare/slackwater-st-martins-tide.webp) |
-| AyeTides' own App Store screenshot: a day at Poulsbo as a list of events with the graph underneath. Same layout since the iPhone 6. | Slackwater at St Martins in the Bay of Fundy: the state and height first, the next high in a pill, the curve you scrub, and the range. |
+| ![AyeTides: Poulsbo, Liberty Bay, Puget Sound on Monday July 4 2016, a list of highs, lows, sun and moon times, and a gridded tide graph below](/shots/compare/ayetides-poulsbo-tide.webp) | ![Slackwater: St Martins, Bay of Fundy, rising at 14.3 ft at 6.2 ft per hour, over a scrubbable curve marked 29.3 and 30.4 ft highs and a 25.3 ft range](/shots/compare/slackwater-st-martins-tide.webp) |
+| AyeTides' own App Store screenshot: a day at Poulsbo as a list of events with the graph underneath. Same layout since the iPhone 6. | Slackwater at St Martins in the Bay of Fundy: the state and height first, its rate of rise, the curve you scrub, and the range. |
 
 AyeTides' listing shows no current station screen, so there is nothing to put beside this one. Here is Slackwater's:
 
-![Slackwater: Nakwakto Rapids scrubbed to 5:40am, slack at 0.5 kn, flood 12 minutes later, with the 10.3 kn ebb and 5.2 kn flood marked on the curve and green slack runs drawn on the line](/shots/compare/slackwater-nakwakto-slack.webp)
+![Slackwater: Nakwakto Rapids at 5:40am, ebbing at 0.5 kn near slack, with the 10.3 kn ebb and 5.2 kn flood marked on the curve and green slack runs drawn on the line](/shots/compare/slackwater-nakwakto-slack.webp)
 
-Nakwakto Rapids, scrubbed to slack at 5:40am: 0.5 kn, flood 12 minutes later, with the 10.3 kn ebb before it and the 5.2 kn flood after. The green runs on the line are the slack windows.
+Nakwakto Rapids at 5:40am, approaching slack at 0.5 kn, with the 10.3 kn ebb before it and the 5.2 kn flood after. The green runs on the line are the slack windows.
 
 ## Currents
 

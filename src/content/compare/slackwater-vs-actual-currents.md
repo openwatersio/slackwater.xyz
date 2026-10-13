@@ -35,8 +35,8 @@ Slackwater features checked October 9, 2026; competitor details checked Septembe
 
 | Actual Currents | Slackwater |
 |---|---|
-| ![Actual Currents' App Store screenshot: Cape Cod and the islands under an animated particle flow field coloured 0 to 5 knots, a time scrubber along the bottom and a Pro badge](/shots/compare/actual-currents-cape-cod.webp) | ![Slackwater: North end, Falmouth MA, flooding at 1.2 kn, slack in 2h 21m, next max 1.5 kn ebb at 7:07pm, with a link to the tide at Oceanographic Institution](/shots/compare/slackwater-falmouth-current.webp) |
-| Actual Currents' own listing: Cape Cod at 19:23, the whole sound moving, coloured by speed. Nothing else on iPhone draws this. | Slackwater on the same water: North end, Falmouth, flooding at 1.2 kn, slack in 2h 21m, next max 1.5 kn ebb at 7:07pm. One station, one answer, computed on the phone. |
+| ![Actual Currents' App Store screenshot: Cape Cod and the islands under an animated particle flow field coloured 0 to 5 knots, a time scrubber along the bottom and a Pro badge](/shots/compare/actual-currents-cape-cod.webp) | ![Slackwater: North End, Falmouth MA, flooding at 1.2 kn, slack in 2h 22m, next max 1.5 kn ebb at 7:07pm, with a link to the tide at Oceanographic Institution](/shots/compare/slackwater-falmouth-current.webp) |
+| Actual Currents' own listing: Cape Cod at 19:23, the whole sound moving, coloured by speed. Nothing else on iPhone draws this. | Slackwater on the same water: North End, Falmouth, flooding at 1.2 kn, slack in 2h 22m, next max 1.5 kn ebb at 7:07pm. One station, one answer, computed on the phone. |
 
 ## What each one answers
 

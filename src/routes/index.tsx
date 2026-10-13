@@ -293,7 +293,7 @@ function Home() {
         <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-4 sm:gap-8">
           <Shot
             src="/shots/currents-sunrise.webp"
-            alt="Deception Pass (Narrows) in the app at sunrise: ebbing at 5.8 knots to the west-north-west, slack 2 hours 50 minutes later, the sun rising at the left edge of the curve and a 5.3 knot flood coming at 12:40pm."
+            alt="Deception Pass (Narrows) in the app at 7:10am: ebbing at 5.8 knots, slack 2 hours 50 minutes later, sunrise at 7:03am and a 5.3 knot flood coming at 12:40pm."
             caption="7:10am, ebbing at 5.8 knots. Slack is 2 hours 50 minutes away."
             crop
           />
@@ -312,8 +312,8 @@ function Home() {
         shot={
           <Shot
             src="/shots/list.webp"
-            alt="The app's list located at Friday Harbor: the harbour's tide on top at 6.8 feet and falling, Point George's current under it at 0.5 knots and slack, then favourites Port Townsend and Deception Pass, each with its curve for the day."
-            caption="Located at Friday Harbor: the harbour's tide on top, the nearest pass under it, favourites below."
+            alt="The app's list located at Friday Harbor: the harbour's tide on top at 2.7 feet and falling, Point George's current under it at 1.1 knots and ebbing, then favourite Port Townsend and nearby Wasp Passage, each with its curve for the day."
+            caption="Located at Friday Harbor: the harbour's tide and nearest current on top, Port Townsend saved as a favourite, and nearby places below."
             crop
           />
         }
@@ -330,8 +330,8 @@ function Home() {
         shot={
           <Shot
             src="/shots/map.webp"
-            alt="The app's map of the Salish Sea from Squamish down to Tacoma, covered in stations: blue squares for tides, orange circles for currents."
-            caption="The Salish Sea from Squamish to Tacoma. Squares are tide stations, circles are currents."
+            alt="The app's map of the Salish Sea, with circular tide markers and direction arrows for currents."
+            caption="The Salish Sea. Circles mark tide locations; arrows show current direction."
             crop
           />
         }
