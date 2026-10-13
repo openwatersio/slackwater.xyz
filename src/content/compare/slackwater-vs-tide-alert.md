@@ -14,7 +14,7 @@ stations show the slack window and max, free with no ads. Bundled predictions wo
 
 Compare the alert types you need as well as the tide and current views.
 
-Slackwater beta features checked October 9, 2026; competitor details checked September 4, 2026.
+Slackwater features checked October 9, 2026; competitor details checked September 4, 2026.
 
 ## At a glance
 

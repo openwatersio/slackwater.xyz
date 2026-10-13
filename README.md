@@ -8,7 +8,7 @@ currents across the US and Canada.
 ## What this is
 
 The marketing site — and, now, a page per station. It explains the app, points people at the
-beta, and prerenders a page under its country and subdivision (`/tides/us/pa/bridesburg/`, `/currents/ca/bc/dodd-narrows/`) for 8,450 stations — a
+App Store, and prerenders a page under its country and subdivision (`/tides/us/pa/bridesburg/`, `/currents/ca/bc/dodd-narrows/`) for 8,450 stations — a
 real computed curve for 8,367 of them, and identity only for 33 Canadian ones: the
 share-landing surface for anyone sent a link, and indexable content the site previously had
 none of.

@@ -41,14 +41,14 @@ Tide Guide's feature and purchase information was checked against its US App Sto
 
 | Tide Guide | Slackwater |
 |---|---|
-| ![Tide Guide's App Store image: Chatham, Stage Harbor, rising at 3.8 feet, high in 1 hour 56 minutes, marine weather, sun and moon times, and a tide curve](/shots/compare/tide-guide-chatham.webp) | ![Slackwater beta at Seattle: rising at 6.8 feet at 2:24 PM, a scrubbable curve, 9.0 foot range and full moon](/shots/compare/slackwater-seattle-tide.webp) |
-| Tide Guide's current listing image shows Chatham with weather above the tide chart. | Slackwater's beta shows Seattle with the height, rate of rise and curve, plus a link to a nearby current station. |
+| ![Tide Guide's App Store image: Chatham, Stage Harbor, rising at 3.8 feet, high in 1 hour 56 minutes, marine weather, sun and moon times, and a tide curve](/shots/compare/tide-guide-chatham.webp) | ![Slackwater at Seattle: rising at 6.8 feet at 2:24 PM, a scrubbable curve, 9.0 foot range and full moon](/shots/compare/slackwater-seattle-tide.webp) |
+| Tide Guide's current listing image shows Chatham with weather above the tide chart. | Slackwater shows Seattle with the height, rate of rise and curve, plus a link to a nearby current station. |
 
-Tide Guide's image is from its US App Store listing, checked October 9, 2026. Slackwater's beta screenshots were captured October 8, 2026 before its App Store release. The stations and times differ; these images compare the interfaces, not prediction accuracy.
+Tide Guide's image is from its US App Store listing, checked October 9, 2026. Slackwater's screenshots were captured October 8, 2026 before its App Store release. The stations and times differ; these images compare the interfaces, not prediction accuracy.
 
 Slackwater's current view at Deception Pass:
 
-![Slackwater beta: Deception Pass scrubbed to 3:46 PM, slack at 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM](/shots/compare/slackwater-deception-slack.webp)
+![Slackwater: Deception Pass scrubbed to 3:46 PM, slack at 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM](/shots/compare/slackwater-deception-slack.webp)
 
 The green parts of the curve show the slack windows. Scrub to read the speed and direction at a chosen time, with the reference port's tide on the same screen.
 

@@ -28,7 +28,7 @@ own boats and kayaks and will check.
 - **What is actually paid.** Several free tiers end at a date range, an ad, or a three-hour
   window.
 
-Slackwater beta features checked October 9, 2026. Competitor dates are listed below.
+Slackwater features checked October 9, 2026. Competitor dates are listed below.
 
 ## At a glance
 
@@ -50,9 +50,9 @@ Free, no ads, no account. Tides worldwide, currents across the US and Canada. Bu
 how long it lasts, the speed and set at max flood and max ebb, and a curve you can scrub
 through the week. Charts for bundled and downloaded models draw offline too.
 
-![Slackwater beta: Deception Pass scrubbed to 3:46 PM, slack at 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM](/shots/compare/slackwater-deception-slack.webp)
+![Slackwater: Deception Pass scrubbed to 3:46 PM, slack at 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM](/shots/compare/slackwater-deception-slack.webp)
 
-Deception Pass at slack: 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM. The green parts of the curve show the slack windows. Beta screenshot captured October 8, 2026.
+Deception Pass at slack: 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM. The green parts of the curve show the slack windows. Screenshot captured October 8, 2026.
 
 The standalone Apple Watch app and home screen widgets are free. Optional Premium adds alerts, station calendars, lock-screen widgets and Watch complications, with annual and lifetime purchase options. Marine weather is not included. It is available on the App Store and needs iOS 26.
 

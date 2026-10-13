@@ -14,7 +14,7 @@ tier is a three-hour window. Slackwater's bundled stations predict on the phone 
 
 They are different tools and plenty of people will want both.
 
-Slackwater beta features checked October 9, 2026; competitor details checked September 4, 2026.
+Slackwater features checked October 9, 2026; competitor details checked September 4, 2026.
 
 ## At a glance
 

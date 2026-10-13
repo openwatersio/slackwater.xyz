@@ -13,7 +13,7 @@ a table and covers Canadian passes from CHS data.
 
 If you already own AyeTides and it answers your questions, there is no reason to leave it.
 
-Slackwater beta features checked October 9, 2026; competitor details checked September 4, 2026.
+Slackwater features checked October 9, 2026; competitor details checked September 4, 2026.
 
 ## At a glance
 
