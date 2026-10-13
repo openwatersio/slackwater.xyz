@@ -1,4 +1,4 @@
-import { TESTFLIGHT } from '#/lib/links'
+import { APP_STORE } from '#/lib/links'
 
 export function DirectoryNav() {
   return (
@@ -7,10 +7,10 @@ export function DirectoryNav() {
         Slackwater
       </a>
       <a
-        href={TESTFLIGHT || '/'}
+        href={APP_STORE}
         className="rounded-full bg-sw-leaf px-4 py-2 text-sm font-medium text-sw-navy-deep transition hover:bg-sw-leaf/90"
       >
-        {TESTFLIGHT ? 'Get the beta on TestFlight' : 'About the Slackwater app'}
+        Download on the App Store
       </a>
     </nav>
   )

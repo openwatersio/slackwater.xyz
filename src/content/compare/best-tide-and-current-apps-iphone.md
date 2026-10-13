@@ -34,7 +34,7 @@ Slackwater beta features checked October 9, 2026. Competitor dates are listed be
 
 | App | Currents | Offline | Canada | Price | Rating |
 |---|---|---|---|---|---|
-| **Slackwater** | Slack, max, set, curve | Bundled predictions offline; Canadian setup, some passes online-only | Yes (CHS) | Free core; optional Premium | Beta |
+| **Slackwater** | Slack, max, set, curve | Bundled predictions offline; Canadian setup, some passes online-only | Yes (CHS) | Free core; optional Premium | [See App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837) |
 | AyeTides XL | Station predictions | Yes | Sparse | $7.99 once | 4.8 (1.3K) |
 | Tide Alert | Estimated slack on tide chart | Favourites | Yes | $19.99/yr | 4.8 (44K) |
 | Tide Guide | Current conditions | Check feature availability | Yes; availability varies | Free download; Pro subscription or lifetime | See listing |
@@ -54,7 +54,7 @@ through the week. Charts for bundled and downloaded models draw offline too.
 
 Deception Pass at slack: 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM. The green parts of the curve show the slack windows. Beta screenshot captured October 8, 2026.
 
-The standalone Apple Watch app and home screen widgets are free. Optional Premium adds alerts, station calendars, lock-screen widgets and Watch complications, with annual and lifetime purchase options. Marine weather is not included. It is in public beta on TestFlight and needs iOS 26.
+The standalone Apple Watch app and home screen widgets are free. Optional Premium adds alerts, station calendars, lock-screen widgets and Watch complications, with annual and lifetime purchase options. Marine weather is not included. It is available on the App Store and needs iOS 26.
 
 **Best for:** boaters and paddlers who need the slack answer with no bars, on either side
 of the border.
@@ -138,5 +138,5 @@ Each app above has its own page with a side-by-side screenshot and the full tabl
 Predictions are not observations. Weather, river flow and local conditions change the
 water. None of these apps, including ours, is for navigation.
 
-**[Get Slackwater on TestFlight](https://testflight.apple.com/join/5gwh791N)** · Free,
+**[Download Slackwater on the App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837)** · Free,
 no account.

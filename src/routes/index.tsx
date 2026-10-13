@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { TESTFLIGHT } from '#/lib/links'
+import { APP_STORE } from '#/lib/links'
 import { Shot } from '#/components/Shot'
 import { SITE_DESCRIPTION } from '#/routes/__root'
 
@@ -77,17 +77,13 @@ function NoSignal({ className }: { className: string }) {
 }
 
 function Cta() {
-  return TESTFLIGHT ? (
+  return (
     <a
-      href={TESTFLIGHT}
+      href={APP_STORE}
       className="inline-block rounded-full bg-sw-leaf px-6 py-3 font-medium text-sw-navy-deep transition hover:bg-sw-leaf/90"
     >
-      Get the beta on TestFlight
+      Download on the App Store
     </a>
-  ) : (
-    <span className="inline-block rounded-full border border-sw-leaf/30 px-6 py-3 font-medium text-sw-steel">
-      iPhone beta — opening soon
-    </span>
   )
 }
 
@@ -389,9 +385,9 @@ function Home() {
           <div>
             <h3>Which devices does it support?</h3>
             <p>
-              The public beta runs on iPhone and iPad with iOS or iPadOS 26 or later,
+              Slackwater runs on iPhone and iPad with iOS or iPadOS 26 or later,
               and Apple Watch with watchOS 26 or later.{' '}
-              <a href={TESTFLIGHT ?? '/support/'}>Get the beta through TestFlight</a>.
+              <a href={APP_STORE}>Download on the App Store</a>.
             </p>
           </div>
           <div>

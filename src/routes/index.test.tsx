@@ -3,11 +3,11 @@ import { existsSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { Route as RootRoute } from './__root'
 import { Route } from './index'
-import { TESTFLIGHT } from '#/lib/links'
+import { APP_STORE } from '#/lib/links'
 
 // The page is screenshots around one call to action, so those are the two
 // things that can silently break it: a shot renamed out from under an <img>,
-// or the CTA pointing somewhere other than the public beta.
+// or the CTA pointing somewhere other than the App Store listing.
 describe('landing page', () => {
   const Home = Route.options.component!
   const html = renderToStaticMarkup(<Home />)
@@ -31,8 +31,11 @@ describe('landing page', () => {
     expect(hero).not.toContain('loop=""')
   })
 
-  it('points the call to action at the public beta', () => {
-    expect(html).toContain(`href="${TESTFLIGHT}"`)
+  it('points the call to action at the App Store listing', () => {
+    expect(APP_STORE).toBe('https://apps.apple.com/app/slackwater-tides-current/id6813654837')
+    expect(html).toContain(`href="${APP_STORE}"`)
+    expect(html).toContain('Download on the App Store')
+    expect(html).not.toMatch(/TestFlight|public beta|opening soon/i)
   })
 
   it('does not preload the hidden video fallback', () => {

@@ -30,7 +30,7 @@ Slackwater beta features checked October 9, 2026; competitor details checked Sep
 | Data | NOAA | NOAA and CHS, named per station with datum |
 | Widgets | Home and lock screen | Home screen free; lock screen Premium |
 | Ads | No | No |
-| Rating | 4.8 (44K) | Beta |
+| Rating | 4.8 (44K) | [See App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837) |
 
 ## Side by side
 
@@ -75,7 +75,7 @@ Nothing imports. Star your stations in Slackwater by search.
 Predictions are not observations. Weather, river flow and local conditions change the
 water. Neither app is for navigation.
 
-**[Get Slackwater on TestFlight](https://testflight.apple.com/join/5gwh791N)** · Free,
+**[Download Slackwater on the App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837)** · Free,
 no account.
 
 See also: [the best tide and current apps for iPhone](/compare/best-tide-and-current-apps-iphone/)

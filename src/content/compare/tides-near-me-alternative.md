@@ -24,7 +24,7 @@ Free, no ads, no account, no tracking. Tides worldwide and currents across the U
 Canada. Bundled stations predict on your phone without a connection. Canadian stations need an initial download; some passes require a connection and are labeled in the app. For a current station it gives the next slack,
 how long it lasts, and max flood and ebb with direction.
 
-It is a public beta on TestFlight and needs iOS 26. Its standalone Apple Watch app is free. Alerts, station calendars, lock-screen widgets and Watch complications are optional Premium features, with annual and lifetime purchase options.
+It is available on the App Store and needs iOS 26. Its standalone Apple Watch app is free. Alerts, station calendars, lock-screen widgets and Watch complications are optional Premium features, with annual and lifetime purchase options.
 
 Slackwater beta features checked October 9, 2026; competitor details checked September 4, 2026.
 
@@ -90,7 +90,7 @@ Two minutes.
 Predictions are not observations. Weather, river flow and local conditions change the
 water. Slackwater is not for navigation.
 
-**[Get Slackwater on TestFlight](https://testflight.apple.com/join/5gwh791N)** · Free,
+**[Download Slackwater on the App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837)** · Free,
 no account.
 
 See also: [the best tide and current apps for iPhone](/compare/best-tide-and-current-apps-iphone/)
