@@ -36,8 +36,8 @@ Slackwater features checked October 9, 2026; competitor details checked Septembe
 
 | Tide Alert | Slackwater |
 |---|---|
-| ![Tide Alert's App Store screenshot: an interactive tide chart, May 16 2024, waxing gibbous moon, 2.5 ft at 4:30 PM rising for 3 hrs 05 mins, with the 0.43 ft low and 4.08 ft high marked on the curve](/shots/compare/tide-alert-chart.webp) | ![Slackwater: North end, Falmouth MA, flooding at 1.2 kn, slack in 2h 21m, next max 1.5 kn ebb at 7:07pm, with a link to the tide at Oceanographic Institution](/shots/compare/slackwater-falmouth-current.webp) |
-| Tide Alert's own listing: the interactive tide chart, with the moon and the height at a chosen time. | Slackwater at North end, Falmouth: a current station in its own right, flooding at 1.2 kn, slack in 2h 21m, with the reference tide one tap away. |
+| ![Tide Alert's App Store screenshot: an interactive tide chart, May 16 2024, waxing gibbous moon, 2.5 ft at 4:30 PM rising for 3 hrs 05 mins, with the 0.43 ft low and 4.08 ft high marked on the curve](/shots/compare/tide-alert-chart.webp) | ![Slackwater: North End, Falmouth MA, flooding at 1.2 kn, slack in 2h 22m, next max 1.5 kn ebb at 7:07pm, with a link to the tide at Oceanographic Institution](/shots/compare/slackwater-falmouth-current.webp) |
+| Tide Alert's own listing: the interactive tide chart, with the moon and the height at a chosen time. | Slackwater at North End, Falmouth: a current station in its own right, flooding at 1.2 kn, slack in 2h 22m, with the reference tide one tap away. |
 
 ## Currents
 

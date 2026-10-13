@@ -44,7 +44,7 @@ Tide Guide's feature and purchase information was checked against its US App Sto
 | ![Tide Guide's App Store image: Chatham, Stage Harbor, rising at 3.8 feet, high in 1 hour 56 minutes, marine weather, sun and moon times, and a tide curve](/shots/compare/tide-guide-chatham.webp) | ![Slackwater at Seattle: rising at 6.8 feet at 2:24 PM, a scrubbable curve, 9.0 foot range and full moon](/shots/compare/slackwater-seattle-tide.webp) |
 | Tide Guide's current listing image shows Chatham with weather above the tide chart. | Slackwater shows Seattle with the height, rate of rise and curve, plus a link to a nearby current station. |
 
-Tide Guide's image is from its US App Store listing, checked October 9, 2026. Slackwater's screenshots were captured October 8, 2026 before its App Store release. The stations and times differ; these images compare the interfaces, not prediction accuracy.
+Tide Guide's image is from its US App Store listing, checked October 9, 2026. Slackwater's screenshots were captured October 12, 2026. The stations and times differ; these images compare the interfaces, not prediction accuracy.
 
 Slackwater's current view at Deception Pass:
 

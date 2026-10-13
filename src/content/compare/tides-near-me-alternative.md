@@ -48,8 +48,8 @@ Slackwater features checked October 9, 2026; competitor details checked Septembe
 
 | Tides Near Me | Slackwater |
 |---|---|
-| ![Tides Near Me's App Store screenshot: Greenport, last tide low at 7:42 AM 2 hours 32 minutes ago, next tide high at 1:53 PM 3 hours 38 minutes from now, sunset, moonrise](/shots/compare/tides-near-me-greenport.webp) | ![Slackwater: St Martins, Bay of Fundy, rising at 14.3 ft, high in 3h 41m, over a scrubbable curve marked 29.3 and 30.4 ft highs and a 25.3 ft range](/shots/compare/slackwater-st-martins-tide.webp) |
-| Tides Near Me's own listing: Greenport, last tide and next tide as big times. Nothing to learn; that is the point of it. | Slackwater at St Martins: the same answer, rising at 14.3 ft and high in 3h 41m, with the curve so you can see where in the cycle you are. |
+| ![Tides Near Me's App Store screenshot: Greenport, last tide low at 7:42 AM 2 hours 32 minutes ago, next tide high at 1:53 PM 3 hours 38 minutes from now, sunset, moonrise](/shots/compare/tides-near-me-greenport.webp) | ![Slackwater: St Martins, Bay of Fundy, rising at 14.3 ft at 6.2 ft per hour, over a scrubbable curve marked 29.3 and 30.4 ft highs and a 25.3 ft range](/shots/compare/slackwater-st-martins-tide.webp) |
+| Tides Near Me's own listing: Greenport, last tide and next tide as big times. Nothing to learn; that is the point of it. | Slackwater at St Martins: the same answer, rising at 14.3 ft at 6.2 ft per hour, with the curve so you can see where in the cycle you are. |
 
 And the current station Tides Near Me does not have:
 
