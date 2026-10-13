@@ -26,7 +26,7 @@ how long it lasts, and max flood and ebb with direction.
 
 It is available on the App Store and needs iOS 26. Its standalone Apple Watch app is free. Alerts, station calendars, lock-screen widgets and Watch complications are optional Premium features, with annual and lifetime purchase options.
 
-Slackwater beta features checked October 9, 2026; competitor details checked September 4, 2026.
+Slackwater features checked October 9, 2026; competitor details checked September 4, 2026.
 
 ## Side by side
 
