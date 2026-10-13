@@ -79,8 +79,8 @@ describe('prerendered station pages', () => {
     ]
     for (const path of paths) {
       const html = readFileSync(path, 'utf8')
-      expect(html, `${path} has no TestFlight CTA`).toContain(
-        'https://testflight.apple.com/join/',
+      expect(html, `${path} has no App Store CTA`).toContain(
+        'https://apps.apple.com/app/slackwater-tides-current/id6813654837',
       )
       expect(html, `${path} has no link home`).toMatch(/<a[^>]+href="\/"/)
     }
@@ -134,8 +134,8 @@ describe('prerendered station pages', () => {
     for (const path of ['stations', 'tides', 'currents']) {
       const html = readFileSync(`${OUT}/${path}/index.html`, 'utf8')
       expect(html, `${path} has no link home`).toMatch(/<a[^>]+href="\/"/)
-      expect(html, `${path} has no TestFlight CTA`).toContain(
-        'https://testflight.apple.com/join/',
+      expect(html, `${path} has no App Store CTA`).toContain(
+        'https://apps.apple.com/app/slackwater-tides-current/id6813654837',
       )
     }
   })

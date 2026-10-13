@@ -9,7 +9,7 @@ verified: 2026-09-04
 
 Both apps compute bundled tide and current predictions on the phone without signal. Slackwater's Canadian stations need an initial download, and some passes remain online-only. AyeTides XL has done it since 2010 for $7.99 once, covers 12,500 locations
 worldwide, and has a Watch app. Slackwater is free, shows you the slack window rather than
-a table, covers Canadian passes from CHS data, and is in beta.
+a table and covers Canadian passes from CHS data.
 
 If you already own AyeTides and it answers your questions, there is no reason to leave it.
 
@@ -20,7 +20,7 @@ Slackwater beta features checked October 9, 2026; competitor details checked Sep
 | | AyeTides XL | Slackwater |
 |---|---|---|
 | Price | $7.99 once, no IAP, no ads | Free core; optional Premium |
-| Shipping since | ~2010 | 2026, public beta |
+| Shipping since | ~2010 | 2026 |
 | Tides | 12,500+ locations worldwide, tides and/or currents | Thousands of stations worldwide |
 | Currents | Harmonic current stations, table of slack and max | Stations with slack time and duration, max flood/ebb speed and set, scrubbable curve |
 | Currents outside US and Canada | Some | None |
@@ -31,7 +31,7 @@ Slackwater beta features checked October 9, 2026; competitor details checked Sep
 | Apple Watch | Yes | Free standalone app; complications Premium |
 | Integrations | iNavX, SEAiq | None |
 | Source | Proprietary | Open source (GPL app, MIT engine) |
-| Rating | 4.8 (1.3K) | Beta |
+| Rating | 4.8 (1.3K) | [See App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837) |
 
 ## Side by side
 
@@ -111,7 +111,7 @@ nearest first.
 Predictions are not observations. Weather, river flow and local conditions change the
 water. Neither app is for navigation.
 
-**[Get Slackwater on TestFlight](https://testflight.apple.com/join/5gwh791N)** · Free,
+**[Download Slackwater on the App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837)** · Free,
 no account.
 
 See also: [the best tide and current apps for iPhone](/compare/best-tide-and-current-apps-iphone/)

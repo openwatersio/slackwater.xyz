@@ -4,7 +4,7 @@ import { NearbyMap } from './NearbyMap'
 import { DATUM_NOTE, datumLine, seasonalNote, stationHeading } from '#/lib/copy'
 import { compass16, dayLabel, dayStart, height, hhmm, shiftLocalDay } from '#/lib/format'
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
-import { TESTFLIGHT } from '#/lib/links'
+import { APP_STORE } from '#/lib/links'
 import type { Crumb, NearbyRow } from '#/lib/catalogue-server'
 import { findEvents, tideExtremes } from '#/lib/predict'
 import type { BundledStation, ChsStation, Station } from '#/lib/station'
@@ -562,18 +562,12 @@ function Cta({ station }: { station: Station }) {
     <section className="mt-14 border-t border-sw-steel/15 pt-8">
       <p className="text-sw-steel">{pitch}</p>
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
-        {TESTFLIGHT ? (
-          <a
-            href={TESTFLIGHT}
-            className="rounded-md bg-sw-leaf px-5 py-3 font-medium text-sw-navy-deep transition hover:bg-sw-leaf/90"
-          >
-            Get the beta on TestFlight
-          </a>
-        ) : (
-          <span className="rounded-md border border-sw-leaf/30 px-5 py-3 font-medium text-sw-steel">
-            iPhone beta — opening soon
-          </span>
-        )}
+        <a
+          href={APP_STORE}
+          className="rounded-md bg-sw-leaf px-5 py-3 font-medium text-sw-navy-deep transition hover:bg-sw-leaf/90"
+        >
+          Download on the App Store
+        </a>
         <a
           href="/"
           className="whitespace-nowrap text-sw-steel underline underline-offset-4 transition hover:text-sw-paper"

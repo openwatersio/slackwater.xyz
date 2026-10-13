@@ -56,7 +56,7 @@ The page we serve for a Canadian tidal current gate or tide port carries no pred
 
 Cloudflare hosts the site and processes technical request information such as IP address, request URL, browser information, timestamps, and errors to deliver, secure, and diagnose the site. Worker logs are retained for no more than seven days. We do not use them to build profiles or track people across services.
 
-Links to TestFlight and other websites take you to services governed by their own privacy policies.
+Links to the App Store and other websites take you to services governed by their own privacy policies.
 
 ## Sharing and service providers
 

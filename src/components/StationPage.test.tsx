@@ -35,7 +35,7 @@ describe('StationPage for a CHS station', () => {
   })
 
   it('still offers the app, which is why these pages exist', () => {
-    expect(html).toMatch(/TestFlight|beta/i)
+    expect(html).toContain('https://apps.apple.com/app/slackwater-tides-current/id6813654837')
   })
 })
 
@@ -103,7 +103,7 @@ describe('StationPage for a derived gate', () => {
 
   it('still names the water and offers the app', () => {
     expect(html).toContain('Malibu Rapids')
-    expect(html).toMatch(/TestFlight|beta/i)
+    expect(html).toContain('https://apps.apple.com/app/slackwater-tides-current/id6813654837')
   })
 })
 
@@ -133,7 +133,7 @@ describe('StationPage for a CHS tide port', () => {
   it('names the water and its region, and offers the app', () => {
     expect(html).toContain('Victoria')
     expect(html).toContain('Inner Harbour')
-    expect(html).toMatch(/TestFlight|beta/i)
+    expect(html).toContain('https://apps.apple.com/app/slackwater-tides-current/id6813654837')
   })
 
   it('claims no computation and no offline capability', () => {
