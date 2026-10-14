@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { existsSync } from 'node:fs'
-import { COMPARE_PAGES, COMPARE_PATHS } from './compare'
+import { COMPARE_PAGES, COMPARE_PATHS, newestProseDate } from './compare'
 
 describe('compare pages', () => {
   it('parses every page with a path, title and description', () => {
@@ -10,6 +10,18 @@ describe('compare pages', () => {
       expect(p.title).toContain('Slackwater')
       expect(p.description.length).toBeGreaterThan(40)
     }
+  })
+
+  it('dates every page by the newest date its prose states', () => {
+    expect(COMPARE_PAGES['/alternatives/tide-guide/'].updated).toBe('2026-10-12')
+    expect(COMPARE_PAGES['/compare/slackwater-vs-ayetides/'].updated).toBe('2026-10-09')
+    for (const p of Object.values(COMPARE_PAGES)) expect(p.heading, p.path).not.toMatch(/Slackwater$|—/)
+  })
+
+  it('reads full dates only, and the newest of them', () => {
+    expect(newestProseDate('Launched April 2026. Checked September 4, 2026; then October 9, 2026.')).toBe('2026-10-09')
+    expect(newestProseDate('Checked June 3, 2026 and May 31, 2026.')).toBe('2026-06-03')
+    expect(newestProseDate('Launched April 2026.')).toBeUndefined()
   })
 
   it('references only screenshots that exist, and links only to pages that exist', () => {

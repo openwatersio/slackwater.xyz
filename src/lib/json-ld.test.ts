@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { LISTED, placeJsonLd, stationJsonLd } from './json-ld'
+import { articleJsonLd, collectionJsonLd, datasetJsonLd, LISTED, ORGANIZATION, placeJsonLd, stationJsonLd } from './json-ld'
+import { Route as Home } from '#/routes/index'
 import type { Station } from './station'
 
 const base = {
@@ -86,5 +87,70 @@ describe('placeJsonLd', () => {
       [3, 'United States', 'https://slackwater.xyz/currents/us/'],
       [4, 'Washington', PAGE],
     ])
+  })
+})
+
+describe('articleJsonLd', () => {
+  const URL = 'https://slackwater.xyz/accuracy/'
+  const article = articleJsonLd({ headline: 'How we check predictions', description: 'd', url: URL, dateModified: '2026-07-18' })
+
+  it('names the home page graph’s Organization as author and publisher', () => {
+    const graph = (Home.options.head!({} as never) as any).meta.find((m: any) => m['script:ld+json'])['script:ld+json']['@graph']
+    const home = graph.find((n: any) => n['@type'] === 'Organization')
+    expect(ORGANIZATION['@id']).toBe(home['@id'])
+    expect(ORGANIZATION.name).toBe(home.name)
+    expect(ORGANIZATION.url).toBe(home.url)
+    expect(article.publisher).toEqual(ORGANIZATION)
+    expect(article.author).toEqual(ORGANIZATION)
+  })
+
+  it('carries the date it is given and the default image', () => {
+    expect(article).toMatchObject({
+      '@type': 'Article',
+      headline: 'How we check predictions',
+      url: URL,
+      mainEntityOfPage: URL,
+      dateModified: '2026-07-18',
+      image: 'https://slackwater.xyz/og.png',
+    })
+  })
+
+  it('leaves out what it is not given rather than asserting it', () => {
+    const json = JSON.parse(JSON.stringify(article))
+    expect(json).not.toHaveProperty('datePublished')
+    expect(json).not.toHaveProperty('about')
+  })
+
+  it('never marks up a rating or review', () => {
+    expect(JSON.stringify(article)).not.toMatch(/Rating|Review/)
+  })
+})
+
+describe('collectionJsonLd', () => {
+  it('lists links without a breadcrumb trail', () => {
+    const page = collectionJsonLd('Stations', 'https://slackwater.xyz/stations/', [{ href: '/tides/', name: 'Tide stations' }])
+    expect(page['@type']).toBe('CollectionPage')
+    expect((page.mainEntity as any).itemListElement).toEqual([
+      { '@type': 'ListItem', position: 1, name: 'Tide stations', item: 'https://slackwater.xyz/tides/' },
+    ])
+  })
+})
+
+describe('datasetJsonLd', () => {
+  it('describes the download, its date and where its license lives', () => {
+    const d = datasetJsonLd({
+      name: 'n',
+      description: 'd',
+      url: 'https://slackwater.xyz/opencpn/',
+      download: 'https://example.test/slackwater-20261009.tcd',
+      dateModified: '2026-10-09',
+    })
+    expect(d).toMatchObject({
+      '@type': 'Dataset',
+      dateModified: '2026-10-09',
+      license: 'https://github.com/openwatersio/slackwater-database#license',
+      publisher: ORGANIZATION,
+      distribution: { '@type': 'DataDownload', contentUrl: 'https://example.test/slackwater-20261009.tcd' },
+    })
   })
 })

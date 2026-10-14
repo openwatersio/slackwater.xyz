@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { COMPARE_PAGES } from '#/lib/compare'
 import { ComparePage } from '#/components/ComparePage'
+import { articleJsonLd } from '#/lib/json-ld'
 
 // Trailing slash is required: Workers Assets 307s the bare path, and a
 // canonical pointing at a redirect is a conflicting signal.
@@ -22,6 +23,14 @@ export const Route = createFileRoute('/alternatives/$slug')({
         { property: 'og:title', content: p.title },
         { property: 'og:description', content: p.description },
         { property: 'og:url', content: canonical },
+        {
+          'script:ld+json': articleJsonLd({
+            headline: p.heading,
+            description: p.description,
+            url: canonical,
+            dateModified: p.updated,
+          }),
+        },
       ],
     }
   },

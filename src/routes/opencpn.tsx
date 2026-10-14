@@ -2,15 +2,20 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Marked } from 'marked'
 import content from '../content/opencpn.md?raw'
 import { TCD } from '#/lib/links'
+import { datasetJsonLd } from '#/lib/json-ld'
 
 const TITLE = 'Slackwater for OpenCPN — free tide and current data'
 const DESCRIPTION =
   'Download the Slackwater station database as a TCD file for OpenCPN: 6,000+ tide stations and 2,400+ current stations, with install steps.'
 const CANONICAL = 'https://slackwater.xyz/opencpn/'
-const RELEASED = TCD.date
-  ? new Date(
-      `${TCD.date.slice(0, 4)}-${TCD.date.slice(4, 6)}-${TCD.date.slice(6)}T12:00:00Z`,
-    ).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+const RELEASED_ON = TCD.date && `${TCD.date.slice(0, 4)}-${TCD.date.slice(4, 6)}-${TCD.date.slice(6)}`
+const RELEASED = RELEASED_ON
+  ? new Date(`${RELEASED_ON}T12:00:00Z`).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC',
+    })
   : undefined
 
 const PROSE =
@@ -37,6 +42,21 @@ export const Route = createFileRoute('/opencpn')({
       { property: 'og:title', content: TITLE },
       { property: 'og:description', content: DESCRIPTION },
       { property: 'og:url', content: CANONICAL },
+      // Only with a dated file: without one the download link is the release
+      // list, which is not a distribution of anything.
+      ...(RELEASED_ON
+        ? [
+            {
+              'script:ld+json': datasetJsonLd({
+                name: 'Slackwater tide and current stations for OpenCPN',
+                description: DESCRIPTION,
+                url: CANONICAL,
+                download: TCD.url,
+                dateModified: RELEASED_ON,
+              }),
+            },
+          ]
+        : []),
     ],
   }),
   component: OpenCPN,

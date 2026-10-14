@@ -5,26 +5,37 @@ import {
   TideBlueprint,
   TideOrbit,
 } from '#/components/TideOrbit'
+import { articleJsonLd } from '#/lib/json-ld'
 
 const CANONICAL = 'https://slackwater.xyz/learn/tides/'
+const TITLE = 'How the Moon makes two high tides'
+const DESCRIPTION =
+  'An interactive explanation of the near-side and far-side ocean bulges, using the Earth–Moon barycenter: their shared center of mass.'
+const IMAGE = 'https://slackwater.xyz/og-tides.png'
 
 export const Route = createFileRoute('/learn/tides')({
   head: () => ({
     links: [{ rel: 'canonical', href: CANONICAL }],
     meta: [
-      { title: 'How the Moon makes two high tides · Slackwater' },
-      {
-        name: 'description',
-        content:
-          'An interactive explanation of the near-side and far-side ocean bulges, using the Earth–Moon barycenter: their shared center of mass.',
-      },
+      { title: `${TITLE} · Slackwater` },
+      { name: 'description', content: DESCRIPTION },
       { property: 'og:url', content: CANONICAL },
-      { property: 'og:title', content: 'How the Moon makes two high tides' },
-      { property: 'og:image', content: 'https://slackwater.xyz/og-tides.png' },
+      { property: 'og:title', content: TITLE },
+      { property: 'og:image', content: IMAGE },
       {
         property: 'og:image:alt',
         content:
           'Earth and the Moon with ocean bulges on both sides, illustrating how the Moon makes two high tides.',
+      },
+      {
+        'script:ld+json': articleJsonLd({
+          headline: TITLE,
+          description: DESCRIPTION,
+          url: CANONICAL,
+          image: IMAGE,
+          dateModified: __LASTMOD__['/learn/tides/'],
+          about: 'Tide',
+        }),
       },
     ],
   }),

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { datumLine, pageDescription, pageTitle, placeLine, provenance, seasonalNote } from './copy'
+import { loadCatalogue } from './catalogue'
+import {
+  DESCRIPTION_LIMIT, TITLE_LIMIT, datumLine, pageDescription, pageTitle, placeLine, provenance, seasonalNote,
+} from './copy'
+import { PASS_GUIDES } from './passes'
 import type { BundledStation, ChsStation } from './station'
 
 const bundled = {
@@ -51,19 +55,34 @@ describe('provenance', () => {
 })
 
 describe('pageTitle', () => {
-  it('leads with the station and the query words, then the place', () => {
+  it('leads with the station and the query words, then the subdivision', () => {
     const victoria = { ...bundled, kind: 'tide', name: 'Victoria', state: 'BC', country: 'Canada' } as const
-    expect(pageTitle(victoria)).toBe('Victoria tide times & tide chart — BC, Canada')
-    expect(pageTitle({ ...bundled, country: 'United States' })).toBe(
-      'Deception Pass tidal currents & slack water — United States',
+    expect(pageTitle(victoria)).toBe('Victoria tide times & tide chart — BC')
+    expect(pageTitle({ ...bundled, name: 'Deception Pass (Narrows)', state: 'WA', country: 'United States' })).toBe(
+      'Deception Pass (Narrows) slack water & currents — WA',
     )
+  })
+
+  it('names the country where there is no subdivision', () => {
+    expect(pageTitle({ ...bundled, country: 'Japan' })).toBe('Deception Pass slack water & currents — Japan')
   })
 
   it('falls back to the water context when there is no country', () => {
     expect(pageTitle({ ...bundled, region: 'Puget Sound' })).toBe(
-      'Deception Pass tidal currents & slack water — Puget Sound',
+      'Deception Pass slack water & currents — Puget Sound',
     )
-    expect(pageTitle(bundled)).toBe('Deception Pass tidal currents & slack water')
+    expect(pageTitle(bundled)).toBe('Deception Pass slack water & currents')
+  })
+
+  it('gives up the place, then the keyword, before the name', () => {
+    const named = (name: string) => pageTitle({ ...bundled, name, state: 'MA', country: 'United States' })
+    expect(named('Hell Gate, East River, off Mill Rock')).toBe('Hell Gate, East River, off Mill Rock slack water & currents')
+    expect(named('Stellwagen Bank, 17 nm ESE of Eastern Point')).toBe(
+      'Stellwagen Bank, 17 nm ESE of Eastern Point slack water',
+    )
+    expect(named('Stellwagen Basin, 13.8 nm SE of Eastern Point Light')).toBe(
+      'Stellwagen Basin, 13.8 nm SE of Eastern Point Light currents',
+    )
   })
 })
 
@@ -83,10 +102,9 @@ describe('pageDescription', () => {
     expect(pageDescription(bundled)).toMatch(/7-day/)
   })
 
-  it('names the place, which is what the query carries', () => {
-    expect(pageDescription({ ...bundled, kind: 'tide', name: 'Victoria', state: 'BC', country: 'Canada' })).toBe(
-      "Tide times and tide chart for Victoria, BC, Canada: today's and tomorrow's high and low water, " +
-        'a 7-day tide table, sunrise and sunset, and nearby stations.',
+  it('leads with what is on the page and names the place', () => {
+    expect(pageDescription({ ...bundled, kind: 'tide', name: 'Friday Harbor', state: 'WA', country: 'United States' })).toBe(
+      'High and low tide times for Friday Harbor, WA, with a 7-day tide table and chart.',
     )
   })
 
@@ -94,9 +112,32 @@ describe('pageDescription', () => {
     // Exact, not a denylist: the previous version listed four retired phrases,
     // which let a new false claim through in different words.
     expect(pageDescription(chs)).toBe(
-      'Station information for Dodd Narrows, Nanaimo. Predictions are based on ' +
-        'Canadian Hydrographic Service data and are available in the Slackwater app.',
+      'Station information for Dodd Narrows, Nanaimo. Predictions based on ' +
+        'Canadian Hydrographic Service data are in the Slackwater app.',
     )
+  })
+})
+
+describe('search snippets', () => {
+  // The name is the only thing that varies, so the whole corpus is the worst
+  // case. A database bump that brings a longer name fails here.
+  const all = loadCatalogue()
+
+  it('keeps every title whole in a search result', () => {
+    const over = all.map(pageTitle).filter((t) => t.length > TITLE_LIMIT)
+    expect(over).toEqual([])
+  })
+
+  it('keeps every description whole in a search result', () => {
+    const over = all
+      .map((s) => PASS_GUIDES.get(s.id)?.description ?? pageDescription(s))
+      .filter((d) => d.length > DESCRIPTION_LIMIT)
+    expect(over).toEqual([])
+  })
+
+  it('keeps a keyword in every bundled title', () => {
+    const bare = all.filter((s) => pageTitle(s) === s.name).map((s) => s.name)
+    expect(bare).toEqual([])
   })
 })
 
