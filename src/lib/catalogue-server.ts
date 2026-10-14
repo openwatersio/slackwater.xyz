@@ -88,10 +88,18 @@ export interface Crumb {
 
 /** What one page of the browse hierarchy renders. */
 export interface PlaceIndex {
-  /** The place this page is of. Absent on the worldwide index, which is of no place. */
+  /** The place this page is of, short — "Washington". Absent on the worldwide index, which is of no place. */
   name?: string
+  /** The same place with its country, for the heading — "Washington, United States". */
+  title?: string
   /** The page one level up, resolved here because only this side knows the names. */
   up?: Crumb
+  /** Every page above this one, from the kind's index down. Empty on the index itself. */
+  crumbs: Crumb[]
+  /** Who published the predictions under this page, most stations first. */
+  sources: string[]
+  /** The same place's page for the other kind, where it has one. */
+  other?: { href: string; count: number }
   /** Pages below this one. Empty on a page that holds stations and nothing else. */
   places: PlaceLink[]
   /** The stations that live on this page rather than on a child of it. */
@@ -132,6 +140,34 @@ const children = memoByKind((kind) => {
   return out
 })
 
+/**
+ * Who a station's predictions come from, in the words a place page uses.
+ *
+ * A tide row names its publisher. A NOAA current row does not, because the
+ * NOAA bundle is the only place bundled currents come from — the same reason
+ * the station page says "NOAA harmonic constituents" without reading a field.
+ */
+const NOAA = 'US National Oceanic and Atmospheric Administration'
+const sourceOf = (s: Station) =>
+  s.source === 'chs' ? 'Canadian Hydrographic Service' : s.kind === 'tide' ? s.publisher || undefined : NOAA
+
+/** Each place page's publishers by station count, the kind's index included, tallied once. */
+const sources = memoByKind((kind) => {
+  const out = new Map<string, Map<string, number>>()
+  for (const s of stationsOfKind(kind)) {
+    const source = sourceOf(s)
+    if (!source) continue
+    for (let p = parentPath(s.path); p.length >= kindRoot(kind).length; p = parentPath(p)) {
+      let tally = out.get(p)
+      if (!tally) out.set(p, (tally = new Map()))
+      tally.set(source, (tally.get(source) ?? 0) + 1)
+    }
+  }
+  return out
+})
+
+const otherKind = (kind: Kind): Kind => (kind === 'tide' ? 'current' : 'tide')
+
 const rootLabel = (kind: Kind) => (kind === 'tide' ? 'Tide stations' : 'Current stations')
 
 /** The pages above `path`, from the kind's index down to its parent. */
@@ -161,8 +197,15 @@ function placeIndex(kind: Kind, path: string): PlaceIndex | undefined {
   if (!root && !place) return undefined
   const below = children(kind).get(path) ?? { places: [], stations: [] }
   const subdivision = place && place.up !== kindRoot(kind)
+  const trail = place ? crumbs(kind, path) : []
+  const tally = sources(kind).get(path) ?? new Map<string, number>()
+  const there = kindRoot(otherKind(kind)) + path.slice(kindRoot(kind).length)
+  const other = root ? undefined : trees(otherKind(kind)).get(there)
   return {
-    ...(place ? { name: place.title, up: crumbs(kind, path).at(-1) } : {}),
+    ...(place ? { name: place.name, title: place.title, up: trail.at(-1) } : {}),
+    crumbs: trail,
+    sources: [...tally].sort(([, a], [, b]) => b - a).map(([name]) => name),
+    ...(other ? { other: { href: other.path, count: other.count } } : {}),
     places: below.places
       .map((p) => ({ href: p.path, name: p.name, count: p.count, ...(p.continent ? { continent: p.continent } : {}) }))
       .sort(byName),
@@ -251,6 +294,31 @@ export const resolvePath = createServerFn({ method: 'GET' })
     const gone = withheld().get(path)
     return gone ? { page: 'redirect', path: nearestPlace(trees(kind), kind, gone) } : undefined
   })
+
+/** One kind's share of the `/stations/` hub: its total and its biggest places. */
+export interface HubKind {
+  href: string
+  count: number
+  top: PlaceLink[]
+}
+
+/**
+ * The `/stations/` hub: each kind's count and the countries with the most
+ * stations, so the page links somewhere a searcher wants to go rather than
+ * only to the two indexes. Counts come from the catalogue so they never go
+ * stale against it.
+ */
+export const stationsHub = createServerFn({ method: 'GET' }).handler(() => {
+  const hub = (kind: Kind): HubKind => ({
+    href: kindRoot(kind),
+    count: stationsOfKind(kind).length,
+    top: [...(children(kind).get(kindRoot(kind))?.places ?? [])]
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+      .slice(0, 12)
+      .map((p) => ({ href: p.path, name: p.name, count: p.count })),
+  })
+  return { tide: hub('tide'), current: hub('current') }
+})
 
 export const stationBySlug = createServerFn({ method: 'GET' })
   .validator((data: { kind: Kind; slug: string }) => data)

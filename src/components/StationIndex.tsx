@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { PlaceLink, StationRow } from '#/lib/catalogue-server'
 import { UNPLACED } from '#/lib/places'
 import type { Kind } from '#/lib/station'
@@ -59,7 +60,7 @@ function group(rows: StationRow[]): [string, StationRow[]][] {
  *
  * Within a page, stations still group under `region` — the water rather than
  * the jurisdiction. Those regions are a long tail (286 of 542 name a single
- * station), which is why region is a heading here and never a route; see
+ * station), which is why region labels a list here and is never a route; see
  * `placeTree` in `places.ts`.
  *
  * Most current stations carry no region at all (the NOAA bundle has no such
@@ -80,7 +81,8 @@ export function StationIndex({
   rows: StationRow[]
   places?: PlaceLink[]
   title?: string
-  lede?: string
+  /** The paragraphs under the heading. */
+  lede?: ReactNode
   /** The page one level up, for the crumb above the heading. */
   up?: { href: string; label: string }
 }) {
@@ -88,9 +90,9 @@ export function StationIndex({
   const grouped = rows.length > 0 && placed / rows.length >= PLACED_SHARE_TO_GROUP
   const label = title ?? (kind === 'tide' ? 'Tide stations' : 'Current stations')
   const back = up ?? { href: '/stations/', label: 'All stations' }
-  const blurb =
-    lede ??
-    `${rows.length.toLocaleString()} stations${kind === 'tide' ? ' worldwide' : ' across the US and Canada'}.`
+  const blurb = lede ?? (
+    <p>{`${rows.length.toLocaleString()} stations${kind === 'tide' ? ' worldwide' : ' across the US and Canada'}.`}</p>
+  )
   return (
     <main className="mx-auto max-w-5xl px-5 pb-24 pt-10 sm:px-6 sm:pt-20">
       <DirectoryNav />
@@ -98,7 +100,7 @@ export function StationIndex({
         {back.label}
       </a>
       <h1 className="text-4xl font-semibold tracking-tight text-sw-paper sm:text-5xl">{label}</h1>
-      <p className="mt-3 text-sw-steel">{blurb}</p>
+      <div className="mt-3 max-w-3xl space-y-2 text-sw-steel">{blurb}</div>
       {/* The explainer belongs on the one page a reader arrives at cold — the
           worldwide tide index, the only page with nothing above it — and not
           on the 148 country and subdivision pages under it. */}
@@ -108,13 +110,18 @@ export function StationIndex({
         </div>
       )}
       {places.length > 0 && <Places places={places} />}
+      {/* Water labels a list rather than heading a section: Washington's
+          page names 93 waters, and 93 headings say nothing about the
+          page's structure. */}
       {grouped ? (
-        group(rows).map(([region, list]) => (
-          <section key={region} className="mt-10">
-            <h2 className="text-sm font-medium uppercase tracking-wider text-sw-leaf">{region}</h2>
-            <List rows={list} />
-          </section>
-        ))
+        <ul className="mt-10 space-y-10">
+          {group(rows).map(([region, list]) => (
+            <li key={region}>
+              <p className="text-sm font-medium uppercase tracking-wider text-sw-leaf">{region}</p>
+              <List rows={list} />
+            </li>
+          ))}
+        </ul>
       ) : rows.length > 0 ? (
         <div className="mt-10">
           <List rows={rows} />

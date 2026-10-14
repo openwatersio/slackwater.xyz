@@ -3,7 +3,7 @@
 import { notFound, redirect } from '@tanstack/react-router'
 import { StationIndex } from '#/components/StationIndex'
 import { StationPage } from '#/components/StationPage'
-import { resolvePath, type Resolved } from '#/lib/catalogue-server'
+import { resolvePath, type PlaceIndex, type Resolved } from '#/lib/catalogue-server'
 import { ogImageAlt, pageDescription, pageTitle } from '#/lib/copy'
 import { stationJsonLd } from '#/lib/json-ld'
 import { placeHead } from '#/lib/place-head'
@@ -87,19 +87,20 @@ export function directoryHead(kind: Kind, page: Page | undefined) {
 export function Directory({ kind, page }: { kind: Kind; page: Page }) {
   const { now, live } = useLiveNow()
   if (page.page === 'place') {
-    const { name, up, places, rows, count } = page.index
-    const what = kind === 'tide' ? 'tide' : 'current'
+    const { title, up, places, rows, count } = page.index
     return (
       <StationIndex
         kind={kind}
-        title={name}
+        title={title}
         up={up}
         places={places}
         rows={rows}
         lede={
-          name
-            ? `${count.toLocaleString()} ${what} stations.`
-            : `${count.toLocaleString()} stations across ${places.length} ${places.length === 1 ? 'country' : 'countries'}.`
+          title ? (
+            <PlaceIntro kind={kind} index={page.index} />
+          ) : (
+            <p>{`${count.toLocaleString()} stations across ${places.length} ${places.length === 1 ? 'country' : 'countries'}.`}</p>
+          )
         }
       />
     )
@@ -113,4 +114,43 @@ export function Directory({ kind, page }: { kind: Kind; page: Page }) {
   return station.source === 'bundled'
     ? <StationPage station={station} now={now} selectedAt={instant.at} live={live} nearby={nearby} crumbs={crumbs} />
     : <StationPage station={station} now={instant.at} settled nearby={nearby} crumbs={crumbs} />
+}
+
+/**
+ * What a place page says before its list: how many stations, whose data they
+ * predict from, and whether the other kind covers the same place.
+ *
+ * Read from the catalogue and nothing else. The three facts a reader landing
+ * from a search wants first are whether their water is here, whether to trust
+ * it, and where the currents are, and each one is a field, not a sentence
+ * someone has to keep true by hand.
+ *
+ * The heading above already names the place, so the intro never repeats it,
+ * and sources come as a label: "published by US National Oceanic and
+ * Atmospheric Administration" wants an article the data cannot supply.
+ */
+function PlaceIntro({ kind, index }: { kind: Kind; index: PlaceIndex }) {
+  const { count, sources, other } = index
+  const what = kind === 'tide' ? 'tide' : 'tidal current'
+  return (
+    <>
+      <p>
+        {`${count.toLocaleString()} ${what} ${count === 1 ? 'station' : 'stations'}.`}
+        {sources.length > 0 && ` Sources: ${sources.join(', ')}.`}
+      </p>
+      <p>
+        {other ? (
+          <>
+            {`${kind === 'tide' ? 'Tidal currents' : 'Tide tables'} are on their own page: `}
+            <a href={other.href} className="text-sw-paper/90 underline hover:text-sw-leaf">
+              {`${other.count.toLocaleString()} ${kind === 'tide' ? 'current' : 'tide'} ${other.count === 1 ? 'station' : 'stations'}`}
+            </a>
+            .
+          </>
+        ) : (
+          `Slackwater predicts no ${kind === 'tide' ? 'tidal currents' : 'tides'} here.`
+        )}
+      </p>
+    </>
+  )
 }

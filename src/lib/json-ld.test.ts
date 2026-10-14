@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { stationJsonLd } from './json-ld'
+import { LISTED, placeJsonLd, stationJsonLd } from './json-ld'
 import type { Station } from './station'
 
 const base = {
@@ -14,7 +14,7 @@ const URL = 'https://slackwater.xyz/currents/us/wa/deception-pass/'
 const TRAIL = [
   { href: '/currents/', label: 'Current stations' },
   { href: '/currents/us/', label: 'United States' },
-  { href: '/currents/us/wa/', label: 'WA' },
+  { href: '/currents/us/wa/', label: 'Washington' },
 ]
 
 describe('stationJsonLd', () => {
@@ -51,8 +51,40 @@ describe('stationJsonLd', () => {
       [1, 'Slackwater', 'https://slackwater.xyz/'],
       [2, 'Current stations', 'https://slackwater.xyz/currents/'],
       [3, 'United States', 'https://slackwater.xyz/currents/us/'],
-      [4, 'WA', 'https://slackwater.xyz/currents/us/wa/'],
+      [4, 'Washington', 'https://slackwater.xyz/currents/us/wa/'],
       [5, CURRENT.name, URL],
+    ])
+  })
+})
+
+describe('placeJsonLd', () => {
+  const PAGE = 'https://slackwater.xyz/currents/us/wa/'
+  const links = Array.from({ length: LISTED + 5 }, (_, i) => ({ href: `/currents/us/wa/s${i}/`, name: `Station ${i}` }))
+  const [collection, crumbs] = placeJsonLd(
+    { title: 'Washington, United States', name: 'Washington', crumbs: TRAIL.slice(0, 2), links },
+    PAGE,
+  ) as Record<string, any>[]
+
+  it('lists what the page links to, counting all of it while listing the first hundred', () => {
+    expect(collection['@type']).toBe('CollectionPage')
+    expect(collection.name).toBe('Washington, United States')
+    expect(collection.mainEntity['@type']).toBe('ItemList')
+    expect(collection.mainEntity.numberOfItems).toBe(LISTED + 5)
+    expect(collection.mainEntity.itemListElement).toHaveLength(LISTED)
+    expect(collection.mainEntity.itemListElement[0]).toEqual({
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Station 0',
+      item: 'https://slackwater.xyz/currents/us/wa/s0/',
+    })
+  })
+
+  it('breadcrumbs home, the pages above, then the page by the name its stations know it by', () => {
+    expect(crumbs.itemListElement.map((i: any) => [i.position, i.name, i.item])).toEqual([
+      [1, 'Slackwater', 'https://slackwater.xyz/'],
+      [2, 'Current stations', 'https://slackwater.xyz/currents/'],
+      [3, 'United States', 'https://slackwater.xyz/currents/us/'],
+      [4, 'Washington', PAGE],
     ])
   })
 })

@@ -25,10 +25,10 @@ describe('StationIndex', () => {
     // place. Nothing asserted the index's shape, so it shipped silently.
     for (const kind of ['tide', 'current'] as const) {
       const html = renderToStaticMarkup(<StationIndex kind={kind} rows={rowsFor(kind)} />)
-      const totalLinks = (html.match(/<li/g) ?? []).length
-      const sections = html.split('<section')
-      const elsewhere = sections.find((s) => s.includes('>Elsewhere<'))
-      const elsewhereLinks = elsewhere ? (elsewhere.match(/<li/g) ?? []).length : 0
+      const totalLinks = (html.match(/<a href="\/(tides|currents)\//g) ?? []).length
+      // `Elsewhere` sorts last, so every station link after its label is in it.
+      const elsewhere = html.split('>Elsewhere</p>')[1]
+      const elsewhereLinks = elsewhere ? (elsewhere.match(/<a href="\/(tides|currents)\//g) ?? []).length : 0
       expect(elsewhereLinks, kind).toBeLessThanOrEqual(totalLinks / 2)
     }
   })
@@ -52,14 +52,27 @@ describe('StationIndex', () => {
     // what keeps the tides explainer, with its own heading, off them.
     const up = { href: '/tides/', label: 'Tide stations' }
     const japan = renderToStaticMarkup(<StationIndex kind="tide" up={up} rows={inCountry('Japan').map(toRow)} />)
-    expect(japan).toContain('<h2')
+    expect(japan).toContain('>Hokkaido</p>')
 
     // A subdivision page heads by water alone — the jurisdiction is its title.
     const alaska = inCountry('United States')
       .filter((s) => s.state === 'AK')
       .map((s) => ({ slug: s.slug, name: s.name, path: s.path, ...(s.region ? { region: s.region } : {}) }))
     expect(alaska.length).toBeGreaterThan(100)
-    expect(renderToStaticMarkup(<StationIndex kind="tide" up={up} rows={alaska} />)).not.toContain('<h2')
+    expect(renderToStaticMarkup(<StationIndex kind="tide" up={up} rows={alaska} />)).not.toContain('</p><ul')
+  })
+
+  it('labels the water without making it a heading', () => {
+    // A heading per water put 93 H2s on Washington's page. Search engines read
+    // headings as the page's outline, and 93 of them is no outline at all.
+    const up = { href: '/tides/us/', label: 'United States' }
+    const washington = loadCatalogue()
+      .filter((s) => s.kind === 'tide' && s.path.startsWith('/tides/us/wa/'))
+      .map((s) => ({ slug: s.slug, name: s.name, path: s.path, ...(s.region ? { region: s.region } : {}) }))
+    const html = renderToStaticMarkup(<StationIndex kind="tide" up={up} title="Washington, United States" rows={washington} />)
+    expect(html).toContain('</p><ul')
+    expect((html.match(/<h1/g) ?? []).length).toBe(1)
+    expect(html).not.toContain('<h2')
   })
 
   it('promotes the tides guide on the tide index only', () => {
