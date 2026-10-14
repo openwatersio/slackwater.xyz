@@ -35,6 +35,7 @@ describe('landing page', () => {
     expect(APP_STORE).toBe('https://apps.apple.com/app/slackwater-tides-current/id6813654837')
     expect(html).toContain(`href="${APP_STORE}"`)
     expect(html).toContain('Download on the App Store')
+    expect(html.match(/Requires iOS 26 or later\./g)).toHaveLength(2)
     expect(html).not.toMatch(/TestFlight|public beta|opening soon/i)
   })
 
