@@ -43,6 +43,12 @@ jobs:
       # CONTRIBUTING.md "Gotchas". The step's exit code is what matters.
       - run: npm run build
 
+      # The build regenerates public/_redirects (vite.config.ts), and the
+      # committed copy is how a redirect change gets reviewed. A difference
+      # means the PR changed redirects without committing the result.
+      - name: Check public/_redirects is committed as built
+        run: git diff --exit-code -- public/_redirects
+
       # After the build, not before it: src/routeTree.gen.ts is gitignored and
       # only exists as a vite build side effect, so tsc on a fresh checkout
       # fails with "Cannot find module './routeTree.gen'" - a missing file,
