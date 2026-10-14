@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { marked } from 'marked'
 import support from '../content/support.md?raw'
 
-const TITLE = 'Support — Slackwater'
+const TITLE = 'Get help with Slackwater'
 const DESCRIPTION = 'How to get help with Slackwater, report a bug, or ask about a station.'
 // Trailing slash is required: Workers Assets 307s /support -> /support/,
 // and a canonical pointing at a redirect is a conflicting signal.

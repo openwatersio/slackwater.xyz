@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { existsSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { Route as RootRoute } from './__root'
+import { Route as RootRoute, SITE_DESCRIPTION, SITE_TITLE } from './__root'
 import { Route } from './index'
 import { APP_STORE } from '#/lib/links'
 
@@ -85,11 +85,15 @@ describe('landing page structured data', () => {
 })
 
 describe('landing page social card', () => {
-  it('says what the app is in one line', async () => {
+  it('says what the app is in one line, brand first', async () => {
     const head = await RootRoute.options.head?.({} as never)
-    expect(head?.meta).toContainEqual({
-      property: 'og:title',
-      content: 'Free Tide & Current App for iPhone — Slackwater',
-    })
+    const title = 'Slackwater — Free Offline Tide & Current App for iPhone'
+    expect(head?.meta).toContainEqual({ title })
+    expect(head?.meta).toContainEqual({ property: 'og:title', content: title })
+  })
+
+  it('fits the title and description in a search result', () => {
+    expect(SITE_TITLE.length).toBeLessThan(60)
+    expect(SITE_DESCRIPTION.length).toBeLessThan(160)
   })
 })

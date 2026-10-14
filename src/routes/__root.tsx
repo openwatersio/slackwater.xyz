@@ -1,11 +1,13 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import appCss from '../styles.css?url'
 
-export const SITE_TITLE = 'Free Tide & Current App for iPhone — Slackwater'
+// Brand first: other iOS tide apps share the name, and the bare query must
+// land here rather than on /support/.
+export const SITE_TITLE = 'Slackwater — Free Offline Tide & Current App for iPhone'
 
 /** Shared by the meta description, og:description and the JSON-LD. */
 export const SITE_DESCRIPTION =
-  'Free tide charts and tidal currents for iPhone. Bundled stations work offline; Canadian stations need setup, and some passes require a connection.'
+  'Free, open-source iPhone app for tides worldwide and currents in the US and Canada. Bundled stations work offline; Canadian stations need setup first.'
 
 export const Route = createRootRoute({
   head: () => ({
