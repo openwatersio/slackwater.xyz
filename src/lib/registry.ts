@@ -75,15 +75,12 @@ const EXCLUDED = new Set(['chs-arran-rapids'])
 /**
  * The Canadian tide ports this site publishes.
  *
- * Until slackwater-database#210 the database curated identity for exactly these
- * ten and for none of the other 1,047, so the corpus was simply the data and
- * this list would have been noise. #210 gave every live Canadian tide station a
- * record, which is what #17 needs — and more than this site has decided to
- * publish: a page for one of the other 1,047 carries identity and no
- * prediction, and the on-request DFO curve it would need is the rest of #17.
+ * slackwater-database#210 gives every live Canadian tide station a record, which
+ * is more than this site has decided to publish: whether the other 1,047 get
+ * pages is #207.
  *
- * So the list exists to keep that a decision rather than a side effect of a
- * database release, and it is meant to be deleted. When #17 answers, this goes
+ * The list exists to keep that a decision rather than a side effect of a
+ * database release, and it is meant to be deleted. When #207 answers, this goes
  * and the corpus is the data again.
  */
 const CHS_TIDE_PORTS = new Set([
@@ -106,8 +103,7 @@ const CHS_TIDE_PORTS = new Set([
  * All 24 gates and the ten named tide ports are curated records with a name,
  * region, corrected position, timezone and province. Since
  * slackwater-database#210 so are the other 1,047 tide ports, which this site
- * does not publish yet: identity is no longer what stops them, a prediction is,
- * and that is the rest of #17.
+ * does not publish yet (#207).
  */
 export function chsStations(kind: Kind): ChsStation[] {
   const out: ChsStation[] = []

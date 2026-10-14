@@ -17,7 +17,7 @@ import type { BundledStation, Constituent, CurrentReduction, Kind, Station, Tide
  * Filtering on the id shape rather than a `chs-` prefix is what makes this one
  * rule instead of a rule plus an exception: `noaa-boundary-pass` is curated
  * despite its name, and a prefix test silently lets it through to a throw.
- * Those stations are excluded from v1 and tracked in issue #17.
+ * Curated Canadian stations reach the corpus through `chsStations` instead.
  */
 export function isBuildable(id: string): boolean {
   return id.includes('/')
@@ -356,8 +356,8 @@ export function loadCatalogue(): Station[] {
 
   // The Canadian gates, and the ten tide ports whose identity the database
   // curates. Both carry no prediction: DFO's terms do not allow re-serving
-  // one, so the reader's own browser fetches it. The other 1,048 ports have
-  // identity nowhere published — see #17.
+  // one, so the reader's own browser fetches it. The other 1,047 ports wait
+  // on whether the site publishes them — see #207.
   out.push(...chsStations('current'), ...chsStations('tide'))
 
   // One row per slug. The database merges duplicate identities by putting

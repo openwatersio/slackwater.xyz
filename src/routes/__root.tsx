@@ -51,8 +51,8 @@ export const Route = createRootRoute({
     ],
   }),
   shellComponent: RootDocument,
-  // 1,048 of the 8,397 known station URLs still 404 by design: 1,047 Canadian
-  // (CHS) tide ports whose identity nobody publishes, and
+  // 1,048 known station URLs still 404 by design: 1,047 Canadian (CHS) tide
+  // ports the site has not chosen to publish (#207), and
   // `chs-arran-rapids`, a gate excluded by name pending an owner decision.
   // `dodd-narrows`, the former flagship share case, resolves.
   // The router's default is a bare title, so the receiver of that link got a
