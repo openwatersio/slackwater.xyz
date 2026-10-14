@@ -58,16 +58,19 @@ export const DATUM_NOTE =
  * Above this ratio a page leads with the fact that its water is seasonal;
  * below it, the page says so quietly and lower down.
  *
- * 3 is where the corpus changes character. Above it the stations are rivers,
- * lagoons and lakes — the Neuse at Oriental, the St Johns at Piney Bluff, Indian
- * River Lagoon at Melbourne Causeway, Lake Ontario at Cobourg — and a tide table
- * is the wrong frame for all of them. Below it are Gulf and Chesapeake ports
- * with a real tide and a comparable annual signal, and Annapolis is the reason
- * the line is not at 1: it carries the database's label at 1.008, and telling a
- * reader the US Naval Academy gauge is "mostly seasonal" would be false in
- * effect while true in arithmetic.
+ * The ratio is the seasonal curve's peak over the principal tide, the same one
+ * the database draws its label on, so every labelled station is above 1. 3 is
+ * where the corpus changes character. Above it the stations are rivers, locks
+ * and lakes — Lake Ontario at Rochester and Cobourg, the St Lawrence Seaway at
+ * Montreal, Lake Superior at Duluth — and a tide table is the wrong frame for
+ * all of them. Below it are bayous, Baltic harbours and Sea of Japan ports
+ * with a small real tide and a comparable annual signal, such as Lafitte on the
+ * Barataria Waterway at 2.9 and Tsuruga at 1.05, and telling a reader those are
+ * "mostly seasonal" would be false in effect while true in arithmetic.
  *
- * Of the 491 labelled pages, 159 are above this and 332 below.
+ * Roughly half the labelled pages fall on each side. 3 is also where the
+ * database's own documentation splits the two bands, so the app and this site
+ * describe the same water the same way.
  */
 const SEASONAL_LEAD_RATIO = 3
 
@@ -93,16 +96,19 @@ export interface SeasonalNote {
 }
 
 /**
- * What a page says about water whose yearly swing rivals or exceeds its daily
- * one, or `undefined` for the 5,352 tide pages where that is not true.
+ * What a page says about water whose yearly swing exceeds its daily one, or
+ * `undefined` for the tide pages where that is not true.
  *
  * Two bands rather than one sentence, because one sentence cannot be honest
- * across a 160x range. At Cobourg the annual cycle IS the signal and a reader
+ * across a 100x range. At Cobourg the annual cycle IS the signal and a reader
  * planning anything from the high and low needs to know before reading them, so
- * it leads. At Annapolis the tide is real and the annual cycle merely comparable,
+ * it leads. At Lafitte the tide is real and the annual cycle merely comparable,
  * so the same prominence would be a false alarm — but saying nothing leaves a
  * reader wondering why the heights drift through the year, which is the thing
- * the database now knows and the page can explain.
+ * the database knows and the page can explain.
+ *
+ * A principal tide below detection makes the ratio infinite, and "about ∞ times"
+ * is not a sentence, so that page says the tide is too small to measure instead.
  *
  * Neither band hides the numbers or adds a warning icon: the predictions are
  * correct, and this is a statement about what kind of water they describe.
@@ -112,9 +118,10 @@ export function seasonalNote(station: Station): SeasonalNote | undefined {
   return station.seasonal >= SEASONAL_LEAD_RATIO
     ? {
         place: 'lead',
-        text:
-          `Mostly seasonal — the yearly change in water level here is about ` +
-          `${aboutTimes(station.seasonal)} times the daily tide.`,
+        text: Number.isFinite(station.seasonal)
+          ? `Mostly seasonal — the yearly change in water level here is about ` +
+            `${aboutTimes(station.seasonal)} times the daily tide.`
+          : 'Mostly seasonal — the water level here changes through the year, and the daily tide is too small to measure.',
       }
     : {
         place: 'aside',

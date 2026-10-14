@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { stationsById } from '@slackwater/database'
-import { loadCatalogue, loadMoved, loadWithheld } from './catalogue'
+import { loadCatalogue, loadMoved, loadWithheld, seasonalRatio } from './catalogue'
 import { predictSeries } from './predict'
 import { nearby } from './nearby'
 
@@ -26,14 +26,15 @@ describe('loadCatalogue', () => {
     expect(seasonal).toHaveLength(538)
     expect(seasonal.every((s) => s.kind === 'tide')).toBe(true)
 
-    // Cobourg on Lake Ontario, the extreme: SA 0.289 m against 0.002 m of M2.
+    // Cobourg on Lake Ontario: a seasonal curve peaking at 0.30 m against a
+    // principal tide of 3.7 mm.
     const cobourg = all.find((s) => s.id === 'ticon/cobourg_ontario-13590-can-meds')
-    expect(cobourg?.source === 'bundled' && cobourg.seasonal).toBeCloseTo(161.6, 1)
+    expect(cobourg?.source === 'bundled' && cobourg.seasonal).toBeCloseTo(89.17, 1)
 
-    // Annapolis carries the label at barely over 1, which is why the page copy
-    // has two bands rather than one sentence.
-    const annapolis = all.find((s) => s.id === 'noaa/8575512')
-    expect(annapolis?.source === 'bundled' && annapolis.seasonal).toBeCloseTo(1.008, 2)
+    // Lafitte on the Barataria Waterway has a small real tide and sits just
+    // under the line where a page leads with the seasons.
+    const lafitte = all.find((s) => s.id === 'noaa/8761899')
+    expect(lafitte?.source === 'bundled' && lafitte.seasonal).toBeCloseTo(2.94, 2)
 
     // Seattle has a real tide and no label.
     const seattle = all.find((s) => s.id === 'noaa/9447130')
@@ -361,5 +362,53 @@ describe('chart datum', () => {
     // current shifted by a tide datum would read as a permanent one-way flow.
     const deception = bundled('noaa/PUG1701')
     expect(deception.chartDatum).toBeUndefined()
+  })
+})
+
+describe('seasonalRatio', () => {
+  const labelled = (constituents: { name: string; amplitude: number; phase: number }[]) => ({
+    id: 'x', quality: { seasonal_dominant: true }, harmonic_constituents: constituents,
+  })
+  const term = (name: string, amplitude: number, phase = 0) => ({ name, amplitude, phase })
+
+  it('is undefined where the database did not label the station', () => {
+    expect(seasonalRatio({ id: 'x', harmonic_constituents: [term('SA', 1), term('M2', 0.1)] })).toBeUndefined()
+  })
+
+  it('divides by the principal tide, M2+S2+K1+O1, and ignores the smaller constituents', () => {
+    const ratio = seasonalRatio(labelled([
+      term('SA', 1), term('M2', 0.1), term('S2', 0.05), term('K1', 0.03), term('O1', 0.02), term('N2', 0.5),
+    ]))
+    expect(ratio).toBeCloseTo(5, 6)
+  })
+
+  it('takes the peak of the seasonal curve, phases included', () => {
+    // In phase the two terms add; a quarter-cycle apart the curve peaks lower
+    // than their sum and higher than the larger term alone.
+    const peak = (ssaPhase: number) => seasonalRatio(labelled([term('SA', 1), term('SSA', 0.5, ssaPhase), term('M2', 1)]))
+    expect(peak(0)).toBeCloseTo(1.5, 6)
+    expect(peak(90)).toBeCloseTo(1.299, 3)
+  })
+
+  it('reads the seasonal terms under every name the sources use', () => {
+    const named = (sa: string, ssa: string) =>
+      seasonalRatio(labelled([term(sa, 1, 40), term(ssa, 0.5, 200), term('M2', 1)]))
+    expect(named('Sa', 'Ssa')).toBe(named('SA', 'SSA'))
+  })
+
+  it("moves Kartverket's SA_KV by the longitude of perihelion to read on SA's clock", () => {
+    const kv = seasonalRatio(labelled([term('SA_KV', 1, 100), term('Ssa', 0.5, 0), term('M2', 1)]))
+    const sa = seasonalRatio(labelled([term('SA', 1, (100 + 283.4) % 360), term('Ssa', 0.5, 0), term('M2', 1)]))
+    const unshifted = seasonalRatio(labelled([term('SA', 1, 100), term('Ssa', 0.5, 0), term('M2', 1)]))
+    expect(kv).toBe(sa)
+    expect(kv).not.toBeCloseTo(unshifted!, 3)
+  })
+
+  it('is infinite where the principal tide is zero', () => {
+    expect(seasonalRatio(labelled([term('SA', 0.2), term('N2', 0.001)]))).toBe(Infinity)
+  })
+
+  it('refuses a label with no seasonal term, which is a broken release', () => {
+    expect(() => seasonalRatio(labelled([term('M2', 1)]))).toThrow(/no seasonal term/)
   })
 })

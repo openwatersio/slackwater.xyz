@@ -127,30 +127,47 @@ describe('seasonalNote', () => {
   })
 
   it('says nothing where the database did not label the station', () => {
-    // 5,355 of the 5,893 tide pages. Absence is the database's verdict, and the
-    // site never decides it — that is why the field is optional rather than 0.
+    // Most tide pages. Absence is the database's verdict, and the site never
+    // decides it — that is why the field is optional rather than 0.
     expect(seasonalNote(tide())).toBeUndefined()
   })
 
   it('leads the page where the annual cycle is the signal', () => {
     // Cobourg on Lake Ontario: a reader planning from the high and the low has
     // to know before reading them, so it goes above the curve.
-    const note = seasonalNote(tide(161.6))
+    const note = seasonalNote(tide(89.17))
     expect(note?.place).toBe('lead')
     expect(note?.text).toBe(
-      'Mostly seasonal — the yearly change in water level here is about 160 times the daily tide.',
+      'Mostly seasonal — the yearly change in water level here is about 90 times the daily tide.',
+    )
+  })
+
+  it('says the tide is too small to measure where the ratio is infinite', () => {
+    // A principal tide below detection. "About ∞ times" is not a sentence.
+    const note = seasonalNote(tide(Infinity))
+    expect(note?.place).toBe('lead')
+    expect(note?.text).toBe(
+      'Mostly seasonal — the water level here changes through the year, and the daily tide is too small to measure.',
     )
   })
 
   it('stays quiet where the tide is real and the annual cycle merely comparable', () => {
-    // Annapolis (US Naval Academy) carries the label at 1.008. Calling that
-    // "mostly seasonal" would be false in effect while true in arithmetic, so
-    // the note moves to the station facts and drops the ratio.
-    const note = seasonalNote(tide(1.008))
-    expect(note?.place).toBe('aside')
-    expect(note?.text).toBe(
-      'Seasonal level change here is comparable to the daily tide, so heights drift through the year.',
-    )
+    // Lafitte on the Barataria Waterway carries the label at 2.9, and Tsuruga
+    // at 1.05. Calling those "mostly seasonal" would be false in effect while
+    // true in arithmetic, so the note moves to the station facts and drops the
+    // ratio.
+    for (const ratio of [1.05, 2.94]) {
+      const note = seasonalNote(tide(ratio))
+      expect(note?.place).toBe('aside')
+      expect(note?.text).toBe(
+        'Seasonal level change here is comparable to the daily tide, so heights drift through the year.',
+      )
+    }
+  })
+
+  it('leads from exactly the threshold', () => {
+    expect(seasonalNote(tide(3))?.place).toBe('lead')
+    expect(seasonalNote(tide(2.99))?.place).toBe('aside')
   })
 
   it('rounds the ratio to a figure a reader can carry', () => {
