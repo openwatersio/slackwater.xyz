@@ -135,21 +135,56 @@ function place(station: Station): string | undefined {
   return parts.length ? parts.join(', ') : station.region
 }
 
+/**
+ * The place as a search snippet spends it: the subdivision alone when there is
+ * one, because "WA" already says United States and the 15 characters are worth
+ * more to the station name. The visible heading keeps the country.
+ */
+function searchPlace(station: Station): string | undefined {
+  return station.state ?? place(station)
+}
+
 /** The concise visible heading; search phrasing stays in `pageTitle`. */
 export function stationHeading(station: Station): string {
   const where = place(station)
   return where ? `${station.name} — ${where}` : station.name
 }
 
+/** About what Google shows of a title before cutting it. */
+export const TITLE_LIMIT = 60
+
+/** About what Google shows of a description before cutting it. */
+export const DESCRIPTION_LIMIT = 155
+
+/** The first candidate that fits, or the last, which is the shortest. */
+function firstFitting(limit: number, candidates: string[]): string {
+  return candidates.find((c) => c.length <= limit) ?? candidates[candidates.length - 1]
+}
+
 /**
  * The search `<title>`: station, then the words the query carries, then the
- * place. "Victoria tide times & tide chart — BC, Canada" is what a reader
- * searching "tides victoria bc" is looking for, in the order they look.
+ * place. "Deception Pass (Narrows) slack water & currents — WA" is what a
+ * reader searching "deception pass slack water" is looking for, in the order
+ * they look.
+ *
+ * Within 60 characters, because past that Google cuts the end and the end was
+ * the keyword. A long name gives up the place first, then the second keyword,
+ * then all but one word of it: names run to 54 characters ("Saint Marks River
+ * at San Marcosde Apalachee State Park"), so the ladder needs every rung.
  */
 export function pageTitle(station: Station): string {
-  const what = station.kind === 'tide' ? 'tide times & tide chart' : 'tidal currents & slack water'
-  const where = place(station)
-  return where ? `${station.name} ${what} — ${where}` : `${station.name} ${what}`
+  const name = station.name
+  const where = searchPlace(station)
+  const [full, short, word] = station.kind === 'tide'
+    ? ['tide times & tide chart', 'tide times', 'tides']
+    : ['slack water & currents', 'slack water', 'currents']
+  return firstFitting(TITLE_LIMIT, [
+    ...(where ? [`${name} ${full} — ${where}`] : []),
+    `${name} ${full}`,
+    `${name} ${short}`,
+    `${name} ${word}`,
+    name,
+  ])
 }
 
 /**
@@ -170,20 +205,28 @@ export function placeLine(station: Station): string | undefined {
  * identity and nothing else: substituting only the provenance clause would
  * leave it advertising results the page does not contain, in the text a
  * shared unfurl shows.
+ *
+ * Within 155 characters, leading with what is on the page today. It carries no
+ * date, so the snippet stays true whenever it is crawled. A long name drops
+ * the place, as the title does.
  */
 export function pageDescription(station: Station): string {
   if (station.source === 'chs') {
-    const where = station.region ? `${station.name}, ${station.region}` : station.name
-    return `Station information for ${where}. Predictions are based on Canadian ` +
-      `Hydrographic Service data and are available in the Slackwater app.`
+    const say = (name: string) =>
+      `Station information for ${name}. Predictions based on Canadian Hydrographic Service data are in the Slackwater app.`
+    return firstFitting(DESCRIPTION_LIMIT, [
+      ...(station.region ? [say(`${station.name}, ${station.region}`)] : []),
+      say(station.name),
+    ])
   }
-  const where = place(station)
-  const name = where ? `${station.name}, ${where}` : station.name
-  return station.kind === 'tide'
-    ? `Tide times and tide chart for ${name}: today's and tomorrow's high and low water, ` +
-      `a 7-day tide table, sunrise and sunset, and nearby stations.`
-    : `Slack water and maximum flood and ebb for ${name}: today's and tomorrow's ` +
-      `tidal current, a 7-day table of slack and maximum, and nearby stations.`
+  const where = searchPlace(station)
+  const say = (name: string) => station.kind === 'tide'
+    ? `High and low tide times for ${name}, with a 7-day tide table and chart.`
+    : `Slack water and maximum flood and ebb times for ${name}, with a 7-day current table and chart.`
+  return firstFitting(DESCRIPTION_LIMIT, [
+    ...(where ? [say(`${station.name}, ${where}`)] : []),
+    say(station.name),
+  ])
 }
 
 /**

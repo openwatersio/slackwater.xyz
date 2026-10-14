@@ -1,6 +1,6 @@
 ---
 station: chs-active-pass
-description: Active Pass runs to 8 knots between Galiano and Mayne Islands, on the Victoria–Vancouver ferry route. Where the flood rips form, how slack works, and planning.
+description: Active Pass runs to 8 knots between Galiano and Mayne Islands, on the Victoria–Vancouver ferry route. Where the flood rips form and how slack works.
 ---
 
 Active Pass is a deep, winding channel between Galiano and Mayne Islands, leading from Swanson and Trincomali Channels into the Strait of Georgia. The fairway is about 0.2 mile wide at its narrowest, and two bends in the channel hide what is coming the other way. Large, fast ferries between Victoria and Vancouver use it, and a vessel in the pass can meet as many as three of them. ([PAC 201][pac201])

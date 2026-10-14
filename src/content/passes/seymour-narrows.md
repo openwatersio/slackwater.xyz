@@ -1,6 +1,6 @@
 ---
 station: chs-seymour-narrows
-description: Seymour Narrows runs to 16 knots in Discovery Passage. How the flood and ebb behave, how brief slack is, where to wait, and how small craft plan the transit.
+description: Seymour Narrows runs to 16 knots in Discovery Passage. How the flood and ebb behave, how brief slack is, where to wait, and planning the transit.
 ---
 
 Seymour Narrows is the narrowest part of Discovery Passage, the main shipping channel north from the Strait of Georgia. It is nearly 2 miles long and at least 0.4 mile wide, with high, steep shores. ([PAC 202][pac202])
