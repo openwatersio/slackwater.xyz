@@ -5,6 +5,7 @@ dist/
 .wrangler/
 .vite/
 src/routeTree.gen.ts
+public/sitemap*.xml
 .DS_Store
 .env
 .env.local
