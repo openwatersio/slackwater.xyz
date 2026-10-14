@@ -66,6 +66,10 @@ const lastmod = (path: string) => {
 
 // Written straight into public/ so Vite's static copy ships them as
 // .output/public/sitemap*.xml — same mechanism as the old hand-written file.
+// The sitemaps are gitignored: station pages carry the build date, so every
+// build rewrites them. _redirects has no dates and stays committed, because
+// its diff is how a redirect change gets reviewed; preview.yml fails a PR
+// whose build changes it.
 for (const [name, xml] of Object.entries(buildSitemaps(catalogue, [...COMPARE_PATHS, ...PLACE_PATHS], lastmod))) {
   writeFileSync(`./public/${name}`, xml)
 }
