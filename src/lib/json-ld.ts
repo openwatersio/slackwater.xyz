@@ -183,7 +183,8 @@ export function datasetJsonLd(d: {
     isAccessibleForFree: true,
     creator: ORGANIZATION,
     publisher: ORGANIZATION,
-    distribution: { '@type': 'DataDownload', contentUrl: d.download },
+    // TCD has no registered media type, so this names the format instead.
+    distribution: { '@type': 'DataDownload', encodingFormat: 'XTide TCD', contentUrl: d.download },
   }
 }
 

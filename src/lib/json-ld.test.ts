@@ -150,7 +150,11 @@ describe('datasetJsonLd', () => {
       dateModified: '2026-10-09',
       license: 'https://github.com/openwatersio/slackwater-database#license',
       publisher: ORGANIZATION,
-      distribution: { '@type': 'DataDownload', contentUrl: 'https://example.test/slackwater-20261009.tcd' },
+      distribution: {
+        '@type': 'DataDownload',
+        encodingFormat: 'XTide TCD',
+        contentUrl: 'https://example.test/slackwater-20261009.tcd',
+      },
     })
   })
 })
