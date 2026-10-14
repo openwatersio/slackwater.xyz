@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { APP_STORE } from '#/lib/links'
+import { APP_STORE, MINIMUM_IOS, REQUIREMENT } from '#/lib/links'
 import { Shot } from '#/components/Shot'
 import { SITE_DESCRIPTION } from '#/routes/__root'
 
@@ -60,7 +60,7 @@ export const Route = createFileRoute('/')({
               url: CANONICAL,
               image: 'https://slackwater.xyz/og.png',
               applicationCategory: 'UtilitiesApplication',
-              operatingSystem: 'iOS 26 or later; iPadOS 26 or later',
+              operatingSystem: `iOS ${MINIMUM_IOS} or later; iPadOS ${MINIMUM_IOS} or later`,
               installUrl: APP_STORE,
               sameAs: [APP_STORE, SOURCE],
               offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
@@ -181,7 +181,7 @@ function Home() {
           <div className="mt-8">
             <Cta />
           </div>
-          <p className="mt-4 text-sm text-sw-steel">Free. Open source. No account, no ads.</p>
+          <p className="mt-4 text-sm text-sw-steel">Free. Open source. No account, no ads. {REQUIREMENT}</p>
           <p className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
             <a
               href="/learn/tides/"
@@ -399,6 +399,7 @@ function Home() {
         <div className="mt-8">
           <Cta />
         </div>
+        <p className="mt-4 text-sm text-sw-steel">{REQUIREMENT}</p>
       </section>
 
       <section id="app-facts" className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
@@ -415,7 +416,7 @@ function Home() {
           <div>
             <h3>Which devices does it support?</h3>
             <p>
-              Slackwater runs on iPhone and iPad with iOS or iPadOS 26 or later,
+              Slackwater runs on iPhone and iPad with iOS or iPadOS {MINIMUM_IOS} or later,
               and Apple Watch with watchOS 26 or later.{' '}
               <a href={APP_STORE}>Download on the App Store</a>.
             </p>

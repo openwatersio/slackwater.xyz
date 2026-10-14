@@ -4,7 +4,7 @@ import { NearbyMap } from './NearbyMap'
 import { DATUM_NOTE, datumLine, seasonalNote, stationHeading } from '#/lib/copy'
 import { compass16, dayLabel, dayStart, height, hhmm, shiftLocalDay } from '#/lib/format'
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
-import { APP_STORE } from '#/lib/links'
+import { APP_STORE, REQUIREMENT } from '#/lib/links'
 import type { Crumb, NearbyRow } from '#/lib/catalogue-server'
 import type { PassGuide } from '#/lib/passes'
 import { findEvents, tideExtremes } from '#/lib/predict'
@@ -627,6 +627,7 @@ function Cta({ station }: { station: Station }) {
           Slackwater
         </a>
       </div>
+      <p className="mt-3 text-sm text-sw-steel">{REQUIREMENT}</p>
     </section>
   )
 }

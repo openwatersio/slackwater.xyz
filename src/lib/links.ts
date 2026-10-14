@@ -2,6 +2,10 @@ import { version as DATABASE_VERSION } from '@slackwater/database/package.json'
 
 export const APP_STORE_ID = '6813654837'
 
+/** The listing's minimum OS for iPhone and iPad, which install buttons state. */
+export const MINIMUM_IOS = '26'
+export const REQUIREMENT = `Requires iOS ${MINIMUM_IOS} or later.`
+
 // The six comparison pages repeat this URL in Markdown; keep them aligned.
 export const APP_STORE = `https://apps.apple.com/app/slackwater-tides-current/id${APP_STORE_ID}`
 

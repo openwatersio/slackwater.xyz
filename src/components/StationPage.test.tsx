@@ -40,6 +40,7 @@ describe('StationPage for a CHS station', () => {
 
   it('still offers the app, which is why these pages exist', () => {
     expect(html).toContain('https://apps.apple.com/app/slackwater-tides-current/id6813654837')
+    expect(html).toContain('Requires iOS 26 or later.')
   })
 })
 
