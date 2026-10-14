@@ -6,8 +6,8 @@ import { SITE_DESCRIPTION } from '#/routes/__root'
 const CANONICAL = 'https://slackwater.xyz/'
 const SOURCE = 'https://github.com/openwatersio/slackwater-ios'
 const LANGUAGES = [
-  ['en', '🇬🇧', 'English'],
-  ['fr-CA', '🇨🇦', 'Français'],
+  ['en', '🇺🇸🇬🇧', 'English'],
+  ['fr-CA', '🇫🇷🇨🇦', 'Français'],
   ['es-ES', '🇪🇸', 'Español'],
   ['ja', '🇯🇵', '日本語'],
   ['de', '🇩🇪', 'Deutsch'],
