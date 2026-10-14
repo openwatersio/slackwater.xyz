@@ -26,14 +26,22 @@ describe('placeTree', () => {
       const countries = [...tree.values()].filter((p) => p.up === kindRoot(kind))
       expect(countries.reduce((n, c) => n + c.count, 0)).toBe(rows.length)
     })
+
+    it(`spells out every ${kind} place by name, never a bare code`, () => {
+      // A searcher types "Washington tide tables", not "WA". A subdivision the
+      // table in `subdivisions.ts` cannot name falls back to its code, and this
+      // is what catches it.
+      const coded = [...tree.values()].filter((p) => /^[A-Z0-9]{2,3}$/.test(p.name)).map((p) => p.path)
+      expect(coded).toEqual([])
+    })
   }
 
   const tree = placeTree(ofKind('tide'))
 
-  it('names a country from its code and a subdivision by its code under it', () => {
+  it('names a country from its code and a subdivision in full under it', () => {
     expect(tree.get('/tides/us/')).toMatchObject({ name: 'United States', title: 'United States', up: '/tides/' })
-    expect(tree.get('/tides/us/pa/')).toMatchObject({ name: 'PA', title: 'PA, United States', up: '/tides/us/' })
-    expect(tree.get('/tides/ca/bc/')?.title).toBe('BC, Canada')
+    expect(tree.get('/tides/us/pa/')).toMatchObject({ name: 'Pennsylvania', title: 'Pennsylvania, United States', up: '/tides/us/' })
+    expect(tree.get('/tides/ca/bc/')?.title).toBe('British Columbia, Canada')
   })
 
   it('files Bridesburg under Pennsylvania, where the database puts it', () => {

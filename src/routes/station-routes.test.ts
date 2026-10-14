@@ -103,6 +103,39 @@ describe('prerendered station pages', () => {
     expect(over).toEqual([])
   })
 
+  describe('browse pages', () => {
+    const pages = (['tide', 'current'] as Kind[]).flatMap((kind) => [
+      kindRoot(kind),
+      ...placeTree(loadCatalogue().filter((s) => s.kind === kind)).keys(),
+    ])
+    const html = (p: string) => readFileSync(`${OUT}${p}index.html`, 'utf8')
+    const ldTypes = (doc: string) =>
+      [...doc.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs)].map((m) => JSON.parse(m[1])['@type'])
+
+    it('names every place in full in the title, never a postal code', () => {
+      // "WA, United States tide stations" is no query anyone types.
+      const coded = pages.filter((p) => /\b[A-Z]{2}\b/.test(html(p).match(/<title>(.*?)<\/title>/)?.[1] ?? ''))
+      expect(coded).toEqual([])
+      expect(html('/tides/us/wa/')).toContain('<title>Washington tide tables and tide charts — ')
+    })
+
+    it('gives every page one H1 and no more than a handful of H2s', () => {
+      const bad = pages.filter((p) => {
+        const doc = html(p)
+        return (doc.match(/<h1/g) ?? []).length !== 1 || (doc.match(/<h2/g) ?? []).length > 8
+      })
+      expect(bad).toEqual([])
+    })
+
+    it('carries a breadcrumb and a list of what it links to', () => {
+      const missing = pages.filter((p) => {
+        const types = ldTypes(html(p))
+        return !types.includes('BreadcrumbList') || !types.includes('CollectionPage')
+      })
+      expect(missing).toEqual([])
+    })
+  })
+
   it('reaches every station from the browse index without the sitemap', () => {
     // The corpus was orphaned from the homepage once already (#27). Splitting
     // the index puts two hops between the top of it and a station, so the

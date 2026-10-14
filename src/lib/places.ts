@@ -1,4 +1,5 @@
 import type { Kind, Station } from './station'
+import { subdivisionName } from './subdivisions'
 
 /**
  * The heading for stations whose water names no place. Read by
@@ -12,9 +13,9 @@ export interface Place {
   path: string
   /** The page one level up: the kind's index for a country, the country for a subdivision. */
   up: string
-  /** The name in a link or a breadcrumb: "United States", "PA". */
+  /** The name in a link or a breadcrumb: "United States", "Pennsylvania". */
   name: string
-  /** The page heading. A subdivision code alone is not a place a reader can put on a map. */
+  /** The page heading, which names the country under a subdivision: "Georgia" alone is two places. */
   title: string
   /** Stations under this place, including any on its child pages. */
   count: number
@@ -67,8 +68,9 @@ export function placeTree(stations: Station[]): Map<string, Place> {
       if (!place) {
         const [, country, sub] = path.split('/').filter(Boolean)
         const countryName = countries.of(country.toUpperCase()) ?? country.toUpperCase()
-        place = sub
-          ? { path, up: parentPath(path), name: sub.toUpperCase(), title: `${sub.toUpperCase()}, ${countryName}`, count: 0 }
+        const subName = sub && (subdivisionName(country, sub) ?? sub.toUpperCase())
+        place = subName
+          ? { path, up: parentPath(path), name: subName, title: `${subName}, ${countryName}`, count: 0 }
           : { path, up: parentPath(path), name: countryName, title: countryName, count: 0 }
         tree.set(path, place)
       }
