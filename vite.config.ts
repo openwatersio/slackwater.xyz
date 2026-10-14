@@ -52,6 +52,7 @@ const PAGE_SOURCES: Record<string, string[]> = {
   '/accuracy/': ['./src/routes/accuracy.tsx', './src/content/accuracy.md'],
   '/opencpn/': ['./src/routes/opencpn.tsx', './src/content/opencpn.md'],
   '/learn/tides/': ['./src/routes/learn.tides.tsx'],
+  '/learn/slack-water/': ['./src/routes/learn.slack-water.tsx', './src/lib/slack-guide.ts', './src/components/SlackTideChart.tsx'],
   '/stations/': ['./src/routes/stations.index.tsx'],
 }
 const STATION_PATHS = new Set(catalogue.map((s) => s.path))

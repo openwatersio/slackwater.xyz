@@ -23,6 +23,10 @@ describe('StationPage for a CHS station', () => {
     expect(html).not.toContain('<svg')
   })
 
+  it('links the slack water guide without a slack table to sit beside', () => {
+    expect(html).toContain('href="/learn/slack-water/"')
+  })
+
   it('claims no computation', () => {
     expect(html).not.toMatch(/comput/i)
   })
@@ -160,6 +164,7 @@ describe('StationPage for a bundled tide station', () => {
   it('keeps the visible heading short while the page title carries the search query', () => {
     expect(html).toMatch(/<h1[^>]*>Seattle — WA, United States<\/h1>/)
     expect(html).toContain('Tide times &amp; tide chart')
+    expect(html).not.toContain('/learn/slack-water/')
     expect(html).not.toMatch(/<h1[^>]*>[^<]*tide times/i)
   })
 
@@ -295,6 +300,12 @@ describe('StationPage for a bundled current station', () => {
     expect(html).toMatch(/>Now<\/button>/)
     expect(html).toContain('data-marker="actual-now"')
     expect(html).toContain('Slack water and maximums for the next 7 days')
+  })
+
+  it('sends a reader who meets the slack table to the slack water guide', () => {
+    const html = renderToStaticMarkup(<StationPage station={station} now={actualNow} />)
+    const table = html.match(/<table[\s\S]*?<\/table>/)![0]
+    expect(table).toContain('href="/learn/slack-water/"')
   })
 
   it('names a subordinate current table reduction in the station facts', () => {

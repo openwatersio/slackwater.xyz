@@ -49,6 +49,12 @@ describe('landing page', () => {
     expect(hero).toContain('Learn how tides work')
   })
 
+  it('links the hero to the slack water guide', () => {
+    const hero = html.match(/<header[\s\S]*?<\/header>/)?.[0]
+
+    expect(hero).toContain('href="/learn/slack-water/"')
+  })
+
   it('computes nothing in the page', () => {
     // Icons are SVG too; a curve is the only SVG that would mean a prediction ran.
     const withoutIcons = html.replace(/<svg aria-hidden[^>]*>[\s\S]*?<\/svg>/g, '')

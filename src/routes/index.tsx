@@ -182,12 +182,20 @@ function Home() {
             <Cta />
           </div>
           <p className="mt-4 text-sm text-sw-steel">Free. Open source. No account, no ads.</p>
-          <a
-            href="/learn/tides/"
-            className="mt-5 inline-block font-medium text-sw-foam underline underline-offset-4 transition hover:text-sw-paper"
-          >
-            Learn how tides work <span aria-hidden>→</span>
-          </a>
+          <p className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
+            <a
+              href="/learn/tides/"
+              className="font-medium text-sw-foam underline underline-offset-4 transition hover:text-sw-paper"
+            >
+              Learn how tides work <span aria-hidden>→</span>
+            </a>
+            <a
+              href="/learn/slack-water/"
+              className="font-medium text-sw-foam underline underline-offset-4 transition hover:text-sw-paper"
+            >
+              What is slack water? <span aria-hidden>→</span>
+            </a>
+          </p>
         </div>
 
         {/* The recording runs taller than the hero, so it is clipped and faded
@@ -490,6 +498,10 @@ function Home() {
           .{' '}
           <a href="/learn/tides/" className="underline underline-offset-4">
             How tides work
+          </a>
+          .{' '}
+          <a href="/learn/slack-water/" className="underline underline-offset-4">
+            Slack water
           </a>
           .{' '}
           <a href="/compare/best-tide-and-current-apps-iphone/" className="underline underline-offset-4">
