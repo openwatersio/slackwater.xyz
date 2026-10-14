@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { marked } from 'marked'
 import accuracy from '../content/accuracy.md?raw'
+import { articleJsonLd } from '#/lib/json-ld'
 
 const TITLE = 'How we check predictions — Slackwater'
 const DESCRIPTION = 'Dated tide and current validation samples, their sources, methods and limits.'
@@ -15,6 +16,14 @@ export const Route = createFileRoute('/accuracy')({
       { property: 'og:title', content: TITLE },
       { property: 'og:description', content: DESCRIPTION },
       { property: 'og:url', content: CANONICAL },
+      {
+        'script:ld+json': articleJsonLd({
+          headline: 'How we check predictions',
+          description: DESCRIPTION,
+          url: CANONICAL,
+          dateModified: __LASTMOD__['/accuracy/'],
+        }),
+      },
     ],
   }),
   component: Accuracy,

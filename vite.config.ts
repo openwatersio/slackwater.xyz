@@ -92,7 +92,12 @@ export default defineConfig({
   // One clock for the whole build, so the server and client bundles agree on it
   // and every prerendered page is dated the day it was built. Freshness comes
   // from the nightly rebuild in .github/workflows/deploy.yml.
-  define: { __BUILD_NOW__: JSON.stringify(BUILD_NOW) },
+  // The static pages' sitemap dates, for the structured data of the pages that
+  // print no date of their own: one function, so the two cannot disagree.
+  define: {
+    __BUILD_NOW__: JSON.stringify(BUILD_NOW),
+    __LASTMOD__: JSON.stringify(Object.fromEntries(STATIC_PATHS.map((p) => [p, lastmod(p)]))),
+  },
   plugins: [
     tailwindcss(),
     tanstackStart({

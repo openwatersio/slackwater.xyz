@@ -2,12 +2,22 @@ import { createFileRoute } from '@tanstack/react-router'
 import { DirectoryNav } from '#/components/DirectoryNav'
 import { TidesExplainerCard } from '#/components/TidesExplainerCard'
 import { stationsHub, type HubKind } from '#/lib/catalogue-server'
+import { collectionJsonLd } from '#/lib/json-ld'
 
 const CANONICAL = 'https://slackwater.xyz/stations/'
 const TITLE = 'Tide and tidal current stations by country — Slackwater'
 
 const description = (tide: HubKind, current: HubKind) =>
   `Browse ${tide.count.toLocaleString()} tide stations worldwide and ${current.count.toLocaleString()} tidal current stations across the US and Canada, by country, state and province.`
+
+/** The page's links in reading order: each kind's index, then its countries. */
+const hubLinks = ({ tide, current }: { tide: HubKind; current: HubKind }) =>
+  [
+    { href: tide.href, name: 'Tide stations' },
+    ...tide.top,
+    { href: current.href, name: 'Current stations' },
+    ...current.top,
+  ]
 
 export const Route = createFileRoute('/stations/')({
   loader: () => stationsHub(),
@@ -20,6 +30,7 @@ export const Route = createFileRoute('/stations/')({
         ...(content ? [{ name: 'description', content }, { property: 'og:description', content }] : []),
         { property: 'og:title', content: TITLE },
         { property: 'og:url', content: CANONICAL },
+        ...(loaderData ? [{ 'script:ld+json': collectionJsonLd('Stations', CANONICAL, hubLinks(loaderData)) }] : []),
       ],
     }
   },

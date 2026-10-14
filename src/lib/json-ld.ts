@@ -13,6 +13,56 @@ type Json = string | number | boolean | null | Json[] | { [key: string]: Json | 
 export type JsonLd = { [key: string]: Json | undefined }
 
 /**
+ * The publisher every page names, the node the home page's graph declares.
+ * Spelled out rather than referenced by `@id` alone: Google reads `author` and
+ * `publisher` per page, and the full node only lives in the home page's graph.
+ */
+export const ORGANIZATION = {
+  '@type': 'Organization',
+  '@id': 'https://openwaters.io/#organization',
+  name: 'Open Waters',
+  url: 'https://openwaters.io/',
+}
+
+/**
+ * A page of prose: the learn pages, the comparisons and the accuracy receipt.
+ *
+ * `dateModified` is the date the page shows, or its sitemap `lastmod` when it
+ * shows none, so a crawler reading either is told the same thing. Support and
+ * privacy carry no structured data: an Article adds nothing a crawler can use,
+ * and Google limits FAQ rich results to government and health sites.
+ *
+ * The comparisons quote other apps' App Store ratings in prose. Those must
+ * never become `Review` or `AggregateRating` here: they are someone else's
+ * ratings, and Google treats marking them up on this site as misleading.
+ */
+export function articleJsonLd(a: {
+  headline: string
+  description: string
+  url: string
+  image?: string
+  datePublished?: string
+  dateModified?: string
+  about?: string
+}): JsonLd {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: a.headline,
+    description: a.description,
+    url: a.url,
+    mainEntityOfPage: a.url,
+    image: a.image ?? `${ORIGIN}/og.png`,
+    datePublished: a.datePublished,
+    dateModified: a.dateModified,
+    inLanguage: 'en',
+    author: ORGANIZATION,
+    publisher: ORGANIZATION,
+    about: a.about ? { '@type': 'Thing', name: a.about } : undefined,
+  }
+}
+
+/**
  * A station page's structured data: where the water is, and where the page sits.
  *
  * Two objects rather than one graph — a `Place` and a `BreadcrumbList` answer
@@ -91,20 +141,50 @@ export function placeJsonLd(
   },
   url: string,
 ): JsonLd[] {
-  return [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'CollectionPage',
-      name: page.title,
-      url,
-      mainEntity: {
-        '@type': 'ItemList',
-        numberOfItems: page.links.length,
-        itemListElement: page.links.slice(0, LISTED).map((l, i) => listItem(i + 1, l.name, ORIGIN + l.href)),
-      },
+  return [collectionJsonLd(page.title, url, page.links), breadcrumbs(page.crumbs, page.name, url)]
+}
+
+/** A page whose body is a list of links. No breadcrumbs: a trail is marked up only where the page draws one. */
+export function collectionJsonLd(name: string, url: string, links: { href: string; name: string }[]): JsonLd {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name,
+    url,
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: links.length,
+      itemListElement: links.slice(0, LISTED).map((l, i) => listItem(i + 1, l.name, ORIGIN + l.href)),
     },
-    breadcrumbs(page.crumbs, page.name, url),
-  ]
+  }
+}
+
+/**
+ * The OpenCPN download: the station database as a TCD file. `dateModified` is
+ * the release date the page prints as "Updated". The license points at the
+ * database's own section because one URL cannot say it: most stations are
+ * CC BY 4.0 and a few are CC BY-NC 4.0.
+ */
+export function datasetJsonLd(d: {
+  name: string
+  description: string
+  url: string
+  download: string
+  dateModified?: string
+}): JsonLd {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Dataset',
+    name: d.name,
+    description: d.description,
+    url: d.url,
+    dateModified: d.dateModified,
+    license: 'https://github.com/openwatersio/slackwater-database#license',
+    isAccessibleForFree: true,
+    creator: ORGANIZATION,
+    publisher: ORGANIZATION,
+    distribution: { '@type': 'DataDownload', contentUrl: d.download },
+  }
 }
 
 /**
