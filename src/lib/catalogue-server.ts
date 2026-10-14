@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { loadCatalogue, loadMoved, loadWithheld } from './catalogue'
 import { bearing, distanceNm, neighbourMap } from './nearby'
+import { PASS_GUIDES, type PassGuide } from './passes'
 import { kindRoot, nearestPlace, parentPath, placeTree, type Place } from './places'
 import type { Kind, Station } from './station'
 import { slackGuide, type SlackGuide } from './slack-guide'
@@ -263,7 +264,7 @@ function nearby(station: Station): NearbyRow[] {
 
 /** What a path under `/tides/` or `/currents/` is. */
 export type Resolved =
-  | { page: 'station'; station: Station; nearby: NearbyRow[]; crumbs: Crumb[] }
+  | { page: 'station'; station: Station; nearby: NearbyRow[]; crumbs: Crumb[]; guide?: PassGuide }
   | { page: 'place'; path: string; index: PlaceIndex }
   | { page: 'redirect'; path: string }
 
@@ -282,7 +283,10 @@ export const resolvePath = createServerFn({ method: 'GET' })
   .validator((data: { kind: Kind; path: string }) => data)
   .handler(({ data: { kind, path } }): Resolved | undefined => {
     const station = index().byPath.get(path)
-    if (station?.kind === kind) return { page: 'station', station, nearby: nearby(station), crumbs: crumbs(kind, path) }
+    if (station?.kind === kind) {
+      const guide = PASS_GUIDES.get(station.id)
+      return { page: 'station', station, nearby: nearby(station), crumbs: crumbs(kind, path), ...(guide ? { guide } : {}) }
+    }
     const place = placeIndex(kind, path)
     if (place) return { page: 'place', path, index: place }
     const slug = path.slice(kindRoot(kind).length, -1)

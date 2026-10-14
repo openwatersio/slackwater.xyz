@@ -5,7 +5,7 @@ import { StationIndex } from '#/components/StationIndex'
 import { StationPage } from '#/components/StationPage'
 import { resolvePath, type PlaceIndex, type Resolved } from '#/lib/catalogue-server'
 import { ogImageAlt, pageDescription, pageTitle } from '#/lib/copy'
-import { stationJsonLd } from '#/lib/json-ld'
+import { faqJsonLd, stationJsonLd } from '#/lib/json-ld'
 import { placeHead } from '#/lib/place-head'
 import { kindRoot } from '#/lib/places'
 import type { Kind } from '#/lib/station'
@@ -53,7 +53,8 @@ export function directoryHead(kind: Kind, page: Page | undefined) {
   const s = page.station
   const canonical = ORIGIN + s.path
   const title = pageTitle(s)
-  const description = pageDescription(s)
+  // A pass guide describes the water; without one a CHS page can promise only its identity.
+  const description = page.guide?.description ?? pageDescription(s)
   const alt = ogImageAlt(s)
   const card = `${ORIGIN}/og/${kind === 'tide' ? 'tides' : 'currents'}/${s.slug}`
   return {
@@ -76,7 +77,10 @@ export function directoryHead(kind: Kind, page: Page | undefined) {
     ...(page.instant
       ? {}
       : {
-          scripts: stationJsonLd(s, canonical, page.crumbs).map((json) => ({
+          scripts: [
+            ...stationJsonLd(s, canonical, page.crumbs),
+            ...(page.guide?.faq.length ? [faqJsonLd(page.guide.faq)] : []),
+          ].map((json) => ({
             type: 'application/ld+json',
             children: JSON.stringify(json),
           })),
@@ -105,15 +109,15 @@ export function Directory({ kind, page }: { kind: Kind; page: Page }) {
       />
     )
   }
-  const { station, nearby, crumbs, instant } = page
-  if (!instant) return <StationPage station={station} now={now} live={live} nearby={nearby} crumbs={crumbs} />
+  const { station, nearby, crumbs, guide, instant } = page
+  if (!instant) return <StationPage station={station} now={now} live={live} nearby={nearby} crumbs={crumbs} guide={guide} />
   // Never `live`: this page is one fixed shared moment, so a relative "in 30m"
   // would be measured from a moment that may be long past. But `settled` from
   // the first render — that moment came out of the URL and nothing will
   // replace it, which is the opposite of a live page's build-time placeholder.
   return station.source === 'bundled'
     ? <StationPage station={station} now={now} selectedAt={instant.at} live={live} nearby={nearby} crumbs={crumbs} />
-    : <StationPage station={station} now={instant.at} settled nearby={nearby} crumbs={crumbs} />
+    : <StationPage station={station} now={instant.at} settled nearby={nearby} crumbs={crumbs} guide={guide} />
 }
 
 /**
