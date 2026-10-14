@@ -56,6 +56,34 @@ describe('landing page', () => {
   })
 })
 
+describe('landing page structured data', () => {
+  const graph = async () => {
+    const head = await Route.options.head?.({} as never)
+    const block = head?.meta?.find((m) => m && 'script:ld+json' in m) as
+      | { 'script:ld+json': { '@graph': Array<Record<string, unknown>> } }
+      | undefined
+    return block!['script:ld+json']['@graph']
+  }
+  const byType = (nodes: Array<Record<string, unknown>>, type: string) =>
+    nodes.find((n) => n['@type'] === type)!
+
+  it('links the app to its App Store listing and source', async () => {
+    const app = byType(await graph(), 'MobileApplication')
+    expect(app.installUrl).toBe(APP_STORE)
+    expect(app.sameAs).toEqual([APP_STORE, 'https://github.com/openwatersio/slackwater-ios'])
+  })
+
+  it('names one publisher for the site and the app', async () => {
+    const nodes = await graph()
+    const org = byType(nodes, 'Organization')
+    // The App Store seller line, exactly.
+    expect(org.legalName).toBe('Open Water Software LLC')
+    for (const type of ['WebSite', 'MobileApplication']) {
+      expect(byType(nodes, type).publisher).toEqual({ '@id': org['@id'] })
+    }
+  })
+})
+
 describe('landing page social card', () => {
   it('says what the app is in one line', async () => {
     const head = await RootRoute.options.head?.({} as never)
