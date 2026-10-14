@@ -1,4 +1,5 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import { APP_STORE_ID } from '#/lib/links'
 import appCss from '../styles.css?url'
 
 // Brand first: other iOS tide apps share the name, and the bare query must
@@ -17,6 +18,8 @@ export const Route = createRootRoute({
       { title: SITE_TITLE },
       { name: 'theme-color', content: '#00121f' },
       { name: 'description', content: SITE_DESCRIPTION },
+      // Safari on iOS shows the App Store banner, or Open when the app is installed.
+      { name: 'apple-itunes-app', content: `app-id=${APP_STORE_ID}` },
 
       // Unfurl card. Child routes override og:title/og:description by
       // property; every route sets its own og:url next to its canonical.

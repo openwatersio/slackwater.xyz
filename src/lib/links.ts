@@ -1,7 +1,9 @@
 import { version as DATABASE_VERSION } from '@slackwater/database/package.json'
 
+export const APP_STORE_ID = '6813654837'
+
 // The six comparison pages repeat this URL in Markdown; keep them aligned.
-export const APP_STORE = 'https://apps.apple.com/app/slackwater-tides-current/id6813654837'
+export const APP_STORE = `https://apps.apple.com/app/slackwater-tides-current/id${APP_STORE_ID}`
 
 /**
  * The XTide/OpenCPN harmonics file from the database release this site is

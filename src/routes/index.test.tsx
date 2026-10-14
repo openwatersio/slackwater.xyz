@@ -92,6 +92,11 @@ describe('landing page social card', () => {
     expect(head?.meta).toContainEqual({ property: 'og:title', content: title })
   })
 
+  it('offers the App Store banner on every page', async () => {
+    const head = await RootRoute.options.head?.({} as never)
+    expect(head?.meta).toContainEqual({ name: 'apple-itunes-app', content: 'app-id=6813654837' })
+  })
+
   it('fits the title and description in a search result', () => {
     expect(SITE_TITLE.length).toBeLessThan(60)
     expect(SITE_DESCRIPTION.length).toBeLessThan(160)
