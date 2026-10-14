@@ -110,7 +110,7 @@ describe('articleJsonLd', () => {
       headline: 'How we check predictions',
       url: URL,
       mainEntityOfPage: URL,
-      dateModified: '2026-07-18',
+      dateModified: '2026-07-18T12:00:00Z',
       image: 'https://slackwater.xyz/og.png',
     })
   })
@@ -147,7 +147,7 @@ describe('datasetJsonLd', () => {
     })
     expect(d).toMatchObject({
       '@type': 'Dataset',
-      dateModified: '2026-10-09',
+      dateModified: '2026-10-09T12:00:00Z',
       license: 'https://github.com/openwatersio/slackwater-database#license',
       publisher: ORGANIZATION,
       distribution: {

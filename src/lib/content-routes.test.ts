@@ -52,7 +52,7 @@ describe('structured data', () => {
     for (const path of ['/learn/tides/', '/accuracy/']) {
       const [article] = blocks(path)
       expect(article['@type'], path).toBe('Article')
-      expect(article.dateModified, path).toBe(lastmod(path))
+      expect(article.dateModified, path).toBe(`${lastmod(path)}T12:00:00Z`)
       expect(article.publisher, path).toEqual(ORGANIZATION)
     }
   })
@@ -62,7 +62,7 @@ describe('structured data', () => {
       const html = readFileSync(`.output/public${path}index.html`, 'utf8')
       const [article] = blocks(path)
       expect(article['@type'], path).toBe('Article')
-      expect(html, path).toContain(shown(article.dateModified))
+      expect(html, path).toContain(shown(article.dateModified.slice(0, 10)))
       expect(article.publisher, path).toEqual(ORGANIZATION)
       expect(JSON.stringify(blocks(path)), path).not.toMatch(/Rating|Review/)
     }
@@ -73,7 +73,7 @@ describe('structured data', () => {
     expect(dataset['@type']).toBe('Dataset')
     expect(dataset.distribution.contentUrl).toBe(TCD.url)
     // React separates adjacent text with `<!-- -->`.
-    expect(readFileSync('.output/public/opencpn/index.html', 'utf8').replaceAll('<!-- -->', '')).toContain(`Updated ${shown(dataset.dateModified)}`)
+    expect(readFileSync('.output/public/opencpn/index.html', 'utf8').replaceAll('<!-- -->', '')).toContain(`Updated ${shown(dataset.dateModified.slice(0, 10))}`)
   })
 
   it('lists the stations hub and leaves support and privacy unmarked', () => {
