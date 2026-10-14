@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { Route as RootRoute, SITE_DESCRIPTION, SITE_TITLE } from './__root'
 import { Route } from './index'
 import { APP_STORE } from '#/lib/links'
+import { loadCatalogue } from '#/lib/catalogue'
 
 // The page is screenshots around one call to action, so those are the two
 // things that can silently break it: a shot renamed out from under an <img>,
@@ -60,6 +61,16 @@ describe('landing page', () => {
     // Icons are SVG too; a curve is the only SVG that would mean a prediction ran.
     const withoutIcons = html.replace(/<svg aria-hidden[^>]*>[\s\S]*?<\/svg>/g, '')
     expect(withoutIcons).not.toContain('<svg')
+  })
+
+  it('states the station counts the site publishes', () => {
+    // The footer's counts are typed, because the page computes nothing; this
+    // fails when a database release changes the corpus and the footer doesn't.
+    const all = loadCatalogue()
+    for (const kind of ['tide', 'current'] as const) {
+      const count = all.filter((s) => s.kind === kind).length.toLocaleString('en-US')
+      expect(html).toContain(`${count} ${kind} stations`)
+    }
   })
 })
 
