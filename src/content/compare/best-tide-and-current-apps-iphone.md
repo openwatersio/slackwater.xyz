@@ -2,7 +2,7 @@
 url: https://slackwater.xyz/compare/best-tide-and-current-apps-iphone/
 title: The best tide and current apps for iPhone (2026) — Slackwater
 description: Seven iPhone tide apps compared on currents, offline use, price and data source, with a plain recommendation for each kind of user.
-verified: 2026-09-04
+verified: 2026-10-14
 ---
 
 # The best tide and current apps for iPhone
@@ -35,14 +35,14 @@ Slackwater features checked October 9, 2026. Competitor dates are listed below.
 | App | Currents | Offline | Canada | Price | Rating |
 |---|---|---|---|---|---|
 | **Slackwater** | Slack, max, set, curve | Bundled predictions offline; Canadian setup, some passes online-only | Yes (CHS) | Free core; optional Premium | [See App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837) |
-| AyeTides XL | Station predictions | Yes | Sparse | $7.99 once | 4.8 (1.3K) |
-| Tide Alert | Estimated slack on tide chart | Favourites | Yes | $19.99/yr | 4.8 (44K) |
+| AyeTides | Station predictions | Yes | Sparse | $7.99 once | 4.8 (4.9K) |
+| Tide Alert | Estimated slack on tide chart | Favourites | Yes | Free trial, then $19.99/yr | 4.8 (45K) |
 | Tide Guide | Current conditions | Check feature availability | Yes; availability varies | Free download; Pro subscription or lifetime | See listing |
-| Tides Near Me | Timing only | Cache | Yes | Free + ads | 4.8 (161K) |
-| Actual Currents | Animated flow, stations | No | Yes | $39.99/yr | 4.7 (20) |
-| Tides and Currents-USA | Station predictions | Yes | No | $19.99/yr | 4.2 (27) |
+| Tides Near Me | Next slack, speed, curve | No claim | Yes | Free + ads | 4.8 (163K) |
+| Actual Currents | Animated flow, stations | No | Yes | $39.99/yr | 4.7 (21) |
+| Tides and Currents-USA | Station predictions | Yes | No | $19.99/yr or $49.99 once | 4.2 (28) |
 
-Prices and ratings are from the US App Store, September 2026, except Tide Guide's feature and purchase information, checked October 9, 2026. See each comparison's sources and limits.
+Prices, ratings and features are from the US App Store, checked October 14, 2026, except Tide Guide's feature and purchase information, checked October 9, 2026. See each comparison's sources and limits.
 
 ## Slackwater
 
@@ -59,12 +59,13 @@ The standalone Apple Watch app and home screen widgets are free. Optional Premiu
 **Best for:** boaters and paddlers who need the slack answer with no bars, on either side
 of the border.
 
-## AyeTides XL
+## AyeTides
 
-The one boaters keep. $7.99 once, since about 2010, no subscription, fully offline, and it
-has real current stations, 12,500 locations worldwide. BC pilots use it. The interface is
-from another era and the current answer is a table you read rather than a window you are
-shown. Paddlers report BC current stations are thin and a few sit on land.
+The one boaters keep. $7.99 once, since 2008, no subscription, predictions offline, and it
+has real current stations, 13,400 locations worldwide. BC pilots use it. It has a Watch app,
+widgets, notifications and calendar events. The current answer is a table you read rather
+than a window you are shown. Paddlers report BC current stations are thin and a few sit on
+land. AyeTides XL is the separate iPad edition.
 
 [Read the full comparison](/compare/slackwater-vs-ayetides/).
 
@@ -75,8 +76,9 @@ shown. Paddlers report BC current stations are thin and a few sit on land.
 The alerts app. Tell it a tide level or a time and it notifies you, on the phone or the
 Watch. Now covers Canada, Mexico and Latin America, and favourite stations work offline.
 Currents are shown as speed over the tide chart with estimated slack windows, which is
-useful but is not a current station prediction. Full access is $19.99 a year, or $99.99
-for life.
+useful but is not a current station prediction. It also charts wind, swell and water
+temperature. After a free trial it needs a subscription: $19.99 a year, or $99.99 for Tide
+Alert Gold.
 
 [Read the full comparison](/compare/slackwater-vs-tide-alert/).
 
@@ -95,7 +97,10 @@ languages. Its [help center](https://tideguide.com/help) describes current condi
 ## Tides Near Me
 
 Open it and it shows the nearest station, rising or falling. That single interaction earned
-161K ratings. It is free with ads and has no offline claim. Currents are direction and timing, no speed curve.
+163K ratings. It is free with ads and has no offline claim. Version 4.0, in October, added
+marine weather and a current view with the last and next current, the next slack and the
+day's curve. Premium removes ads; Go Mode, a separate subscription, adds nautical charts in
+US waters.
 
 [Read the full comparison](/alternatives/tides-near-me/).
 
@@ -104,9 +109,10 @@ Open it and it shows the nearest station, rising or falling. That single interac
 ## Actual Currents
 
 Currents-first, and the best picture of flow you can get on a phone: animated particles
-over a nautical chart, with a time scrubber and route analysis. Canadian stations arrived
-this summer. It streams everything, so it needs a connection, and the free tier is a
-three-hour window around now. No tides, no widgets, no Watch. Launched April 2026.
+over a nautical chart, with a time scrubber, route analysis and departure timing. Canadian
+stations arrived in June. Its model data loads over a connection, and the free tier is a
+three-hour window around now. Tides come from a virtual tide gauge and NOAA tide stations.
+No widgets, no Watch. Launched April 2026.
 
 [Read the full comparison](/compare/slackwater-vs-actual-currents/).
 
@@ -114,8 +120,9 @@ three-hour window around now. No tides, no widgets, no Watch. Launched April 202
 
 ## Tides and Currents-USA
 
-Offline harmonic tides and currents for the US, with 849 harmonic current stations, for
-$19.99 a year. Reviews complain about the station picker. US only.
+Offline harmonic tides and currents for the US, with 849 harmonic current stations. Pro
+unlocks any date, month tables and the widget for $2.99 a month, $19.99 a year or $49.99
+once. Reviews complain about the station picker. US only.
 
 **Best for:** US-only offline currents on a budget, if you can live with the interface.
 

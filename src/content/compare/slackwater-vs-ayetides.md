@@ -2,43 +2,44 @@
 url: https://slackwater.xyz/compare/slackwater-vs-ayetides/
 title: Slackwater vs AyeTides — offline tides and currents on iPhone
 description: Compare AyeTides with Slackwater's free tide charts and current-station slack windows. Bundled predictions work offline; Canadian setup and limits apply.
-verified: 2026-09-04
+verified: 2026-10-14
 ---
 
 # Slackwater vs AyeTides
 
-Both apps compute bundled tide and current predictions on the phone without signal. Slackwater's Canadian stations need an initial download, and some passes remain online-only. AyeTides XL has done it since 2010 for $7.99 once, covers 12,500 locations
+Both apps compute bundled tide and current predictions on the phone without signal. Slackwater's Canadian stations need an initial download, and some passes remain online-only. AyeTides has done it since 2008 for $7.99 once, covers 13,400 locations
 worldwide, and has a Watch app. Slackwater is free, shows you the slack window rather than
 a table and covers Canadian passes from CHS data.
 
 If you already own AyeTides and it answers your questions, there is no reason to leave it.
 
-Slackwater features checked October 9, 2026; competitor details checked September 4, 2026.
+Slackwater features checked October 9, 2026. AyeTides' price, rating and features checked against its US App Store listing on October 14, 2026. AyeTides XL is the iPad edition and does not run on iPhone.
 
 ## At a glance
 
-| | AyeTides XL | Slackwater |
+| | AyeTides | Slackwater |
 |---|---|---|
-| Price | $7.99 once, no IAP, no ads | Free core; optional Premium |
-| Shipping since | ~2010 | 2026 |
-| Tides | 12,500+ locations worldwide, tides and/or currents | Thousands of stations worldwide |
+| Price | $7.99 once, no in-app purchases, no ads | Free core; optional Premium |
+| Shipping since | 2008 | 2026 |
+| Tides | 13,400+ locations worldwide, tides and/or currents | Thousands of stations worldwide |
 | Currents | Harmonic current stations, table of slack and max | Stations with slack time and duration, max flood/ebb speed and set, scrubbable curve |
 | Currents outside US and Canada | Some | None |
 | Canada currents | Sparse; BC stations mostly placed to the nearest arc-minute | 23 CHS gates from Salish Sea to Cape Breton, checked against CHS predictions |
 | Offline | Predictions yes; map and sharing online | Bundled predictions offline; Canadian setup, some passes online-only |
 | Data | XTide harmonics plus licensed station database | Bundled harmonics; CHS models fitted after download, some passes fetch online |
-| Widgets | Yes | Home screen free; lock screen Premium |
+| Widgets | Home and lock screen | Home screen free; lock screen Premium |
 | Apple Watch | Yes | Free standalone app; complications Premium |
-| Integrations | iNavX, SEAiq | None |
+| Notifications and calendar | Local notifications and calendar events | Premium alerts and station calendars |
+| Integrations | iNavX | None |
 | Source | Proprietary | Open source (GPL app, MIT engine) |
-| Rating | 4.8 (1.3K) | [See App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837) |
+| Rating | 4.8 (4.9K) | [See App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837) |
 
 ## Side by side
 
 | AyeTides | Slackwater |
 |---|---|
-| ![AyeTides: Poulsbo, Liberty Bay, Puget Sound on Monday July 4 2016, a list of highs, lows, sun and moon times, and a gridded tide graph below](/shots/compare/ayetides-poulsbo-tide.webp) | ![Slackwater: St Martins, Bay of Fundy, rising at 14.3 ft at 6.2 ft per hour, over a scrubbable curve marked 29.3 and 30.4 ft highs and a 25.3 ft range](/shots/compare/slackwater-st-martins-tide.webp) |
-| AyeTides' own App Store screenshot: a day at Poulsbo as a list of events with the graph underneath. Same layout since the iPhone 6. | Slackwater at St Martins in the Bay of Fundy: the state and height first, its rate of rise, the curve you scrub, and the range. |
+| ![AyeTides' App Store screenshot: Bergen Point West Reach, Kill Van Kull, New York, rising at 4.47 feet on Sunday June 23 2019, a list of highs, lows, sun and moon times, and a gridded tide graph below](/shots/compare/ayetides-bergen-point-tide.webp) | ![Slackwater: St Martins, Bay of Fundy, rising at 14.3 ft at 6.2 ft per hour, over a scrubbable curve marked 29.3 and 30.4 ft highs and a 25.3 ft range](/shots/compare/slackwater-st-martins-tide.webp) |
+| AyeTides' own App Store screenshot: a day at Bergen Point as a list of events with the graph underneath. | Slackwater at St Martins in the Bay of Fundy: the state and height first, its rate of rise, the curve you scrub, and the range. |
 
 AyeTides' listing shows no current station screen, so there is nothing to put beside this one. Here is Slackwater's:
 
@@ -61,9 +62,9 @@ each usable slack window. You read the window, not the table.
 
 This is where the two part. AyeTides' BC current coverage is thin, and paddlers have
 reported stations placed on land. That is measurable from AyeTides' own public station
-list: 351 of its 428 BC stations are positioned to the nearest arc-minute, and where one
-of those shares a name with a CHS station it sits a median 700 m from CHS's position,
-against 70 m for the stations with full-precision coordinates. Slackwater's Canadian gates come from Canadian
+list, measured October 14, 2026: 364 of its 442 BC stations are positioned to the nearest
+arc-minute, and where one of those shares a name with a CHS station it sits a median 700 m
+from CHS's position, against about 130 m for the stations with full-precision coordinates. Slackwater's Canadian gates come from Canadian
 Hydrographic Service predictions, fitted on the device and checked against CHS's
 published numbers before they ship. The list today is 23 gates from Active Pass and
 Seymour Narrows out to Cape Breton. A few sit in water the on-device model cannot fit,
@@ -75,7 +76,7 @@ Canadian tide ports need an initial download of CHS predictions to build their o
 
 Both apps predict tides worldwide. Slackwater ships thousands of tide stations, each one naming
 its source, datum and licence, from an open dataset that is maintained. AyeTides lists
-12,500 locations, tides and/or currents, and does not say per station where the
+13,400 locations, tides and/or currents, and does not say per station where the
 constituents came from or when they were last updated. Two in three of its stations
 outside the US appear to date from harmonic tables published before 2001, and cannot be
 refreshed from any live source.
@@ -86,21 +87,22 @@ station against the agencies' own predictions before it ships.
 
 ## Interface
 
-AyeTides looks like an app from 2010 because it is one, and its users do not care.
-Slackwater is built for iOS 26, with the curve on every card, a scrubber that follows
+AyeTides leads with the day's events as a list, with a graph you drag below it or full
+screen when you rotate the phone. It was updated for iOS 26 in January. Slackwater is built for iOS 26, with the curve on every card, a scrubber that follows
 your thumb, and a chart that draws offline. Whether that is worth anything to you depends
 on how you read a table.
 
 ## Price and trust
 
-$7.99 once, held for fifteen years, is the most trustworthy pricing in the category and
-AyeTides earned its reputation on it. Slackwater's tide charts, current predictions and home screen widgets are free, without a subscription. Optional Premium adds alerts, station calendars, lock-screen widgets and Watch complications, with annual and lifetime purchase options. The engine, the app and the station data are
+$7.99 once, with no ads, in-app purchases or subscriptions, is the most trustworthy pricing
+in the category and AyeTides earned its reputation on it. Slackwater's tide charts, current predictions and home screen widgets are free, without a subscription. Optional Premium adds alerts, station calendars, lock-screen widgets and Watch complications, with annual and lifetime purchase options. The engine, the app and the station data are
 open source, so the numbers can be checked by anyone.
 
 ## Who should pick which
 
-**AyeTides** if you need current stations outside the US and Canada, use iNavX or
-SEAiq, or want a finished product with a decade of updates behind it.
+**AyeTides** if you need current stations outside the US and Canada, use iNavX, want
+notifications and calendar events without a subscription, or want a finished product with
+years of updates behind it.
 
 **Slackwater** if you transit passes in BC or the Pacific Northwest, want the slack window
 and its duration without reading a table, or want free and open.

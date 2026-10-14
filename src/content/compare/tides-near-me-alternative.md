@@ -1,22 +1,25 @@
 ---
 url: https://slackwater.xyz/alternatives/tides-near-me/
 title: Tides Near Me alternative — offline, no ads, with currents — Slackwater
-description: Why people leave Tides Near Me (ads, no offline, no real currents) and what Slackwater does differently. An honest comparison.
-verified: 2026-09-04
+description: Why people leave Tides Near Me (ads, no offline claim) and how Slackwater's offline predictions and current slack windows compare. An honest comparison.
+verified: 2026-10-14
 ---
 
 # A Tides Near Me alternative that works with no signal
 
 Tides Near Me does one thing very well: open it, see the nearest station, know whether the
-water is rising or falling. That is why it has 161K ratings. People go looking for an
+water is rising or falling. That is why it has 163K ratings. People go looking for an
 alternative for two reasons.
 
-- **Ads.** The free tier shows them. Removing them is $14.99.
-- **It needs a connection.** There is no offline claim. It works from what it last loaded,
-  and at the point, in the islands, in the anchorage, that is often nothing.
+- **Ads.** The free tier shows Google AdMob ads. Premium, a subscription listed at $14.99
+  or $1.99, removes them and adds 30-day forecasts.
+- **No offline claim.** Its listing never says it works without signal, and at the point,
+  in the islands, in the anchorage, signal is often what you do not have.
 
-There is a third reason if you run a boat: currents. Tides Near Me gives direction and
-timing at a station. It does not give you the slack window or the speed at max.
+If you run a boat, currents are the other difference. Since version 4.0 in October, a Tides
+Near Me current station shows the last and next current with speed, the next slack, and the
+day's curve. It gives the slack as a time, not a window with a duration, and the listing
+makes no offline claim for it.
 
 ## Slackwater, in short
 
@@ -26,36 +29,38 @@ how long it lasts, and max flood and ebb with direction.
 
 It is available on the App Store and needs iOS 26. Its standalone Apple Watch app is free. Alerts, station calendars, lock-screen widgets and Watch complications are optional Premium features, with annual and lifetime purchase options.
 
-Slackwater features checked October 9, 2026; competitor details checked September 4, 2026.
+Slackwater features checked October 9, 2026; Tides Near Me's details checked against its US App Store listing and website on October 14, 2026.
 
 ## Side by side
 
 | | Tides Near Me | Slackwater |
 |---|---|---|
-| Price | Free with ads; $14.99 to remove | Free core; optional Premium |
-| Offline | Cache only | Bundled predictions offline; Canadian setup, some passes online-only |
+| Price | Free with ads; Premium removes them; Go Mode charts extra | Free core; optional Premium |
+| Offline | No offline claim | Bundled predictions offline; Canadian setup, some passes online-only |
 | Tides | Worldwide | Worldwide |
-| Currents | Direction and timing | Slack time and duration, max speed and set, scrubbable curve |
+| Currents | Last and next current with speed, next slack time, daily curve, moving-currents map | Slack time and duration, max speed and set, scrubbable curve |
 | Canada | Yes | Yes, CHS |
-| Data named per station | No | Yes, with datum |
-| Home widgets | Premium | Free |
-| Lock screen widgets | Premium | Premium |
+| Data sources | Providers listed by country on its website | Named per station, with datum |
+| Marine weather | Wind, seas, water temperature, warnings | Not included |
+| Home widgets | Yes; full widgets for Premium | Free |
+| Lock screen widgets | Not listed | Premium |
 | Apple Watch | Yes, subscribers only | Free standalone app; complications Premium |
 | Account required | No | No |
-| Tracking | Ads SDK | None |
+| Ads | Google AdMob in the free tier | None |
 
 ## Side by side
 
 | Tides Near Me | Slackwater |
 |---|---|
-| ![Tides Near Me's App Store screenshot: Greenport, last tide low at 7:42 AM 2 hours 32 minutes ago, next tide high at 1:53 PM 3 hours 38 minutes from now, sunset, moonrise](/shots/compare/tides-near-me-greenport.webp) | ![Slackwater: St Martins, Bay of Fundy, rising at 14.3 ft at 6.2 ft per hour, over a scrubbable curve marked 29.3 and 30.4 ft highs and a 25.3 ft range](/shots/compare/slackwater-st-martins-tide.webp) |
-| Tides Near Me's own listing: Greenport, last tide and next tide as big times. Nothing to learn; that is the point of it. | Slackwater at St Martins: the same answer, rising at 14.3 ft at 6.2 ft per hour, with the curve so you can see where in the cycle you are. |
+| ![Tides Near Me's App Store image: Coecles Harbor, last tide high at 5:27 PM 31 minutes ago, next tide low at 12:07 AM, the day's tide curve, and marine weather with 31 mph wind and 3.5 foot seas](/shots/compare/tides-near-me-coecles-harbor.webp) | ![Slackwater: St Martins, Bay of Fundy, rising at 14.3 ft at 6.2 ft per hour, over a scrubbable curve marked 29.3 and 30.4 ft highs and a 25.3 ft range](/shots/compare/slackwater-st-martins-tide.webp) |
+| Tides Near Me's own listing: Coecles Harbor, last tide and next tide as big times over the day's curve. Nothing to learn; that is the point of it. | Slackwater at St Martins: the same answer, rising at 14.3 ft at 6.2 ft per hour, with the curve so you can see where in the cycle you are. |
 
-And the current station Tides Near Me does not have:
+Both apps show current stations:
 
-![Slackwater: Nakwakto Rapids ebbing at 1.7 kn to the south, max ebb in 1h 44m, next max 3.9 kn at 12:15pm, with the week's schedule of slacks and maxima below](/shots/compare/slackwater-nakwakto-ebbing.webp)
-
-Nakwakto Rapids ebbing at 1.7 kn to the south, max ebb in 1h 44m, and the week's slacks and maxima listed below.
+| Tides Near Me | Slackwater |
+|---|---|
+| ![Tides Near Me's App Store image: The Race, last current a 3.3 mph flood at 3:52 PM, next current slack at 6:52 PM, following ebb 4.4 mph at 10:09 PM, over the day's current curve](/shots/compare/tides-near-me-the-race-current.webp) | ![Slackwater: Nakwakto Rapids ebbing at 1.7 kn to the south, max ebb in 1h 44m, next max 3.9 kn at 12:15pm, with the week's schedule of slacks and maxima below](/shots/compare/slackwater-nakwakto-ebbing.webp) |
+| Tides Near Me's own listing: The Race, last flood at 3.3 mph, next slack at 6:52 PM, then a 4.4 mph ebb. | Slackwater at Nakwakto Rapids: ebbing at 1.7 kn to the south, max ebb in 1h 44m, and the week's slacks and maxima listed below. |
 
 ## The details that matter
 
@@ -76,10 +81,12 @@ written down on slackwater.xyz.
 
 ## Who should switch
 
-Switch if you use the app on the water, want currents, or are done with ads.
+Switch if you use the app on the water without signal, want to know how long slack lasts,
+or are done with ads.
 
-Stay with Tides Near Me if you prefer its simple next-tide view, check from a beach
-with signal and the ads do not bother you. It still answers that question well.
+Stay with Tides Near Me if you prefer its simple next-tide view, want marine weather beside
+the tide, check from a beach with signal and the ads do not bother you. It still answers that
+question well.
 
 ## Moving over
 

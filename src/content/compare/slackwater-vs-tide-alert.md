@@ -2,7 +2,7 @@
 url: https://slackwater.xyz/compare/slackwater-vs-tide-alert/
 title: Slackwater vs Tide Alert (NOAA) — alerts or the slack window
 description: Compare Tide Alert's notifications with Slackwater's free current-station curves and slack windows. Bundled predictions work offline; Canadian limits apply.
-verified: 2026-09-04
+verified: 2026-10-14
 ---
 
 # Slackwater vs Tide Alert
@@ -14,30 +14,30 @@ stations show the slack window and max, free with no ads. Bundled predictions wo
 
 Compare the alert types you need as well as the tide and current views.
 
-Slackwater features checked October 9, 2026; competitor details checked September 4, 2026.
+Slackwater features checked October 9, 2026; Tide Alert's details checked against its US App Store listing and website on October 14, 2026.
 
 ## At a glance
 
 | | Tide Alert (NOAA) | Slackwater |
 |---|---|---|
-| Price | Free + $6.99/3 mo, $19.99/yr, Gold $99.99 lifetime | Free core; optional Premium |
+| Price | Free trial, then $6.99/3 mo or $19.99/yr; Tide Alert Gold $99.99 | Free core; optional Premium |
 | Alerts | Tide level and time, phone and Watch | Premium; phone notifications and alarms |
-| Apple Watch | Full app | Free standalone app; complications Premium |
+| Apple Watch | Full app with complications | Free standalone app; complications Premium |
 | Siri | Yes | No |
 | Tides | US, Canada, Mexico, Latin America | Worldwide |
-| Currents | Speed overlaid on the tide chart, estimated slack windows | Current stations: slack time and duration, max flood/ebb with set, own curve |
+| Currents | Speed from NOAA current stations overlaid on the tide chart, estimated slack windows | Current stations: slack time and duration, max flood/ebb with set, own curve |
 | Offline | Favourite stations and month tables | Bundled predictions offline; Canadian setup, some passes online-only |
-| Data | NOAA | NOAA and CHS, named per station with datum |
-| Widgets | Home and lock screen | Home screen free; lock screen Premium |
+| Data | NOAA; sources outside the US not named | NOAA and CHS, named per station with datum |
+| Widgets | Home screen, lock screen and StandBy | Home screen free; lock screen Premium |
 | Ads | No | No |
-| Rating | 4.8 (44K) | [See App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837) |
+| Rating | 4.8 (45K) | [See App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837) |
 
 ## Side by side
 
 | Tide Alert | Slackwater |
 |---|---|
-| ![Tide Alert's App Store screenshot: an interactive tide chart, May 16 2024, waxing gibbous moon, 2.5 ft at 4:30 PM rising for 3 hrs 05 mins, with the 0.43 ft low and 4.08 ft high marked on the curve](/shots/compare/tide-alert-chart.webp) | ![Slackwater: North End, Falmouth MA, flooding at 1.2 kn, slack in 2h 22m, next max 1.5 kn ebb at 7:07pm, with a link to the tide at Oceanographic Institution](/shots/compare/slackwater-falmouth-current.webp) |
-| Tide Alert's own listing: the interactive tide chart, with the moon and the height at a chosen time. | Slackwater at North End, Falmouth: a current station in its own right, flooding at 1.2 kn, slack in 2h 22m, with the reference tide one tap away. |
+| ![Tide Alert's App Store screenshot: the tide chart at Yerba Buena Island, San Francisco Bay, on Saturday November 21, with a dashed current-speed line drawn over the curve and three shaded slack periods](/shots/compare/tide-alert-yerba-buena-current.webp) | ![Slackwater: North End, Falmouth MA, flooding at 1.2 kn, slack in 2h 22m, next max 1.5 kn ebb at 7:07pm, with a link to the tide at Oceanographic Institution](/shots/compare/slackwater-falmouth-current.webp) |
+| Tide Alert's own listing: the tide chart at Yerba Buena Island with current speed drawn over it and estimated slack periods shaded. | Slackwater at North End, Falmouth: a current station in its own right, flooding at 1.2 kn, slack in 2h 22m, with the reference tide one tap away. |
 
 ## Currents
 
@@ -60,7 +60,8 @@ Slackwater includes a free Apple Watch app that runs without the phone. Premium 
 
 ## Price
 
-Tide Alert's full access is $19.99 a year or $99.99 for life. Slackwater's core is free
+Tide Alert is free to try; after the trial its listing says a subscription is required, at
+$6.99 for three months or $19.99 a year. Tide Alert Gold is $99.99. Slackwater's core is free
 and stays free, including home screen widgets. Optional Premium adds alerts, station calendars, lock-screen widgets and Watch complications, with annual and lifetime purchase options.
 
 ## Who should pick which

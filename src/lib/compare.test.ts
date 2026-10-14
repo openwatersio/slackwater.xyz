@@ -14,7 +14,7 @@ describe('compare pages', () => {
 
   it('dates every page by the newest date its prose states', () => {
     expect(COMPARE_PAGES['/alternatives/tide-guide/'].updated).toBe('2026-10-12')
-    expect(COMPARE_PAGES['/compare/slackwater-vs-ayetides/'].updated).toBe('2026-10-09')
+    expect(COMPARE_PAGES['/compare/slackwater-vs-ayetides/'].updated).toBe('2026-10-14')
     for (const p of Object.values(COMPARE_PAGES)) expect(p.heading, p.path).not.toMatch(/Slackwater$|—/)
   })
 
