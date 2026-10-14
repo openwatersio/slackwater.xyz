@@ -5,7 +5,7 @@
 import { stationRoutes, stations, stationsById } from '@slackwater/database'
 import { FEET_PER_METRE } from './format'
 import { kindRoot } from './places'
-import { chsStations, curatedBySlug, REGISTRY_IDS } from './registry'
+import { chsStations, chsTwins, curatedBySlug } from './registry'
 import type { BundledStation, Constituent, CurrentReduction, Kind, Station, TideReduction } from './station'
 
 /**
@@ -295,6 +295,7 @@ export function loadCatalogue(): Station[] {
 
   for (const kind of ['tide', 'current'] as Kind[]) {
     const curated = curatedBySlug(kind)
+    const twins = chsTwins(kind)
     // The database's route index IS the corpus: every station it gives an
     // address to, minus the ones this site may not or cannot publish. Reading
     // the addresses from the same place the pages link to them from is what
@@ -315,14 +316,19 @@ export function loadCatalogue(): Station[] {
         const current = (r.current ?? {}) as Record<string, number | undefined>
         const reduction = kind === 'current' ? currentReduction(r) : undefined
         const subordinate = kind === 'tide' ? tideReduction(r) : undefined
+        // The CHS half of a merged pair. Its position is the curated one: the
+        // place the app shows, and the one the reader's browser resolves DFO's
+        // station from. The provider row sits up to half a nautical mile off.
+        const twin = twins.get(slug)
         out.push({
           id, kind, slug, path,
           source: 'bundled',
           // Curated identity wins. The provider row names the water whatever the
           // provider calls it; the curated record names it what a mariner calls it.
           name: curated.get(slug)?.name ?? String(r.name),
-          latitude: Number(r.latitude), longitude: Number(r.longitude),
-          timezone: String(r.timezone),
+          latitude: twin?.latitude ?? Number(r.latitude),
+          longitude: twin?.longitude ?? Number(r.longitude),
+          timezone: twin?.timezone ?? String(r.timezone),
           // A NOAA current's own qualifier is a bearing off the named place —
           // "0.4 nm SE of" — and heading a page by it says nothing, so a
           // current's water comes from curated identity alone.
@@ -330,7 +336,9 @@ export function loadCatalogue(): Station[] {
           ...(area ? { area } : {}),
           ...(r.country ? { country: String(r.country) } : {}),
           ...(r.continent ? { continent: String(r.continent) } : {}),
-          ...(state ? { state } : {}),
+          ...(twin?.state ?? state ? { state: twin?.state ?? state } : {}),
+          // A derived gate has no CHS station to ask, so it carries no layer.
+          ...(twin && !twin.derived ? { chs: { id: twin.id } } : {}),
           ...(kind === 'tide'
             ? {
                 constituents: subordinate ? [] : constituents.map((c) => ({ ...c, amplitude: c.amplitude * FEET_PER_METRE })),
@@ -356,19 +364,22 @@ export function loadCatalogue(): Station[] {
 
   // The Canadian gates, and the ten tide ports whose identity the database
   // curates. Both carry no prediction: DFO's terms do not allow re-serving
-  // one, so the reader's own browser fetches it. The other 1,047 ports wait
-  // on whether the site publishes them — see #207.
+  // one, so the reader's own browser fetches it. A port whose route also
+  // carries a provider row is replaced by that row below. The other 1,047
+  // ports wait on whether the site publishes them — see #207.
   out.push(...chsStations('current'), ...chsStations('tide'))
 
   // One row per slug. The database merges duplicate identities by putting
-  // both ids on one route, so a slug can arrive twice. Prefer the id the
-  // database curates - that is the curated half in every merged pair - and
-  // fall back to first-seen so this is total rather than conditional.
+  // both ids on one route, so a slug can arrive twice. Prefer the computed
+  // row: it already carries the curated half's name, position and CHS id, and
+  // a computed curve on arrival is better than none, with CHS's own day
+  // fetched on top. Otherwise first-seen, so this is total rather than
+  // conditional.
   const bySlug = new Map<string, Station>()
   for (const s of out) {
     const key = `${s.kind}/${s.slug}`
     const held = bySlug.get(key)
-    if (!held || (!REGISTRY_IDS.has(held.id) && REGISTRY_IDS.has(s.id))) bySlug.set(key, s)
+    if (!held || (held.source === 'chs' && s.source === 'bundled')) bySlug.set(key, s)
   }
   return [...bySlug.values()].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
 }

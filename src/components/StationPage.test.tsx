@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { StationPage } from './StationPage'
+import portFixture from '#/lib/__fixtures__/iwls-ports.json' with { type: 'json' }
+import { fetchRefinement } from '#/lib/refine'
 import type { BundledStation, ChsStation } from '#/lib/station'
 
 const dodd = {
@@ -144,6 +146,63 @@ describe('StationPage for a CHS tide port', () => {
   it('claims no computation and no offline capability', () => {
     expect(html).not.toMatch(/comput/i)
     expect(html).not.toMatch(/offline/i)
+  })
+})
+
+describe('StationPage for a computed port with a CHS layer', () => {
+  // Victoria as the catalogue builds it: the provider row's constituents and
+  // credit, the curated record's name and position, and the CHS identity the
+  // browser resolves DFO's station from.
+  const victoria: BundledStation = {
+    id: 'ticon/victoria_bc-543a-can-uhslc_rq', kind: 'tide', slug: 'victoria', name: 'Victoria',
+    path: '/tides/ca/bc/victoria/',
+    latitude: 48.424, longitude: -123.371, timezone: 'America/Vancouver',
+    source: 'bundled', chartDatum: 'LAT', state: 'BC', country: 'Canada', region: 'Inner Harbour',
+    publisher: 'TICON-4',
+    attribution: 'Slackwater database. Source: TICON-4. Licensed CC BY 4.0.',
+    constituents: [{ name: 'M2', amplitude: 3, phase: 0 }, { name: 'K1', amplitude: 2, phase: 200 }],
+    chs: { id: 'chs-victoria' },
+  }
+  const now = new Date('2026-09-01T12:00:00Z')
+  const served = renderToStaticMarkup(<StationPage station={victoria} now={now} />)
+
+  it('prerenders the computed curve and the week table a bundled page gets', () => {
+    expect(served).toContain('<svg')
+    expect(served).toContain('Tide times for the next 7 days')
+    expect(served).toContain('Harmonic constituents from TICON-4')
+    expect(served).toContain('Source: TICON-4. Licensed CC BY 4.0.')
+  })
+
+  it('serves no CHS prediction, and no control for a request that has not started', () => {
+    expect(served).not.toMatch(/published by the Canadian Hydrographic Service|fetched from DFO/)
+    expect(served).not.toMatch(/cancel|your browser/i)
+  })
+
+  it('makes no claim about how the app predicts this water (#44)', () => {
+    expect(served).not.toMatch(/offline|on-device/i)
+  })
+
+  it("draws DFO's day over the computed one once the browser has it, and keeps the week computed", async () => {
+    const port = portFixture.ports['Victoria Harbour']
+    const fetcher: typeof fetch = async (input) => {
+      const url = String(input)
+      const body = url.includes('/stations?')
+        ? portFixture.stations
+        : url.includes('wlp-hilo')
+          ? port['wlp-hilo']
+          : port.wlp
+      return { ok: true, json: async () => body } as Response
+    }
+    const refined = await fetchRefinement(victoria, now, fetcher)
+    const layered = renderToStaticMarkup(
+      <StationPage station={victoria} now={now} live refined={refined} />,
+    )
+    // 13:45 and 18:53 UTC fall inside Victoria's local day; 2.021 and 1.688 m.
+    expect(layered).toContain('6.6 ft')
+    expect(layered).toContain('5.5 ft')
+    expect(layered).toContain('published by the Canadian Hydrographic Service, on chart datum, fetched from DFO by your browser')
+    expect(layered).toContain('Tide times for the next 7 days')
+    expect(layered).toContain('Harmonic constituents from TICON-4')
   })
 })
 

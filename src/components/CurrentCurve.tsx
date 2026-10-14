@@ -1,5 +1,5 @@
 import { useId, useMemo } from 'react'
-import { provenance } from '#/lib/copy'
+import { CHS_PROVENANCE, provenance } from '#/lib/copy'
 import { daylightSpans } from '#/lib/daylight'
 import { fadeStops } from '#/lib/fade'
 import { chartTime, dayLabel, hhmm } from '#/lib/format'
@@ -63,7 +63,9 @@ interface Common {
 type Props = Common &
   (
     | { station: BundledStation; samples?: never; events?: never }
-    | { station: ChsStation; samples: Sample[]; events: StationEvent[] }
+    // A computed station takes this branch too once its CHS day has arrived
+    // on top of the computed one — see `refine.ts`.
+    | { station: ChsStation | BundledStation; samples: Sample[]; events: StationEvent[] }
   )
 
 /**
@@ -213,7 +215,7 @@ export function CurrentCurve(props: Props) {
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"
         role="img"
-        aria-label={describe(station, events, now)}
+        aria-label={describe(station, events, now, Boolean(props.samples))}
       >
         <defs>
           <linearGradient id={fillId} gradientUnits="userSpaceOnUse" x1={0} x2={0} y1={PAD_TOP} y2={H - PAD_BOTTOM}>
@@ -359,7 +361,7 @@ export function CurrentCurve(props: Props) {
         </p>
       )}
 
-      <figcaption className="sr-only">{describe(station, events, now)}</figcaption>
+      <figcaption className="sr-only">{describe(station, events, now, Boolean(props.samples))}</figcaption>
 
     </figure>
   )
@@ -375,16 +377,19 @@ export function CurrentCurve(props: Props) {
  * day rather than calling it "next", for the same reason — nothing here knows
  * whether the reader is looking at this page now.
  */
-function describe(station: Station, events: StationEvent[], now: Date) {
+function describe(station: Station, events: StationEvent[], now: Date, fetched: boolean) {
+  // Fetched samples are always DFO's, including on a computed station whose
+  // CHS day has arrived on top.
+  const source = fetched ? CHS_PROVENANCE : provenance(station)
   const n = nextEvent(events, now)
-  if (!n) return `Tidal current predictions for ${station.name}, ${provenance(station)}.`
+  if (!n) return `Tidal current predictions for ${station.name}, ${source}.`
   const what =
     n.kind === 'slack'
       ? 'Slack water'
       : `Maximum ${n.kind} of ${Math.abs(n.level).toFixed(1)} knots`
   const tz = station.timezone
   return (
-    `Tidal current at ${station.name}, ${provenance(station)}. ` +
+    `Tidal current at ${station.name}, ${source}. ` +
     `${what} on ${dayLabel(n.time, tz)} at ${hhmm(n.time, tz)}.`
   )
 }

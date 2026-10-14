@@ -114,6 +114,16 @@ export interface BundledStation extends StationIdentity {
    * and 162 at Cobourg on Lake Ontario, which has none. See `seasonalNote`.
    */
   seasonal?: number
+  /**
+   * The curated CHS record this station's route also carries, where the
+   * database merged one with this provider row.
+   *
+   * The page ships the computed curve, and the reader's browser then asks DFO
+   * for CHS's own published day and draws it on top as the refined data — see
+   * `refine.ts`. Identity only, never a prediction: the browser resolves DFO's
+   * station from the page's position, which is the curated one.
+   */
+  chs?: { id: string }
 }
 
 /**

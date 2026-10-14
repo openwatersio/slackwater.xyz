@@ -1,4 +1,4 @@
-import type { Station } from './station'
+import type { BundledStation, Station } from './station'
 
 /**
  * Where this station's numbers come from, as a clause with no full stop.
@@ -19,12 +19,35 @@ import type { Station } from './station'
  */
 export function provenance(station: Station): string {
   return station.source === 'chs'
-    ? 'published by the Canadian Hydrographic Service'
+    ? CHS_PROVENANCE
     : station.reduction
       ? "reduced from NOAA's current table"
     : station.tideReduction
       ? 'NOAA reference highs and lows, adjusted by published offsets'
     : 'computed from harmonic constituents'
+}
+
+/**
+ * The provenance of a curve the reader's browser fetched from DFO — on a CHS
+ * page, and on a computed page once CHS's day has arrived on top of it.
+ */
+export const CHS_PROVENANCE = 'published by the Canadian Hydrographic Service'
+
+/**
+ * The line under a computed page's chart once CHS's day has replaced the
+ * computed one: whose curve this is now, and whose the rest of the page still
+ * is.
+ *
+ * Both halves name a source and neither names how the app answers here (#44).
+ * The second half is the same provenance the computed curve carried before
+ * the layer arrived, so the page never credits CHS for a number it computed.
+ */
+export function refinedCredit(station: BundledStation): string {
+  const datum = station.kind === 'tide' ? ', on chart datum' : ''
+  return (
+    `Today's curve: predictions ${CHS_PROVENANCE}${datum}, fetched from DFO by your browser. ` +
+    `Other days and the 7-day table are ${provenance(station)}.`
+  )
 }
 
 /**

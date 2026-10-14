@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { loadCatalogue } from './catalogue'
 import {
-  DESCRIPTION_LIMIT, TITLE_LIMIT, datumLine, pageDescription, pageTitle, placeLine, provenance, seasonalNote,
+  DESCRIPTION_LIMIT, TITLE_LIMIT, datumLine, pageDescription, pageTitle, placeLine, provenance, refinedCredit, seasonalNote,
 } from './copy'
 import { PASS_GUIDES } from './passes'
 import type { BundledStation, ChsStation } from './station'
@@ -50,6 +50,25 @@ describe('provenance', () => {
     // DFO's own numbers; "offline" is false for the online gates.
     for (const s of [bundled, chs]) {
       expect(provenance(s)).not.toMatch(/slackwater|offline|on-device|app/i)
+    }
+  })
+})
+
+describe('refinedCredit', () => {
+  it('credits CHS for the curve on screen and the computed source for the rest', () => {
+    expect(refinedCredit({ ...bundled, kind: 'tide', chs: { id: 'chs-victoria' } })).toBe(
+      "Today's curve: predictions published by the Canadian Hydrographic Service, on chart datum, " +
+        'fetched from DFO by your browser. Other days and the 7-day table are computed from harmonic constituents.',
+    )
+  })
+
+  it('names no datum for a current, which has none', () => {
+    expect(refinedCredit({ ...bundled, chs: { id: 'chs-dodd-narrows' } })).not.toMatch(/datum/)
+  })
+
+  it('claims nothing about how the app predicts this water (#44)', () => {
+    for (const kind of ['tide', 'current'] as const) {
+      expect(refinedCredit({ ...bundled, kind, chs: { id: 'chs-x' } })).not.toMatch(/slackwater|offline|on-device|\bapp\b/i)
     }
   })
 })
