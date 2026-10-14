@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
@@ -10,6 +11,7 @@ import { buildSitemaps, STATIC_PATHS } from './src/lib/sitemap'
 import { buildRedirects } from './src/lib/redirects'
 import type { Kind } from './src/lib/station'
 
+const BUILD_NOW = new Date().toISOString()
 const catalogue = loadCatalogue()
 
 const stationPages = catalogue.map((s) => ({ path: s.path }))
@@ -27,14 +29,43 @@ const placePages = PLACE_PATHS.map((path) => ({ path }))
 // frontmatter with import.meta.glob, which does not exist in this file's Node
 // context; reading the one `url:` line here is the whole duplication.
 const COMPARE_DIR = './src/content/compare'
-const COMPARE_PATHS = readdirSync(COMPARE_DIR).map(
-  (f) => new URL(readFileSync(`${COMPARE_DIR}/${f}`, 'utf8').match(/^url: (.+)$/m)![1]).pathname,
+const COMPARE_SOURCES = new Map(
+  readdirSync(COMPARE_DIR).map((f) => {
+    const file = `${COMPARE_DIR}/${f}`
+    return [new URL(readFileSync(file, 'utf8').match(/^url: (.+)$/m)![1]).pathname, file]
+  }),
 )
+const COMPARE_PATHS = [...COMPARE_SOURCES.keys()]
 const comparePages = COMPARE_PATHS.map((path) => ({ path }))
+
+// A sitemap <lastmod> is only worth anything to a crawler while it is honest.
+// Station pages print the day's predictions, so they really do change with
+// every nightly build. Every other page changes when its source does, so it is
+// dated by the last commit to touch that source. The deploy checkout fetches
+// full history for this; a shallow clone would date every page to HEAD.
+const BUILD_DATE = BUILD_NOW.slice(0, 10)
+const PLACE_SOURCES = ['./src/routes/-directory.tsx', './package.json']
+const PAGE_SOURCES: Record<string, string[]> = {
+  '/': ['./src/routes/index.tsx'],
+  '/support/': ['./src/routes/support.tsx', './src/content/support.md'],
+  '/privacy/': ['./src/routes/privacy.tsx', './src/content/privacy.md'],
+  '/accuracy/': ['./src/routes/accuracy.tsx', './src/content/accuracy.md'],
+  '/opencpn/': ['./src/routes/opencpn.tsx', './src/content/opencpn.md'],
+  '/learn/tides/': ['./src/routes/learn.tides.tsx'],
+  '/stations/': ['./src/routes/stations.index.tsx'],
+}
+const STATION_PATHS = new Set(catalogue.map((s) => s.path))
+const commitDate = (files: string[]) =>
+  execFileSync('git', ['log', '-1', '--format=%cs', '--', ...files], { encoding: 'utf8' }).trim() || BUILD_DATE
+const lastmod = (path: string) => {
+  if (STATION_PATHS.has(path)) return BUILD_DATE
+  const sources = PAGE_SOURCES[path] ?? (COMPARE_SOURCES.has(path) ? [COMPARE_SOURCES.get(path)!] : PLACE_SOURCES)
+  return commitDate(sources)
+}
 
 // Written straight into public/ so Vite's static copy ships them as
 // .output/public/sitemap*.xml — same mechanism as the old hand-written file.
-for (const [name, xml] of Object.entries(buildSitemaps(catalogue, [...COMPARE_PATHS, ...PLACE_PATHS]))) {
+for (const [name, xml] of Object.entries(buildSitemaps(catalogue, [...COMPARE_PATHS, ...PLACE_PATHS], lastmod))) {
   writeFileSync(`./public/${name}`, xml)
 }
 writeFileSync('./public/_redirects', buildRedirects(catalogue.map((s) => s.path), [...STATIC_PATHS, ...COMPARE_PATHS, ...PLACE_PATHS]))
@@ -60,7 +91,7 @@ export default defineConfig({
   // One clock for the whole build, so the server and client bundles agree on it
   // and every prerendered page is dated the day it was built. Freshness comes
   // from the nightly rebuild in .github/workflows/deploy.yml.
-  define: { __BUILD_NOW__: JSON.stringify(new Date().toISOString()) },
+  define: { __BUILD_NOW__: JSON.stringify(BUILD_NOW) },
   plugins: [
     tailwindcss(),
     tanstackStart({

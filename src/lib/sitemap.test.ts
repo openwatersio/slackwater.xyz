@@ -3,7 +3,7 @@ import { buildSitemaps } from './sitemap'
 import { loadCatalogue } from './catalogue'
 
 describe('buildSitemaps', () => {
-  const maps = buildSitemaps(loadCatalogue())
+  const maps = buildSitemaps(loadCatalogue(), [], (path) => (path === '/support/' ? '2026-09-01' : '2026-10-14'))
 
   it('splits by kind, keeps the static pages separate, and indexes all three', () => {
     expect(Object.keys(maps).sort()).toEqual([
@@ -28,5 +28,23 @@ describe('buildSitemaps', () => {
 
   it('lists no instant URLs — they canonicalise to the station', () => {
     for (const xml of Object.values(maps)) expect(xml).not.toMatch(/\d{4}-\d{2}-\d{2}T/)
+  })
+
+  it('dates every URL with the lastmod it is given', () => {
+    for (const xml of Object.values(maps)) {
+      expect((xml.match(/<lastmod>/g) ?? []).length).toBe((xml.match(/<loc>/g) ?? []).length)
+    }
+    expect(maps['sitemap-static.xml']).toContain(
+      '<url><loc>https://slackwater.xyz/support/</loc><lastmod>2026-09-01</lastmod></url>',
+    )
+    expect(maps['sitemap-tides.xml']).toContain(
+      '<url><loc>https://slackwater.xyz/tides/us/wa/seattle/</loc><lastmod>2026-10-14</lastmod></url>',
+    )
+  })
+
+  it('dates each child sitemap in the index by its newest URL', () => {
+    expect(maps['sitemap.xml']).toContain(
+      '<sitemap><loc>https://slackwater.xyz/sitemap-static.xml</loc><lastmod>2026-10-14</lastmod></sitemap>',
+    )
   })
 })
