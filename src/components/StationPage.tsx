@@ -358,7 +358,8 @@ function Facts({ station }: { station: Station }) {
   const reductionSource = bundled && station.reduction && (() => {
     const [reference, bin] = station.reduction.referenceId.replace(/^noaa\//, '').split('@')
     return `NOAA current table reduction from ${reference}${bin ? `, bin ${bin}` : ''}`
-  })()
+  })() || (bundled && station.tideReduction &&
+    `NOAA tide offsets from ${station.tideReduction.referenceId.replace(/^noaa\//, '')}`)
   const rows: [string, string | undefined][] = [
     ['Position', position],
     ['Time zone', station.timezone],
