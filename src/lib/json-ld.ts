@@ -25,6 +25,12 @@ export const ORGANIZATION = {
 }
 
 /**
+ * A day as the datetime Google asks for: noon UTC, which is the same calendar
+ * day from UTC-12 to UTC+11, so the date still reads as the one the page shows.
+ */
+const noonUtc = (day?: string) => day && `${day}T12:00:00Z`
+
+/**
  * A page of prose: the learn pages, the comparisons and the accuracy receipt.
  *
  * `dateModified` is the date the page shows, or its sitemap `lastmod` when it
@@ -53,8 +59,8 @@ export function articleJsonLd(a: {
     url: a.url,
     mainEntityOfPage: a.url,
     image: a.image ?? `${ORIGIN}/og.png`,
-    datePublished: a.datePublished,
-    dateModified: a.dateModified,
+    datePublished: noonUtc(a.datePublished),
+    dateModified: noonUtc(a.dateModified),
     inLanguage: 'en',
     author: ORGANIZATION,
     publisher: ORGANIZATION,
@@ -178,12 +184,13 @@ export function datasetJsonLd(d: {
     name: d.name,
     description: d.description,
     url: d.url,
-    dateModified: d.dateModified,
+    dateModified: noonUtc(d.dateModified),
     license: 'https://github.com/openwatersio/slackwater-database#license',
     isAccessibleForFree: true,
     creator: ORGANIZATION,
     publisher: ORGANIZATION,
-    distribution: { '@type': 'DataDownload', contentUrl: d.download },
+    // TCD has no registered media type, so this names the format instead.
+    distribution: { '@type': 'DataDownload', encodingFormat: 'XTide TCD', contentUrl: d.download },
   }
 }
 
