@@ -86,11 +86,10 @@ describe('the slack water guide', () => {
     expect(html).toContain(`under ${guide.slackKnots} knots`)
   })
 
-  it('links the stations its numbers come from, the directory and the app', () => {
+  it('links the stations its numbers come from and the app', () => {
     expect(html).toContain(`href="${pass.path}"`)
     expect(html).toContain(`href="${gauge.path}"`)
     expect(html).toContain(`href="${goldenGate.path}"`)
-    expect(html).toContain('href="/currents/"')
     expect(html).toContain('href="https://apps.apple.com/app/slackwater-tides-current/id6813654837"')
   })
 })

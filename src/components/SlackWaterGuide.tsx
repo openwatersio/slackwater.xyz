@@ -45,9 +45,10 @@ export function SlackWaterGuide({ guide }: { guide: SlackGuide }) {
             {TITLE}
           </h1>
           <p className="mt-6 text-lg leading-relaxed text-sw-foam sm:text-xl">
-            Slack water is the short stretch of time when a tidal current turns around. The flood
-            slows, stops, and the ebb begins, or the other way round, and for a while the water
-            barely moves. In a narrow pass, that lull is when a small boat can get through.
+            Slack water is the short stretch of time when a tidal current turns around. The flood,
+            the current that carries the rising tide in, slows and stops, and the ebb, the current
+            that carries the falling tide back out, begins. Or the other way round. For a while the
+            water barely moves, and in a narrow pass that lull is when a boat can get through.
           </p>
         </header>
 
@@ -61,10 +62,8 @@ export function SlackWaterGuide({ guide }: { guide: SlackGuide }) {
               you making way.
             </p>
             <p>
-              There is no single speed that counts as slack. Slackwater&rsquo;s station pages
-              treat anything under {slackKnots} knots as slack and draw it green. The app starts at
-              0.5 knots and lets you set your own, because a kayak and a trawler don&rsquo;t share
-              a limit.
+              There is no single speed that counts as slack. Workable water depends on the boat:
+              a kayak and a trawler don&rsquo;t share a limit.
             </p>
           </div>
         </section>
@@ -232,20 +231,12 @@ export function SlackWaterGuide({ guide }: { guide: SlackGuide }) {
           </h2>
           <div className={PROSE}>
             <p>
-              Every{' '}
-              <a href="/currents/" className={LINK}>
-                current station
-              </a>{' '}
-              on this site draws the day&rsquo;s slack window green on its curve, and the NOAA
-              stations list the next seven days of slacks and maximums.
-            </p>
-            <p>
-              The{' '}
+              Look up the current station for the water you are crossing, not the nearest tide
+              port. The{' '}
               <a href={APP_STORE} className={LINK}>
                 Slackwater app
               </a>{' '}
-              draws the same window for every current station on your phone, at the slack speed
-              you choose.
+              predicts slack for current stations across the US and Canada.
             </p>
           </div>
         </section>
