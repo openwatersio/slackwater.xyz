@@ -34,6 +34,9 @@ type Curve = { at: Date } & Fetched
  */
 const startOf = (at: Date) => new Date(at.getTime() - 6 * 3600_000)
 
+/** Where a current page sends a reader who doesn't know what its slack times mean. */
+const SLACK_GUIDE = '/learn/slack-water/'
+
 interface Props {
   station: Station
   /** The reader's clock. */
@@ -112,7 +115,9 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
         {stationHeading(station)}
       </h1>
       <p className="mt-3 text-sw-steel">
-        {station.kind === 'tide' ? 'Tide times & tide chart' : 'Tidal currents & slack water'}
+        {station.kind === 'tide' ? 'Tide times & tide chart' : (
+          <>Tidal currents &amp; <a href={SLACK_GUIDE} className="underline decoration-sw-steel/60 underline-offset-4 hover:text-sw-foam">slack water</a></>
+        )}
       </p>
       {/* Above the curve rather than below it: at these stations the annual
           cycle IS the signal, so a reader needs it before reading a high and a
@@ -291,6 +296,15 @@ function WeekTable({ station, at }: { station: BundledStation; at: Date }) {
           {dayLabel(week[0], tz)} through {dayLabel(week[6], tz)}.
           {' '}All times are local to {station.name} ({tz}).
           {tide && station.chartDatum && <> Heights are in feet above {station.chartDatum}.</>}
+          {!tide && (
+            <>
+              {' '}
+              <a href={SLACK_GUIDE} className="underline underline-offset-4 hover:text-sw-foam">
+                What slack water is, and why it isn&rsquo;t high or low tide
+              </a>
+              .
+            </>
+          )}
         </caption>
         <thead className="text-left text-xs uppercase tracking-wider text-sw-leaf">
           <tr>

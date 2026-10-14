@@ -18,6 +18,7 @@ describe('buildSitemaps', () => {
     expect(maps['sitemap.xml']).not.toContain('<urlset')
     expect(maps['sitemap.xml']).toContain('<loc>https://slackwater.xyz/sitemap-tides.xml</loc>')
     expect(maps['sitemap-static.xml']).toContain('<loc>https://slackwater.xyz/support/</loc>')
+    expect(maps['sitemap-static.xml']).toContain('<loc>https://slackwater.xyz/learn/slack-water/</loc>')
   })
 
   it('lists every station exactly once, at its canonical URL', () => {

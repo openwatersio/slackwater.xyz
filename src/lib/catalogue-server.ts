@@ -3,6 +3,8 @@ import { loadCatalogue, loadMoved, loadWithheld } from './catalogue'
 import { bearing, distanceNm, neighbourMap } from './nearby'
 import { kindRoot, nearestPlace, parentPath, placeTree, type Place } from './places'
 import type { Kind, Station } from './station'
+import { slackGuide, type SlackGuide } from './slack-guide'
+import { SERVER_NOW } from './use-live-now'
 
 /**
  * The only way a route may reach the catalogue.
@@ -323,3 +325,40 @@ export const stationsHub = createServerFn({ method: 'GET' }).handler(() => {
 export const stationBySlug = createServerFn({ method: 'GET' })
   .validator((data: { kind: Kind; slug: string }) => data)
   .handler(({ data }) => index().bySlug.get(`${data.kind}/${data.slug}`))
+
+/**
+ * The stations `/learn/slack-water/` reads. Deception Pass is the pass the
+ * guide is built around; Deception Pass State Park is the nearest tide gauge
+ * with its own harmonics, so its highs and lows are its own. The duration
+ * rows run from a pass that barely pauses to a broad channel that lingers.
+ */
+const GUIDE = {
+  current: 'deception-pass-narrows',
+  tide: 'deception-pass-state-park',
+  durations: [
+    'deception-pass-narrows',
+    'cape-cod-canal-railroad-bridge-midchannel',
+    'hell-gate',
+    'the-race',
+    'golden-gate-bridge-0-46-nm-e-of',
+  ],
+}
+
+/**
+ * The slack-water guide's numbers, from the build clock.
+ *
+ * Throws on a missing or non-harmonic station rather than rendering a guide
+ * with a hole in it: a database release that drops one of these should fail
+ * the build, not ship a paragraph about a station that is not there.
+ */
+export const slackGuideData = createServerFn({ method: 'GET' }).handler((): SlackGuide => {
+  const get = (kind: Kind, slug: string) => {
+    const s = index().bySlug.get(`${kind}/${slug}`)
+    if (s?.source !== 'bundled') throw new Error(`slack guide: no bundled ${kind} station ${slug}`)
+    return s
+  }
+  return slackGuide(
+    { current: get('current', GUIDE.current), tide: get('tide', GUIDE.tide), durations: GUIDE.durations.map((s) => get('current', s)) },
+    SERVER_NOW,
+  )
+})
