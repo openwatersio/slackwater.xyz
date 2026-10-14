@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { existsSync } from 'node:fs'
 import { COMPARE_PAGES, COMPARE_PATHS, newestProseDate } from './compare'
+import { APP_STORE, MINIMUM_IOS, REQUIREMENT } from './links'
 
 describe('compare pages', () => {
   it('parses every page with a path, title and description', () => {
@@ -14,7 +15,7 @@ describe('compare pages', () => {
 
   it('dates every page by the newest date its prose states', () => {
     expect(COMPARE_PAGES['/alternatives/tide-guide/'].updated).toBe('2026-10-12')
-    expect(COMPARE_PAGES['/compare/slackwater-vs-ayetides/'].updated).toBe('2026-10-09')
+    expect(COMPARE_PAGES['/compare/slackwater-vs-ayetides/'].updated).toBe('2026-10-14')
     for (const p of Object.values(COMPARE_PAGES)) expect(p.heading, p.path).not.toMatch(/Slackwater$|—/)
   })
 
@@ -50,6 +51,16 @@ describe('compare pages', () => {
           expect(ours, `${p.path}: ${line}`).not.toMatch(/\$\d/)
         }
       }
+    }
+  })
+
+  it('closes with the requirement the install buttons state', () => {
+    // Markdown can't import MINIMUM_IOS, so a bump in links.ts fails here
+    // until every page is edited. Competitor iOS versions stay off the pages
+    // so that every "iOS N" is Slackwater's.
+    for (const p of Object.values(COMPARE_PAGES)) {
+      expect(p.markdown, p.path).toContain(`**[Download Slackwater on the App Store](${APP_STORE})** · Free, no account. ${REQUIREMENT}`)
+      for (const [, v] of p.markdown.matchAll(/\biOS (\d+)/g)) expect(v, p.path).toBe(MINIMUM_IOS)
     }
   })
 
