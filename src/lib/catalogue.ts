@@ -6,7 +6,7 @@ import { stationRoutes, stations, stationsById } from '@slackwater/database'
 import { FEET_PER_METRE } from './format'
 import { kindRoot } from './places'
 import { chsStations, curatedBySlug, REGISTRY_IDS } from './registry'
-import type { BundledStation, Constituent, CurrentReduction, Kind, Station } from './station'
+import type { BundledStation, Constituent, CurrentReduction, Kind, Station, TideReduction } from './station'
 
 /**
  * A station is buildable when a provider row ships its constituents, which the
@@ -54,8 +54,10 @@ if (!ACCEPTED.size) throw new Error('catalogue: the station database ships no qu
  * withholds the corpus instead of quietly publishing them.
  *
  * Harmonic constituents or, for a NOAA current, a published reduction against
- * an exact reference row. Four NOAA tide subordinates remain excluded because
- * their height reduction is a different model.
+ * an exact reference row. A NOAA tide subordinate passes on constituents
+ * because the database lends it its reference's; `tideReduction` is what keeps
+ * it from being predicted as the reference. Four NOAA tide reference rows ship
+ * no constituents and no reduction, so they have nothing to predict from.
  */
 function publishable(r: Record<string, unknown>): boolean {
   const license = r.license as { commercial_use?: boolean } | undefined
@@ -239,6 +241,55 @@ function currentReduction(r: Record<string, unknown>): CurrentReduction | undefi
   return reduction
 }
 
+/**
+ * A NOAA tide subordinate's correction against its reference.
+ *
+ * The database answers a subordinate's `harmonic_constituents` and `datums`
+ * with its reference's, byte for byte, and documents that the consumer applies
+ * `offsets` on top. Summing those constituents alone prints the reference's
+ * water under the subordinate's name, so the page carries none of its own and
+ * predicts through this instead.
+ *
+ * Heights are rounded to the millimetre before converting, as the app's
+ * `gen-tides.mjs` rounds them, so float32 noise in the database never reaches a
+ * printed height and the two agree.
+ */
+function tideReduction(r: Record<string, unknown>): TideReduction | undefined {
+  if (r.type !== 'subordinate') return undefined
+  const offsets = r.offsets as {
+    reference?: string
+    time?: { high?: number; low?: number }
+    height?: { type?: string; high?: number; low?: number }
+  } | undefined
+  const referenceId = String(offsets?.reference ?? '')
+  const reference = record(referenceId)
+  const referenceConstituents = (reference?.harmonic_constituents ?? []) as Constituent[]
+  if (!reference || !referenceConstituents.length)
+    throw new Error(`catalogue: invalid tide reference ${referenceId} on ${String(r.id)}`)
+  const type = offsets?.height?.type
+  if (type !== 'fixed' && type !== 'ratio')
+    throw new Error(`catalogue: unknown tide height offset ${String(type)} on ${String(r.id)}`)
+  const millimetres = (value: unknown) => Math.round(Number(value) * 1000) / 1000
+  const height: TideReduction['height'] = type === 'ratio'
+    ? { type, high: millimetres(offsets?.height?.high), low: millimetres(offsets?.height?.low) }
+    : {
+        type,
+        high: millimetres(offsets?.height?.high) * FEET_PER_METRE,
+        low: millimetres(offsets?.height?.low) * FEET_PER_METRE,
+      }
+  const reduction = {
+    referenceId,
+    referenceConstituents: referenceConstituents.map((c) => ({ ...c, amplitude: c.amplitude * FEET_PER_METRE })),
+    referenceOffset: datumShift(reference),
+    highTimeOffset: Number(offsets?.time?.high) * 60,
+    lowTimeOffset: Number(offsets?.time?.low) * 60,
+    height,
+  }
+  if ([reduction.highTimeOffset, reduction.lowTimeOffset, height.high, height.low].some((v) => !Number.isFinite(v)))
+    throw new Error(`catalogue: invalid tide offsets on ${String(r.id)}`)
+  return reduction
+}
+
 export function loadCatalogue(): Station[] {
   const out: Station[] = []
 
@@ -263,6 +314,7 @@ export function loadCatalogue(): Station[] {
         const area = adminArea(r)
         const current = (r.current ?? {}) as Record<string, number | undefined>
         const reduction = kind === 'current' ? currentReduction(r) : undefined
+        const subordinate = kind === 'tide' ? tideReduction(r) : undefined
         out.push({
           id, kind, slug, path,
           source: 'bundled',
@@ -281,12 +333,13 @@ export function loadCatalogue(): Station[] {
           ...(state ? { state } : {}),
           ...(kind === 'tide'
             ? {
-                constituents: constituents.map((c) => ({ ...c, amplitude: c.amplitude * FEET_PER_METRE })),
+                constituents: subordinate ? [] : constituents.map((c) => ({ ...c, amplitude: c.amplitude * FEET_PER_METRE })),
                 chartDatum: String(r.chart_datum ?? ''),
                 publisher: String((r.source as { name?: string } | undefined)?.name ?? ''),
                 attribution: String(r.attribution ?? ''),
                 offset: datumShift(r),
                 ...(seasonal !== undefined ? { seasonal } : {}),
+                ...(subordinate ? { tideReduction: subordinate } : {}),
               }
             : {
                 constituents,

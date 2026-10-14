@@ -20,6 +20,21 @@ export interface CurrentReduction {
   ebbSpeedRatio: number
 }
 
+/**
+ * NOAA's published correction from one harmonic tide station's highs and lows.
+ * Offsets are seconds; `fixed` heights are feet added, `ratio` heights multiply
+ * the reference height above chart datum. `referenceOffset` is the reference's
+ * own datum shift, so its extremes come out on chart datum before correction.
+ */
+export interface TideReduction {
+  referenceId: string
+  referenceConstituents: Constituent[]
+  referenceOffset: number
+  highTimeOffset: number
+  lowTimeOffset: number
+  height: { type: 'fixed' | 'ratio'; high: number; low: number }
+}
+
 interface StationIdentity {
   id: string
   kind: Kind
@@ -85,6 +100,8 @@ export interface BundledStation extends StationIdentity {
   ebbDirection?: number
   /** Currents only: absent for stations with their own harmonic constituents. */
   reduction?: CurrentReduction
+  /** Tides only: present for a NOAA subordinate, whose `constituents` are then empty. */
+  tideReduction?: TideReduction
   /**
    * Tides only, and only where the database labelled the station
    * `quality.seasonal_dominant`: how many times the seasonal band exceeds the

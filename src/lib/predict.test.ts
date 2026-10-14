@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { predictSeries, findEvents, reduceCurrentEvents, slackWindows, tideExtremes, SLACK_KNOTS } from './predict'
-import type { BundledStation } from './station'
+import type { BundledStation, TideReduction } from './station'
 import { loadCatalogue } from './catalogue'
 
 const CURRENT: BundledStation = {
@@ -236,5 +236,65 @@ describe('tideExtremes', () => {
     expect(lifted.every((e) => e.level > 0)).toBe(true)
     expect(lifted.some((e) => !e.high)).toBe(true)
     expect(findEvents(above, new Date('2026-09-01T00:00:00Z'), 48).some((e) => e.kind === 'ebb')).toBe(false)
+  })
+})
+
+describe('subordinate tides', () => {
+  const start = new Date('2026-09-01T00:00:00Z')
+  const reference = { ...TIDE, offset: 6.64 }
+  // A subordinate carries no constituents of its own: the reference's sit in
+  // the reduction, so summing `constituents` cannot quietly predict Seattle.
+  const subordinate = (height: TideReduction['height']): BundledStation => ({
+    ...TIDE, id: 'noaa/9448601', slug: 'yokeko-point', name: 'Yokeko Point',
+    constituents: [],
+    tideReduction: {
+      referenceId: reference.id,
+      referenceConstituents: reference.constituents,
+      referenceOffset: reference.offset,
+      highTimeOffset: 26 * 60,
+      lowTimeOffset: 38 * 60,
+      height,
+    },
+  })
+  // Padded so every reference extreme that lands inside the window once
+  // shifted is in the list to compare against.
+  const ref = tideExtremes(reference, new Date(+start - 3 * 3600_000), 54)
+  const shifted = (e: { time: Date; high: boolean }) =>
+    new Date(+e.time + (e.high ? 26 : 38) * 60_000)
+  const inWindow = ref.filter((e) => shifted(e) >= start && +shifted(e) <= +start + 48 * 3600_000)
+
+  it('shifts the reference highs and lows by their own time offsets and adds a fixed height', () => {
+    const extremes = tideExtremes(subordinate({ type: 'fixed', high: -0.98, low: -0.2 }), start, 48)
+    expect(extremes.length).toBe(inWindow.length)
+    extremes.forEach((e, i) => {
+      expect(e.high).toBe(inWindow[i].high)
+      // The predictor's extreme search moves by milliseconds with its window.
+      expect(Math.abs(+e.time - +shifted(inWindow[i]))).toBeLessThan(1000)
+      expect(e.level).toBeCloseTo(inWindow[i].level + (e.high ? -0.98 : -0.2), 3)
+    })
+  })
+
+  it('multiplies the height above chart datum by a ratio', () => {
+    const extremes = tideExtremes(subordinate({ type: 'ratio', high: 0.86, low: 0.91 }), start, 48)
+    expect(extremes.length).toBe(inWindow.length)
+    extremes.forEach((e, i) => {
+      expect(e.level).toBeCloseTo(inWindow[i].level * (e.high ? 0.86 : 0.91), 3)
+    })
+  })
+
+  it('draws a curve through the corrected extremes and nowhere past them', () => {
+    const station = subordinate({ type: 'fixed', high: -0.98, low: -0.2 })
+    const extremes = tideExtremes(station, start, 48)
+    for (const e of extremes) {
+      expect(predictSeries(station, e.time, 1 / 3600, 1)[0].level).toBeCloseTo(e.level, 3)
+    }
+    const levels = predictSeries(station, start, 48).map((s) => s.level)
+    expect(Math.max(...levels)).toBeLessThanOrEqual(Math.max(...extremes.map((e) => e.level)) + 1e-3)
+    expect(Math.min(...levels)).toBeGreaterThanOrEqual(Math.min(...extremes.map((e) => e.level)) - 1e-3)
+  })
+
+  it('does not predict the reference water under the subordinate name', () => {
+    const own = predictSeries(subordinate({ type: 'fixed', high: -0.98, low: -0.2 }), start, 24)
+    expect(own.map((s) => s.level)).not.toEqual(predictSeries(reference, start, 24).map((s) => s.level))
   })
 })

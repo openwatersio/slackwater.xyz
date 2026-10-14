@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { stationsById } from '@slackwater/database'
 import { loadCatalogue, loadMoved, loadWithheld } from './catalogue'
-import { predictSeries } from './predict'
+import { predictSeries, tideExtremes } from './predict'
 import { nearby } from './nearby'
 
 /** The ten provinces and three territories, as ISO 3166-2 spells their codes. */
@@ -48,6 +48,36 @@ describe('loadCatalogue', () => {
     expect(eastport.reduction?.referenceId).toBe('noaa/EPT0003@11')
     expect(eastport.reduction?.referenceConstituents.length).toBeGreaterThan(20)
     expect(eastport.reduction?.floodSpeedRatio).toBeCloseTo(1.2)
+  })
+
+  it('reduces a subordinate tide from its reference rather than predicting the reference', () => {
+    // The database hands a subordinate its reference's constituents when they
+    // are read, so Yokeko Point arrives carrying Seattle's tide byte for byte.
+    // The published correction is in `offsets`, and only that is Yokeko's own.
+    const yokeko = all.find((s) => s.id === 'noaa/9448601')
+    expect(yokeko?.source).toBe('bundled')
+    if (yokeko?.source !== 'bundled') return
+    expect(yokeko.constituents).toEqual([])
+    const r = yokeko.tideReduction
+    expect(r?.referenceId).toBe('noaa/9447130')
+    expect(r?.referenceConstituents.length).toBeGreaterThan(20)
+    expect(r?.highTimeOffset).toBe(26 * 60)
+    expect(r?.lowTimeOffset).toBe(38 * 60)
+    // Metres in the database, feet on the page — and rounded as the app rounds,
+    // so float32 noise does not reach a printed height.
+    expect(r?.height).toEqual({ type: 'fixed', high: -0.3 * 3.28084, low: -0.06 * 3.28084 })
+
+    const start = new Date('2026-10-15T07:00:00Z')
+    const seattle = all.find((s) => s.id === 'noaa/9447130')
+    if (seattle?.source !== 'bundled') throw new Error('no Seattle')
+    const own = tideExtremes(yokeko, start, 24).map((e) => +e.time)
+    expect(own).not.toEqual(tideExtremes(seattle, start, 24).map((e) => +e.time))
+  })
+
+  it('reads a ratio subordinate tide as a ratio', () => {
+    const waimea = all.find((s) => s.id === 'noaa/1611401')
+    if (waimea?.source !== 'bundled') throw new Error('no Waimea Bay')
+    expect(waimea.tideReduction?.height).toEqual({ type: 'ratio', high: 0.86, low: 0.91 })
   })
 
   it('keeps a current with its own constituents harmonic', () => {
@@ -135,7 +165,12 @@ describe('loadCatalogue', () => {
       expect(s.name.trim(), s.id).not.toBe('')
     }
     for (const s of all.filter((s) => s.source === 'bundled')) {
-      expect(s.constituents.length || s.reduction?.referenceConstituents.length, s.id).toBeGreaterThan(0)
+      expect(
+        s.constituents.length
+          || s.reduction?.referenceConstituents.length
+          || s.tideReduction?.referenceConstituents.length,
+        s.id,
+      ).toBeGreaterThan(0)
     }
   })
 

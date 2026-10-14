@@ -73,6 +73,27 @@ export function predictSeries(
   fidelitySeconds = 600,
 ): Sample[] {
   const end = new Date(start.getTime() + hours * 3600_000)
+  if (station.tideReduction) {
+    // Half-cosine between corrected extremes, as the app and NOAA draw a
+    // subordinate. The pad is longer than any gap between neighbouring extremes.
+    const pad = 15 * 3600_000
+    const knots = tideExtremes(station, new Date(start.getTime() - pad), hours + 2 * pad / 3600_000)
+    const samples: Sample[] = []
+    let knot = 0
+    for (let time = start.getTime(); time <= end.getTime(); time += fidelitySeconds * 1000) {
+      while (knot + 2 < knots.length && knots[knot + 1].time.getTime() <= time) knot++
+      const a = knots[knot]
+      const b = knots[knot + 1]
+      if (!a || !b) {
+        samples.push({ time: new Date(time), level: a?.level ?? 0 })
+        continue
+      }
+      const fraction = Math.min(1, Math.max(0, (time - a.time.getTime()) / (b.time.getTime() - a.time.getTime())))
+      const eased = (1 - Math.cos(Math.PI * fraction)) / 2
+      samples.push({ time: new Date(time), level: a.level + (b.level - a.level) * eased })
+    }
+    return samples
+  }
   if (station.reduction) {
     const pad = 8 * 3600_000
     const events = findEvents(
@@ -254,6 +275,31 @@ export interface TideExtreme {
  */
 export function tideExtremes(station: BundledStation, start: Date, hours: number): TideExtreme[] {
   const end = new Date(start.getTime() + hours * 3600_000)
+  if (station.tideReduction) {
+    // A subordinate is its reference's highs and lows, each moved by its own
+    // time offset and corrected in height. Mirrors the app's
+    // `SubordinateTideStation`, so both print the same numbers. Sorted, because
+    // unequal high and low offsets can reorder neighbours.
+    const r = station.tideReduction
+    const pad = Math.max(Math.abs(r.highTimeOffset), Math.abs(r.lowTimeOffset)) + 3600
+    const reference = {
+      ...station,
+      id: r.referenceId,
+      constituents: r.referenceConstituents,
+      offset: r.referenceOffset,
+      tideReduction: undefined,
+    }
+    return tideExtremes(reference, new Date(start.getTime() - pad * 1000), hours + 2 * pad / 3600)
+      .map((e) => ({
+        high: e.high,
+        time: new Date(e.time.getTime() + (e.high ? r.highTimeOffset : r.lowTimeOffset) * 1000),
+        level: r.height.type === 'ratio'
+          ? e.level * (e.high ? r.height.high : r.height.low)
+          : e.level + (e.high ? r.height.high : r.height.low),
+      }))
+      .filter((e) => e.time >= start && e.time <= end)
+      .sort((a, b) => a.time.getTime() - b.time.getTime())
+  }
   return predictorFor(station)
     .getExtremesPrediction({ start, end })
     .map((e: { high: boolean; level: number; time: number | Date }) => ({

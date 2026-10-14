@@ -22,6 +22,8 @@ export function provenance(station: Station): string {
     ? 'published by the Canadian Hydrographic Service'
     : station.reduction
       ? "reduced from NOAA's current table"
+    : station.tideReduction
+      ? 'NOAA reference highs and lows, adjusted by published offsets'
     : 'computed from harmonic constituents'
 }
 
