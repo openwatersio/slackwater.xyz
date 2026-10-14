@@ -5,6 +5,7 @@ import { SITE_DESCRIPTION } from '#/routes/__root'
 
 const CANONICAL = 'https://slackwater.xyz/'
 const SOURCE = 'https://github.com/openwatersio/slackwater-ios'
+const ORGANIZATION = 'https://openwaters.io/#organization'
 const LANGUAGES = [
   ['en', '🇺🇸🇬🇧', 'English'],
   ['fr-CA', '🇫🇷🇨🇦', 'Français'],
@@ -29,22 +30,43 @@ export const Route = createFileRoute('/')({
       { property: 'og:url', content: CANONICAL },
       {
         // Claims only what the page already claims: a free iOS app, no ratings
-        // invented, no features the app doesn't ship.
+        // invented, no features the app doesn't ship. One graph so the site and
+        // the app name the same publisher by `@id`. `name` matches openwaters.io's
+        // own Organization; `legalName` is the App Store seller, spelled as Apple
+        // shows it.
         'script:ld+json': {
           '@context': 'https://schema.org',
-          '@type': 'MobileApplication',
-          name: 'Slackwater',
-          description: SITE_DESCRIPTION,
-          url: CANONICAL,
-          image: 'https://slackwater.xyz/og.png',
-          applicationCategory: 'UtilitiesApplication',
-          operatingSystem: 'iOS 26 or later; iPadOS 26 or later',
-          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-          publisher: {
-            '@type': 'Organization',
-            name: 'Open Waters',
-            url: 'https://openwaters.io',
-          },
+          '@graph': [
+            {
+              '@type': 'Organization',
+              '@id': ORGANIZATION,
+              name: 'Open Waters',
+              legalName: 'Open Water Software LLC',
+              url: 'https://openwaters.io/',
+              sameAs: ['https://github.com/openwatersio'],
+            },
+            {
+              '@type': 'WebSite',
+              '@id': `${CANONICAL}#website`,
+              name: 'Slackwater',
+              url: CANONICAL,
+              publisher: { '@id': ORGANIZATION },
+            },
+            {
+              '@type': 'MobileApplication',
+              '@id': `${CANONICAL}#app`,
+              name: 'Slackwater',
+              description: SITE_DESCRIPTION,
+              url: CANONICAL,
+              image: 'https://slackwater.xyz/og.png',
+              applicationCategory: 'UtilitiesApplication',
+              operatingSystem: 'iOS 26 or later; iPadOS 26 or later',
+              installUrl: APP_STORE,
+              sameAs: [APP_STORE, SOURCE],
+              offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+              publisher: { '@id': ORGANIZATION },
+            },
+          ],
         },
       },
     ],
