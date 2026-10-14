@@ -31,7 +31,7 @@ fetches DFO's published numbers and draws them. The site builds 10 of the 1,058 
 tide ports (Victoria, Vancouver and eight more), named in `CHS_TIDE_PORTS` in
 `src/lib/registry.ts`. The database publishes identity for the other 1,047 too; whether the
 site publishes them is [issue #207](https://github.com/openwatersio/slackwater.xyz/issues/207),
-and until then they 404. Plus `chs-arran-rapids`, excluded pending an owner decision.
+and until then they 404. Plus `chs-arran-rapids`, excluded by owner decision to match the app, which refuses to name it ([#45](https://github.com/openwatersio/slackwater.xyz/issues/45)).
 
 ## The two surfaces
 

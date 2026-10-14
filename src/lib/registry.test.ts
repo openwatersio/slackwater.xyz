@@ -24,9 +24,8 @@ describe('chsStations for the current gates', () => {
 
   it('excludes chs-arran-rapids by name', () => {
     // slackwater-ios excludes it fully as a hazard call - wrong water under a
-    // trusted name - and whether the web may name it is an open owner
-    // decision. The database publishes it, so only an explicit rule keeps it
-    // out. Do not remove this without that decision.
+    // trusted name - and the site matches the app by owner decision (#45). The
+    // database publishes it, so only an explicit rule keeps it out.
     expect(chsStations('current').some((g) => g.id === 'chs-arran-rapids')).toBe(false)
   })
 

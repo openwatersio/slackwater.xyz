@@ -63,12 +63,13 @@ export function curatedBySlug(kind: Kind): Map<string, Curated> {
 }
 
 /**
- * Deferred by owner decision, and excluded by name because the database
+ * Excluded by owner decision (#45), and by name because the database
  * publishes it like any other gate — without this rule it would become a page
  * as a side effect of a data source. slackwater-ios excludes it fully as a
- * hazard call: violent rapids, "wrong water under a trusted name". Whether
- * official DFO predictions change that answer is an open question, not one to
- * settle by deleting this line.
+ * hazard call: violent rapids, "wrong water under a trusted name". The site
+ * matches the app, because two surfaces disagreeing about whether a hazard is
+ * nameable is worse than one missing page. Publishing it means the app and the
+ * site change together; it is not settled by deleting this line.
  */
 const EXCLUDED = new Set(['chs-arran-rapids'])
 

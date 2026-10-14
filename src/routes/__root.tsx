@@ -53,7 +53,7 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
   // 1,048 known station URLs still 404 by design: 1,047 Canadian (CHS) tide
   // ports the site has not chosen to publish (#207), and
-  // `chs-arran-rapids`, a gate excluded by name pending an owner decision.
+  // `chs-arran-rapids`, a gate excluded by name to match the app (#45).
   // `dodd-narrows`, the former flagship share case, resolves.
   // The router's default is a bare title, so the receiver of that link got a
   // blank page. Say what happened and give them a way onward.
