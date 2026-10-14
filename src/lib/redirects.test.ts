@@ -15,7 +15,13 @@ describe('static page redirects', () => {
     const paths = Array.from({ length: 101 }, (_, i) => [`/tides/c${i}/a/`, `/tides/c${i}/b/`]).flat()
     const rules = buildRedirects(paths).trim().split('\n')
     expect(rules.filter((line) => line.includes(':page'))).toHaveLength(100)
-    expect(rules.filter((line) => !line.includes(':page'))).toHaveLength(2)
+    expect(rules.filter((line) => !line.includes(':page') && line.endsWith(' 308'))).toHaveLength(2)
     expect(() => buildRedirects([], Array.from({ length: 2001 }, (_, i) => `/p${i}/`))).toThrow('2,000')
+  })
+
+  it('moves retired pages that still draw search traffic, in both spellings', () => {
+    const rules = buildRedirects([])
+    expect(rules).toContain('/stations/currents/ /currents/ 301')
+    expect(rules).toContain('/stations/currents /currents/ 301')
   })
 })
