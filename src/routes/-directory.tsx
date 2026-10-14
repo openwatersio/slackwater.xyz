@@ -6,6 +6,7 @@ import { StationPage } from '#/components/StationPage'
 import { resolvePath, type PlaceIndex, type Resolved } from '#/lib/catalogue-server'
 import { ogImageAlt, pageDescription, pageTitle } from '#/lib/copy'
 import { faqJsonLd, stationJsonLd } from '#/lib/json-ld'
+import { APP_STORE_ID } from '#/lib/links'
 import { placeHead } from '#/lib/place-head'
 import { kindRoot } from '#/lib/places'
 import type { Kind } from '#/lib/station'
@@ -57,6 +58,9 @@ export function directoryHead(kind: Kind, page: Page | undefined) {
   const description = page.guide?.description ?? pageDescription(s)
   const alt = ogImageAlt(s)
   const card = `${ORIGIN}/og/${kind === 'tide' ? 'tides' : 'currents'}/${s.slug}`
+  // The flat share form, not the page's own path: shipped app builds parse
+  // only `/<kind>/<slug>[/<instant>]` (`stationLink(from:)` in slackwater-ios).
+  const opens = `${ORIGIN}${kindRoot(kind)}${s.slug}/${page.instant?.raw ?? ''}`
   return {
     // An instant URL points at the bare station URL, not itself: the instant
     // space is unbounded, so treating each shared moment as its own canonical
@@ -71,6 +75,8 @@ export function directoryHead(kind: Kind, page: Page | undefined) {
       { property: 'og:image', content: page.instant ? `${card}/${page.instant.raw}.png` : `${card}.png` },
       // Overrides the site default only where it would be false — see `ogImageAlt`.
       ...(alt ? [{ property: 'og:image:alt', content: alt }] : []),
+      // Replaces the root's banner by name, so Open lands on this station.
+      { name: 'apple-itunes-app', content: `app-id=${APP_STORE_ID}, app-argument=${opens}` },
     ],
     // Structured data lives on the canonical page only: an instant page
     // canonicalises there, so a second copy would describe the same place twice.

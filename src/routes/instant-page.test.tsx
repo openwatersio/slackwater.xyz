@@ -131,6 +131,36 @@ describe('the instant URL renders its own moment', () => {
   })
 })
 
+describe('the App Store banner opens the station being read', () => {
+  // The app reads only the flat share form, so that is the argument even
+  // though the page lives at the nested path.
+  async function banners(url: string) {
+    const router = createRouter({ routeTree, history: createMemoryHistory({ initialEntries: [url] }) })
+    await router.load()
+    const html = renderToString(<RouterProvider router={router} />)
+    return [...html.matchAll(/<meta name="apple-itunes-app" content="([^"]*)"/g)].map((m) => m[1])
+  }
+
+  it('hands the app the station on a station page', async () => {
+    expect(await banners('/tides/us/wa/seattle')).toEqual([
+      'app-id=6813654837, app-argument=https://slackwater.xyz/tides/seattle/',
+    ])
+    expect(await banners('/currents/us/wa/deception-pass-narrows')).toEqual([
+      'app-id=6813654837, app-argument=https://slackwater.xyz/currents/deception-pass-narrows/',
+    ])
+  })
+
+  it('hands the app the shared moment on an instant page', async () => {
+    expect(await banners('/currents/us/wa/deception-pass-narrows/2026-12-25T03:15-08:00')).toEqual([
+      'app-id=6813654837, app-argument=https://slackwater.xyz/currents/deception-pass-narrows/2026-12-25T03:15-08:00',
+    ])
+  })
+
+  it('keeps the bare banner on pages that are not a station', async () => {
+    expect(await banners('/support')).toEqual(['app-id=6813654837'])
+  })
+})
+
 describe('the server render claims nothing about now', () => {
   it('leaves the relative "in Xm" countdown to the hydrated client', async () => {
     for (const url of ['/currents/us/wa/deception-pass-narrows', '/currents/us/wa/deception-pass-narrows/2026-12-25T03:15-08:00']) {
