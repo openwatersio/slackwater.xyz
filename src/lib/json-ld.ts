@@ -106,3 +106,20 @@ export function placeJsonLd(
     breadcrumbs(page.crumbs, page.name, url),
   ]
 }
+
+/**
+ * A pass guide's questions as `FAQPage`, each answer the same HTML the page
+ * renders — Google asks that the markup match what a reader sees, and its
+ * allowed tags cover everything a guide's markdown produces.
+ */
+export function faqJsonLd(faq: { question: string; html: string }[]): JsonLd {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faq.map((q) => ({
+      '@type': 'Question',
+      name: q.question,
+      acceptedAnswer: { '@type': 'Answer', text: q.html },
+    })),
+  }
+}

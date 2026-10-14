@@ -86,6 +86,21 @@ describe('prerendered station pages', () => {
     }
   })
 
+  it('serves a pass guide in the page a crawler reads', () => {
+    // #182: the guide is the only content a CHS page can carry, so it has to be
+    // in the prerendered HTML, its description has to replace the identity
+    // one, and its questions have to reach structured data.
+    const html = readFileSync(page('current', 'seymour-narrows'), 'utf8')
+    expect(html).toContain('Ripple Rock')
+    expect(html).toMatch(/<meta name="description" content="Seymour Narrows runs to 16 knots/)
+    expect(html).not.toContain('Station information for')
+    expect(html).toContain('"@type":"FAQPage"')
+    // A CHS page without a guide keeps the identity description and no FAQ.
+    const bare = readFileSync(page('current', 'second-narrows'), 'utf8')
+    expect(bare).toContain('Station information for Second Narrows')
+    expect(bare).not.toContain('FAQPage')
+  })
+
   it('keeps every browse page small enough to be worth loading', () => {
     // #33: the flat tide index shipped 4,792 links and 322 KB of loader data
     // nothing read back — 922 KB, 150 KB gzipped, on a site whose pitch is that

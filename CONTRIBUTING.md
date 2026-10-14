@@ -26,7 +26,7 @@ npm run deploy  # build, then wrangler deploy with nitro's generated config
 | `src/routes/` | File-based routes. `__root.tsx` is the document shell and `<head>`. |
 | `src/lib/` | Prediction maths — `currents.ts` (harmonic synthesis) and `ramp.ts` (speed → colour). Both tested. |
 | `src/components/` | Presentational React. No data fetching. |
-| `src/content/` | Markdown rendered as pages: support, privacy, accuracy, the comparisons and OpenCPN. Support, privacy and accuracy are also served raw from their `.md` URLs. |
+| `src/content/` | Markdown rendered as pages: support, privacy, accuracy, the comparisons and OpenCPN. Support, privacy and accuracy are also served raw from their `.md` URLs. `passes/` holds the CHS pass guides, one per station id. |
 | `src/styles.css` | Colour tokens. Components reference these, never a literal hex. |
 | `src/data/` | Bundled harmonic constituents for Deception Pass, the fixture `currents.test.ts` checks `predict.ts` against. |
 | `wrangler.jsonc` | Worker *source* config. Not the deployable one — see the gotchas. |
@@ -63,6 +63,7 @@ Look at any visible change before reporting it complete.
 - Every rendered curve comes from `src/lib/predict.ts` and bundled constituents. The landing page only shows the app's screenshots. Changes to `predict.ts`, `src/lib/ramp.ts`, or `src/lib/iwls.ts` require a test.
 - NOAA subordinate current stations reduce an exact reference station and bin through their published time offsets and speed ratios. A row with its own constituents remains harmonic regardless of NOAA's type label.
 - The 33 CHS pages ship identity without a prerendered prediction. The visitor's browser fetches 32 station predictions directly from DFO; `chs-malibu-rapids` is derived and has no station to fetch. Never proxy or re-serve IWLS predictions, and never prerender them. `src/lib/iwls.ts` converts DFO metres on chart datum to feet; CHS pages name chart datum without borrowing another datum code. The site covers 10 of 1,058 Canadian tide ports and must not imply complete coverage. Issue #17 tracks the missing identities and `chs-arran-rapids`.
+- A pass guide in `src/content/passes/` cites a published source for every claim, such as the CHS Sailing Directions. It never quotes a DFO prediction and never says how the app predicts the gate (#44). `src/lib/passes.test.ts` checks the shape of both rules, not the facts, so review the sources.
 - Never claim a feature the app does not ship. The app's App Store URL lives in `src/lib/links.ts`, and the six pages under `src/content/compare` repeat it in prose.
 - `src/content/privacy.md` names what the site collects. Any analytics, embed, font CDN, third-party script, or change to the IWLS request timing updates that policy in the same commit.
 - Components use colour tokens from `src/styles.css`. Green means slack, and colour expresses state rather than kind. Keep the Slackwater wordmark on one line with `whitespace-nowrap`.

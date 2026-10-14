@@ -6,6 +6,7 @@ import { compass16, dayLabel, dayStart, height, hhmm, shiftLocalDay } from '#/li
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
 import { APP_STORE } from '#/lib/links'
 import type { Crumb, NearbyRow } from '#/lib/catalogue-server'
+import type { PassGuide } from '#/lib/passes'
 import { findEvents, tideExtremes } from '#/lib/predict'
 import type { BundledStation, ChsStation, Station } from '#/lib/station'
 import { instantPath } from '#/routes/instant-url'
@@ -62,6 +63,8 @@ interface Props {
   nearby?: NearbyRow[]
   /** The pages above this one, from the kind's index down to the station's place. */
   crumbs?: Crumb[]
+  /** A CHS pass's written guide, where one exists — see `passes.ts`. */
+  guide?: PassGuide
 }
 
 /**
@@ -74,7 +77,7 @@ interface Props {
  * Order is the argument: the selected day first, the app, then everything a
  * reader or a crawler goes on to want.
  */
-export function StationPage({ station, now, selectedAt: initialSelection, live = false, settled = live, nearby = [], crumbs = [] }: Props) {
+export function StationPage({ station, now, selectedAt: initialSelection, live = false, settled = live, nearby = [], crumbs = [], guide }: Props) {
   const [selectedAt, setSelectedAt] = useState(initialSelection ?? now)
   const [trackingNow, setTrackingNow] = useState(initialSelection === undefined)
   useEffect(() => {
@@ -148,6 +151,7 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
         Predictions are not observations — conditions vary with weather and river flow.{' '}
         <strong className="font-semibold text-sw-foam">Not for navigation.</strong>
       </p>
+      {guide && <Guide guide={guide} />}
       <Cta station={station} />
       {station.source === 'bundled' && <WeekTable station={station} at={at} />}
       <Facts station={station} />
@@ -514,6 +518,40 @@ function ChsGate({
             </p>
           )}
         </div>
+      )}
+    </section>
+  )
+}
+
+/** The prose a guide renders, styled once for its sections, questions and sources. */
+const PROSE =
+  'leading-relaxed text-sw-foam [&_a]:underline [&_a]:decoration-sw-steel/40 [&_a]:underline-offset-4 [&_a:hover]:text-sw-paper ' +
+  '[&_h2]:mt-12 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-sw-paper [&_p]:mt-4 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:pl-5 ' +
+  '[&_ol]:mt-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mt-2 [&_strong]:font-semibold [&_strong]:text-sw-paper'
+
+/**
+ * A pass explained without its predictions: how the water behaves, how slack
+ * works there, how people plan the transit, and the questions they ask — each
+ * claim sourced, none of it a DFO number. Server-rendered from markdown in
+ * `src/content/passes/`, so the page a crawler reads already says it.
+ */
+function Guide({ guide }: { guide: PassGuide }) {
+  return (
+    <section className="mt-2">
+      <div className={PROSE} dangerouslySetInnerHTML={{ __html: guide.html }} />
+      {guide.faq.length > 0 && (
+        <>
+          <h2 className="mt-12 text-xl font-semibold text-sw-paper">Questions</h2>
+          {guide.faq.map((q) => (
+            <div key={q.question} className="mt-6">
+              <h3 className="font-semibold text-sw-paper">{q.question}</h3>
+              <div className={`${PROSE} [&>p:first-child]:mt-2`} dangerouslySetInnerHTML={{ __html: q.html }} />
+            </div>
+          ))}
+        </>
+      )}
+      {guide.sources && (
+        <div className={`${PROSE} text-sm text-sw-steel [&_h2]:text-base`} dangerouslySetInnerHTML={{ __html: guide.sources }} />
       )}
     </section>
   )
