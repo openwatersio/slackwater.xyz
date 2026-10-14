@@ -145,5 +145,4 @@ Each app above has its own page with a side-by-side screenshot and the full tabl
 Predictions are not observations. Weather, river flow and local conditions change the
 water. None of these apps, including ours, is for navigation.
 
-**[Download Slackwater on the App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837)** · Free,
-no account.
+**[Download Slackwater on the App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837)** · Free, no account. Requires iOS 26 or later.

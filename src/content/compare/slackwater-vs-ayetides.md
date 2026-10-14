@@ -88,7 +88,7 @@ station against the agencies' own predictions before it ships.
 ## Interface
 
 AyeTides leads with the day's events as a list, with a graph you drag below it or full
-screen when you rotate the phone. It was updated for iOS 26 in January. Slackwater is built for iOS 26, with the curve on every card, a scrubber that follows
+screen when you rotate the phone. It was updated for Liquid Glass in January. Slackwater is built for iOS 26, with the curve on every card, a scrubber that follows
 your thumb, and a chart that draws offline. Whether that is worth anything to you depends
 on how you read a table.
 
@@ -113,8 +113,7 @@ nearest first.
 Predictions are not observations. Weather, river flow and local conditions change the
 water. Neither app is for navigation.
 
-**[Download Slackwater on the App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837)** · Free,
-no account.
+**[Download Slackwater on the App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837)** · Free, no account. Requires iOS 26 or later.
 
 See also: [the best tide and current apps for iPhone](/compare/best-tide-and-current-apps-iphone/)
 · [Slackwater vs Actual Currents](/compare/slackwater-vs-actual-currents/)

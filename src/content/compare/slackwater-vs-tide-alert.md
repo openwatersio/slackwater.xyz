@@ -76,8 +76,7 @@ Nothing imports. Star your stations in Slackwater by search.
 Predictions are not observations. Weather, river flow and local conditions change the
 water. Neither app is for navigation.
 
-**[Download Slackwater on the App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837)** · Free,
-no account.
+**[Download Slackwater on the App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837)** · Free, no account. Requires iOS 26 or later.
 
 See also: [the best tide and current apps for iPhone](/compare/best-tide-and-current-apps-iphone/)
 · [Tides Near Me alternative](/alternatives/tides-near-me/)
