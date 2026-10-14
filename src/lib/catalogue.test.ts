@@ -124,10 +124,10 @@ describe('loadCatalogue', () => {
   })
 
   it('builds the ten CHS tide ports whose identity IS published, and no more', () => {
-    // The registry publishes curated identity for exactly ten Canadian tide
-    // ports. The other 1,048 exist only as slugs — identity for them needs an
-    // operator run against IWLS and a release (#17), so a count creeping above
-    // ten here means something started inventing identity from a slug table.
+    // The site publishes ten Canadian tide ports, named in CHS_TIDE_PORTS. The
+    // database has identity for the other 1,047 too; publishing them is a
+    // decision (#207), so a count creeping above ten here means one happened
+    // as a side effect of a database release.
     const ports = all.filter((s) => s.kind === 'tide' && s.source === 'chs')
     expect(ports).toHaveLength(10)
     expect(ports.map((s) => s.slug).sort()).toEqual([

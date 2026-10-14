@@ -27,12 +27,11 @@ because some of them were pages here before the site read the whole corpus.
 8,450 pages: 8,417 get a computed curve, and 33 Canadian (CHS)
 stations — 23 current gates and 10 tide ports — get identity only. DFO's terms don't allow
 re-serving predictions, so nothing about those 33 is prerendered; the reader's own browser
-fetches DFO's published numbers and draws them. This work builds 10 of the 1,058 Canadian
-tide ports, the ten whose identity the registry publishes (Victoria, Vancouver and eight
-more); identity for the other 1,048 is published nowhere yet. Plus `chs-arran-rapids`,
-excluded pending an owner decision. Tracked in [issue
-#17](https://github.com/openwatersio/slackwater.xyz/issues/17); those stations 404 rather than
-claim a curve nobody can compute.
+fetches DFO's published numbers and draws them. The site builds 10 of the 1,058 Canadian
+tide ports (Victoria, Vancouver and eight more), named in `CHS_TIDE_PORTS` in
+`src/lib/registry.ts`. The database publishes identity for the other 1,047 too; whether the
+site publishes them is [issue #207](https://github.com/openwatersio/slackwater.xyz/issues/207),
+and until then they 404. Plus `chs-arran-rapids`, excluded by owner decision to match the app, which refuses to name it ([#45](https://github.com/openwatersio/slackwater.xyz/issues/45)).
 
 ## The two surfaces
 
