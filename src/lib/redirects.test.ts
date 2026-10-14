@@ -19,9 +19,28 @@ describe('static page redirects', () => {
     expect(() => buildRedirects([], Array.from({ length: 2001 }, (_, i) => `/p${i}/`))).toThrow('2,000')
   })
 
-  it('moves retired pages that still draw search traffic, in both spellings', () => {
-    const rules = buildRedirects([])
-    expect(rules).toContain('/stations/currents/ /currents/ 301')
-    expect(rules).toContain('/stations/currents /currents/ 301')
+  describe('former /stations/ browse pages', () => {
+    const pages = ['/stations/', '/tides/', '/currents/', '/tides/ca/', '/tides/ca/bc/', '/tides/us/']
+    const rules = buildRedirects([], pages).trim().split('\n')
+    const moved = (from: string) => rules.filter((line) => line.startsWith(`${from} `))
+
+    it.each([
+      ['/stations/currents/', '/currents/'],
+      ['/stations/tides/', '/tides/'],
+      ['/stations/tides/canada/', '/tides/ca/'],
+      ['/stations/tides/canada/bc/', '/tides/ca/bc/'],
+    ])('sends %s to %s permanently, in both spellings', (from, to) => {
+      expect(moved(from)).toEqual([`${from} ${to} 301`])
+      expect(moved(from.slice(0, -1))).toEqual([`${from.slice(0, -1)} ${to} 301`])
+    })
+
+    it('leaves a former page whose replacement is gone to 404', () => {
+      expect(moved('/stations/tides/united-states/wa/')).toEqual([])
+      expect(moved('/stations/tides/united-states/wa')).toEqual([])
+    })
+
+    it('keeps /stations/ itself', () => {
+      expect(rules.filter((line) => line.includes(' /stations/ ') || line.startsWith('/stations/ '))).toEqual(['/stations /stations/ 308'])
+    })
   })
 })
