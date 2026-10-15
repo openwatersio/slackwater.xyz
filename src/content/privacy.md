@@ -47,7 +47,7 @@ When the map of nearby stations at the foot of a station page scrolls into view,
 
 ### Canadian predictions on station pages
 
-The page we serve for a Canadian tidal current gate carries no predictions at all. The page we serve for a Canadian tide port carries only predictions computed from harmonic constituents, none from the Canadian Hydrographic Service. When you open either, your browser requests the Canadian Hydrographic Service's predictions directly from `api-iwls.dfo-mpo.gc.ca` and draws the chart from what comes back; on a tide port page they replace today's computed chart.
+The page we serve for a Canadian tidal current gate carries no predictions at all. The page we serve for a Canadian tide port carries only predictions computed from harmonic constituents, none from the Canadian Hydrographic Service. When you open either, your browser requests the Canadian Hydrographic Service's predictions directly from `api-iwls.dfo-mpo.gc.ca` and draws the chart from what comes back; on a tide port page they replace today's computed chart and today's rows in the tide table.
 
 - **The request starts when the page loads**, without waiting for you to ask. While it is in flight the page shows a Cancel button that stops it, and stopping it sends nothing further.
 - **The request does not pass through us.** It goes from your browser to the Canadian Hydrographic Service. Open Waters does not proxy it, does not receive the predictions, and does not store them.

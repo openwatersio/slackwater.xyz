@@ -35,8 +35,8 @@ export const CHS_PROVENANCE = 'published by the Canadian Hydrographic Service'
 
 /**
  * The line under a computed page's chart once CHS's day has replaced the
- * computed one: whose curve this is now, and whose the rest of the page still
- * is.
+ * computed one: whose numbers today's curve and today's table rows are now,
+ * and whose the other days still are.
  *
  * Both halves name a source and neither names how the app answers here (#44).
  * The second half is the same provenance the computed curve carried before
@@ -45,9 +45,18 @@ export const CHS_PROVENANCE = 'published by the Canadian Hydrographic Service'
 export function refinedCredit(station: BundledStation): string {
   const datum = station.kind === 'tide' ? ', on chart datum' : ''
   return (
-    `Today's curve: predictions ${CHS_PROVENANCE}${datum}, fetched from DFO by your browser. ` +
-    `Other days and the 7-day table are ${provenance(station)}.`
+    `Today's curve and today's rows in the 7-day table: predictions ${CHS_PROVENANCE}${datum}, ` +
+    `fetched from DFO by your browser. Other days are ${provenance(station)}.`
   )
+}
+
+/**
+ * The caption sentence naming the table rows that are CHS's. Rendered only
+ * once those rows exist, which is only ever in the reader's browser.
+ */
+export function refinedRowsNote(station: BundledStation): string {
+  const datum = station.kind === 'tide' ? ', with heights above chart datum' : ''
+  return `Rows marked CHS are predictions ${CHS_PROVENANCE}${datum}, fetched from DFO by your browser.`
 }
 
 /**
