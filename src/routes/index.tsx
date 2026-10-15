@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { APP_STORE, MINIMUM_IOS, REQUIREMENT } from '#/lib/links'
 import { Shot } from '#/components/Shot'
 import { SITE_DESCRIPTION } from '#/routes/__root'
+import { ORGANIZATION_DESCRIPTION } from '#/lib/json-ld'
 
 const CANONICAL = 'https://slackwater.xyz/'
 const SOURCE = 'https://github.com/openwatersio/slackwater-ios'
@@ -42,6 +43,7 @@ export const Route = createFileRoute('/')({
               '@id': ORGANIZATION,
               name: 'Open Waters',
               legalName: 'Open Water Software LLC',
+              description: ORGANIZATION_DESCRIPTION,
               address: {
                 '@type': 'PostalAddress',
                 streetAddress: '411 Walnut St #15547',

@@ -15,7 +15,7 @@ const IMAGE = 'https://slackwater.xyz/og-tides.png'
 
 export const Route = createFileRoute('/learn/tides')({
   head: () => ({
-    links: [{ rel: 'canonical', href: CANONICAL }],
+    links: [{ rel: 'canonical', href: CANONICAL }, { rel: 'alternate', type: 'text/markdown', href: '/learn/tides.md' }],
     meta: [
       { title: `${TITLE} · Slackwater` },
       { name: 'description', content: DESCRIPTION },

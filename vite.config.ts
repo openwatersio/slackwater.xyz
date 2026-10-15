@@ -114,7 +114,15 @@ export default defineConfig({
       // in @tanstack/start-plugin-core) validates `prerender` against a schema
       // with no `pages` field, so nesting it there is silently dropped and the
       // build still reports success while emitting zero station pages.
-      pages: [...stationPages, ...comparePages, ...placePages, { path: '/index.md' }],
+      pages: [
+        ...stationPages,
+        ...comparePages,
+        ...placePages,
+        // Markdown twins: prerendered so the Worker serves files rather than
+        // recomputing the slack-water guide and station hub on request.
+        ...['/index.md', '/opencpn.md', '/stations.md', '/learn/tides.md', '/learn/slack-water.md'].map((path) => ({ path })),
+        ...COMPARE_PATHS.map((path) => ({ path: `${path.slice(0, -1)}.md` })),
+      ],
       prerender: {
         enabled: true,
         autoSubfolderIndex: true,

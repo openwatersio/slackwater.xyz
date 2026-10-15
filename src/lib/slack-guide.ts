@@ -170,6 +170,17 @@ export function slackDurations(station: BundledStation, now: Date): DurationRow 
   }
 }
 
+/** "1 h 10 min", "54 min". */
+export function span(minutes: number): string {
+  const m = Math.round(minutes)
+  if (m < 60) return `${m} min`
+  return m % 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m / 60} h`
+}
+
+/** "Thursday, October 15", in the station's zone. */
+export const longDay = (t: number, timeZone: string) =>
+  new Date(t).toLocaleDateString('en-US', { timeZone, weekday: 'long', month: 'long', day: 'numeric' })
+
 export interface SlackGuide {
   /** The moment the guide was computed from. */
   now: number

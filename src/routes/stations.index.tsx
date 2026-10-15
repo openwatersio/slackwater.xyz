@@ -24,7 +24,7 @@ export const Route = createFileRoute('/stations/')({
   head: ({ loaderData }) => {
     const content = loaderData ? description(loaderData.tide, loaderData.current) : undefined
     return {
-      links: [{ rel: 'canonical', href: CANONICAL }],
+      links: [{ rel: 'canonical', href: CANONICAL }, { rel: 'alternate', type: 'text/markdown', href: '/stations.md' }],
       meta: [
         { title: TITLE },
         ...(content ? [{ name: 'description', content }, { property: 'og:description', content }] : []),

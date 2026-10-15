@@ -71,6 +71,44 @@ describe('document negotiation', () => {
     expect(response.headers.get('content-type')).toBe('text/html')
   })
 
+  it.each(['/opencpn/', '/learn/tides/', '/compare/best-tide-and-current-apps-iphone/', '/alternatives/tide-guide/'])(
+    'serves the Markdown twin of %s',
+    async (path) => {
+      const response = await agentResponse(request('text/markdown', path), html)
+      expect(response.headers.get('content-type')).toContain('text/markdown')
+      expect(response.headers.get('link')).toContain(`<${path.slice(0, -1)}.md>; rel="alternate"`)
+      expect(await response.text()).toMatch(/^# /)
+    },
+  )
+
+  it.each(['/learn/slack-water/', '/stations/'])('fetches the prerendered twin of %s', async (path) => {
+    const twin = `${path.slice(0, -1)}.md`
+    const response = await agentResponse(request('text/markdown', path), async (retry?: Request) =>
+      retry && new URL(retry.url).pathname === twin
+        ? new Response('# Twin\n', { headers: { 'Content-Type': 'text/markdown' } })
+        : new Response('<h1>HTML</h1>', { headers: { 'Content-Type': 'text/html' } }))
+    expect(response.headers.get('content-type')).toContain('text/markdown')
+    expect(await response.text()).toBe('# Twin\n')
+  })
+
+  it('serves prerendered files before asking the framework to render', async () => {
+    const rendered: string[] = []
+    const next = async (retry?: Request) => {
+      rendered.push(new URL(retry?.url ?? 'https://slackwater.xyz/').pathname)
+      return html()
+    }
+    const asset = async (file?: Request) =>
+      new URL(file!.url).pathname === '/missing.md'
+        ? new Response('Not found', { status: 404 })
+        : new Response('# File\n', { headers: { 'Content-Type': 'text/markdown' } })
+    for (const [path, accept] of [['/learn/slack-water/', 'text/html'], ['/learn/slack-water/', 'text/markdown'], ['/learn/slack-water.md', undefined]]) {
+      await agentResponse(request(accept, path), next, asset)
+    }
+    expect(rendered).toEqual([])
+    await agentResponse(request(undefined, '/missing.md'), next, asset)
+    expect(rendered).toEqual(['/missing.md'])
+  })
+
   it('answers HEAD without a body and with the negotiated headers', async () => {
     const response = await agentResponse(request('text/markdown', '/', 'HEAD'), html)
     expect(response.headers.get('content-type')).toContain('text/markdown')
@@ -78,7 +116,34 @@ describe('document negotiation', () => {
   })
 })
 
- it('serves current US pricing with its purchase periods and storefront qualification', async () => {
+describe('agent mode', () => {
+  it('answers /?mode=agent with JSON instead of the homepage', async () => {
+    const response = await agentResponse(request('text/html', '/?mode=agent'), html)
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-type')).toContain('application/json')
+    expect(response.headers.get('x-robots-tag')).toBe('noindex')
+    expect(response.headers.get('link')).toContain('<https://slackwater.xyz/>; rel="canonical"')
+    const view = await response.json()
+    expect(view.authentication.required).toBe(false)
+    expect(view.endpoints.length).toBeGreaterThan(5)
+    expect(view.markdown.pages).toContainEqual({ html: '/learn/slack-water/', markdown: '/learn/slack-water.md' })
+  })
+
+  it('leaves the homepage and other modes alone', async () => {
+    for (const path of ['/', '/?mode=human', '/about/?mode=agent']) {
+      const response = await agentResponse(request('text/html', path), html)
+      expect(response.headers.get('content-type'), path).toContain('text/html')
+    }
+  })
+
+  it('answers HEAD without a body', async () => {
+    const response = await agentResponse(request(undefined, '/?mode=agent', 'HEAD'), html)
+    expect(response.headers.get('content-type')).toContain('application/json')
+    expect(await response.text()).toBe('')
+  })
+})
+
+it('serves current US pricing with its purchase periods and storefront qualification', async () => {
   const response = await agentResponse(request('text/markdown', '/pricing/'), html)
   expect(response.headers.get('content-type')).toContain('text/markdown')
   const body = await response.text()
