@@ -25,7 +25,7 @@ const LANGUAGES = [
 
 export const Route = createFileRoute('/')({
   head: () => ({
-    links: [{ rel: 'canonical', href: CANONICAL }],
+    links: [{ rel: 'canonical', href: CANONICAL }, { rel: 'alternate', type: 'text/markdown', href: '/index.md' }],
     meta: [
       { property: 'og:url', content: CANONICAL },
       {
@@ -42,6 +42,20 @@ export const Route = createFileRoute('/')({
               '@id': ORGANIZATION,
               name: 'Open Waters',
               legalName: 'Open Water Software LLC',
+              address: {
+                '@type': 'PostalAddress',
+                streetAddress: '411 Walnut St #15547',
+                addressLocality: 'Green Cove Springs',
+                addressRegion: 'FL',
+                postalCode: '32043',
+                addressCountry: 'US',
+              },
+              contactPoint: {
+                '@type': 'ContactPoint',
+                email: 'slackwater@openwaters.io',
+                contactType: 'customer support',
+                url: 'https://slackwater.xyz/contact/',
+              },
               url: 'https://openwaters.io/',
               sameAs: ['https://github.com/openwatersio'],
             },
@@ -428,7 +442,7 @@ function Home() {
               widgets are free, with no account or ads. You can choose any prediction date
               without a subscription. The Apple Watch app is free too. Optional Premium adds
               alerts, station calendars, lock-screen widgets and Watch complications, with
-              annual and lifetime purchase options.
+              annual and lifetime purchase options. <a href="/pricing/">See pricing and purchase terms</a>.
             </p>
           </div>
           <div>
@@ -470,7 +484,7 @@ function Home() {
         </div>
       </section>
 
-      <footer className="mt-20 border-t border-white/10 pt-6 text-sm text-sw-steel">
+      <section className="mt-20 border-t border-white/10 pt-6 text-sm text-sw-steel">
         <p>
           Every station has its own page, so a link you send works for someone who hasn&rsquo;t
           installed anything:{' '}
@@ -483,54 +497,7 @@ function Home() {
           </a>
           .
         </p>
-        <p className="mt-3">
-          Predictions are not observations — conditions vary with weather and river flow.{' '}
-          <strong className="font-semibold text-sw-foam">Not for navigation.</strong>
-        </p>
-        <p className="mt-3">
-          Built by{' '}
-          <a href="https://openwaters.io" className="underline underline-offset-4">
-            Open Waters
-          </a>
-          .{' '}
-          <a href="/stations/" className="underline underline-offset-4">
-            Stations
-          </a>
-          .{' '}
-          <a href="/learn/tides/" className="underline underline-offset-4">
-            How tides work
-          </a>
-          .{' '}
-          <a href="/learn/slack-water/" className="underline underline-offset-4">
-            Slack water
-          </a>
-          .{' '}
-          <a href="/compare/best-tide-and-current-apps-iphone/" className="underline underline-offset-4">
-            Compare
-          </a>
-          .{' '}
-          <a href="/opencpn/" className="underline underline-offset-4">
-            OpenCPN
-          </a>
-          .{' '}
-          <a href="/privacy/" className="underline underline-offset-4">
-            Privacy
-          </a>
-          .{' '}
-          <a href="/support/" className="underline underline-offset-4">
-            Support
-          </a>
-          .{' '}
-          <a href={SOURCE} className="underline underline-offset-4">
-            Source
-          </a>
-          .{' '}
-          <a href="https://openwaters.io/tides/slackwater/" className="underline underline-offset-4">
-            Developers
-          </a>
-          .
-        </p>
-      </footer>
+      </section>
     </main>
   )
 }

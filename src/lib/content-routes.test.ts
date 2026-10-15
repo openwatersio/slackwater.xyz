@@ -82,3 +82,54 @@ describe('structured data', () => {
     expect(blocks('/privacy/')).toEqual([])
   })
 })
+
+
+describe('agent discovery', () => {
+  it('ships readable HTML, metadata and JSON-LD before JavaScript runs', () => {
+    const html = readFileSync('.output/public/index.html', 'utf8')
+    const text = html.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<[^>]*>/g, '')
+    expect(html).toMatch(/<h1[ >]/)
+    expect(text.length).toBeGreaterThan(500)
+    expect(html).toContain('<html lang="en"')
+    expect(html).toContain('rel="canonical" href="https://slackwater.xyz/"')
+    expect(html).toContain('property="og:image"')
+    expect(html).toContain('property="og:type" content="website"')
+    const block = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)!
+    const nodes = JSON.parse(block[1])['@graph']
+    expect(nodes.find((node: Record<string, unknown>) => node['@type'] === 'MobileApplication').name).toBe('Slackwater')
+  })
+
+  it.each(['about', 'contact', 'privacy', 'pricing'])('publishes substantive %s HTML and its maintained Markdown', (name) => {
+    const html = readFileSync(`.output/public/${name}/index.html`, 'utf8')
+    const source = readFileSync(`src/content/${name}.md`, 'utf8')
+    expect(source.length).toBeGreaterThan(500)
+    expect(html).toMatch(/<h1[ >]/)
+    expect(html).toContain(`href="/${name}.md"`)
+    expect(readFileSync(`.output/public/${name}.md`, 'utf8')).toBe(source)
+    expect(readFileSync('.output/public/sitemap-static.xml', 'utf8')).toContain(`<loc>https://slackwater.xyz/${name}/</loc>`)
+  })
+
+  it('publishes the homepage Markdown alternate', () => {
+    expect(readFileSync('.output/public/index.md', 'utf8')).toBe(readFileSync('src/content/home.md', 'utf8'))
+  })
+
+  it('keeps llms.txt in the published format, with file lists under every H2', () => {
+    const llms = readFileSync('.output/public/llms.txt', 'utf8')
+    expect(llms).toMatch(/^# Slackwater\n\n> /)
+    expect(llms).toContain('## When to use Slackwater')
+    for (const section of llms.split(/^## .+$/m).slice(1)) {
+      for (const line of section.trim().split('\n').filter(Boolean)) {
+        expect(line).toMatch(/^- \[.+\]\(https:\/\/.+\)(?:: .+)?$/)
+      }
+    }
+    expect(llms).toContain('Accept: text/markdown')
+    expect(llms).toContain('not for navigation')
+  })
+
+  it('routes negotiated documents through the Worker before static assets', () => {
+    const config = JSON.parse(readFileSync('.output/server/wrangler.json', 'utf8'))
+    for (const path of ['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/']) {
+      expect(config.assets.run_worker_first).toContain(path)
+    }
+  })
+})

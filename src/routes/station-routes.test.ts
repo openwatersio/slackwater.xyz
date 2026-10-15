@@ -136,7 +136,7 @@ describe('prerendered station pages', () => {
 
     it('gives every page one H1 and no more than a handful of H2s', () => {
       const bad = pages.filter((p) => {
-        const doc = html(p)
+        const doc = html(p).match(/<main[ >][\s\S]*?<\/main>/)?.[0] ?? ''
         return (doc.match(/<h1/g) ?? []).length !== 1 || (doc.match(/<h2/g) ?? []).length > 8
       })
       expect(bad).toEqual([])

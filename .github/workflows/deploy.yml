@@ -55,6 +55,7 @@ jobs:
       - run: npm run typecheck
 
       - run: npm test
+      - run: npm run test:agents
 
       # "ERROR [nitro] Preview server exited with code 143" in the build log
       # above is normal — nitro SIGTERMs the server it prerendered against.

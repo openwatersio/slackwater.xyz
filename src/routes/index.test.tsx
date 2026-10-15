@@ -100,6 +100,21 @@ describe('landing page structured data', () => {
       expect(byType(nodes, type).publisher).toEqual({ '@id': org['@id'] })
     }
   })
+  it('publishes the mailing address from the Open Waters publisher site', async () => {
+    expect(byType(await graph(), 'Organization').address).toEqual({
+      '@type': 'PostalAddress', streetAddress: '411 Walnut St #15547',
+      addressLocality: 'Green Cove Springs', addressRegion: 'FL', postalCode: '32043', addressCountry: 'US',
+    })
+  })
+
+  it('publishes the verified support contact on the organization', async () => {
+    const org = byType(await graph(), 'Organization')
+    expect(org.contactPoint).toEqual({
+      '@type': 'ContactPoint', email: 'slackwater@openwaters.io',
+      contactType: 'customer support', url: 'https://slackwater.xyz/contact/',
+    })
+  })
+
 })
 
 describe('landing page social card', () => {

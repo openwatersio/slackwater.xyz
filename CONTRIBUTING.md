@@ -2,7 +2,7 @@
 
 How this site gets built and shipped. It is the source of truth for people and coding agents working in this repository. The repo is public because a marketing site has nothing to hide, but outside contributions are not being sought. Bug reports about the live site are welcome.
 
-Everything written here, including code, comments, documentation, commits, and pull requests, is public. Keep roadmaps, pricing, unreleased plans, and paths into private repositories out of it.
+Everything written here, including code, comments, documentation, commits, and pull requests, is public. Keep roadmaps, unpublished pricing, unreleased plans, and paths into private repositories out of it.
 
 Short, because it is meant to be followed rather than consulted. What the site is and why it
 looks the way it does is in [README.md](README.md).
@@ -40,6 +40,7 @@ npm ci
 npm run build
 npm run typecheck
 npm test
+npm run test:agents
 ```
 
 The build comes before typechecking and tests because it generates `src/routeTree.gen.ts` and the prerendered artifacts that five integration suites inspect. Prediction changes arrive with a focused test; errors there can look plausible and matter on the water.
@@ -55,6 +56,8 @@ Anything touching a Worker route, including the analytics proxy, `/privacy.md`, 
 ```bash
 npm run build && npm run preview
 ```
+
+`npm run test:agents` starts the built Worker with file watching disabled, checks document negotiation, Markdown alternates, missing-page recovery, discovery files and links, then stops it. Pass a base URL to check a running preview: `npm run test:agents -- https://preview.example.com`.
 
 Look at any visible change before reporting it complete.
 
@@ -196,6 +199,12 @@ that changes what the site measures changes that file in the same commit.
 - **`unstorage@2` alpha (via nitro) imports `destr` without declaring it**, so the vite config
   fails to load wherever `destr` isn't hoisted. `destr` is a direct dependency so the import
   resolves however npm lays out `node_modules`.
+
+## Agent-readable pages
+
+The homepage, About, Contact, Pricing, Support, Privacy and Accuracy support `Accept: text/markdown`, advertise their `.md` alternate, and vary both representations on `Accept`. Other pages retain HTML. `src/content/pricing.md` cites the US App Store listing and its verification date; check that live listing when changing prices. `src/content/home.md` describes the same product as the homepage; update both when features, compatibility or offline limits change. `/llms.txt` provides use cases and points to the relevant product and policy pages.
+
+`src/worker.ts` wraps Nitro's Cloudflare preset before its asset shortcut. The negotiated document paths in `wrangler.jsonc` must run the Worker first; otherwise Cloudflare serves HTML assets without negotiation. Keep the preset alias in `vite.config.ts` compatible when upgrading Nitro. Missing HTML pages retain their 404 status and offer recovery links; clients requesting Markdown receive the recovery text as Markdown.
 
 ## Agents
 

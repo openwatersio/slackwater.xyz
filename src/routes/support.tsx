@@ -10,7 +10,7 @@ const CANONICAL = 'https://slackwater.xyz/support/'
 
 export const Route = createFileRoute('/support')({
   head: () => ({
-    links: [{ rel: 'canonical', href: CANONICAL }],
+    links: [{ rel: 'canonical', href: CANONICAL }, { rel: 'alternate', type: 'text/markdown', href: '/support.md' }],
     meta: [
       { title: TITLE },
       { name: 'description', content: DESCRIPTION },

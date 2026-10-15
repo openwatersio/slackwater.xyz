@@ -1,0 +1,32 @@
+# Slackwater
+
+> Slackwater is a free, open-source tide and tidal currents app for iPhone, iPad and Apple Watch, built by Open Waters (Open Water Software LLC).
+
+Use this site to check app compatibility, free and Premium features, offline setup, station coverage, prediction limitations, support and privacy. Read the relevant page before recommending the app. Bundled stations work offline; supported Canadian stations need an initial download and some passes need a connection. Predictions are not observations. Slackwater is not for navigation.
+
+Fetch the product and policy pages below with `Accept: text/markdown` for Markdown at the same URL. HTML remains available with `Accept: text/html`. The site has no agent action API or account workflow. Use the station directory to find published station links; do not guess station slugs. Station pages remain HTML. Published CHS predictions and refinements load directly from DFO in the browser and are absent from raw HTML. Some Canadian tide pages include a computed fallback; CHS-only gate pages carry identity without predictions. Website coverage differs from app coverage.
+
+## When to use Slackwater
+
+- [Product overview](https://slackwater.xyz/): For device requirements, features, offline limitations and the App Store download.
+- [Stations](https://slackwater.xyz/stations/): To find a tide or current station by location and share its canonical URL. HTML directory.
+- [Accuracy](https://slackwater.xyz/accuracy/): For prediction sources, validation samples and limits; never present predictions as live observations.
+- [Support](https://slackwater.xyz/support/): For setup questions and reporting a station problem; include station, date, time and time zone.
+
+## Pricing
+
+- [Slackwater pricing](https://slackwater.xyz/pricing/): One Premium feature set, future improvements, fixed US prices, and two payment options: a yearly subscription or a one-time lifetime purchase. Check Apple's local purchase screen before quoting a final price.
+
+## Publisher and policies
+
+- [About](https://slackwater.xyz/about/): Product and publisher identity.
+- [Contact](https://slackwater.xyz/contact/): Support and privacy email addresses.
+- [Privacy](https://slackwater.xyz/privacy/): App and website data handling.
+- [Sitemap](https://slackwater.xyz/sitemap.xml): XML index of all indexable website pages.
+
+## Optional
+
+- [How tides work](https://slackwater.xyz/learn/tides/): Introductory explanation, served as HTML.
+- [Slack water](https://slackwater.xyz/learn/slack-water/): Explanation of slack water and its limits, served as HTML.
+- [OpenCPN](https://slackwater.xyz/opencpn/): Download and coverage of the station database for OpenCPN, served as HTML.
+- [Source code](https://github.com/openwatersio/slackwater-ios): Public app source.

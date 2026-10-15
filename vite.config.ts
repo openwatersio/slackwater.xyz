@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
@@ -47,6 +48,9 @@ const BUILD_DATE = BUILD_NOW.slice(0, 10)
 const PLACE_SOURCES = ['./src/routes/-directory.tsx', './package.json']
 const PAGE_SOURCES: Record<string, string[]> = {
   '/': ['./src/routes/index.tsx'],
+  '/pricing/': ['./src/routes/pricing.tsx', './src/content/pricing.md'],
+  '/about/': ['./src/routes/about.tsx', './src/content/about.md'],
+  '/contact/': ['./src/routes/contact.tsx', './src/content/contact.md'],
   '/support/': ['./src/routes/support.tsx', './src/content/support.md'],
   '/privacy/': ['./src/routes/privacy.tsx', './src/content/privacy.md'],
   '/accuracy/': ['./src/routes/accuracy.tsx', './src/content/accuracy.md'],
@@ -110,7 +114,7 @@ export default defineConfig({
       // in @tanstack/start-plugin-core) validates `prerender` against a schema
       // with no `pages` field, so nesting it there is silently dropped and the
       // build still reports success while emitting zero station pages.
-      pages: [...stationPages, ...comparePages, ...placePages],
+      pages: [...stationPages, ...comparePages, ...placePages, { path: '/index.md' }],
       prerender: {
         enabled: true,
         autoSubfolderIndex: true,
@@ -132,6 +136,11 @@ export default defineConfig({
     // X-Forwarded-For that Plausible reads for unique-visitor counting — passes through.
     // Only resolves in a real Worker: vite dev claims `.js` URLs before these rules run.
     nitro({
+      entry: fileURLToPath(new URL('./src/worker.ts', import.meta.url)),
+      alias: {
+        // Wrap the preset so negotiation runs before Nitro's own static-asset shortcut.
+        '#cloudflare-handler': fileURLToPath(new URL('./dist/presets/cloudflare/runtime/cloudflare-module.mjs', import.meta.resolve('nitro/package.json'))),
+      },
       commands: { preview: `npx wrangler --cwd ./ dev --assets ${PRERENDER_ASSETS}` },
       routeRules: {
         '/js/script.js': { proxy: 'https://plausible.io/js/script.outbound-links.js' },
