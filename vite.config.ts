@@ -48,6 +48,7 @@ const BUILD_DATE = BUILD_NOW.slice(0, 10)
 const PLACE_SOURCES = ['./src/routes/-directory.tsx', './package.json']
 const PAGE_SOURCES: Record<string, string[]> = {
   '/': ['./src/routes/index.tsx'],
+  '/pricing/': ['./src/routes/pricing.tsx', './src/content/pricing.md'],
   '/about/': ['./src/routes/about.tsx', './src/content/about.md'],
   '/contact/': ['./src/routes/contact.tsx', './src/content/contact.md'],
   '/support/': ['./src/routes/support.tsx', './src/content/support.md'],

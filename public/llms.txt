@@ -13,6 +13,10 @@ Fetch the product and policy pages below with `Accept: text/markdown` for Markdo
 - [Accuracy](https://slackwater.xyz/accuracy/): For prediction sources, validation samples and limits; never present predictions as live observations.
 - [Support](https://slackwater.xyz/support/): For setup questions and reporting a station problem; include station, date, time and time zone.
 
+## Pricing
+
+- [Slackwater pricing](https://slackwater.xyz/pricing/): Free features, Premium yearly and lifetime prices in USD, renewal terms, and regional pricing limits. Check Apple's local purchase screen before quoting a final price.
+
 ## Publisher and policies
 
 - [About](https://slackwater.xyz/about/): Product and publisher identity.

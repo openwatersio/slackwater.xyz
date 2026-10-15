@@ -9,7 +9,7 @@ if (!base) {
   base = String(await worker.url)
 }
 try {
-  const documents = ['/', '/about/', '/contact/', '/support/', '/privacy/', '/accuracy/']
+  const documents = ['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/']
   let checks = 0
   async function get(path, accept, method = 'GET') {
     const response = await fetch(new URL(path, base), { signal: AbortSignal.timeout(15000), method, headers: accept ? { Accept: accept } : {} })
@@ -43,7 +43,7 @@ try {
     }
   }
 
-  for (const path of ['/about', '/contact', '/support', '/privacy', '/accuracy']) {
+  for (const path of ['/about', '/contact', '/pricing', '/support', '/privacy', '/accuracy']) {
     for (const accept of ['text/html', 'text/markdown']) {
       const response = await get(path, accept)
       assert.equal(response.status, 200, `${path}: ${accept}`)
@@ -58,7 +58,7 @@ try {
     assert.match(await response.text(), /<h1[ >]/)
   }
 
-  for (const path of ['/index.md', '/about.md', '/contact.md', '/support.md', '/privacy.md', '/accuracy.md']) {
+  for (const path of ['/index.md', '/about.md', '/contact.md', '/pricing.md', '/support.md', '/privacy.md', '/accuracy.md']) {
     const response = await get(path)
     assert.equal(response.status, 200, path)
     assert.ok(response.headers.get('content-type')?.includes('text/markdown'), `${path}: content type`)
@@ -88,6 +88,7 @@ try {
   const graph = JSON.parse(page.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1])['@graph']
   assert.equal(graph.find((node) => node['@type'] === 'MobileApplication').name, 'Slackwater')
   assert.equal(graph.find((node) => node['@type'] === 'Organization').contactPoint.email, 'slackwater@openwaters.io')
+  assert.equal(graph.find((node) => node['@type'] === 'Organization').address.streetAddress, '411 Walnut St #15547')
 
   const llms = await get('/llms.txt')
   assert.equal(llms.status, 200)

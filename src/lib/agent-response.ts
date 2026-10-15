@@ -1,6 +1,7 @@
 import Negotiator from 'negotiator'
 import home from '../content/home.md?raw'
 import about from '../content/about.md?raw'
+import pricing from '../content/pricing.md?raw'
 import contact from '../content/contact.md?raw'
 import support from '../content/support.md?raw'
 import privacy from '../content/privacy.md?raw'
@@ -8,6 +9,7 @@ import accuracy from '../content/accuracy.md?raw'
 
 const DOCUMENTS: Record<string, { body: string; alternate: string }> = {
   '/': { body: home, alternate: '/index.md' },
+  '/pricing/': { body: pricing, alternate: '/pricing.md' },
   '/about/': { body: about, alternate: '/about.md' },
   '/contact/': { body: contact, alternate: '/contact.md' },
   '/support/': { body: support, alternate: '/support.md' },

@@ -7,3 +7,7 @@ Please include your device and iOS version, the station name, and the date and t
 For privacy questions, concerns or requests, email [privacy@openwaters.io](mailto:privacy@openwaters.io). The [privacy policy](/privacy/) describes what stays on your device, optional iCloud sync, website analytics, and the services that process website requests.
 
 Before leaving signal, check the [support page](/support/) and the [offline setup information](/#app-facts). If your question concerns prediction accuracy, the [accuracy report](/accuracy/) explains the validation methods and limits. Predictions are not observations, and Slackwater is not for navigation.
+
+## Mailing address
+
+Open Water Software LLC, 411 Walnut St #15547, Green Cove Springs, FL 32043, United States. This is the mailing address published by [Open Waters](https://openwaters.io/about/). For app support, email [slackwater@openwaters.io](mailto:slackwater@openwaters.io).

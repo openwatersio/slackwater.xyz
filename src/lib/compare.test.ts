@@ -38,11 +38,8 @@ describe('compare pages', () => {
     }
   })
 
-  it('never prints a Slackwater price', () => {
-    // Public repo rule from AGENTS.md: pricing stays out. Competitor prices are
-    // public facts and appear; ours must not. Every dollar figure on a page has
-    // to sit on a competitor's row or paragraph, so the cheap check is that
-    // no line naming Slackwater also carries one.
+  it('leaves Slackwater prices to the maintained pricing page', () => {
+    // Keep current Slackwater prices in /pricing/ rather than duplicating them across comparisons.
     for (const p of Object.values(COMPARE_PAGES)) {
       for (const line of p.markdown.split('\n')) {
         if (/\$\d/.test(line) && /^\| (Price|Slackwater)/.test(line)) {

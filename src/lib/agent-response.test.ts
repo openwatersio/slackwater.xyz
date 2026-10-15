@@ -37,7 +37,7 @@ describe('document negotiation', () => {
     expect(response.headers.get('link')).toContain('/llms.txt')
   })
 
-  it.each(['/', '/about/', '/contact/', '/support/', '/privacy/', '/accuracy/'])('serves meaningful markdown for %s', async (path) => {
+  it.each(['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/'])('serves meaningful markdown for %s', async (path) => {
     const response = await agentResponse(request('text/markdown', path), html)
     expect(response.status).toBe(200)
     expect((await response.text()).length).toBeGreaterThan(500)
@@ -76,4 +76,15 @@ describe('document negotiation', () => {
     expect(response.headers.get('content-type')).toContain('text/markdown')
     expect(await response.text()).toBe('')
   })
+})
+
+ it('serves current US pricing with its purchase periods and storefront qualification', async () => {
+  const response = await agentResponse(request('text/markdown', '/pricing/'), html)
+  expect(response.headers.get('content-type')).toContain('text/markdown')
+  const body = await response.text()
+  expect(body).toContain('US$7.99 per year')
+  expect(body).toContain('US$69.99 once')
+  expect(body).toContain('US App Store')
+  expect(body).toContain('local currency')
+  expect(body).toContain('renews automatically')
 })

@@ -18,7 +18,7 @@ Bundled stations predict on your phone for any date without a download or an exp
 
 Tide charts, current predictions, station search, favorites, home screen widgets and the Apple Watch app are free. Choose any prediction date without a subscription. There is no Open Waters account and no ads. Favorites can sync through Apple's iCloud.
 
-Optional Premium adds alerts, station calendars, lock-screen widgets and Watch complications, with annual and lifetime purchase options. See the App Store listing for current purchase prices.
+Optional Premium adds alerts, station calendars, lock-screen widgets and Watch complications, with annual and lifetime purchase options. See [pricing and purchase terms](https://slackwater.xyz/pricing/) for US prices, subscription renewal terms and local pricing information.
 
 ## Prediction sources and limits
 

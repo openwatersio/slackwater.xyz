@@ -19,7 +19,7 @@
   ],
   // Negotiated documents must reach the Worker before Cloudflare's asset cache.
   "assets": {
-    "run_worker_first": ["/", "/about", "/about/", "/contact", "/contact/", "/support", "/support/", "/privacy", "/privacy/", "/accuracy", "/accuracy/"]
+    "run_worker_first": ["/", "/about", "/about/", "/contact", "/contact/", "/pricing", "/pricing/", "/support", "/support/", "/privacy", "/privacy/", "/accuracy", "/accuracy/"]
   },
   "workers_dev": true,
   "preview_urls": true,

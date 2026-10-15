@@ -99,7 +99,7 @@ describe('agent discovery', () => {
     expect(nodes.find((node: Record<string, unknown>) => node['@type'] === 'MobileApplication').name).toBe('Slackwater')
   })
 
-  it.each(['about', 'contact', 'privacy'])('publishes substantive %s HTML and its maintained Markdown', (name) => {
+  it.each(['about', 'contact', 'privacy', 'pricing'])('publishes substantive %s HTML and its maintained Markdown', (name) => {
     const html = readFileSync(`.output/public/${name}/index.html`, 'utf8')
     const source = readFileSync(`src/content/${name}.md`, 'utf8')
     expect(source.length).toBeGreaterThan(500)
@@ -128,7 +128,7 @@ describe('agent discovery', () => {
 
   it('routes negotiated documents through the Worker before static assets', () => {
     const config = JSON.parse(readFileSync('.output/server/wrangler.json', 'utf8'))
-    for (const path of ['/', '/about/', '/contact/', '/support/', '/privacy/', '/accuracy/']) {
+    for (const path of ['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/']) {
       expect(config.assets.run_worker_first).toContain(path)
     }
   })

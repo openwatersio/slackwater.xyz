@@ -42,6 +42,14 @@ export const Route = createFileRoute('/')({
               '@id': ORGANIZATION,
               name: 'Open Waters',
               legalName: 'Open Water Software LLC',
+              address: {
+                '@type': 'PostalAddress',
+                streetAddress: '411 Walnut St #15547',
+                addressLocality: 'Green Cove Springs',
+                addressRegion: 'FL',
+                postalCode: '32043',
+                addressCountry: 'US',
+              },
               contactPoint: {
                 '@type': 'ContactPoint',
                 email: 'slackwater@openwaters.io',
@@ -434,7 +442,7 @@ function Home() {
               widgets are free, with no account or ads. You can choose any prediction date
               without a subscription. The Apple Watch app is free too. Optional Premium adds
               alerts, station calendars, lock-screen widgets and Watch complications, with
-              annual and lifetime purchase options.
+              annual and lifetime purchase options. <a href="/pricing/">See pricing and purchase terms</a>.
             </p>
           </div>
           <div>
@@ -518,6 +526,8 @@ function Home() {
           <a href="/opencpn/" className="underline underline-offset-4">
             OpenCPN
           </a>
+          .{' '}
+          <a href="/pricing/" className="underline underline-offset-4">Pricing</a>
           .{' '}
           <a href="/about/" className="underline underline-offset-4">About</a>
           .{' '}
