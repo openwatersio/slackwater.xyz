@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { StationPage } from './StationPage'
 import portFixture from '#/lib/__fixtures__/iwls-ports.json' with { type: 'json' }
@@ -203,6 +203,75 @@ describe('StationPage for a computed port with a CHS layer', () => {
     expect(layered).toContain('published by the Canadian Hydrographic Service, on chart datum, fetched from DFO by your browser')
     expect(layered).toContain('Tide times for the next 7 days')
     expect(layered).toContain('Harmonic constituents from TICON-4')
+  })
+
+  describe("the week table's today rows", () => {
+    const port = portFixture.ports['Victoria Harbour']
+    const fetcher: typeof fetch = async (input) => {
+      const url = String(input)
+      const body = url.includes('/stations?')
+        ? portFixture.stations
+        : url.includes('wlp-hilo')
+          ? port['wlp-hilo']
+          : port.wlp
+      return { ok: true, json: async () => body } as Response
+    }
+    /** Each table row as [day, what, time, value, marked]. */
+    const rows = (html: string) => {
+      const table = html.match(/<table[\s\S]*?<\/table>/)![0]
+      return [...table.matchAll(/<tr([^>]*)>([\s\S]*?)<\/tr>/g)].slice(1).map(([, attrs, row]) => {
+        const cells = [...row.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map(([, c]) => c)
+        const marked = /data-source="chs"/.test(attrs) && />CHS<\/span>/.test(row)
+        const text = cells.map((c) => c.replace(/<[^>]+>/g, '').replace(/CHS$/, '').trim())
+        return [...text, marked] as [string, string, string, string, boolean]
+      })
+    }
+    const today = 'Tue 1 Sep 2026'
+    let layered = ''
+    beforeAll(async () => {
+      const refined = await fetchRefinement(victoria, now, fetcher)
+      layered = renderToStaticMarkup(<StationPage station={victoria} now={now} live refined={refined} />)
+    })
+
+    it('are computed, and unmarked, in the page we serve', () => {
+      const served = rows(renderToStaticMarkup(<StationPage station={victoria} now={now} />))
+      expect(served.filter((r) => r[0] === today).length).toBeGreaterThan(0)
+      expect(served.every((r) => !r[4])).toBe(true)
+      expect(served.map((r) => r[3])).not.toContain('6.6 ft')
+    })
+
+    it("become DFO's published turns once the layer arrives, each marked", () => {
+      // 07:29, 13:45 and 18:53 UTC: 00:29, 06:45 and 11:53 in Victoria.
+      // 1.065, 2.021 and 1.688 m. 00:49 UTC is the evening before, local.
+      const ours = rows(layered).filter((r) => r[0] === today)
+      expect(ours).toEqual([
+        [today, 'Low', '00:29', '3.5 ft', true],
+        [today, 'High', '06:45', '6.6 ft', true],
+        [today, 'Low', '11:53', '5.5 ft', true],
+      ])
+    })
+
+    it('leave every other day exactly as computed', () => {
+      const served = rows(renderToStaticMarkup(<StationPage station={victoria} now={now} />))
+      const notToday = (r: (string | boolean)[]) => r[0] !== today
+      expect(rows(layered).filter(notToday)).toEqual(served.filter(notToday))
+    })
+
+    it('say which numbers are whose, in the table and under the chart', () => {
+      const caption = layered.match(/<caption[^>]*>([\s\S]*?)<\/caption>/)![1]
+      expect(caption).toContain('Rows marked CHS are predictions published by the Canadian Hydrographic Service')
+      expect(caption).toContain('above chart datum')
+      expect(layered.replaceAll('&#x27;', "'")).toContain(
+        "Today's curve and today's rows in the 7-day table: predictions published by the Canadian Hydrographic Service",
+      )
+      expect(layered).toContain('Other days are computed from harmonic constituents.')
+      expect(layered).not.toMatch(/offline|on-device/i)
+    })
+
+    it('keep the served caption free of any CHS claim', () => {
+      const served = renderToStaticMarkup(<StationPage station={victoria} now={now} />)
+      expect(served.match(/<caption[^>]*>([\s\S]*?)<\/caption>/)![1]).not.toMatch(/CHS|Canadian Hydrographic/)
+    })
   })
 })
 

@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DayStrip, type Fetched } from './DayStrip'
 import { NearbyMap } from './NearbyMap'
-import { DATUM_NOTE, datumLine, seasonalNote, stationHeading } from '#/lib/copy'
+import { DATUM_NOTE, datumLine, refinedRowsNote, seasonalNote, stationHeading } from '#/lib/copy'
 import { compass16, dayLabel, dayStart, height, hhmm, shiftLocalDay } from '#/lib/format'
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
 import { APP_STORE, REQUIREMENT } from '#/lib/links'
 import type { Crumb, NearbyRow } from '#/lib/catalogue-server'
 import type { PassGuide } from '#/lib/passes'
-import { findEvents, tideExtremes } from '#/lib/predict'
+import { findEvents, tideExtremes, type StationEvent, type TideExtreme } from '#/lib/predict'
 import { fetchRefinement, type Refined } from '#/lib/refine'
 import type { BundledStation, ChsStation, Station } from '#/lib/station'
 import { instantPath } from '#/routes/instant-url'
@@ -177,7 +177,7 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
       </p>
       {guide && <Guide guide={guide} />}
       <Cta station={station} />
-      {station.source === 'bundled' && <WeekTable station={station} at={at} />}
+      {station.source === 'bundled' && <WeekTable station={station} at={at} refined={layer.refined} />}
       <Facts station={station} />
       <Nearby station={station} rows={nearby} />
     </main>
@@ -224,19 +224,49 @@ const hoursBetween = (a: Date, b: Date) => (b.getTime() - a.getTime()) / 3600_00
  * for a current, its slacks and maxima.
  */
 function turns(station: BundledStation, from: Date, to: Date) {
+  return rowsOf(station, station.kind === 'tide'
+    ? { kind: 'tide', turns: tideExtremes(station, from, hoursBetween(from, to)) }
+    : { kind: 'current', events: findEvents(station, from, hoursBetween(from, to)) })
+}
+
+/** Table rows from a tide's turns or a current's events, whichever source they came from. */
+function rowsOf(
+  station: BundledStation,
+  from: { kind: 'tide'; turns: TideExtreme[] } | { kind: 'current'; events: StationEvent[] },
+) {
   const tz = station.timezone
-  return (station.kind === 'tide'
-    ? tideExtremes(station, from, hoursBetween(from, to)).map((e) => ({
+  return (from.kind === 'tide'
+    ? from.turns.map((e) => ({
         time: e.time,
         what: e.high ? 'High' : 'Low',
-        value: `${height(e.level)} ft`,
+        value: `${height(e.level)} ft` as string | undefined,
       }))
-    : findEvents(station, from, hoursBetween(from, to)).map((e) => ({
+    : from.events.map((e) => ({
         time: e.time,
         what: e.kind === 'slack' ? 'Slack' : `Max ${e.kind}`,
         value: e.kind === 'slack' ? undefined : `${Math.abs(e.level).toFixed(1)} kn`,
       }))
-  ).map((t) => ({ ...t, hhmm: hhmm(t.time, tz) }))
+  ).map((t) => ({ ...t, hhmm: hhmm(t.time, tz), chs: false }))
+}
+
+/**
+ * The week's rows with CHS's day in place of the computed rows it covers.
+ *
+ * The same day the chart swaps, from the same fetch, so the chart and today's
+ * rows never disagree. Every row outside that window is untouched, and every
+ * row inside it is CHS's: mixing the two inside one day would interleave two
+ * models' turns minutes apart.
+ */
+function refineRows(station: BundledStation, rows: ReturnType<typeof turns>, refined?: Refined) {
+  if (!refined) return rows
+  const from = refined.start.getTime()
+  const to = from + refined.hours * 3600_000
+  const inside = (t: Date) => t.getTime() >= from && t.getTime() < to
+  const chs = rowsOf(station, refined)
+    .filter((r) => inside(r.time))
+    .map((r) => ({ ...r, chs: true }))
+  if (!chs.length) return rows
+  return [...rows.filter((r) => !inside(r.time)), ...chs].sort((a, b) => a.time.getTime() - b.time.getTime())
 }
 
 function StationDayPager({
@@ -311,10 +341,12 @@ function StationDayPager({
  * Seven days of turns, visible rather than tabbed: this is the page's
  * long-tail content, and text a crawler has to toggle for carries less weight.
  */
-function WeekTable({ station, at }: { station: BundledStation; at: Date }) {
+function WeekTable({ station, at, refined }: { station: BundledStation; at: Date; refined?: Refined }) {
   const tz = station.timezone
   const week = days(at, tz, 7)
-  const rows = useMemo(() => turns(station, week[0], week[7]), [station, week[0].getTime()])
+  const computed = useMemo(() => turns(station, week[0], week[7]), [station, week[0].getTime()])
+  const rows = useMemo(() => refineRows(station, computed, refined), [station, computed, refined])
+  const marked = rows.some((r) => r.chs)
   const tide = station.kind === 'tide'
   let lastDay = ''
   return (
@@ -327,6 +359,7 @@ function WeekTable({ station, at }: { station: BundledStation; at: Date }) {
           {dayLabel(week[0], tz)} through {dayLabel(week[6], tz)}.
           {' '}All times are local to {station.name} ({tz}).
           {tide && station.chartDatum && <> Heights are in feet above {station.chartDatum}.</>}
+          {marked && <> {refinedRowsNote(station)}</>}
           {!tide && (
             <>
               {' '}
@@ -351,11 +384,19 @@ function WeekTable({ station, at }: { station: BundledStation; at: Date }) {
             const first = day !== lastDay
             lastDay = day
             return (
-              <tr key={t.time.getTime()} className={first ? 'border-t border-sw-steel/20' : ''}>
+              <tr
+                key={`${t.chs ? 'chs' : 'computed'}-${t.time.getTime()}`}
+                className={first ? 'border-t border-sw-steel/20' : ''}
+                data-source={t.chs ? 'chs' : undefined}
+              >
                 <td className="py-1.5 pr-3 text-sw-steel">{day}</td>
                 <td className="py-1.5 pr-3">{t.what}</td>
                 <td className="py-1.5 pr-3"><time dateTime={t.time.toISOString()}>{t.hhmm}</time></td>
-                <td className="py-1.5">{t.value ?? ''}</td>
+                <td className="py-1.5">
+                  {t.value ?? ''}
+                  {/* The row-level mark the caption explains. */}
+                  {t.chs && <span className="ml-2 rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-sw-steel">CHS</span>}
+                </td>
               </tr>
             )
           })}

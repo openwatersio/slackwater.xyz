@@ -7,8 +7,8 @@
  * A route the database merged — a curated CHS record and a provider row with
  * harmonic constituents — prerenders as a computed page, because a curve on
  * arrival is better than none. CHS's prediction is the refined data: once the
- * page is in the reader's browser, the browser asks DFO for today and the
- * chart switches to it. The same posture as a CHS-only page: the request goes
+ * page is in the reader's browser, the browser asks DFO for today, and the
+ * chart and today's rows in the week table switch to it. The same posture as a CHS-only page: the request goes
  * straight from the browser to IWLS, nothing is proxied, prerendered or
  * stored by us.
  */

@@ -57,8 +57,8 @@ describe('provenance', () => {
 describe('refinedCredit', () => {
   it('credits CHS for the curve on screen and the computed source for the rest', () => {
     expect(refinedCredit({ ...bundled, kind: 'tide', chs: { id: 'chs-victoria' } })).toBe(
-      "Today's curve: predictions published by the Canadian Hydrographic Service, on chart datum, " +
-        'fetched from DFO by your browser. Other days and the 7-day table are computed from harmonic constituents.',
+      "Today's curve and today's rows in the 7-day table: predictions published by the Canadian Hydrographic " +
+        'Service, on chart datum, fetched from DFO by your browser. Other days are computed from harmonic constituents.',
     )
   })
 

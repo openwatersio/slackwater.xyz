@@ -30,7 +30,7 @@ prerendered anywhere; the reader's own browser fetches DFO's published numbers a
 them. Where the database merges a CHS record with a provider row that has harmonic
 constituents, as it does for all 10 Canadian tide ports the site builds (Victoria, Vancouver
 and eight more), the page ships that row's computed curve under the CHS record's name and
-position, and the browser then swaps today's chart for CHS's published day as the refined
+position, and the browser then swaps today's chart and today's table rows for CHS's published day as the refined
 data. The ports are named in `CHS_TIDE_PORTS` in `src/lib/registry.ts`. The database publishes identity for the other 1,047 too; whether the
 site publishes them is [issue #207](https://github.com/openwatersio/slackwater.xyz/issues/207),
 and until then they 404. Plus `chs-arran-rapids`, excluded by owner decision to match the app, which refuses to name it ([#45](https://github.com/openwatersio/slackwater.xyz/issues/45)).
