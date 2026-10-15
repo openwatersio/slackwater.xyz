@@ -15,7 +15,7 @@ Fetch the product and policy pages below with `Accept: text/markdown` for Markdo
 
 ## Pricing
 
-- [Slackwater pricing](https://slackwater.xyz/pricing/): Free features, Premium yearly and lifetime prices in USD, renewal terms, and regional pricing limits. Check Apple's local purchase screen before quoting a final price.
+- [Slackwater pricing](https://slackwater.xyz/pricing/): One Premium feature set, future improvements, fixed US prices, and two payment options: a yearly subscription or a one-time lifetime purchase. Check Apple's local purchase screen before quoting a final price.
 
 ## Publisher and policies
 

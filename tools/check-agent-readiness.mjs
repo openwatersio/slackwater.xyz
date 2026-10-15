@@ -90,6 +90,19 @@ try {
   assert.equal(graph.find((node) => node['@type'] === 'Organization').contactPoint.email, 'slackwater@openwaters.io')
   assert.equal(graph.find((node) => node['@type'] === 'Organization').address.streetAddress, '411 Walnut St #15547')
 
+  const premium = await get('/pricing/', 'text/markdown')
+  const premiumCopy = await premium.text()
+  assert.ok(premiumCopy.includes('One Premium. Two ways to pay.'))
+  assert.ok(premiumCopy.includes('These prices stay the same as Premium grows.'))
+  const screenshots = [...premiumCopy.matchAll(/!\[[^\]]*\]\((\/shots\/premium\/[^)]+)\)/g)]
+  assert.equal(screenshots.length, 3)
+  for (const [, src] of screenshots) {
+    const response = await get(src)
+    assert.equal(response.status, 200, src)
+    assert.ok(response.headers.get('content-type')?.includes('image/webp'), src)
+    assert.ok((await response.arrayBuffer()).byteLength > 1000, src)
+  }
+
   const llms = await get('/llms.txt')
   assert.equal(llms.status, 200)
   const guidance = await llms.text()
