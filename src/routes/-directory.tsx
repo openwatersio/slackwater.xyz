@@ -116,14 +116,20 @@ export function Directory({ kind, page }: { kind: Kind; page: Page }) {
     )
   }
   const { station, nearby, crumbs, guide, instant } = page
-  if (!instant) return <StationPage station={station} now={now} live={live} nearby={nearby} crumbs={crumbs} guide={guide} />
+  // Keyed by station so its state can never outlive it. Station links are
+  // plain anchors today, so every station is a fresh document; a client-side
+  // `<Link>` would instead reuse this component across splat params, and
+  // Victoria's CHS day, fetched curve and selected moment would draw under
+  // the next port's name.
+  const key = station.id
+  if (!instant) return <StationPage key={key} station={station} now={now} live={live} nearby={nearby} crumbs={crumbs} guide={guide} />
   // Never `live`: this page is one fixed shared moment, so a relative "in 30m"
   // would be measured from a moment that may be long past. But `settled` from
   // the first render — that moment came out of the URL and nothing will
   // replace it, which is the opposite of a live page's build-time placeholder.
   return station.source === 'bundled'
-    ? <StationPage station={station} now={now} selectedAt={instant.at} live={live} nearby={nearby} crumbs={crumbs} />
-    : <StationPage station={station} now={instant.at} settled nearby={nearby} crumbs={crumbs} guide={guide} />
+    ? <StationPage key={key} station={station} now={now} selectedAt={instant.at} live={live} nearby={nearby} crumbs={crumbs} />
+    : <StationPage key={key} station={station} now={instant.at} settled nearby={nearby} crumbs={crumbs} guide={guide} />
 }
 
 /**

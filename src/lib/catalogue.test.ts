@@ -123,17 +123,30 @@ describe('loadCatalogue', () => {
     }
   })
 
-  it('builds the ten CHS tide ports whose identity IS published, and no more', () => {
-    // The site publishes ten Canadian tide ports, named in CHS_TIDE_PORTS. The
-    // database has identity for the other 1,047 too; publishing them is a
-    // decision (#207), so a count creeping above ten here means one happened
-    // as a side effect of a database release.
-    const ports = all.filter((s) => s.kind === 'tide' && s.source === 'chs')
-    expect(ports).toHaveLength(10)
+  it('publishes the ten named CHS tide ports as computed pages that carry their CHS identity', () => {
+    // Each of the ten is a merged pair: a curated CHS record and a provider row
+    // with harmonic constituents on one route. A computed curve is better than
+    // no curve, so the page is the provider's, and CHS's own prediction is the
+    // refined layer the reader's browser fetches on top. Neither the slug nor
+    // the count changes; what a reader gets on arrival does.
+    const ports = all.filter((s) => s.kind === 'tide' && s.source === 'bundled' && s.chs)
     expect(ports.map((s) => s.slug).sort()).toEqual([
       'campbell-river', 'fulford-harbour', 'owen-bay', 'point-atkinson',
       'port-alberni', 'port-renfrew', 'sooke', 'tofino', 'vancouver', 'victoria',
     ])
+    for (const s of ports) {
+      if (s.source !== 'bundled') continue
+      expect(s.chs?.id, s.slug).toBe(`chs-${s.slug}`)
+      expect(s.constituents.length, s.slug).toBeGreaterThan(0)
+    }
+  })
+
+  it('leaves no CHS tide page identity-only while a provider row can predict it', () => {
+    // The ten ports were the CHS-only tide pages. A count creeping above zero
+    // here means a Canadian port lost its computed curve, or one the site
+    // does not name in CHS_TIDE_PORTS became a page as a side effect of a
+    // database release (#207).
+    expect(all.filter((s) => s.kind === 'tide' && s.source === 'chs')).toEqual([])
     // Buildability is decided by id shape (`id.includes('/')`), not a `chs-`/`noaa-`
     // prefix: `noaa-boundary-pass` is registry-owned despite its name, and a prefix
     // test would let it through to a throw.
@@ -145,12 +158,37 @@ describe('loadCatalogue', () => {
     expect(all.every((s) => s.source === 'chs' || s.id.includes('/'))).toBe(true)
   })
 
-  it('gives a CHS port no constituents to be predicted from', () => {
+  it('names, places and positions a merged port by its curated record', () => {
+    // The provider row calls the water whatever its provider does and sits a
+    // few hundred metres off; the curated record is what the app shows and the
+    // position the browser resolves the CHS station from.
+    const victoria = all.find((s) => s.kind === 'tide' && s.slug === 'victoria')
+    expect(victoria?.source).toBe('bundled')
+    expect(victoria?.id).toBe('ticon/victoria_bc-543a-can-uhslc_rq')
+    expect(victoria?.name).toBe('Victoria')
+    const curated = (stationsById as unknown as Map<string, { latitude: number; longitude: number }>).get('chs-victoria')!
+    expect(victoria?.latitude).toBe(curated.latitude)
+    expect(victoria?.longitude).toBe(curated.longitude)
+  })
+
+  it('gives a CHS-only station no constituents to be predicted from', () => {
     // The licensing rule as a property of the catalogue, not of a component:
     // if one of these ever arrived with constituents, every guard downstream
     // would let it through and the site would prerender a CHS curve.
     for (const s of all.filter((x) => x.source === 'chs')) {
       expect(s, s.id).not.toHaveProperty('constituents')
+    }
+  })
+
+  it('keeps chs-arran-rapids off every page, merged or not (#45)', () => {
+    expect(all.some((s) => s.id === 'chs-arran-rapids')).toBe(false)
+    expect(all.some((s) => s.source === 'bundled' && s.chs?.id === 'chs-arran-rapids')).toBe(false)
+  })
+
+  it('never carries a CHS prediction on a merged page, only the identity to fetch one', () => {
+    for (const s of all) {
+      if (s.source !== 'bundled' || !s.chs) continue
+      expect(Object.keys(s.chs), s.id).toEqual(['id'])
     }
   })
 
@@ -284,7 +322,7 @@ describe('loadCatalogue', () => {
     // A curated CHS record is in the database too, so its province is read
     // rather than inferred from which side of the Rockies it falls on — which
     // is how the one in Nova Scotia used to get no province at all.
-    const victoria = all.find((s) => s.id === 'chs-victoria')
+    const victoria = all.find((s) => s.kind === 'tide' && s.slug === 'victoria')
     expect(victoria?.state).toBe('BC')
     const brasdor = all.find((s) => s.id === 'chs-great-bras-dor')
     expect(brasdor?.state).toBe('NS')
@@ -300,6 +338,14 @@ describe('loadCatalogue', () => {
     // is here as the tripwire for the CHS gates, where both halves build.
     const rows = all.filter((s) => s.kind === 'current' && s.slug === 'boundary-pass')
     expect(rows.length).toBe(1)
+  })
+
+  it('collapses a merged CHS port to its computed row', () => {
+    // Both halves build here: the curated record through `chsStations` and the
+    // provider row through the route index. The computed one wins, carrying
+    // the curated identity, because a curve beats no curve.
+    const rows = all.filter((s) => s.kind === 'tide' && s.slug === 'vancouver')
+    expect(rows.map((s) => s.source)).toEqual(['bundled'])
   })
 
   it('gives a CHS gate neighbours to link to', () => {

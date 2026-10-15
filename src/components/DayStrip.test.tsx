@@ -2,8 +2,9 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { DayStrip } from './DayStrip'
 import { chartTime, dayStart } from '#/lib/format'
-import { fetchPortTides } from '#/lib/iwls'
+import { fetchPortTides, gateEvents, signedSamples } from '#/lib/iwls'
 import { predictSeries, slackWindows } from '#/lib/predict'
+import gateFixture from '#/lib/__fixtures__/iwls.json' with { type: 'json' }
 import portFixture from '#/lib/__fixtures__/iwls-ports.json' with { type: 'json' }
 import type { BundledStation, ChsStation } from '#/lib/station'
 
@@ -159,5 +160,108 @@ describe('DayStrip for a Canadian port', () => {
 
   it('reads nothing "now" — the numbers are DFO\'s, and there is no predictor to ask', () => {
     expect(html).not.toMatch(/Rising|Falling/)
+  })
+})
+
+describe('DayStrip for a computed port with a CHS layer', () => {
+  // A merged port: the provider's constituents draw the curve the page ships
+  // with, and CHS's published day replaces it once the reader's browser has it.
+  // The constituents are deliberately unlike Victoria's real tide, so a label
+  // that matches DFO's numbers can only have come from DFO.
+  const MERGED: BundledStation = {
+    id: 'ticon/victoria_bc-543a-can-uhslc_rq', kind: 'tide', slug: 'victoria', name: 'Victoria',
+    path: '/tides/ca/bc/victoria/',
+    latitude: 48.424, longitude: -123.371, timezone: 'America/Vancouver',
+    source: 'bundled', chartDatum: 'LAT',
+    constituents: [{ name: 'M2', amplitude: 1, phase: 0 }],
+    chs: { id: 'chs-victoria' },
+  }
+  const port = portFixture.ports['Victoria Harbour']
+  const fetcher: typeof fetch = async (input) => {
+    const url = String(input)
+    const body = url.includes('/stations?')
+      ? portFixture.stations
+      : url.includes('wlp-hilo')
+        ? port['wlp-hilo']
+        : port.wlp
+    return { ok: true, json: async () => body } as Response
+  }
+  const start = new Date('2026-09-01T00:00:00Z')
+  const now = new Date('2026-09-01T06:00:00Z')
+  let layered = ''
+  let other = ''
+  const computed = renderToStaticMarkup(
+    <DayStrip station={MERGED} start={start} hours={24} now={now} live />,
+  )
+  beforeAll(async () => {
+    const day = await fetchPortTides(MERGED, start, 24, fetcher)
+    const refined = { kind: 'tide' as const, start, hours: 24, ...day }
+    layered = renderToStaticMarkup(
+      <DayStrip station={MERGED} start={start} hours={24} now={now} live refined={refined} />,
+    )
+    // The layer is one day. On any other day the strip is the computed one.
+    other = renderToStaticMarkup(
+      <DayStrip station={MERGED} start={new Date('2026-09-02T00:00:00Z')} hours={24} now={now} live refined={refined} />,
+    )
+  })
+
+  it('draws the computed curve and claims nothing about CHS before the layer arrives', () => {
+    expect(computed).toContain('<svg')
+    expect(computed).not.toMatch(/Canadian Hydrographic Service|your browser/)
+  })
+
+  it("labels every one of DFO's published turns once it arrives", () => {
+    // 2.544, 1.065, 2.021 and 1.688 m — in feet.
+    for (const ft of ['8.3 ft', '3.5 ft', '6.6 ft', '5.5 ft']) expect(layered).toContain(ft)
+  })
+
+  it('credits CHS for the curve it now draws, and the computed source for the rest', () => {
+    expect(layered).toContain('published by the Canadian Hydrographic Service, on chart datum, fetched from DFO by your browser')
+    expect(layered).toContain('computed from harmonic constituents')
+    expect(layered).not.toMatch(/offline|on-device|slackwater/i)
+  })
+
+  it("reads the water now from DFO's curve, not the computed one", () => {
+    // 06:00 UTC falls between the 00:49 high and the 07:29 low.
+    expect(layered).toContain('Falling')
+    expect(layered).toContain('Low at 12:29am')
+  })
+
+  it('leaves another day computed', () => {
+    expect(other).toContain('<svg')
+    expect(other).not.toMatch(/Canadian Hydrographic Service/)
+  })
+})
+
+describe('DayStrip for a computed gate with a CHS layer', () => {
+  // No current pair is merged today, but the rule is the same for a gate: the
+  // computed curve ships, and DFO's published day replaces it in the browser.
+  const MERGED: BundledStation = {
+    id: 'noaa/x', kind: 'current', slug: 'dodd-narrows', name: 'Dodd Narrows',
+    path: '/currents/ca/bc/dodd-narrows/',
+    latitude: 49.135, longitude: -123.817, timezone: 'America/Vancouver',
+    source: 'bundled', floodDirection: 355, ebbDirection: 155,
+    constituents: [{ name: 'M2', amplitude: 1, phase: 0 }],
+    chs: { id: 'chs-dodd-narrows' },
+  }
+  const gate = gateFixture.gates['Dodd Narrows']
+  const start = new Date('2026-09-01T00:00:00Z')
+  const refined = {
+    kind: 'current' as const, start, hours: 24,
+    samples: signedSamples(gate.wcsp1, gate.wcdp1, gate.floodDirection),
+    events: gateEvents(gate['wcp1-events']),
+  }
+  const html = renderToStaticMarkup(
+    <DayStrip station={MERGED} start={start} hours={24} now={new Date('2026-09-01T06:00:00Z')} live refined={refined} />,
+  )
+
+  it("prints DFO's published peaks rather than the computed ones", () => {
+    expect(html).toContain('7.1 kn')
+    expect(html).toContain('7.0 kn')
+  })
+
+  it('credits CHS once, under the chart', () => {
+    expect(html.match(/fetched from DFO by your browser/g)).toHaveLength(1)
+    expect(html).toMatch(/Flooding|Ebbing|Slack/)
   })
 })

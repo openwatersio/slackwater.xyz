@@ -8,6 +8,7 @@ import { APP_STORE, REQUIREMENT } from '#/lib/links'
 import type { Crumb, NearbyRow } from '#/lib/catalogue-server'
 import type { PassGuide } from '#/lib/passes'
 import { findEvents, tideExtremes } from '#/lib/predict'
+import { fetchRefinement, type Refined } from '#/lib/refine'
 import type { BundledStation, ChsStation, Station } from '#/lib/station'
 import { instantPath } from '#/routes/instant-url'
 
@@ -65,6 +66,12 @@ interface Props {
   crumbs?: Crumb[]
   /** A CHS pass's written guide, where one exists — see `passes.ts`. */
   guide?: PassGuide
+  /**
+   * CHS's day for a computed station, already in hand. A page never gets one
+   * from a loader — that would be prerendering it — so in practice this is
+   * how a test renders what the reader's browser shows once the fetch lands.
+   */
+  refined?: Refined
 }
 
 /**
@@ -77,7 +84,7 @@ interface Props {
  * Order is the argument: the selected day first, the app, then everything a
  * reader or a crawler goes on to want.
  */
-export function StationPage({ station, now, selectedAt: initialSelection, live = false, settled = live, nearby = [], crumbs = [], guide }: Props) {
+export function StationPage({ station, now, selectedAt: initialSelection, live = false, settled = live, nearby = [], crumbs = [], guide, refined: initialRefined }: Props) {
   const [selectedAt, setSelectedAt] = useState(initialSelection ?? now)
   const [trackingNow, setTrackingNow] = useState(initialSelection === undefined)
   useEffect(() => {
@@ -86,6 +93,7 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
   // Held here rather than in `ChsGate` because the subtitle is here: a page
   // that has just gained a chart also gains the date that chart needs.
   const [curve, setCurve] = useState<Curve | undefined>()
+  const layer = useRefinement(station, now, settled, initialRefined)
   // The moment the page is ABOUT, which stops being the live clock the instant
   // a Canadian curve arrives: DFO sent one fixed day, and the frame, the date
   // and the numbers all have to be that same day or the page contradicts
@@ -135,17 +143,33 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
           </div>
         )
       ) : (
-        <StationDayPager
-          station={station}
-          selectedAt={selectedAt}
-          actualNow={now}
-          live={live}
-          trackingNow={trackingNow}
-          showSelection={live || initialSelection !== undefined}
-          onSelect={select}
-          onCommit={commit}
-          onNow={returnToNow}
-        />
+        <>
+          <StationDayPager
+            station={station}
+            selectedAt={selectedAt}
+            actualNow={now}
+            live={live}
+            trackingNow={trackingNow}
+            showSelection={live || initialSelection !== undefined}
+            refined={layer.refined}
+            onSelect={select}
+            onCommit={commit}
+            onNow={returnToNow}
+          />
+          {/* Only while the request is actually in flight, so the page we
+              serve says nothing about a fetch that has not started. The words
+              are the privacy policy's. A failure says nothing at all: the
+              computed curve is still a real prediction, and stays. */}
+          {layer.inFlight && (
+            <p className="mt-3 text-sm text-sw-steel">
+              Your browser is fetching today&rsquo;s predictions directly from the Canadian
+              Hydrographic Service. Nothing is sent to us.{' '}
+              <button type="button" onClick={layer.cancel} className="underline underline-offset-4 hover:text-sw-foam">
+                Cancel
+              </button>
+            </p>
+          )}
+        </>
       )}
       <p className="mt-6 text-sm leading-relaxed text-sw-steel">
         Predictions are not observations — conditions vary with weather and river flow.{' '}
@@ -216,7 +240,7 @@ function turns(station: BundledStation, from: Date, to: Date) {
 }
 
 function StationDayPager({
-  station, selectedAt, actualNow, live, trackingNow, showSelection, onSelect, onCommit, onNow,
+  station, selectedAt, actualNow, live, trackingNow, showSelection, refined, onSelect, onCommit, onNow,
 }: {
   station: BundledStation
   selectedAt: Date
@@ -224,6 +248,8 @@ function StationDayPager({
   live: boolean
   trackingNow: boolean
   showSelection: boolean
+  /** CHS's day, drawn by the strip only when it is the day on screen. */
+  refined?: Refined
   onSelect: (at: Date) => void
   onCommit: (at: Date) => void
   onNow: () => void
@@ -272,6 +298,7 @@ function StationDayPager({
           live={live}
           selectedAt={showSelection ? selectedAt : undefined}
           trackingNow={trackingNow}
+          refined={refined}
           onSelect={onSelect}
           onCommit={onCommit}
         />
@@ -524,6 +551,54 @@ function ChsGate({
   )
 }
 
+/**
+ * CHS's day for a computed station that carries a CHS identity, fetched by
+ * the reader's browser once its clock is its own.
+ *
+ * The same posture as `ChsGate`: a plain browser `fetch()` straight to IWLS,
+ * never proxied, prerendered or stored, and stoppable while in flight. What
+ * differs is what the page has meanwhile. A CHS-only page has nothing to show
+ * until DFO answers; this one already shows a computed curve, so a slow or
+ * failed request leaves it exactly as served rather than raising an error.
+ *
+ * One request per page view, for the reader's own day. Paging to another day
+ * shows the computed curve there instead of asking DFO again: IWLS documents
+ * caps of 3 requests a second and 30 a minute, and each fetch starts with an
+ * 82 KB station list.
+ */
+function useRefinement(station: Station, now: Date, settled: boolean, initial?: Refined) {
+  const [refined, setRefined] = useState(initial)
+  const [inFlight, setInFlight] = useState(false)
+  const [stopped, setStopped] = useState(false)
+  // Read at fetch time, deliberately NOT a dependency — see `ChsGate`.
+  const at = useRef(now)
+  at.current = now
+  const target = station.source === 'bundled' && station.chs ? station : undefined
+  const have = refined !== undefined
+
+  useEffect(() => {
+    // Not until the clock is the reader's own: fetching against the build-time
+    // placeholder would draw the day the site was built.
+    if (!target || !settled || stopped || have) return
+    const stop = new AbortController()
+    setInFlight(true)
+    fetchRefinement(target, at.current, (url) => fetch(url, { signal: stop.signal }))
+      .then(setRefined)
+      // The computed curve is already on screen and still true. A failure, a
+      // cancel, or a port DFO no longer resolves leaves it there.
+      .catch(() => undefined)
+      .finally(() => {
+        if (!stop.signal.aborted) setInFlight(false)
+      })
+    return () => {
+      stop.abort()
+      setInFlight(false)
+    }
+  }, [target, settled, stopped, have])
+
+  return { refined, inFlight, cancel: () => setStopped(true) }
+}
+
 /** The prose a guide renders, styled once for its sections, questions and sources. */
 const PROSE =
   'leading-relaxed text-sw-foam [&_a]:underline [&_a]:decoration-sw-steel/40 [&_a]:underline-offset-4 [&_a:hover]:text-sw-paper ' +
@@ -607,8 +682,11 @@ function Nearby({ station, rows }: { station: Station; rows: NearbyRow[] }) {
  * orphans with no internal link back into the site.
  */
 function Cta({ station }: { station: Station }) {
+  // A computed page that carries a CHS identity pitches as a CHS page does:
+  // nothing published says how the app answers for a Canadian station (#44),
+  // so neither page says "offline".
   const pitch =
-    station.source === 'chs'
+    station.source === 'chs' || station.chs
       ? 'Slackwater shows tides and tidal currents on your phone — tides worldwide, currents across the US and Canada.'
       : 'Slackwater predicts tides and currents offline, on your phone — tides worldwide, currents across the US and Canada.'
   return (
