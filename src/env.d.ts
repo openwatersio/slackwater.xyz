@@ -11,3 +11,9 @@ declare const __BUILD_NOW__: string
  * Empty under vitest.
  */
 declare const __LASTMOD__: Record<string, string>
+
+// Nitro's preset entry has no declaration; the alias is resolved in vite.config.ts.
+declare module '#cloudflare-handler' {
+  const handler: { fetch(request: Request, env: unknown, context: unknown): Promise<Response> }
+  export default handler
+}

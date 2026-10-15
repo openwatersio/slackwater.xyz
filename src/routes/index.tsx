@@ -25,7 +25,7 @@ const LANGUAGES = [
 
 export const Route = createFileRoute('/')({
   head: () => ({
-    links: [{ rel: 'canonical', href: CANONICAL }],
+    links: [{ rel: 'canonical', href: CANONICAL }, { rel: 'alternate', type: 'text/markdown', href: '/index.md' }],
     meta: [
       { property: 'og:url', content: CANONICAL },
       {
@@ -42,6 +42,12 @@ export const Route = createFileRoute('/')({
               '@id': ORGANIZATION,
               name: 'Open Waters',
               legalName: 'Open Water Software LLC',
+              contactPoint: {
+                '@type': 'ContactPoint',
+                email: 'slackwater@openwaters.io',
+                contactType: 'customer support',
+                url: 'https://slackwater.xyz/contact/',
+              },
               url: 'https://openwaters.io/',
               sameAs: ['https://github.com/openwatersio'],
             },
@@ -512,6 +518,10 @@ function Home() {
           <a href="/opencpn/" className="underline underline-offset-4">
             OpenCPN
           </a>
+          .{' '}
+          <a href="/about/" className="underline underline-offset-4">About</a>
+          .{' '}
+          <a href="/contact/" className="underline underline-offset-4">Contact</a>
           .{' '}
           <a href="/privacy/" className="underline underline-offset-4">
             Privacy

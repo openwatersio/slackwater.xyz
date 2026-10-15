@@ -294,6 +294,7 @@
 /stations/tides/western-samoa/ /tides/ws/ 301
 /stations/tides/yemen /tides/ye/ 301
 /stations/tides/yemen/ /tides/ye/ 301
+/about /about/ 308
 /accuracy /accuracy/ 308
 /alternatives/tide-guide /alternatives/tide-guide/ 308
 /alternatives/tides-near-me /alternatives/tides-near-me/ 308
@@ -301,6 +302,7 @@
 /compare/slackwater-vs-actual-currents /compare/slackwater-vs-actual-currents/ 308
 /compare/slackwater-vs-ayetides /compare/slackwater-vs-ayetides/ 308
 /compare/slackwater-vs-tide-alert /compare/slackwater-vs-tide-alert/ 308
+/contact /contact/ 308
 /currents /currents/ 308
 /currents/ca /currents/ca/ 308
 /currents/ca/bc /currents/ca/bc/ 308

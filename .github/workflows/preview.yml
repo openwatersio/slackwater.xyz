@@ -59,6 +59,7 @@ jobs:
       # Deploy, i.e. after merge. After the build for the same generated-file
       # reason as typecheck above: the route tests assert against .output/public.
       - run: npm test
+      - run: npm run test:agents
 
       # Not wrangler-action: this needs the alias URL back out, and grepping the
       # command is less indirection than parsing the action's outputs.

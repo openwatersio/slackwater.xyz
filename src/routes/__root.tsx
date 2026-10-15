@@ -40,6 +40,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
+      { rel: 'describedby', href: '/llms.txt' },
       // Cut from the app's icon-1024.png (slackwater-ios AppIcon.appiconset) with
       // sips. Regenerate from that file if the app icon ever changes.
       { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32.png' },
@@ -68,12 +69,18 @@ function NotFound() {
       </h1>
       <p className="mt-4 max-w-xl text-lg leading-snug text-sw-foam">
         There is no page here. If you followed a link to a station, that station isn't published
-        yet — the site covers 7,349 US and Canadian stations, with more on the way.
+        yet. Browse the station directory to find the stations this website publishes.
       </p>
       <p className="mt-6">
         <a className="text-sw-leaf underline underline-offset-4" href="/">
           Slackwater — tides and currents
         </a>
+      </p>
+      <p className="mt-6 flex flex-wrap gap-4 text-sw-leaf underline underline-offset-4">
+        <a href="/stations/">Station directory</a>
+        <a href="/sitemap.xml">Sitemap</a>
+        <a href="/llms.txt">Agent guidance</a>
+        <a href="/support/">Support</a>
       </p>
     </main>
   )

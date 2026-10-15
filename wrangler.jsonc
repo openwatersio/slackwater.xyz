@@ -17,6 +17,10 @@
     { "pattern": "slackwater.xyz", "custom_domain": true },
     { "pattern": "www.slackwater.xyz", "custom_domain": true },
   ],
+  // Negotiated documents must reach the Worker before Cloudflare's asset cache.
+  "assets": {
+    "run_worker_first": ["/", "/about", "/about/", "/contact", "/contact/", "/support", "/support/", "/privacy", "/privacy/", "/accuracy", "/accuracy/"]
+  },
   "workers_dev": true,
   "preview_urls": true,
   "observability": { "enabled": true },

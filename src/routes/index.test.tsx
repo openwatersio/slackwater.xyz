@@ -100,6 +100,14 @@ describe('landing page structured data', () => {
       expect(byType(nodes, type).publisher).toEqual({ '@id': org['@id'] })
     }
   })
+  it('publishes the verified support contact on the organization', async () => {
+    const org = byType(await graph(), 'Organization')
+    expect(org.contactPoint).toEqual({
+      '@type': 'ContactPoint', email: 'slackwater@openwaters.io',
+      contactType: 'customer support', url: 'https://slackwater.xyz/contact/',
+    })
+  })
+
 })
 
 describe('landing page social card', () => {

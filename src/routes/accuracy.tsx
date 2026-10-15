@@ -9,7 +9,7 @@ const CANONICAL = 'https://slackwater.xyz/accuracy/'
 
 export const Route = createFileRoute('/accuracy')({
   head: () => ({
-    links: [{ rel: 'canonical', href: CANONICAL }],
+    links: [{ rel: 'canonical', href: CANONICAL }, { rel: 'alternate', type: 'text/markdown', href: '/accuracy.md' }],
     meta: [
       { title: TITLE },
       { name: 'description', content: DESCRIPTION },

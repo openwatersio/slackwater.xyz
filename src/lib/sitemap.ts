@@ -1,7 +1,7 @@
 import type { Station } from './station'
 
 const ORIGIN = 'https://slackwater.xyz'
-export const STATIC_PATHS = ['/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/learn/tides/', '/learn/slack-water/', '/stations/']
+export const STATIC_PATHS = ['/', '/about/', '/contact/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/learn/tides/', '/learn/slack-water/', '/stations/']
 
 /** A W3C date (YYYY-MM-DD) for a site path such as `/support/`. */
 export type Lastmod = (path: string) => string
