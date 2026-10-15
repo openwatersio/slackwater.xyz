@@ -1,5 +1,6 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { APP_STORE_ID } from '#/lib/links'
+import { SiteFooter } from '#/components/SiteFooter'
 import appCss from '../styles.css?url'
 
 // Brand first: other iOS tide apps share the name, and the bare query must
@@ -86,7 +87,7 @@ function NotFound() {
   )
 }
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+export function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -94,6 +95,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="bg-sw-page text-sw-foam font-sans antialiased">
         {children}
+        <SiteFooter />
         <Scripts />
       </body>
     </html>

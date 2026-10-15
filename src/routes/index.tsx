@@ -484,7 +484,7 @@ function Home() {
         </div>
       </section>
 
-      <footer className="mt-20 border-t border-white/10 pt-6 text-sm text-sw-steel">
+      <section className="mt-20 border-t border-white/10 pt-6 text-sm text-sw-steel">
         <p>
           Every station has its own page, so a link you send works for someone who hasn&rsquo;t
           installed anything:{' '}
@@ -497,70 +497,7 @@ function Home() {
           </a>
           .
         </p>
-        <p className="mt-3">
-          Predictions are not observations — conditions vary with weather and river flow.{' '}
-          <strong className="font-semibold text-sw-foam">Not for navigation.</strong>
-        </p>
-        <nav aria-label="Footer" className="mt-8 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4 sm:gap-x-8">
-          {[
-            {
-              title: 'Explore',
-              links: [
-                ['Stations', '/stations/'],
-                ['How tides work', '/learn/tides/'],
-                ['What is slack water?', '/learn/slack-water/'],
-              ],
-            },
-            {
-              title: 'The app',
-              links: [
-                ['Pricing', '/pricing/'],
-                ['Compare apps', '/compare/best-tide-and-current-apps-iphone/'],
-                ['About Slackwater', '/about/'],
-              ],
-            },
-            {
-              title: 'Help',
-              links: [
-                ['Support', '/support/'],
-                ['Contact', '/contact/'],
-                ['Privacy policy', '/privacy/'],
-              ],
-            },
-            {
-              title: 'Tools & code',
-              links: [
-                ['OpenCPN database', '/opencpn/'],
-                ['Source code', SOURCE],
-                ['Developer docs', 'https://openwaters.io/tides/slackwater/'],
-              ],
-            },
-          ].map(({ title, links }) => (
-            <section key={title}>
-              <h2 className="mb-2 text-base font-semibold text-sw-paper">{title}</h2>
-              <ul>
-                {links.map(([label, href]) => (
-                  <li key={href}>
-                    <a
-                      href={href}
-                      className="inline-flex min-h-11 items-center py-2 text-sw-foam underline decoration-sw-steel/50 underline-offset-4 hover:text-sw-paper focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sw-leaf"
-                    >
-                      {label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </nav>
-        <p className="mt-8 border-t border-white/10 pt-6">
-          Built by{' '}
-          <a href="https://openwaters.io" className="underline underline-offset-4 hover:text-sw-foam">
-            Open Waters
-          </a>
-          .
-        </p>
-      </footer>
+      </section>
     </main>
   )
 }

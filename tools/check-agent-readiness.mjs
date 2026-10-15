@@ -17,6 +17,16 @@ try {
     return response
   }
 
+  function assertFooter(html, path) {
+    const footer = html.match(/<footer[\s\S]*?aria-label="Footer"[\s\S]*?<\/footer>/)?.[0]
+    assert.ok(footer, `${path}: shared footer`)
+    assert.equal([...html.matchAll(/aria-label="Footer"/g)].length, 1, `${path}: one footer navigation`)
+    for (const href of ['/stations/', '/learn/tides/', '/learn/slack-water/', '/pricing/', '/about/', '/support/', '/contact/', '/privacy/', '/opencpn/']) {
+      assert.ok(footer.includes(`href="${href}"`), `${path}: footer ${href}`)
+    }
+    assert.ok(footer.includes('Not for navigation.'), `${path}: safety notice`)
+  }
+
   for (const path of documents) {
     for (const accept of ['text/html', 'text/markdown', 'text/markdown; charset=utf-8', 'text/html;q=0.2, text/markdown;q=0.8', 'text/markdown;q=0, */*;q=1']) {
       const response = await get(path, accept)
@@ -28,6 +38,7 @@ try {
       const body = await response.text()
       assert.ok(body.length > 500, path)
       assert.match(body, markdown ? /^# / : /<h1[ >]/)
+      if (!markdown) assertFooter(body, path)
     }
     const head = await get(path, 'text/markdown', 'HEAD')
     assert.equal(head.status, 200)
@@ -51,11 +62,13 @@ try {
       await response.body?.cancel()
     }
   }
-  for (const path of ['/tides/us/wa/seattle/', '/learn/tides/', '/stations/']) {
+  for (const path of ['/tides/us/wa/seattle/', '/currents/ca/bc/dodd-narrows/', '/learn/tides/', '/learn/slack-water/', '/stations/', '/tides/', '/currents/', '/compare/best-tide-and-current-apps-iphone/', '/opencpn/']) {
     const response = await get(path, 'text/markdown')
     assert.equal(response.status, 200, path)
     assert.ok(response.headers.get('content-type')?.includes('text/html'), path)
-    assert.match(await response.text(), /<h1[ >]/)
+    const html = await response.text()
+    assert.match(html, /<h1[ >]/)
+    assertFooter(html, path)
   }
 
   for (const path of ['/index.md', '/about.md', '/contact.md', '/pricing.md', '/support.md', '/privacy.md', '/accuracy.md']) {
@@ -71,6 +84,7 @@ try {
       assert.equal(response.status, 404, path)
       assert.ok(response.headers.get('content-type')?.includes(accept))
       const body = await response.text()
+      if (accept === 'text/html') assertFooter(body, path)
       for (const link of ['/stations/', '/sitemap.xml', '/llms.txt', '/support/']) assert.ok(body.includes(link), `${path}: ${link}`)
       const head = await get(path, accept, 'HEAD')
       assert.equal(head.status, 404)
