@@ -501,52 +501,62 @@ function Home() {
           Predictions are not observations — conditions vary with weather and river flow.{' '}
           <strong className="font-semibold text-sw-foam">Not for navigation.</strong>
         </p>
-        <p className="mt-3">
+        <nav aria-label="Footer" className="mt-8 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4 sm:gap-x-8">
+          {[
+            {
+              title: 'Explore',
+              links: [
+                ['Stations', '/stations/'],
+                ['How tides work', '/learn/tides/'],
+                ['What is slack water?', '/learn/slack-water/'],
+              ],
+            },
+            {
+              title: 'The app',
+              links: [
+                ['Pricing', '/pricing/'],
+                ['Compare apps', '/compare/best-tide-and-current-apps-iphone/'],
+                ['About Slackwater', '/about/'],
+              ],
+            },
+            {
+              title: 'Help',
+              links: [
+                ['Support', '/support/'],
+                ['Contact', '/contact/'],
+                ['Privacy policy', '/privacy/'],
+              ],
+            },
+            {
+              title: 'Tools & code',
+              links: [
+                ['OpenCPN database', '/opencpn/'],
+                ['Source code', SOURCE],
+                ['Developer docs', 'https://openwaters.io/tides/slackwater/'],
+              ],
+            },
+          ].map(({ title, links }) => (
+            <section key={title}>
+              <h2 className="mb-2 text-base font-semibold text-sw-paper">{title}</h2>
+              <ul>
+                {links.map(([label, href]) => (
+                  <li key={href}>
+                    <a
+                      href={href}
+                      className="inline-flex min-h-11 items-center py-2 text-sw-foam underline decoration-sw-steel/50 underline-offset-4 hover:text-sw-paper focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sw-leaf"
+                    >
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </nav>
+        <p className="mt-8 border-t border-white/10 pt-6">
           Built by{' '}
-          <a href="https://openwaters.io" className="underline underline-offset-4">
+          <a href="https://openwaters.io" className="underline underline-offset-4 hover:text-sw-foam">
             Open Waters
-          </a>
-          .{' '}
-          <a href="/stations/" className="underline underline-offset-4">
-            Stations
-          </a>
-          .{' '}
-          <a href="/learn/tides/" className="underline underline-offset-4">
-            How tides work
-          </a>
-          .{' '}
-          <a href="/learn/slack-water/" className="underline underline-offset-4">
-            Slack water
-          </a>
-          .{' '}
-          <a href="/compare/best-tide-and-current-apps-iphone/" className="underline underline-offset-4">
-            Compare
-          </a>
-          .{' '}
-          <a href="/opencpn/" className="underline underline-offset-4">
-            OpenCPN
-          </a>
-          .{' '}
-          <a href="/pricing/" className="underline underline-offset-4">Pricing</a>
-          .{' '}
-          <a href="/about/" className="underline underline-offset-4">About</a>
-          .{' '}
-          <a href="/contact/" className="underline underline-offset-4">Contact</a>
-          .{' '}
-          <a href="/privacy/" className="underline underline-offset-4">
-            Privacy
-          </a>
-          .{' '}
-          <a href="/support/" className="underline underline-offset-4">
-            Support
-          </a>
-          .{' '}
-          <a href={SOURCE} className="underline underline-offset-4">
-            Source
-          </a>
-          .{' '}
-          <a href="https://openwaters.io/tides/slackwater/" className="underline underline-offset-4">
-            Developers
           </a>
           .
         </p>
