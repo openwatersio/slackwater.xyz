@@ -26,7 +26,7 @@ npm run deploy  # build, then wrangler deploy with nitro's generated config
 | `src/routes/` | File-based routes. `__root.tsx` is the document shell and `<head>`. |
 | `src/lib/` | Prediction maths — `currents.ts` (harmonic synthesis) and `ramp.ts` (speed → colour). Both tested. |
 | `src/components/` | Presentational React. No data fetching. |
-| `src/content/` | Markdown rendered as pages: support, privacy, accuracy, the comparisons and OpenCPN. Support, privacy and accuracy are also served raw from their `.md` URLs. `passes/` holds the CHS pass guides, one per station id. |
+| `src/content/` | Markdown rendered as pages: support, privacy, accuracy, the comparisons and OpenCPN. `passes/` holds the CHS pass guides, one per station id. |
 | `src/styles.css` | Colour tokens. Components reference these, never a literal hex. |
 | `src/data/` | Bundled harmonic constituents for Deception Pass, the fixture `currents.test.ts` checks `predict.ts` against. |
 | `wrangler.jsonc` | Worker *source* config. Not the deployable one — see the gotchas. |
@@ -56,6 +56,8 @@ Anything touching a Worker route, including the analytics proxy, `/privacy.md`, 
 ```bash
 npm run build && npm run preview
 ```
+
+Every page except station and browse pages has a Markdown twin at its path plus `.md` (`/learn/tides/` is `/learn/tides.md`), and answers `Accept: text/markdown` at its own URL. `MARKDOWN_TWINS` in `src/lib/agent-mode.ts` lists them, and `/?mode=agent` serves the same list as JSON with the site's endpoints and limits. A page written in JSX repeats its prose in its twin (`src/lib/markdown-twins.ts`, `src/content/learn-tides.md`); `markdown-twins.test.ts` fails when their sections drift apart. A new page with a twin also needs its path in `run_worker_first` in `wrangler.jsonc` and in the prerendered `pages` in `vite.config.ts`.
 
 `npm run test:agents` starts the built Worker with file watching disabled, checks document negotiation, Markdown alternates, missing-page recovery, discovery files and links, then stops it. Pass a base URL to check a running preview: `npm run test:agents -- https://preview.example.com`.
 

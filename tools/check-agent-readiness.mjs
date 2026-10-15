@@ -9,7 +9,7 @@ if (!base) {
   base = String(await worker.url)
 }
 try {
-  const documents = ['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/']
+  const documents = ['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/stations/', '/learn/tides/', '/learn/slack-water/', '/compare/best-tide-and-current-apps-iphone/', '/alternatives/tide-guide/']
   let checks = 0
   async function get(path, accept, method = 'GET') {
     const response = await fetch(new URL(path, base), { signal: AbortSignal.timeout(15000), method, headers: accept ? { Accept: accept } : {} })
@@ -62,7 +62,7 @@ try {
       await response.body?.cancel()
     }
   }
-  for (const path of ['/tides/us/wa/seattle/', '/currents/ca/bc/dodd-narrows/', '/learn/tides/', '/learn/slack-water/', '/stations/', '/tides/', '/currents/', '/compare/best-tide-and-current-apps-iphone/', '/opencpn/']) {
+  for (const path of ['/tides/us/wa/seattle/', '/currents/ca/bc/dodd-narrows/', '/tides/', '/currents/']) {
     const response = await get(path, 'text/markdown')
     assert.equal(response.status, 200, path)
     assert.ok(response.headers.get('content-type')?.includes('text/html'), path)
@@ -71,7 +71,7 @@ try {
     assertFooter(html, path)
   }
 
-  for (const path of ['/index.md', '/about.md', '/contact.md', '/pricing.md', '/support.md', '/privacy.md', '/accuracy.md']) {
+  for (const path of ['/index.md', '/about.md', '/contact.md', '/pricing.md', '/support.md', '/privacy.md', '/accuracy.md', '/opencpn.md', '/stations.md', '/learn/tides.md', '/learn/slack-water.md', '/compare/best-tide-and-current-apps-iphone.md', '/compare/slackwater-vs-ayetides.md', '/alternatives/tide-guide.md']) {
     const response = await get(path)
     assert.equal(response.status, 200, path)
     assert.ok(response.headers.get('content-type')?.includes('text/markdown'), `${path}: content type`)
@@ -103,6 +103,26 @@ try {
   assert.equal(graph.find((node) => node['@type'] === 'MobileApplication').name, 'Slackwater')
   assert.equal(graph.find((node) => node['@type'] === 'Organization').contactPoint.email, 'slackwater@openwaters.io')
   assert.equal(graph.find((node) => node['@type'] === 'Organization').address.streetAddress, '411 Walnut St #15547')
+  assert.ok(graph.find((node) => node['@type'] === 'Organization').description, 'Organization description')
+
+  for (const method of ['GET', 'HEAD']) {
+    const agent = await get('/?mode=agent', undefined, method)
+    assert.equal(agent.status, 200, `mode=agent ${method}`)
+    assert.ok(agent.headers.get('content-type')?.includes('application/json'), `mode=agent ${method}`)
+    assert.equal(agent.headers.get('x-robots-tag'), 'noindex')
+    if (method === 'HEAD') {
+      assert.equal(await agent.text(), '')
+      continue
+    }
+    const view = await agent.json()
+    assert.equal(view.authentication.required, false)
+    for (const { markdown } of view.markdown.pages) {
+      const twin = await get(markdown)
+      assert.equal(twin.status, 200, markdown)
+      assert.ok(twin.headers.get('content-type')?.includes('text/markdown'), markdown)
+      assert.match(await twin.text(), /^# /, markdown)
+    }
+  }
 
   const premium = await get('/pricing/', 'text/markdown')
   const premiumCopy = await premium.text()

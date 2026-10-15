@@ -17,10 +17,14 @@ export type JsonLd = { [key: string]: Json | undefined }
  * Spelled out rather than referenced by `@id` alone: Google reads `author` and
  * `publisher` per page, and the full node only lives in the home page's graph.
  */
+/** openwaters.io's own description of itself, so the two sites agree. */
+export const ORGANIZATION_DESCRIPTION = 'Open source tools and data for understanding and navigating the sea.'
+
 export const ORGANIZATION = {
   '@type': 'Organization',
   '@id': 'https://openwaters.io/#organization',
   name: 'Open Waters',
+  description: ORGANIZATION_DESCRIPTION,
   url: 'https://openwaters.io/',
 }
 
