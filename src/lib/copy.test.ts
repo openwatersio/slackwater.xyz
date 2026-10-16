@@ -187,7 +187,7 @@ describe('seasonalNote', () => {
   })
 
   it('says nothing where the database did not label the station', () => {
-    // 5,355 of the 5,893 tide pages. Absence is the database's verdict, and the
+    // 6,366 of the 6,762 tide pages. Absence is the database's verdict, and the
     // site never decides it — that is why the field is optional rather than 0.
     expect(seasonalNote(tide())).toBeUndefined()
   })
@@ -203,7 +203,7 @@ describe('seasonalNote', () => {
   })
 
   it('stays quiet where the tide is real and the annual cycle merely comparable', () => {
-    // Annapolis (US Naval Academy) carries the label at 1.008. Calling that
+    // A real tide carrying the label at 1.008. Calling that
     // "mostly seasonal" would be false in effect while true in arithmetic, so
     // the note moves to the station facts and drops the ratio.
     const note = seasonalNote(tide(1.008))

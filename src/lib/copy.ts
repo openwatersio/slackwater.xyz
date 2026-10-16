@@ -96,10 +96,10 @@ export const DATUM_NOTE =
  * lagoons and lakes — the Neuse at Oriental, the St Johns at Piney Bluff, Indian
  * River Lagoon at Melbourne Causeway, Lake Ontario at Cobourg — and a tide table
  * is the wrong frame for all of them. Below it are Gulf and Chesapeake ports
- * with a real tide and a comparable annual signal, and Annapolis is the reason
- * the line is not at 1: it carries the database's label at 1.008, and telling a
- * reader the US Naval Academy gauge is "mostly seasonal" would be false in
- * effect while true in arithmetic.
+ * with a real tide and a comparable annual signal, and they are the reason the
+ * line is not at 1: the database labels some of them at a ratio near or below
+ * 1 (Palatka on the St Johns at 0.92), and telling a reader such a gauge is
+ * "mostly seasonal" would be false in effect while true in arithmetic.
  *
  * Of the 491 labelled pages, 159 are above this and 332 below.
  */
@@ -133,7 +133,7 @@ export interface SeasonalNote {
  * Two bands rather than one sentence, because one sentence cannot be honest
  * across a 160x range. At Cobourg the annual cycle IS the signal and a reader
  * planning anything from the high and low needs to know before reading them, so
- * it leads. At Annapolis the tide is real and the annual cycle merely comparable,
+ * it leads. At Palatka the tide is real and the annual cycle merely comparable,
  * so the same prominence would be a false alarm — but saying nothing leaves a
  * reader wondering why the heights drift through the year, which is the thing
  * the database now knows and the page can explain.

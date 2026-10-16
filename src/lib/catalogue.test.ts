@@ -11,29 +11,29 @@ describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
   it('yields every predictable station the database routes and the quality pass accepts, plus the CHS gates and ports', () => {
-    expect(all.length).toBe(8450)
-    expect(all.filter((s) => s.kind === 'tide').length).toBe(5893)
+    expect(all.length).toBe(9319)
+    expect(all.filter((s) => s.kind === 'tide').length).toBe(6762)
     expect(all.filter((s) => s.kind === 'current').length).toBe(2557)
   })
 
 
   it('carries the seasonal ratio for the stations the database labels, and nothing else', () => {
     // The verdict is the database's (`quality.seasonal_dominant`) and the number
-    // is the site's, used only to pick how loudly a page speaks. 538 of the
-    // 5,893 tide pages carry it and no current page does — currents are
+    // is the site's, used only to pick how loudly a page speaks. 396 of the
+    // 6,762 tide pages carry it and no current page does — currents are
     // measured in knots against no datum, so the question does not arise.
     const seasonal = all.filter((s) => s.source === 'bundled' && s.seasonal !== undefined)
-    expect(seasonal).toHaveLength(538)
+    expect(seasonal).toHaveLength(396)
     expect(seasonal.every((s) => s.kind === 'tide')).toBe(true)
 
     // Cobourg on Lake Ontario, the extreme: SA 0.289 m against 0.002 m of M2.
     const cobourg = all.find((s) => s.id === 'ticon/cobourg_ontario-13590-can-meds')
     expect(cobourg?.source === 'bundled' && cobourg.seasonal).toBeCloseTo(161.6, 1)
 
-    // Annapolis carries the label at barely over 1, which is why the page copy
-    // has two bands rather than one sentence.
-    const annapolis = all.find((s) => s.id === 'noaa/8575512')
-    expect(annapolis?.source === 'bundled' && annapolis.seasonal).toBeCloseTo(1.008, 2)
+    // Palatka on the St Johns carries the label under 1, which is why the page
+    // copy has two bands rather than one sentence.
+    const palatka = all.find((s) => s.id === 'noaa/8720774')
+    expect(palatka?.source === 'bundled' && palatka.seasonal).toBeCloseTo(0.922, 2)
 
     // Seattle has a real tide and no label.
     const seattle = all.find((s) => s.id === 'noaa/9447130')
@@ -109,13 +109,13 @@ describe('loadCatalogue', () => {
   })
 
   it('withholds every route the quality pass rejects, and keeps its address answerable', () => {
-    // 1,796 commercially licensed routes fail `qualityFilter`, some of them
+    // 834 commercially licensed routes fail `qualityFilter`, some of them
     // pages the site published before it read the whole corpus. A withheld
     // station must not be in the catalogue and must not 404 either: both its
     // canonical path and the flat `/tides/<slug>/` the share sheet mints are
     // keys here, so `resolvePath` can answer with a 301.
     const withheld = loadWithheld()
-    expect(withheld.size).toBe(1796 * 2)
+    expect(withheld.size).toBe(834 * 2)
     const published = new Set(all.map((s) => s.path))
     for (const [address, canonical] of withheld) {
       expect(published.has(address), address).toBe(false)
@@ -123,30 +123,34 @@ describe('loadCatalogue', () => {
     }
   })
 
-  it('publishes the ten named CHS tide ports as computed pages that carry their CHS identity', () => {
-    // Each of the ten is a merged pair: a curated CHS record and a provider row
-    // with harmonic constituents on one route. A computed curve is better than
-    // no curve, so the page is the provider's, and CHS's own prediction is the
-    // refined layer the reader's browser fetches on top. Neither the slug nor
-    // the count changes; what a reader gets on arrival does.
+  it('publishes a CHS port on its provider twin\'s computed page wherever the database merges them', () => {
+    // A merged pair is a curated CHS record and a provider row with harmonic
+    // constituents on one route (slackwater-database#294). A computed curve is
+    // better than no curve, so the page is the provider's, and CHS's own
+    // prediction is the refined layer the reader's browser fetches on top.
     const ports = all.filter((s) => s.kind === 'tide' && s.source === 'bundled' && s.chs)
-    expect(ports.map((s) => s.slug).sort()).toEqual([
-      'campbell-river', 'fulford-harbour', 'owen-bay', 'point-atkinson',
-      'port-alberni', 'port-renfrew', 'sooke', 'tofino', 'vancouver', 'victoria',
-    ])
+    expect(ports).toHaveLength(197)
+    const slugs = new Set(ports.map((s) => s.slug))
+    for (const slug of [
+      'campbell-river', 'fulford-harbour', 'owen-bay', 'point-atkinson', 'port-alberni',
+      'port-renfrew', 'sooke', 'tofino', 'vancouver', 'victoria', 'comox', 'nanaimo-harbour',
+    ]) expect(slugs.has(slug), slug).toBe(true)
     for (const s of ports) {
       if (s.source !== 'bundled') continue
-      expect(s.chs?.id, s.slug).toBe(`chs-${s.slug}`)
-      expect(s.constituents.length, s.slug).toBeGreaterThan(0)
+      expect(s.chs?.id, s.slug).toMatch(/^chs-/)
+      // Kumeon Bay's twin is a NOAA subordinate, predicted through its reference.
+      expect(s.constituents.length || s.tideReduction?.referenceConstituents.length, s.slug).toBeGreaterThan(0)
     }
   })
 
-  it('leaves no CHS tide page identity-only while a provider row can predict it', () => {
-    // The ten ports were the CHS-only tide pages. A count creeping above zero
-    // here means a Canadian port lost its computed curve, or one the site
-    // does not name in CHS_TIDE_PORTS became a page as a side effect of a
-    // database release (#207).
-    expect(all.filter((s) => s.kind === 'tide' && s.source === 'chs')).toEqual([])
+  it('publishes every other CHS tide port the database routes, identity only', () => {
+    // Every live Canadian tide station is a curated record with a route
+    // (slackwater-database#210), and the site publishes each one. A port with
+    // no publishable provider row on its route gets a page that names it and
+    // fetches CHS's day in the reader's browser. 197 + 860 is all 1,057.
+    const ports = all.filter((s) => s.kind === 'tide' && s.source === 'chs')
+    expect(ports).toHaveLength(860)
+    expect(ports.some((s) => s.slug === 'prince-rupert-grain')).toBe(true)
     // Buildability is decided by id shape (`id.includes('/')`), not a `chs-`/`noaa-`
     // prefix: `noaa-boundary-pass` is registry-owned despite its name, and a prefix
     // test would let it through to a throw.
@@ -156,6 +160,13 @@ describe('loadCatalogue', () => {
     // involved) or has a slashed id from a provider package. Nothing else is
     // buildable.
     expect(all.every((s) => s.source === 'chs' || s.id.includes('/'))).toBe(true)
+  })
+
+  it('publishes no CHS port apart from a predictable provider row on its route', () => {
+    // An identity-only port whose route also carries a publishable provider
+    // row would be a second page for one gauge, or a lost computed curve.
+    const computed = new Set(all.filter((s) => s.source === 'bundled').map((s) => `${s.kind}/${s.slug}`))
+    expect(all.filter((s) => s.source === 'chs' && computed.has(`${s.kind}/${s.slug}`))).toEqual([])
   })
 
   it('names, places and positions a merged port by its curated record', () => {
@@ -269,8 +280,9 @@ describe('loadCatalogue', () => {
     const moved = loadMoved()
     expect(moved.get('/tides/us/sc/abercorn-creek-at-mouth-near-savannah-ga/'))
       .toBe('/tides/us/ga/abercorn-creek-at-mouth-near-savannah-ga/')
-    expect(moved.get('/tides/us/nc/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck-pier/')
-    expect(moved.get('/tides/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck-pier/')
+    expect(moved.get('/tides/us/nc/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck/')
+    expect(moved.get('/tides/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck/')
+    expect(moved.get('/tides/us/nc/duck-pier/')).toBe('/tides/us/nc/duck/')
     const published = new Set(all.map((s) => s.path))
     expect([...moved.keys()].filter((address) => published.has(address))).toEqual([])
   })

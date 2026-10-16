@@ -362,11 +362,10 @@ export function loadCatalogue(): Station[] {
     }
   }
 
-  // The Canadian gates, and the ten tide ports whose identity the database
-  // curates. Both carry no prediction: DFO's terms do not allow re-serving
-  // one, so the reader's own browser fetches it. A port whose route also
-  // carries a provider row is replaced by that row below. The other 1,047
-  // ports wait on whether the site publishes them — see #207.
+  // The Canadian gates and tide ports whose identity the database curates.
+  // Both carry no prediction: DFO's terms do not allow re-serving one, so the
+  // reader's own browser fetches it. A station whose route also carries a
+  // provider row is replaced by that row below.
   out.push(...chsStations('current'), ...chsStations('tide'))
 
   // One row per slug. The database merges duplicate identities by putting
@@ -402,8 +401,12 @@ export function loadCatalogue(): Station[] {
  */
 export function loadWithheld(): Map<string, string> {
   const out = new Map<string, string>()
-  for (const kind of ['tide', 'current'] as Kind[])
+  for (const kind of ['tide', 'current'] as Kind[]) {
+    const chs = chsTwins(kind)
     for (const { slug, path, stationIds } of stationRoutes(kind)) {
+      // A route carrying a CHS record is a page whatever its provider row's
+      // verdict: the CHS identity publishes on its own when the row is rejected.
+      if (chs.has(slug)) continue
       const rows = stationIds.filter((id) => {
         const r = isBuildable(id) ? record(id) : undefined
         return r && publishable(r)
@@ -416,6 +419,7 @@ export function loadWithheld(): Map<string, string> {
       out.set(path, path)
       out.set(`${kindRoot(kind)}${slug}/`, path)
     }
+  }
   return out
 }
 

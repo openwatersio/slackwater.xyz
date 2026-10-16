@@ -110,7 +110,7 @@ export interface BundledStation extends StationIdentity {
    * Present or absent is the database's verdict and is never decided here — that
    * is the point of it living upstream, so the app and this site do not describe
    * the same water two ways. The number is the site's own, and only chooses how
-   * loudly a page says it: 1.008 at Annapolis, which has a real Chesapeake tide,
+   * loudly a page says it: 0.92 at Palatka on the St Johns, which has a real tide,
    * and 162 at Cobourg on Lake Ontario, which has none. See `seasonalNote`.
    */
   seasonal?: number

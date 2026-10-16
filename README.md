@@ -8,8 +8,8 @@ currents across the US and Canada.
 ## What this is
 
 The marketing site — and, now, a page per station. It explains the app, points people at the
-App Store, and prerenders a page under its country and subdivision (`/tides/us/pa/bridesburg/`, `/currents/ca/bc/dodd-narrows/`) for 8,450 stations — a
-real computed curve for 8,427 of them, and identity only for 23 Canadian current gates: the
+App Store, and prerenders a page under its country and subdivision (`/tides/us/pa/bridesburg/`, `/currents/ca/bc/dodd-narrows/`) for 9,319 stations — a
+real computed curve for 8,436 of them, and identity only for 883 Canadian ones: the
 share-landing surface for anyone sent a link, and indexable content the site previously had
 none of.
 
@@ -20,20 +20,21 @@ argument is "correct, and it works with no signal" demonstrates that on every st
 asserting it.
 
 The corpus is every station the station database routes, less two groups it withholds: 674
-rows whose GESLA provider forbids commercial use and the 1,796 the database's own quality pass
+rows whose GESLA provider forbids commercial use and the 834 the database's own quality pass
 rejects. A rejected station's address still answers — a 301 to the nearest place page above it,
 because some of them were pages here before the site read the whole corpus.
 
-8,450 pages: 8,427 get a computed curve, and the 23 Canadian (CHS) current gates get
-identity only. DFO's terms don't allow re-serving predictions, so no CHS prediction is
-prerendered anywhere; the reader's own browser fetches DFO's published numbers and draws
-them. Where the database merges a CHS record with a provider row that has harmonic
-constituents, as it does for all 10 Canadian tide ports the site builds (Victoria, Vancouver
-and eight more), the page ships that row's computed curve under the CHS record's name and
-position, and the browser then swaps today's chart and today's table rows for CHS's published day as the refined
-data. The ports are named in `CHS_TIDE_PORTS` in `src/lib/registry.ts`. The database publishes identity for the other 1,047 too; whether the
-site publishes them is [issue #207](https://github.com/openwatersio/slackwater.xyz/issues/207),
-and until then they 404. Plus `chs-arran-rapids`, excluded by owner decision to match the app, which refuses to name it ([#45](https://github.com/openwatersio/slackwater.xyz/issues/45)).
+9,319 pages: 8,436 get a computed curve, and 883 Canadian (CHS) stations get identity
+only: the 23 current gates and the 860 tide ports with no predictable provider row. DFO's
+terms don't allow re-serving predictions, so no CHS prediction is prerendered anywhere; the
+reader's own browser fetches DFO's published numbers and draws them. Where the database
+merges a CHS record with a provider row that has harmonic constituents, as it does for 197
+of the 1,057 Canadian tide ports (Victoria, Vancouver, Comox and Nanaimo among them), the
+page ships that row's computed curve under the CHS record's name and position, and the
+browser then swaps today's chart and today's table rows for CHS's published day as the
+refined data. Every Canadian tide port the database routes gets a page. The one CHS station
+left out is `chs-arran-rapids`, excluded by owner decision to match the app, which refuses
+to name it ([#45](https://github.com/openwatersio/slackwater.xyz/issues/45)).
 
 ## The two surfaces
 
