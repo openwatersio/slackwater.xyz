@@ -12,7 +12,7 @@ NOAA's tide and current stations are refreshed every month. OpenCPN's 2021 file 
 
 ### Quality Controlled
 
-For this release, Slackwater evaluated 8,372 candidate tide stations and left out 2,192. 909 duplicated a better station nearby. The rest failed one or more checks: 794 had tidal levels in the wrong order, 598 had constituents that aren't physically plausible, 567 were superseded by a newer record from the same gauge, and 94 had a tidal range under 2 cm. The [quality report](https://github.com/openwatersio/slackwater-database/blob/v1.0.0-beta.20261009/quality.json) lists every station and the reason.
+For this release, Slackwater evaluated 8,428 candidate tide stations and left out 2,231. 1,082 duplicated a better station nearby, and 746 relayed a gauge whose operator publishes its own record. The rest failed a check: 281 had tidal levels in the wrong order, 94 had a tidal range under 2 cm, 17 ran on a clock offset from their neighbors, 9 had constituents that aren't physically plausible, and 2 had a yearly term out of line with nearby gauges. [How stations are evaluated](https://github.com/openwatersio/slackwater-database/blob/v1.0.0-beta.20261016/docs/quality-evaluation.md) explains each check, and every station's file in [`stations/`](https://github.com/openwatersio/slackwater-database/tree/v1.0.0-beta.20261016/stations) records its result.
 
 ### Chart datum
 
@@ -20,17 +20,17 @@ Heights are given against each country's chart datum, so they line up with the d
 
 ### Where OpenCPN has more
 
-Counts are unique station locations, so a NOAA current station published at three depths counts once. OpenCPN 5.14 turns on all three of its files; an install upgraded from 5.12 or earlier keeps its old two.
+Counts are unique station locations to the nearest 0.01°, so a NOAA current station published at three depths counts once. OpenCPN 5.14 turns on all three of its files; an install upgraded from 5.12 or earlier keeps its old two.
 
 |                  | Slackwater                               | OpenCPN 5.14                                         | OpenCPN 5.12 and earlier                      |
 | ---------------- | ---------------------------------------- | ---------------------------------------------------- | --------------------------------------------- |
-| Tide stations    | 6,031                                    | 7,159                                                | 5,770                                         |
+| Tide stations    | 6,051                                    | 7,160                                                | 5,771                                         |
 | Current stations | 2,449                                    | 2,526                                                | 2,526                                         |
 | US data          | NOAA<br><small>refreshed monthly</small> | NOAA via XTide<br><small>January 2021</small>        | NOAA via XTide<br><small>January 2021</small> |
 | Rest of world    | TICON-4 and Kartverket                   | TICON-4 (March 2026) and harmonics from 1995 to 2003 | Harmonics compiled 1995 to 2003               |
 | Chart datum      | Each country's own                       | MLLW in the US, LAT for TICON stations               | MLLW in the US, varies elsewhere              |
 
-<small>Counted October 10, 2026, from `slackwater-20261009.tcd` and the files in OpenCPN's `tcdata` folder.</small>
+<small>Counted October 16, 2026, from `slackwater-20261016.tcd` and the files in OpenCPN 5.14.2's `tcdata` folder.</small>
 
 Most of OpenCPN's extra tide stations come from its 1995 to 2003 world file: about 890 in Canada, 490 in Japan and 330 around Australia and Papua New Guinea. They carry no license information, and the newest of their sources is decades old. On currents the two are close; nearly every NOAA current station in OpenCPN's US file is in Slackwater too, and the difference in count is mostly extra depths.
 
