@@ -3,6 +3,32 @@
   "tcd": "slackwater-20261016.tcd",
   "opencpn": "Release_5.14.2",
   "counted": "2026-10-16",
+  "sources": {
+    "slackwater-20261016.tcd": {
+      "url": "https://github.com/openwatersio/slackwater-database/releases/download/v1.0.0-beta.20261016/slackwater-20261016.tcd",
+      "fetched": "2026-10-16"
+    },
+    "Release_5.14.2-harmonics-dwf-20210110-free.tcd": {
+      "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/harmonics-dwf-20210110-free.tcd",
+      "fetched": "2026-10-16"
+    },
+    "Release_5.14.2-HARMONICS_NO_US.IDX": {
+      "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/HARMONICS_NO_US.IDX",
+      "fetched": "2026-10-16"
+    },
+    "Release_5.14.2-ticon-europe-global.tcd": {
+      "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/ticon-europe-global.tcd",
+      "fetched": "2026-10-16"
+    },
+    "noaa-tidepredictions.json": {
+      "url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=tidepredictions",
+      "fetched": "2026-10-16"
+    },
+    "noaa-currentpredictions.json": {
+      "url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=currentpredictions",
+      "fetched": "2026-10-16"
+    }
+  },
   "quality": {
     "evaluated": 8428,
     "rejected": 2231,
@@ -28,5 +54,113 @@
     "tide": 5771,
     "current": 2526
   },
-  "ticonRepeatedNames": 228
+  "ticonRepeatedNames": 228,
+  "retired": {
+    "asOf": "2026-10-16",
+    "tide": {
+      "count": 89,
+      "states": {
+        "Alaska": 25,
+        "Mississippi": 13,
+        "Florida": 9,
+        "Puerto Rico": 7,
+        "North Carolina": 5,
+        "California": 4,
+        "Louisiana": 4,
+        "Texas": 4,
+        "Virginia": 3,
+        "Washington": 3,
+        "Georgia": 2,
+        "Maine": 2,
+        "New York": 2,
+        "Virgin Islands": 2,
+        "Connecticut": 1,
+        "Massachusetts": 1,
+        "New Hampshire": 1,
+        "Rhode Island": 1
+      }
+    },
+    "current": {
+      "count": 52,
+      "states": {
+        "New Jersey": 21,
+        "Delaware": 17,
+        "Pennsylvania": 4,
+        "South Carolina": 3,
+        "Florida": 2,
+        "Maryland": 2,
+        "California": 1,
+        "Georgia": 1,
+        "Texas": 1
+      }
+    }
+  },
+  "usCurrents": {
+    "stations": 2528,
+    "inSlackwater": 2471,
+    "missingRetired": 49
+  },
+  "worldCurrents": {
+    "boxes": {
+      "britishColumbia": {
+        "south": 48.2,
+        "north": 55,
+        "west": -134,
+        "east": -122.7
+      },
+      "bayOfFundy": {
+        "south": 43,
+        "north": 46,
+        "west": -67,
+        "east": -63
+      }
+    },
+    "britishColumbia": 72,
+    "bayOfFundy": 18
+  },
+  "extraTides": {
+    "total": 2371,
+    "usFile": 75,
+    "worldFile": 2122,
+    "ticonFile": 174,
+    "worldByCountry": {
+      "Can": 997,
+      "Jpn": 603,
+      "Aus": 281,
+      "Grn": 35,
+      "PNGu": 35,
+      "": 32,
+      "Mex": 21,
+      "Icel": 18,
+      "Solm": 17,
+      "Tasm": 16,
+      "Faer": 11,
+      "Neth": 11,
+      "Ant": 6,
+      "Col": 6,
+      "NZ": 5,
+      "PR": 3,
+      "Brz": 2,
+      "Ger": 2,
+      "Nica": 2,
+      "Pan": 2,
+      "Bahm": 1,
+      "Barb": 1,
+      "Caic": 1,
+      "Carl": 1,
+      "Chrs": 1,
+      "Coco": 1,
+      "Cura": 1,
+      "Estr": 1,
+      "Gren": 1,
+      "Hond": 1,
+      "Indo": 1,
+      "Mart": 1,
+      "SAfr": 1,
+      "Scot": 1,
+      "StLuc": 1,
+      "Surn": 1,
+      "Tobag": 1
+    }
+  }
 }

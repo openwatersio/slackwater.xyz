@@ -8,7 +8,7 @@ Slackwater is rebuilt from its sources for every release, and every station is c
 
 ### Fresher
 
-NOAA's tide and current stations are refreshed every month. OpenCPN's 2021 file still lists 39 tide stations and 16 current stations that NOAA has since retired, most of them temporary survey sites in Alaska and on the Delaware River. Each Slackwater file is named for its release date, so you can tell how old your data is.
+NOAA's tide and current stations are refreshed every month. As of October 16, 2026, OpenCPN's 2021 file still lists 89 tide stations and 52 current stations that NOAA no longer publishes predictions for. The largest groups are 25 tide stations in Alaska and 38 current stations in New Jersey and Delaware. Each Slackwater file is named for its release date, so you can tell how old your data is.
 
 ### Quality Controlled
 
@@ -30,13 +30,13 @@ Counts are unique station locations to the nearest 0.01°, so a NOAA current sta
 | Rest of world    | TICON-4 and Kartverket                   | TICON-4 (March 2026) and harmonics from 1995 to 2003 | Harmonics compiled 1995 to 2003               |
 | Chart datum      | Each country's own                       | MLLW in the US, LAT for TICON stations               | MLLW in the US, varies elsewhere              |
 
-<small>Counted October 16, 2026, from `slackwater-20261016.tcd` and the files in OpenCPN 5.14.2's `tcdata` folder.</small>
+<small>Counted October 16, 2026, from `slackwater-20261016.tcd`, the files in OpenCPN 5.14.2's `tcdata` folder, and NOAA's lists of the stations it publishes predictions for.</small>
 
-Most of OpenCPN's extra tide stations come from its 1995 to 2003 world file: about 890 in Canada, 490 in Japan and 330 around Australia and Papua New Guinea. They carry no license information, and the newest of their sources is decades old. On currents the two are close; nearly every NOAA current station in OpenCPN's US file is in Slackwater too, and the difference in count is mostly extra depths.
+OpenCPN 5.14 has 2,371 tide locations with no Slackwater tide station within 1 km, and 2,122 of them come from its 1995 to 2003 world file: 997 in Canada, 603 in Japan and 332 around Australia and Papua New Guinea. They carry no license information, and the newest of their sources is decades old. On currents the two are close: Slackwater carries 2,471 of the 2,528 NOAA current stations in OpenCPN's US file, and NOAA no longer publishes 49 of the other 57.
 
 ### What Slackwater lacks
 
-The real gap is Canadian currents. OpenCPN's `HARMONICS_NO_US.IDX` includes about 70 British Columbia passes (Seymour Narrows, Dodd Narrows, Nakwakto Rapids, Active Pass) and 17 points around the Bay of Fundy. Canada doesn't publish current data under an open license, so this file can't include them. The Slackwater app gets some of them from the Canadian Hydrographic Service on your phone instead. [Keep that file loaded](#install) if you sail there.
+The real gap is Canadian currents. OpenCPN's `HARMONICS_NO_US.IDX` includes 72 current points in British Columbia (Seymour Narrows, Dodd Narrows, Nakwakto Rapids, Active Pass) and 18 around the Bay of Fundy and its approaches. Canada doesn't publish current data under an open license, so this file can't include them. The Slackwater app gets some of them from the Canadian Hydrographic Service on your phone instead. [Keep that file loaded](#install) if you sail there.
 
 ## FAQ
 

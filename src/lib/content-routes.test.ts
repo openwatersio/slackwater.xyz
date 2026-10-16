@@ -69,6 +69,30 @@ describe('the OpenCPN comparison', () => {
     expect(markdown).toContain(`It lists ${n(counts.ticonRepeatedNames)} station names more than once`)
     expect(markdown).toContain(`OpenCPN ${counts.opencpn.replace('Release_', '')}'s \`tcdata\` folder`)
   })
+
+  it('quotes the stations NOAA no longer publishes, as of the day the lists were fetched', () => {
+    const { asOf, tide, current } = counts.retired
+    const day = new Date(`${asOf}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+    expect(markdown).toContain(`As of ${day}, OpenCPN's 2021 file still lists ${n(tide.count)} tide stations and ${n(current.count)} current stations that NOAA no longer publishes predictions for.`)
+    const states = current.states as Record<string, number>
+    expect(markdown).toContain(`${n(tide.states.Alaska)} tide stations in Alaska and ${n(states['New Jersey'] + states.Delaware)} current stations in New Jersey and Delaware.`)
+    // The sentence names the largest groups, so they must still be the largest.
+    expect(Object.keys(tide.states)[0]).toBe('Alaska')
+    expect(Object.keys(states).slice(0, 2).sort()).toEqual(['Delaware', 'New Jersey'])
+  })
+
+  it('quotes the world file stations Slackwater has nothing near, and the currents both carry', () => {
+    const { total, worldFile, worldByCountry: c } = counts.extraTides as { total: number; worldFile: number; worldByCountry: Record<string, number> }
+    expect(markdown).toContain(`OpenCPN 5.14 has ${n(total)} tide locations with no Slackwater tide station within 1 km, and ${n(worldFile)} of them come from its 1995 to 2003 world file: ${n(c.Can)} in Canada, ${n(c.Jpn)} in Japan and ${n(c.Aus + c.Tasm + c.PNGu)} around Australia and Papua New Guinea.`)
+    const { stations, inSlackwater, missingRetired } = counts.usCurrents
+    expect(markdown).toContain(`Slackwater carries ${n(inSlackwater)} of the ${n(stations)} NOAA current stations in OpenCPN's US file, and NOAA no longer publishes ${n(missingRetired)} of the other ${n(stations - inSlackwater)}.`)
+  })
+
+  it('counts the Canadian current points inside the boxes the script names', () => {
+    const { britishColumbia, bayOfFundy } = counts.worldCurrents
+    expect(markdown).toContain(`includes ${n(britishColumbia)} current points in British Columbia`)
+    expect(markdown).toContain(`and ${n(bayOfFundy)} around the Bay of Fundy and its approaches.`)
+  })
 })
 
 describe('structured data', () => {
