@@ -8,8 +8,8 @@ currents across the US and Canada.
 ## What this is
 
 The marketing site — and, now, a page per station. It explains the app, points people at the
-App Store, and prerenders a page under its country and subdivision (`/tides/us/pa/bridesburg/`, `/currents/ca/bc/dodd-narrows/`) for 9,319 stations — a
-real computed curve for 8,436 of them, and identity only for 883 Canadian ones: the
+App Store, and prerenders a page under its country and subdivision (`/tides/us/pa/bridesburg/`, `/currents/ca/bc/dodd-narrows/`) for 9,318 stations — a
+real computed curve for 8,436 of them, and identity only for 882 Canadian ones: the
 share-landing surface for anyone sent a link, and indexable content the site previously had
 none of.
 
@@ -24,11 +24,11 @@ rows whose GESLA provider forbids commercial use and the 834 the database's own 
 rejects. A rejected station's address still answers — a 301 to the nearest place page above it,
 because some of them were pages here before the site read the whole corpus.
 
-9,319 pages: 8,436 get a computed curve, and 883 Canadian (CHS) stations get identity
-only: the 23 current gates and the 860 tide ports with no predictable provider row. DFO's
+9,318 pages: 8,436 get a computed curve, and 882 Canadian (CHS) stations get identity
+only: the 23 current gates and the 859 tide ports with no predictable provider row. DFO's
 terms don't allow re-serving predictions, so no CHS prediction is prerendered anywhere; the
 reader's own browser fetches DFO's published numbers and draws them. Where the database
-merges a CHS record with a provider row that has harmonic constituents, as it does for 197
+merges a CHS record with a provider row that has harmonic constituents, as it does for 198
 of the 1,057 Canadian tide ports (Victoria, Vancouver, Comox and Nanaimo among them), the
 page ships that row's computed curve under the CHS record's name and position, and the
 browser then swaps today's chart and today's table rows for CHS's published day as the

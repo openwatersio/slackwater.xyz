@@ -11,8 +11,8 @@ describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
   it('yields every predictable station the database routes and the quality pass accepts, plus the CHS gates and ports', () => {
-    expect(all.length).toBe(9319)
-    expect(all.filter((s) => s.kind === 'tide').length).toBe(6762)
+    expect(all.length).toBe(9318)
+    expect(all.filter((s) => s.kind === 'tide').length).toBe(6761)
     expect(all.filter((s) => s.kind === 'current').length).toBe(2557)
   })
 
@@ -20,7 +20,7 @@ describe('loadCatalogue', () => {
   it('carries the seasonal ratio for the stations the database labels, and nothing else', () => {
     // The verdict is the database's (`quality.seasonal_dominant`) and the number
     // is the site's, used only to pick how loudly a page speaks. 396 of the
-    // 6,762 tide pages carry it and no current page does — currents are
+    // 6,761 tide pages carry it and no current page does — currents are
     // measured in knots against no datum, so the question does not arise.
     const seasonal = all.filter((s) => s.source === 'bundled' && s.seasonal !== undefined)
     expect(seasonal).toHaveLength(396)
@@ -129,7 +129,7 @@ describe('loadCatalogue', () => {
     // better than no curve, so the page is the provider's, and CHS's own
     // prediction is the refined layer the reader's browser fetches on top.
     const ports = all.filter((s) => s.kind === 'tide' && s.source === 'bundled' && s.chs)
-    expect(ports).toHaveLength(197)
+    expect(ports).toHaveLength(198)
     const slugs = new Set(ports.map((s) => s.slug))
     for (const slug of [
       'campbell-river', 'fulford-harbour', 'owen-bay', 'point-atkinson', 'port-alberni',
@@ -147,9 +147,9 @@ describe('loadCatalogue', () => {
     // Every live Canadian tide station is a curated record with a route
     // (slackwater-database#210), and the site publishes each one. A port with
     // no publishable provider row on its route gets a page that names it and
-    // fetches CHS's day in the reader's browser. 197 + 860 is all 1,057.
+    // fetches CHS's day in the reader's browser. 198 + 859 is all 1,057.
     const ports = all.filter((s) => s.kind === 'tide' && s.source === 'chs')
-    expect(ports).toHaveLength(860)
+    expect(ports).toHaveLength(859)
     expect(ports.some((s) => s.slug === 'prince-rupert-grain')).toBe(true)
     // Buildability is decided by id shape (`id.includes('/')`), not a `chs-`/`noaa-`
     // prefix: `noaa-boundary-pass` is registry-owned despite its name, and a prefix

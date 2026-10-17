@@ -1,12 +1,12 @@
 {
-  "database": "1.0.0-beta.20261016",
-  "tcd": "slackwater-20261016.tcd",
+  "database": "1.0.0-beta.20261017",
+  "tcd": "slackwater-20261017.tcd",
   "opencpn": "Release_5.14.2",
-  "counted": "2026-10-16",
+  "counted": "2026-10-17",
   "sources": {
-    "slackwater-20261016.tcd": {
-      "url": "https://github.com/openwatersio/slackwater-database/releases/download/v1.0.0-beta.20261016/slackwater-20261016.tcd",
-      "fetched": "2026-10-16"
+    "slackwater-20261017.tcd": {
+      "url": "https://github.com/openwatersio/slackwater-database/releases/download/v1.0.0-beta.20261017/slackwater-20261017.tcd",
+      "fetched": "2026-10-17"
     },
     "Release_5.14.2-harmonics-dwf-20210110-free.tcd": {
       "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/harmonics-dwf-20210110-free.tcd",
@@ -22,11 +22,11 @@
     },
     "noaa-tidepredictions.json": {
       "url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=tidepredictions",
-      "fetched": "2026-10-16"
+      "fetched": "2026-10-17"
     },
     "noaa-currentpredictions.json": {
       "url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=currentpredictions",
-      "fetched": "2026-10-16"
+      "fetched": "2026-10-17"
     }
   },
   "quality": {
@@ -56,7 +56,7 @@
   },
   "ticonRepeatedNames": 228,
   "retired": {
-    "asOf": "2026-10-16",
+    "asOf": "2026-10-17",
     "tide": {
       "count": 89,
       "states": {
