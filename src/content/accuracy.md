@@ -60,6 +60,6 @@ This compares two sets of predictions with each other, not either with measured 
 
 ## Dates and reproducibility
 
-The NOAA links point to a fixed engine revision so the reports, test methods and fixtures can be inspected together. The figures are the results recorded in the July 2026 reports, not a daily validation feed or a new run against current agency data. Running the tests against those fixtures checks agreement with the saved historical predictions. The Sechelt Rapids comparison is a single run on October 17, 2026; both sources still publish October 2026, so it can be repeated.
+The NOAA links point to a fixed engine revision so the reports, test methods and fixtures can be inspected together. The figures are the results recorded in the July 2026 reports, not a daily validation feed or a new run against current agency data. Running the tests against those fixtures checks agreement with the saved historical predictions. The Sechelt Rapids comparison is a single run on October 17, 2026; both sources still publish October 2026, and the [comparison script](https://github.com/openwatersio/slackwater/blob/1716ea8372d7fbe9e374b62840e87b71fec3735c/benchmarks/xtide-chs-slack.ts) repeats it.
 
 If a reading looks wrong, [contact support](/support/) with the station, date, time and your app version. You can also inspect the [app source](https://github.com/openwatersio/slackwater-ios) and the [station database's sources](https://github.com/openwatersio/slackwater-database#sources).
