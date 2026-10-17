@@ -82,3 +82,4 @@ water. Neither app is for navigation.
 
 See also: [the best tide and current apps for iPhone](/compare/best-tide-and-current-apps-iphone/)
 · [Slackwater vs AyeTides](/compare/slackwater-vs-ayetides/)
+· [Slackwater vs OceanConnect](/compare/slackwater-vs-oceanconnect/)
