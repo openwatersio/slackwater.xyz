@@ -8,11 +8,11 @@ Slackwater is rebuilt from its sources for every release, and every station is c
 
 ### Fresher
 
-NOAA's tide and current stations are refreshed every month. OpenCPN's 2021 file still lists 39 tide stations and 16 current stations that NOAA has since retired, most of them temporary survey sites in Alaska and on the Delaware River. Each Slackwater file is named for its release date, so you can tell how old your data is.
+NOAA's tide and current stations are refreshed every month. As of October 17, 2026, OpenCPN's 2021 file still lists 89 tide stations and 52 current stations that NOAA no longer publishes predictions for. The largest groups are 25 tide stations in Alaska and 38 current stations in New Jersey and Delaware. Each Slackwater file is named for its release date, so you can tell how old your data is.
 
 ### Quality Controlled
 
-For this release, Slackwater evaluated 8,372 candidate tide stations and left out 2,192. 909 duplicated a better station nearby. The rest failed one or more checks: 794 had tidal levels in the wrong order, 598 had constituents that aren't physically plausible, 567 were superseded by a newer record from the same gauge, and 94 had a tidal range under 2 cm. The [quality report](https://github.com/openwatersio/slackwater-database/blob/v1.0.0-beta.20261009/quality.json) lists every station and the reason.
+For this release, Slackwater evaluated 8,428 candidate tide stations and left out 2,231. 1,082 duplicated a better station nearby, and 746 relayed a gauge whose operator publishes its own record. The rest failed a check: 281 had tidal levels in the wrong order, 94 had a tidal range under 2 cm, 17 ran on a clock offset from their neighbors, 9 had constituents that aren't physically plausible, and 2 had a yearly term out of line with nearby gauges. [How stations are evaluated](https://github.com/openwatersio/slackwater-database/blob/v1.0.0-beta.20261017/docs/quality-evaluation.md) explains each check, and every station's file in [`stations/`](https://github.com/openwatersio/slackwater-database/tree/v1.0.0-beta.20261017/stations) records its result.
 
 ### Chart datum
 
@@ -20,23 +20,23 @@ Heights are given against each country's chart datum, so they line up with the d
 
 ### Where OpenCPN has more
 
-Counts are unique station locations, so a NOAA current station published at three depths counts once. OpenCPN 5.14 turns on all three of its files; an install upgraded from 5.12 or earlier keeps its old two.
+Counts are unique station locations to the nearest 0.01°, so a NOAA current station published at three depths counts once. OpenCPN 5.14 turns on all three of its files; an install upgraded from 5.12 or earlier keeps its old two.
 
 |                  | Slackwater                               | OpenCPN 5.14                                         | OpenCPN 5.12 and earlier                      |
 | ---------------- | ---------------------------------------- | ---------------------------------------------------- | --------------------------------------------- |
-| Tide stations    | 6,031                                    | 7,159                                                | 5,770                                         |
+| Tide stations    | 6,051                                    | 7,160                                                | 5,771                                         |
 | Current stations | 2,449                                    | 2,526                                                | 2,526                                         |
 | US data          | NOAA<br><small>refreshed monthly</small> | NOAA via XTide<br><small>January 2021</small>        | NOAA via XTide<br><small>January 2021</small> |
 | Rest of world    | TICON-4 and Kartverket                   | TICON-4 (March 2026) and harmonics from 1995 to 2003 | Harmonics compiled 1995 to 2003               |
 | Chart datum      | Each country's own                       | MLLW in the US, LAT for TICON stations               | MLLW in the US, varies elsewhere              |
 
-<small>Counted October 10, 2026, from `slackwater-20261009.tcd` and the files in OpenCPN's `tcdata` folder.</small>
+<small>Counted October 17, 2026, from `slackwater-20261017.tcd`, the files in OpenCPN 5.14.2's `tcdata` folder, and NOAA's lists of the stations it publishes predictions for.</small>
 
-Most of OpenCPN's extra tide stations come from its 1995 to 2003 world file: about 890 in Canada, 490 in Japan and 330 around Australia and Papua New Guinea. They carry no license information, and the newest of their sources is decades old. On currents the two are close; nearly every NOAA current station in OpenCPN's US file is in Slackwater too, and the difference in count is mostly extra depths.
+OpenCPN 5.14 has 2,371 tide locations with no Slackwater tide station within 1 km, and 2,122 of them come from its 1995 to 2003 world file: 997 in Canada, 603 in Japan and 332 around Australia and Papua New Guinea. They carry no license information, and the newest of their sources is decades old. On currents the two are close: Slackwater carries 2,471 of the 2,528 NOAA current stations in OpenCPN's US file, and NOAA no longer publishes 49 of the other 57.
 
 ### What Slackwater lacks
 
-The real gap is Canadian currents. OpenCPN's `HARMONICS_NO_US.IDX` includes about 70 British Columbia passes (Seymour Narrows, Dodd Narrows, Nakwakto Rapids, Active Pass) and 17 points around the Bay of Fundy. Canada doesn't publish current data under an open license, so this file can't include them. The Slackwater app gets some of them from the Canadian Hydrographic Service on your phone instead. [Keep that file loaded](#install) if you sail there.
+The real gap is Canadian currents. OpenCPN's `HARMONICS_NO_US.IDX` includes 72 current points in British Columbia (Seymour Narrows, Dodd Narrows, Nakwakto Rapids, Active Pass) and 18 around the Bay of Fundy and its approaches. Canada doesn't publish current data under an open license, so this file can't include them. The Slackwater app gets some of them from the Canadian Hydrographic Service on your phone instead. [Keep that file loaded](#install) if you sail there.
 
 ## FAQ
 

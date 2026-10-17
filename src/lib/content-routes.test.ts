@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { COMPARE_PATHS } from './compare'
 import { ORGANIZATION } from './json-ld'
 import { TCD } from './links'
+import counts from '../content/opencpn-counts.json' with { type: 'json' }
+// @ts-expect-error a plain .mjs tool shared with tools/count-opencpn.mjs
+import { qualityCounts } from '../../tools/quality.mjs'
 
 it('publishes the support page and its Markdown source', () => {
   expect(existsSync('.output/public/support.md')).toBe(true)
@@ -28,14 +31,68 @@ it('links the OpenCPN download to the database release the site is built against
   expect(page).toContain(`href="${TCD.url}"`)
 })
 
-it('counts the OpenCPN comparison from the database release the site is built against', async () => {
-  // The station counts and quality figures in opencpn.md are written by hand
-  // from one release. This can't check the figures themselves; it fails on a
-  // database bump as a reminder to recount them and update the release refs.
-  const { version } = await import('@slackwater/database/package.json')
+describe('the OpenCPN comparison', () => {
+  // `node tools/count-opencpn.mjs` recounts every figure below into
+  // opencpn-counts.json. The TCD-derived counts need files this test does not
+  // download, so they are checked against the recorded run; the quality
+  // figures are recomputed here from the installed database.
   const markdown = readFileSync('src/content/opencpn.md', 'utf8')
-  expect(markdown).toContain(TCD.date ? `slackwater-${TCD.date}.tcd` : `v${version}`)
-  expect(markdown).toContain(`slackwater-database/blob/v${version}/quality.json`)
+  const n = (value: number) => value.toLocaleString('en-US')
+
+  it('was counted from the database release the site is built against', async () => {
+    const { version } = await import('@slackwater/database/package.json')
+    expect(counts.database, 'run `node tools/count-opencpn.mjs` after a database bump').toBe(version)
+    expect(markdown).toContain(TCD.date ? `slackwater-${TCD.date}.tcd` : `v${version}`)
+    expect(markdown).toContain(`slackwater-database/blob/v${version}/docs/quality-evaluation.md`)
+    expect(markdown).toContain(`slackwater-database/tree/v${version}/stations`)
+  })
+
+  it('quotes the quality figures the database records', async () => {
+    expect(await qualityCounts()).toEqual(counts.quality)
+    const { evaluated, rejected, reasons } = counts.quality
+    expect(markdown).toContain(`evaluated ${n(evaluated)} candidate tide stations and left out ${n(rejected)}.`)
+    expect(markdown).toContain(`${n(reasons.duplicate)} duplicated a better station nearby`)
+    expect(markdown).toContain(`${n(reasons.superseded)} relayed a gauge`)
+    expect(markdown).toContain(`${n(reasons.datum)} had tidal levels in the wrong order`)
+    expect(markdown).toContain(`${n(reasons.range)} had a tidal range under 2 cm`)
+    expect(markdown).toContain(`${n(reasons.timing)} ran on a clock offset`)
+    expect(markdown).toContain(`${n(reasons.constituents)} had constituents that aren't physically plausible`)
+    expect(markdown).toContain(`${n(reasons.seasonal)} had a yearly term out of line`)
+    // A reason the page does not name would leave the sentence short.
+    expect(Object.keys(reasons).sort()).toEqual(['constituents', 'datum', 'duplicate', 'range', 'seasonal', 'superseded', 'timing'])
+  })
+
+  it('quotes the station counts in the table', () => {
+    const row = (label: string) => markdown.match(new RegExp(`^\\| ${label}\\s*\\|([^\\n]+)$`, 'm'))?.[1].split('|').map((c) => c.trim()).slice(0, 3)
+    expect(row('Tide stations')).toEqual([counts.slackwater.tide, counts.opencpn514.tide, counts.opencpn512.tide].map(n))
+    expect(row('Current stations')).toEqual([counts.slackwater.current, counts.opencpn514.current, counts.opencpn512.current].map(n))
+    expect(markdown).toContain(`It lists ${n(counts.ticonRepeatedNames)} station names more than once`)
+    expect(markdown).toContain(`OpenCPN ${counts.opencpn.replace('Release_', '')}'s \`tcdata\` folder`)
+  })
+
+  it('quotes the stations NOAA no longer publishes, as of the day the lists were fetched', () => {
+    const { asOf, tide, current } = counts.retired
+    const day = new Date(`${asOf}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+    expect(markdown).toContain(`As of ${day}, OpenCPN's 2021 file still lists ${n(tide.count)} tide stations and ${n(current.count)} current stations that NOAA no longer publishes predictions for.`)
+    const states = current.states as Record<string, number>
+    expect(markdown).toContain(`${n(tide.states.Alaska)} tide stations in Alaska and ${n(states['New Jersey'] + states.Delaware)} current stations in New Jersey and Delaware.`)
+    // The sentence names the largest groups, so they must still be the largest.
+    expect(Object.keys(tide.states)[0]).toBe('Alaska')
+    expect(Object.keys(states).slice(0, 2).sort()).toEqual(['Delaware', 'New Jersey'])
+  })
+
+  it('quotes the world file stations Slackwater has nothing near, and the currents both carry', () => {
+    const { total, worldFile, worldByCountry: c } = counts.extraTides as { total: number; worldFile: number; worldByCountry: Record<string, number> }
+    expect(markdown).toContain(`OpenCPN 5.14 has ${n(total)} tide locations with no Slackwater tide station within 1 km, and ${n(worldFile)} of them come from its 1995 to 2003 world file: ${n(c.Can)} in Canada, ${n(c.Jpn)} in Japan and ${n(c.Aus + c.Tasm + c.PNGu)} around Australia and Papua New Guinea.`)
+    const { stations, inSlackwater, missingRetired } = counts.usCurrents
+    expect(markdown).toContain(`Slackwater carries ${n(inSlackwater)} of the ${n(stations)} NOAA current stations in OpenCPN's US file, and NOAA no longer publishes ${n(missingRetired)} of the other ${n(stations - inSlackwater)}.`)
+  })
+
+  it('counts the Canadian current points inside the boxes the script names', () => {
+    const { britishColumbia, bayOfFundy } = counts.worldCurrents
+    expect(markdown).toContain(`includes ${n(britishColumbia)} current points in British Columbia`)
+    expect(markdown).toContain(`and ${n(bayOfFundy)} around the Bay of Fundy and its approaches.`)
+  })
 })
 
 describe('structured data', () => {

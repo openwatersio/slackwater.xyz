@@ -71,50 +71,18 @@ export function curatedBySlug(kind: Kind): Map<string, Curated> {
 const EXCLUDED = new Set(['chs-arran-rapids'])
 
 /**
- * The Canadian tide ports this site publishes from their CHS record alone.
- *
- * slackwater-database#210 gives every live Canadian tide station a record, which
- * is more than this site has decided to publish: whether the other 1,047 get
- * pages is #207.
- *
- * All ten share a route with a provider row today, so each one's page is that
- * row's computed page with this record's identity and the browser's CHS layer
- * on top (see `chsTwins`). The list decides only what a port gets when it has
- * no such row: a page that names it and fetches CHS's day, or no page at all.
- *
- * The list exists to keep that a decision rather than a side effect of a
- * database release, and it is meant to be deleted. When #207 answers, this goes
- * and the corpus is the data again.
- */
-const CHS_TIDE_PORTS = new Set([
-  'chs-campbell-river',
-  'chs-fulford-harbour',
-  'chs-owen-bay',
-  'chs-point-atkinson',
-  'chs-port-alberni',
-  'chs-port-renfrew',
-  'chs-sooke',
-  'chs-tofino',
-  'chs-vancouver',
-  'chs-victoria',
-])
-
-/**
  * The Canadian stations of one kind, from identity the database already
  * publishes.
  *
- * All 24 gates and the ten named tide ports are curated records with a name,
- * region, corrected position, timezone and province. Since
- * slackwater-database#210 so are the other 1,047 tide ports, which this site
- * does not publish on their own (#207). A station here that shares its route
- * with a publishable provider row is folded into that row's page by the
- * catalogue.
+ * Every gate and every live Canadian tide port is a curated record with a
+ * name, region, corrected position, timezone and province
+ * (slackwater-database#210), and the site publishes all of them but the
+ * excluded one. A station here that shares its route with a publishable
+ * provider row is folded into that row's page by the catalogue.
  */
 export function chsStations(kind: Kind): ChsStation[] {
   const out: ChsStation[] = []
   for (const s of chsRecords(kind)) {
-    // Every gate is published; the tide ports are the named ten — see CHS_TIDE_PORTS.
-    if (kind === 'tide' && !CHS_TIDE_PORTS.has(s.id)) continue
     const station = chsStation(s)
     // A station with no published route is a broken corpus, not one to skip: it
     // means the database's records and its route index disagree about what exists.
@@ -131,9 +99,7 @@ export function chsStations(kind: Kind): ChsStation[] {
  * A record here is the CHS half of a merged pair whenever a provider row with
  * constituents sits on the same route. That page is the provider's, with the
  * curated identity and the browser's CHS layer on top, and it is a page
- * because the provider row is publishable — not because of this map. So it
- * reads past CHS_TIDE_PORTS: as slackwater-database#294 merges more ports into
- * their provider twins, each one gains the layer without a list here to edit.
+ * because the provider row is publishable — not because of this map.
  * EXCLUDED still holds.
  */
 export function chsTwins(kind: Kind): Map<string, ChsStation> {

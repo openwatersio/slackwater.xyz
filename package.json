@@ -17,7 +17,7 @@
   "dependencies": {
     "@cf-wasm/resvg": "0.4.0",
     "@openwaters/almanac": "0.8.1",
-    "@slackwater/database": "1.0.0-beta.20261009",
+    "@slackwater/database": "1.0.0-beta.20261017",
     "@slackwater/engine": "^1.0.0-beta.6",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-router": "^1.170.42",
