@@ -40,8 +40,26 @@ The [Canadian fitting project's validation report](https://github.com/openwaters
 
 The fitting project's [source-limit explanation](https://github.com/openwatersio/chs-constituents#accuracy) notes that CHS's continuous current series is sampled every 15 minutes. At complex narrows, extrema from that series can differ from CHS's precise event series by 15–30 minutes. Fitting the continuous series inherits that source limit; a close fit does not remove it.
 
+## Free harmonic constants at a fast BC rapid
+
+Published harmonic constants work well at most stations. A narrow, fast rapid is harder. On October 17, 2026 we compared two sets of October 2026 predictions for [Sechelt Rapids](/currents/ca/bc/sechelt-rapids/) (Skookumchuck Narrows), which runs to 16½ knots on large tides: the monthly current table on [Dairiki.org](https://www.dairiki.org/tides/monthly.php/scl), which is produced by [XTide](https://flaterco.com/xtide/) from its free harmonic constants, and the Canadian Hydrographic Service's slack predictions for the same station (IWLS station 07845, `wcp1-events`).
+
+| Measure | Result |
+| --- | --- |
+| CHS slacks in October | 116 |
+| Within 10 minutes of XTide's turn | 83 |
+| More than 15 minutes apart | 15, about one in eight |
+| 30 minutes or more apart | 6 |
+| Largest difference | 97 minutes |
+
+Each CHS slack was matched to the nearest turn in the XTide table, with both in Pacific Daylight Time. The two sources do not list the same number of turns: XTide has 120 in the month and CHS 116.
+
+The six differences of 30 minutes or more all fall beside a weak run, under 3 knots at its CHS maximum. The largest is the start of a 0.4-knot flood. Where the current runs at 4 knots or more on both sides of the slack, 5 of 85 slacks differ by more than 15 minutes and none by more than 22.
+
+This compares two sets of predictions with each other, not either with measured water. It covers one station and one month. XTide's US current stations use NOAA's published constants and are not part of this comparison.
+
 ## Dates and reproducibility
 
-The NOAA links point to a fixed engine revision so the reports, test methods and fixtures can be inspected together. The figures are the results recorded in the July 2026 reports, not a daily validation feed or a new run against current agency data. Running the tests against those fixtures checks agreement with the saved historical predictions.
+The NOAA links point to a fixed engine revision so the reports, test methods and fixtures can be inspected together. The figures are the results recorded in the July 2026 reports, not a daily validation feed or a new run against current agency data. Running the tests against those fixtures checks agreement with the saved historical predictions. The Sechelt Rapids comparison is a single run on October 17, 2026; both sources still publish October 2026, and the [comparison script](https://github.com/openwatersio/slackwater/blob/1716ea8372d7fbe9e374b62840e87b71fec3735c/benchmarks/xtide-chs-slack.ts) repeats it.
 
 If a reading looks wrong, [contact support](/support/) with the station, date, time and your app version. You can also inspect the [app source](https://github.com/openwatersio/slackwater-ios) and the [station database's sources](https://github.com/openwatersio/slackwater-database#sources).

@@ -1,8 +1,8 @@
 ---
 url: https://slackwater.xyz/compare/best-tide-and-current-apps-iphone/
 title: The best tide and current apps for iPhone (2026) — Slackwater
-description: Seven iPhone tide apps compared on currents, offline use, price and data source, with a plain recommendation for each kind of user.
-verified: 2026-10-14
+description: Eight iPhone tide apps compared on currents, offline use, price and data source, with a plain recommendation for each kind of user.
+verified: 2026-10-17
 ---
 
 # The best tide and current apps for iPhone
@@ -40,9 +40,10 @@ Slackwater features checked October 9, 2026. Competitor dates are listed below.
 | Tide Guide | Current conditions | Check feature availability | Yes; availability varies | Free download; Pro subscription or lifetime | See listing |
 | Tides Near Me | Next slack, speed, curve | No claim | Yes | Free + ads | 4.8 (163K) |
 | Actual Currents | Animated flow, stations | No | Yes | $39.99/yr | 4.7 (21) |
+| OceanConnect | 48-hour flow forecast, stations | No | BC | Free | 5.0 (5) |
 | Tides and Currents-USA | Station predictions | Yes | No | $19.99/yr or $49.99 once | 4.2 (28) |
 
-Prices, ratings and features are from the US App Store, checked October 14, 2026, except Tide Guide's feature and purchase information, checked October 9, 2026. See each comparison's sources and limits.
+Prices, ratings and features are from the US App Store, checked October 14, 2026, except Tide Guide's feature and purchase information, checked October 9, 2026, and OceanConnect's, checked October 17, 2026. See each comparison's sources and limits.
 
 ## Slackwater
 
@@ -118,6 +119,19 @@ No widgets, no Watch. Launched April 2026.
 
 **Best for:** seeing how a strait moves at a chosen hour, from the dock.
 
+## OceanConnect
+
+A free forecast map of the BC coast, from Southern Alaska to Northern California, run by
+the Hakai Institute. Currents come from Environment and Climate Change Canada's ocean
+models and run 48 hours ahead, with wind, waves and water temperature on the same map. It
+also shows DFO and NOAA current stations, buoys and webcams. No account, on the web and
+Android as well as iPhone, and no offline mode. Its developer says currents in small
+channels "will often be wrong" and to use the current stations nearby.
+
+[Read the full comparison](/compare/slackwater-vs-oceanconnect/).
+
+**Best for:** the night before, to see tomorrow's wind and how the water moves along the route.
+
 ## Tides and Currents-USA
 
 Offline harmonic tides and currents for the US, with 849 harmonic current stations. Pro
@@ -128,18 +142,20 @@ once. Reviews complain about the station picker. US only.
 
 ## Which one
 
-Each app above has its own page with a side-by-side screenshot and the full table:
+Each app above has its own page with the full table:
 [AyeTides](/compare/slackwater-vs-ayetides/) ·
 [Tide Alert](/compare/slackwater-vs-tide-alert/) ·
 [Tide Guide](/alternatives/tide-guide/) ·
 [Tides Near Me](/alternatives/tides-near-me/) ·
-[Actual Currents](/compare/slackwater-vs-actual-currents/).
+[Actual Currents](/compare/slackwater-vs-actual-currents/) ·
+[OceanConnect](/compare/slackwater-vs-oceanconnect/).
 
 - **Free tide charts and home screen widgets:** Slackwater.
 - **Transiting passes in BC or Washington:** Slackwater. Download Canadian stations first and check for online-only passes. Second choice AyeTides.
 - **Alerts on your wrist:** Tide Alert.
 - **Weather and a Watch face:** Tide Guide.
 - **A picture of the whole strait moving:** Actual Currents, with signal.
+- **Tomorrow's wind and currents on the BC coast, free:** OceanConnect, with signal.
 - **Just rising or falling, free:** Tides Near Me, with ads.
 
 Predictions are not observations. Weather, river flow and local conditions change the

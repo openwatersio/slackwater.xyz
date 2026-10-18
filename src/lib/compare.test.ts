@@ -5,7 +5,7 @@ import { APP_STORE, MINIMUM_IOS, REQUIREMENT } from './links'
 
 describe('compare pages', () => {
   it('parses every page with a path, title and description', () => {
-    expect(COMPARE_PATHS.length).toBe(6)
+    expect(COMPARE_PATHS.length).toBe(7)
     for (const p of Object.values(COMPARE_PAGES)) {
       expect(p.path).toMatch(/^\/(compare|alternatives)\/[a-z0-9-]+\/$/)
       expect(p.title).toContain('Slackwater')
