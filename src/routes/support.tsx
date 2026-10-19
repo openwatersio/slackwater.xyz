@@ -3,7 +3,7 @@ import { marked } from 'marked'
 import support from '../content/support.md?raw'
 
 const TITLE = 'Get help with Slackwater'
-const DESCRIPTION = 'How to get help with Slackwater, report a bug, or ask about a station.'
+const DESCRIPTION = 'Answers about Slackwater downloads, offline use, stations and Premium, plus how to contact support.'
 // Trailing slash is required: Workers Assets 307s /support -> /support/,
 // and a canonical pointing at a redirect is a conflicting signal.
 const CANONICAL = 'https://slackwater.xyz/support/'
@@ -35,7 +35,7 @@ function Support() {
       </nav>
 
       <article
-        className="mt-10 leading-relaxed text-sw-foam [&_a]:underline [&_a]:decoration-sw-steel [&_a]:underline-offset-4 [&_a:hover]:decoration-sw-foam [&_h1]:border-b [&_h1]:border-white/10 [&_h1]:pb-8 [&_h1]:text-4xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-sw-paper sm:[&_h1]:text-5xl [&_p]:mt-4"
+        className="mt-10 leading-relaxed text-sw-foam [&_a]:underline [&_a]:decoration-sw-steel [&_a]:underline-offset-4 [&_a:hover]:decoration-sw-foam [&_h1]:border-b [&_h1]:border-white/10 [&_h1]:pb-8 [&_h1]:text-4xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-sw-paper sm:[&_h1]:text-5xl [&_h2]:mt-12 [&_h2]:scroll-mt-8 [&_h2]:border-t [&_h2]:border-white/10 [&_h2]:pt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-sw-paper [&_h3]:mt-8 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-sw-paper [&_p]:mt-4"
         dangerouslySetInnerHTML={{ __html: marked.parse(support, { async: false }) }}
       />
     </main>
