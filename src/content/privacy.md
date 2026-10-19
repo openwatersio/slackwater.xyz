@@ -1,6 +1,6 @@
 # Privacy policy
 
-Effective October 14, 2026
+Effective October 19, 2026
 
 This policy covers the Slackwater iOS app and slackwater.xyz. Slackwater is operated by Open Water Software, LLC, doing business as Open Waters (“Open Waters,” “we,” or “us”).
 
@@ -28,6 +28,10 @@ When iCloud is available, Slackwater stores the identifiers and save times of yo
 ## Purchases and TestFlight
 
 Apple processes TestFlight participation and App Store purchases under Apple’s privacy policy. Slackwater asks StoreKit only whether Apple has verified a qualifying purchase and keeps that entitlement status on your device. Open Waters does not receive your payment-card details.
+
+## Android testing
+
+The Slackwater Android testers group is a Google Group. Google processes joining it and installing test builds through Google Play under Google's privacy policy. As the group's owner, Open Waters can see the email addresses of its members and uses them only to give those members access to Android test builds. Other members cannot see them. Leave the group at any time to remove your address.
 
 ## Online requests from the app
 

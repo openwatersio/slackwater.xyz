@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { APP_STORE, MINIMUM_IOS, REQUIREMENT } from '#/lib/links'
+import { ANDROID_TESTERS, APP_STORE, MINIMUM_IOS, REQUIREMENT } from '#/lib/links'
 import { Shot } from '#/components/Shot'
 import { SITE_DESCRIPTION } from '#/routes/__root'
 import { ORGANIZATION_DESCRIPTION } from '#/lib/json-ld'
@@ -198,6 +198,13 @@ function Home() {
             <Cta />
           </div>
           <p className="mt-4 text-sm text-sw-steel">Free. Open source. No account, no ads. {REQUIREMENT}</p>
+          <p className="mt-2 text-sm text-sw-steel">
+            On Android?{' '}
+            <a href={ANDROID_TESTERS} className="underline underline-offset-4 hover:text-sw-foam">
+              Join the testers
+            </a>{' '}
+            to get early builds.
+          </p>
           <p className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
             <a
               href="/learn/tides/"
@@ -485,6 +492,15 @@ function Home() {
               Slackwater runs on iPhone and iPad with iOS or iPadOS {MINIMUM_IOS} or later,
               and Apple Watch with watchOS 26 or later.{' '}
               <a href={APP_STORE}>Download on the App Store</a>.
+            </p>
+          </div>
+          <div>
+            <h3>Is there an Android version?</h3>
+            <p>
+              An Android version is in development. Join the{' '}
+              <a href={ANDROID_TESTERS}>Slackwater Android testers group</a> with the Google
+              account you use on your phone, and you will get test builds through Google Play
+              as they become available.
             </p>
           </div>
           <div>
