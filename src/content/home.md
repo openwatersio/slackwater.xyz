@@ -10,6 +10,10 @@ Check high and low tides, current speed and direction, and slack-water times for
 
 Tide stations are available around the world; current stations cover the US and Canada. Coverage varies by place. [Browse the station directory](https://slackwater.xyz/stations/) to check your destination. Website coverage is not identical to the app's coverage.
 
+## Widgets and Apple Watch
+
+Free home screen widgets show the next high, low or slack and today's curve, for your location or a station you choose. To add one, long-press your home screen, tap +, and search for Slackwater. The free Apple Watch app works without your phone; turn the Digital Crown to move through the day. Premium adds lock-screen widgets and Watch complications.
+
 ## Offline use
 
 Bundled stations predict on your phone for any date without a download or an expiring cache. Supported Canadian stations need an initial download to build an offline model. Some Canadian passes require a connection and are labeled in the app. Set up Canadian stations before leaving signal. Canadian station pages on this website fetch predictions directly from the Canadian Hydrographic Service in the browser; raw HTML and Markdown do not contain those predictions.

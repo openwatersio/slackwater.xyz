@@ -331,24 +331,74 @@ function Home() {
               underneath.
             </p>
             <p>
-              Deception Pass on one day: ebbing west-north-west at sunrise, flooding
-              east-south-east by noon.
+              One afternoon on both sides of the border: Deception Pass flooding hard, and the
+              Strait of Juan de Fuca off Victoria near its maximum flood.
             </p>
           </Prose>
         </div>
         <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-4 sm:gap-8">
           <Shot
-            src="/shots/currents-sunrise.webp"
-            alt="Deception Pass (Narrows) in the app at 7:10am: ebbing at 5.8 knots, slack 2 hours 50 minutes later, sunrise at 7:03am and a 5.3 knot flood coming at 12:40pm."
-            caption="7:10am, ebbing at 5.8 knots. Slack is 2 hours 50 minutes away."
+            src="/shots/currents-day.webp"
+            alt="Deception Pass (Narrows) in the app at 1:00pm: flooding at 5.2 knots to the east-south-east, slack 2 hours 37 minutes later, a next max of 7.2 knots ebbing at 6:30pm, and the week's floods, slacks and ebbs listed underneath."
+            caption="Deception Pass at 1:00pm, flooding at 5.2 knots. The ebb behind it peaks at 7.2."
             crop
           />
           <Shot
-            src="/shots/currents-day.webp"
-            alt="Deception Pass (Narrows) in the app at 1:00pm: flooding at 5.2 knots to the east-south-east, slack 2 hours 37 minutes later, a next max of 7.2 knots ebbing at 6:30pm, and the week's floods, slacks and ebbs listed underneath."
-            caption="1:00pm, flooding at 5.2 knots. The ebb behind it peaks at 7.2."
+            src="/shots/currents-victoria.webp"
+            alt="The current 4.5 nautical miles south-south-west of Trial Island, off Victoria, in the app at 3:30pm: flooding north-east at 1.2 knots, two minutes before maximum flood, with sunrise and sunset on the axis and a link to the tide at Victoria."
+            caption="Off Trial Island at 3:30pm, flooding at 1.2 knots. Max flood is 2 minutes away."
             crop
           />
+        </div>
+      </section>
+
+      <section className="mt-24">
+        <div className="max-w-xl">
+          <Heading>On your home screen and your wrist, free.</Heading>
+          <Prose>
+            <p>
+              Home screen widgets show the next high, low or slack and today&rsquo;s curve, for
+              where you are or a station you pick. The Apple Watch app works without your
+              phone: turn the Digital Crown to move through the day. Both are free.
+            </p>
+            <p>
+              Long-press your home screen, tap +, and search for Slackwater.{' '}
+              <a href="/pricing/" className="underline underline-offset-4 hover:text-sw-foam">
+                Premium
+              </a>{' '}
+              adds lock-screen widgets and Watch complications.
+            </p>
+          </Prose>
+        </div>
+        {/* The home screen is a device capture, cropped to the widgets; the
+            watch frame comes from the watch App Store walk. */}
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+          <figure className="m-0 w-full max-w-[390px]">
+            <img
+              src="/shots/widgets/home-screen.webp"
+              alt="An iPhone home screen with two Slackwater widgets: Oak Bay's tide at 7.9 feet and falling, and Nakwakto Rapids flooding north at 4.3 knots with the day's maximums and slacks on its curve."
+              loading="lazy"
+              width={780}
+              height={801}
+              className="w-full rounded-[2rem] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
+            />
+            <figcaption className="mt-4 text-sm leading-relaxed text-sw-steel">
+              Oak Bay&rsquo;s tide and Nakwakto Rapids, on the home screen.
+            </figcaption>
+          </figure>
+          <figure className="m-0 w-[200px]">
+            <img
+              src="/shots/watch/watch-tide.webp"
+              alt="Friday Harbor on Apple Watch, turned with the Digital Crown to 3:49pm: 6.1 feet and rising toward a 6.9 foot high at 5:31pm."
+              loading="lazy"
+              width={422}
+              height={514}
+              className="w-full rounded-[28%/23%] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
+            />
+            <figcaption className="mt-4 text-sm leading-relaxed text-sw-steel">
+              On the watch, the Digital Crown moves through the day.
+            </figcaption>
+          </figure>
         </div>
       </section>
 
