@@ -57,6 +57,12 @@ jobs:
       - run: npm test
       - run: npm run test:agents
 
+      # Before the deploy, while the live sitemaps still describe the previous
+      # one. Never blocks the deploy; a failure leaves no plan to submit.
+      - name: Plan IndexNow submission
+        continue-on-error: true
+        run: node tools/indexnow.mjs plan "$RUNNER_TEMP/indexnow-urls.txt"
+
       # "ERROR [nitro] Preview server exited with code 143" in the build log
       # above is normal — nitro SIGTERMs the server it prerendered against.
       # The step's exit code is what matters (CONTRIBUTING.md, "Gotchas").
@@ -67,3 +73,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           command: deploy -c .output/server/wrangler.json
+
+      # After the deploy, so an engine that fetches at once gets the new pages.
+      - name: Submit to IndexNow
+        continue-on-error: true
+        run: node tools/indexnow.mjs submit "$RUNNER_TEMP/indexnow-urls.txt"
