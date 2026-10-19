@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { INDEXNOW_KEY } from '../src/lib/indexnow.ts'
 
 let worker
 let base = process.argv[2]
@@ -156,6 +157,9 @@ try {
     assert.equal([...xml.matchAll(/<loc>/g)].length, [...xml.matchAll(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/g)].length)
     assert.ok(Buffer.byteLength(xml) < 50 * 1024 * 1024)
   }
+  const key = await get(`/${INDEXNOW_KEY}.txt`)
+  assert.equal(key.status, 200, 'IndexNow key file')
+  assert.equal((await key.text()).trim(), INDEXNOW_KEY, 'IndexNow key file')
   const robots = await get('/robots.txt')
   assert.equal(robots.status, 200)
   assert.ok((await robots.text()).includes('Sitemap: https://slackwater.xyz/sitemap.xml'))
