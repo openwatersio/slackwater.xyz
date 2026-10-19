@@ -2,7 +2,7 @@
 url: https://slackwater.xyz/compare/best-tide-and-current-apps-iphone/
 title: The best tide and current apps for iPhone (2026) — Slackwater
 description: Eight iPhone tide apps compared on currents, offline use, price and data source, with a plain recommendation for each kind of user.
-verified: 2026-10-17
+verified: 2026-10-19
 ---
 
 # The best tide and current apps for iPhone
@@ -140,6 +140,17 @@ once. Reviews complain about the station picker. US only.
 
 **Best for:** US-only offline currents on a budget, if you can live with the interface.
 
+## Not an app: Dairiki.org
+
+A free website of XTide tide and current tables for Washington, BC, Oregon and California:
+a daily plot and a printable month of turns and maxima, for 38 current stations. It needs a
+connection unless you print it. In October 2026 its slack times at Deception Pass were a
+median 31 minutes from NOAA's predictions for the same station, checked October 19, 2026.
+
+[Read the full comparison](/compare/slackwater-vs-dairiki/).
+
+**Best for:** a printed month of tides at the chart table.
+
 ## Which one
 
 Each app above has its own page with the full table:
@@ -148,7 +159,8 @@ Each app above has its own page with the full table:
 [Tide Guide](/alternatives/tide-guide/) ·
 [Tides Near Me](/alternatives/tides-near-me/) ·
 [Actual Currents](/compare/slackwater-vs-actual-currents/) ·
-[OceanConnect](/compare/slackwater-vs-oceanconnect/).
+[OceanConnect](/compare/slackwater-vs-oceanconnect/) ·
+[Dairiki.org](/compare/slackwater-vs-dairiki/).
 
 - **Free tide charts and home screen widgets:** Slackwater.
 - **Transiting passes in BC or Washington:** Slackwater. Download Canadian stations first and check for online-only passes. Second choice AyeTides.
@@ -157,6 +169,7 @@ Each app above has its own page with the full table:
 - **A picture of the whole strait moving:** Actual Currents, with signal.
 - **Tomorrow's wind and currents on the BC coast, free:** OceanConnect, with signal.
 - **Just rising or falling, free:** Tides Near Me, with ads.
+- **A printed month of tides, free:** Dairiki.org.
 
 Predictions are not observations. Weather, river flow and local conditions change the
 water. None of these apps, including ours, is for navigation.
