@@ -117,3 +117,4 @@ water. Neither app is for navigation.
 
 See also: [the best tide and current apps for iPhone](/compare/best-tide-and-current-apps-iphone/)
 · [Slackwater vs Actual Currents](/compare/slackwater-vs-actual-currents/)
+· [Slackwater vs Dairiki.org](/compare/slackwater-vs-dairiki/)
