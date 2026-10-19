@@ -6,6 +6,9 @@ export const APP_STORE_ID = '6813654837'
 export const MINIMUM_IOS = '26'
 export const REQUIREMENT = `Requires iOS ${MINIMUM_IOS} or later.`
 
+/** Joining this Google Group is how Android testers get Play test builds. */
+export const ANDROID_TESTERS = 'https://groups.google.com/g/slackwater-android-testers'
+
 // The six comparison pages repeat this URL in Markdown; keep them aligned.
 export const APP_STORE = `https://apps.apple.com/app/slackwater-tides-current/id${APP_STORE_ID}`
 

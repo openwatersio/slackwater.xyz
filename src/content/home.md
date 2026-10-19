@@ -4,6 +4,8 @@ Slackwater is a free, open-source tide and tidal currents app from [Open Waters]
 
 [Download on the App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837).
 
+An Android version is in development. Join the [Slackwater Android testers group](https://groups.google.com/g/slackwater-android-testers) with the Google account you use on your phone to get test builds through Google Play as they become available.
+
 ## Tides and currents
 
 Check high and low tides, current speed and direction, and slack-water times for a beach visit, fishing trip or passage. Scrub the timeline to see conditions at a chosen minute, with a week of highs, lows, maximum currents and slacks below. The app shows sunrise, sunset and moon phase alongside the predictions. Search for stations, browse the map, or use location permission to find nearby stations. Location permission is optional and your GPS coordinates stay on your device.
