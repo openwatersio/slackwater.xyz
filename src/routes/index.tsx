@@ -190,35 +190,10 @@ function Home() {
             Tides worldwide, currents across the US and Canada. Bundled stations are ready
             offline for any date.
           </p>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-sw-steel">
-            Canadian stations need an initial download. Some passes require a connection;
-            the app tells you which.
-          </p>
           <div className="mt-8">
             <Cta />
           </div>
-          <p className="mt-4 text-sm text-sw-steel">Free. Open source. No account, no ads. {REQUIREMENT}</p>
-          <p className="mt-2 text-sm text-sw-steel">
-            On Android?{' '}
-            <a href={ANDROID_TESTERS} className="underline underline-offset-4 hover:text-sw-foam">
-              Join the testers
-            </a>{' '}
-            to get early builds.
-          </p>
-          <p className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
-            <a
-              href="/learn/tides/"
-              className="font-medium text-sw-foam underline underline-offset-4 transition hover:text-sw-paper"
-            >
-              Learn how tides work <span aria-hidden>→</span>
-            </a>
-            <a
-              href="/learn/slack-water/"
-              className="font-medium text-sw-foam underline underline-offset-4 transition hover:text-sw-paper"
-            >
-              What is slack water? <span aria-hidden>→</span>
-            </a>
-          </p>
+          <p className="mt-4 text-sm text-sw-steel">Free. Open source. No account, no ads.</p>
         </div>
 
         {/* The recording runs taller than the hero, so it is clipped and faded
@@ -253,6 +228,36 @@ function Home() {
           </figure>
         </div>
       </header>
+
+      {/* Kept below the recording so a phone's first screen holds only the
+          promise, the download button and the app itself. */}
+      <div className="mx-auto mt-8 max-w-2xl text-center">
+        <p className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+          <a
+            href="/learn/tides/"
+            className="font-medium text-sw-foam underline underline-offset-4 transition hover:text-sw-paper"
+          >
+            Learn how tides work <span aria-hidden>→</span>
+          </a>
+          <a
+            href="/learn/slack-water/"
+            className="font-medium text-sw-foam underline underline-offset-4 transition hover:text-sw-paper"
+          >
+            What is slack water? <span aria-hidden>→</span>
+          </a>
+        </p>
+        <p className="mt-6 text-sm leading-relaxed text-sw-steel">
+          Canadian stations need an initial download. Some passes require a connection;
+          the app tells you which.
+        </p>
+        <p className="mt-2 text-sm text-sw-steel">
+          {REQUIREMENT} On Android?{' '}
+          <a href={ANDROID_TESTERS} className="underline underline-offset-4 hover:text-sw-foam">
+            Join the testers
+          </a>{' '}
+          to get early builds.
+        </p>
+      </div>
 
       <div className="mx-auto mt-8 max-w-2xl text-center text-sm">
         <p className="text-sw-steel">Available in {LANGUAGES.length} languages</p>
