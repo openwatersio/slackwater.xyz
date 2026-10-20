@@ -35,9 +35,11 @@ function Kayak() {
       </nav>
 
       {/* The page's screenshots sit in its Markdown, so they cap at a phone's
-          width and take the shots' rounded, shadowed frame. */}
+          width and take the shots' rounded, shadowed frame. Two images in one
+          paragraph are a pair: the setting beside the curve it changes, side
+          by side from sm up. */}
       <article
-        className="mt-10 leading-relaxed text-sw-foam [&_a]:underline [&_a]:decoration-sw-steel [&_a]:underline-offset-4 [&_a:hover]:decoration-sw-foam [&_h1]:border-b [&_h1]:border-white/10 [&_h1]:pb-8 [&_h1]:text-4xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-sw-paper sm:[&_h1]:text-5xl [&_h2]:mt-12 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-sw-paper [&_p]:mt-4 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-6 [&_img]:mx-auto [&_img]:mt-4 [&_img]:max-h-[640px] [&_img]:max-w-[320px] [&_img]:rounded-[2rem] [&_img]:object-cover [&_img]:object-top [&_img]:shadow-2xl [&_img]:shadow-sw-navy-deep/60 [&_img]:ring-1 [&_img]:ring-white/10"
+        className="mt-10 leading-relaxed text-sw-foam [&_a]:underline [&_a]:decoration-sw-steel [&_a]:underline-offset-4 [&_a:hover]:decoration-sw-foam [&_h1]:border-b [&_h1]:border-white/10 [&_h1]:pb-8 [&_h1]:text-4xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-sw-paper sm:[&_h1]:text-5xl [&_h2]:mt-12 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-sw-paper [&_p]:mt-4 [&_ul]:mt-4 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-6 [&_img]:mx-auto [&_img]:mt-4 [&_img]:max-h-[640px] [&_img]:max-w-[320px] [&_img]:rounded-[2rem] [&_img]:object-cover [&_img]:object-top [&_img]:shadow-2xl [&_img]:shadow-sw-navy-deep/60 [&_img]:ring-1 [&_img]:ring-white/10 [&_p:has(>img+img)]:grid [&_p:has(>img+img)]:items-center [&_p:has(>img+img)]:gap-6 sm:[&_p:has(>img+img)]:grid-cols-2"
         dangerouslySetInnerHTML={{ __html: marked.parse(kayak, { async: false }) }}
       />
 

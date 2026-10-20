@@ -10,7 +10,8 @@ Open Settings, find Slack window, and set Comfort current to the fastest current
 
 The opening of a window is when you need to be at the pass, not the slack instant. Drag the timeline and it stops at each window's opening and closing, so you can read both times off the curve. With Premium, an alert can tell you when a window opens.
 
-![The current off Trial Island, near Victoria, two minutes before maximum flood. The green stretches of the curve are the slack windows.](/shots/currents-victoria.webp)
+![Slackwater's Slack window setting with Comfort current at 1.4 knots. The example curve is green while the current is under 1.4 knots, a window of 3 hours 7 minutes.](/shots/kayak/comfort-current.webp)
+![The current 3 nautical miles north-east of Discovery Island, off Oak Bay, with Comfort current at 1.4 knots: flooding north at 2.7 knots at 3:30pm, slack in 1 hour 27 minutes. The curve is green while the current is under 1.4 knots and blue where it runs faster.](/shots/kayak/currents-comfort.webp)
 
 ## It works at the launch, with no signal
 
