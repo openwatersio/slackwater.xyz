@@ -193,7 +193,7 @@ function Home() {
           <div className="mt-8">
             <Cta />
           </div>
-          <p className="mt-4 text-sm text-sw-steel">Free. Open source. No account, no ads. {REQUIREMENT}</p>
+          <p className="mt-4 text-sm text-sw-steel">Free. Open source. No account, no ads.</p>
         </div>
 
         {/* The recording runs taller than the hero, so it is clipped and faded
@@ -251,7 +251,7 @@ function Home() {
           the app tells you which.
         </p>
         <p className="mt-2 text-sm text-sw-steel">
-          On Android?{' '}
+          {REQUIREMENT} On Android?{' '}
           <a href={ANDROID_TESTERS} className="underline underline-offset-4 hover:text-sw-foam">
             Join the testers
           </a>{' '}
