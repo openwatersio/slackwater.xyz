@@ -2,7 +2,7 @@ const SOURCE = 'https://github.com/openwatersio/slackwater-ios'
 
 export function SiteFooter() {
   return (
-    <footer className="mx-auto max-w-5xl px-5 pb-12 text-sm text-sw-steel sm:px-6">
+    <footer className="mx-auto max-w-5xl px-5 pb-12 text-sm text-sw-steel sm:px-6 print:hidden">
       <div className="border-t border-white/10 pt-6">
         <p className="leading-relaxed">
           Predictions are not observations — conditions vary with weather and river flow.{' '}

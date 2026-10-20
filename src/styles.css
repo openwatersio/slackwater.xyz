@@ -61,3 +61,23 @@
 html {
   color-scheme: dark;
 }
+
+/* Paper is the one light surface. A printer drops the page's background, so
+   the dark theme's pale ink would land on white; the ink tokens turn dark
+   instead, and every class that reads them follows. Hiding what doesn't belong
+   on paper is the components' job, with `print:hidden`. */
+@media print {
+  html {
+    color-scheme: light;
+  }
+  :root {
+    --color-sw-page: #ffffff;
+    --color-sw-paper: #0b1a2b;
+    --color-sw-foam: #0b1a2b;
+    --color-sw-steel: #44617a;
+    --color-sw-leaf: #3f6b2a;
+  }
+  @page {
+    margin: 0.5in;
+  }
+}
