@@ -4,7 +4,7 @@ import { NearbyMap } from './NearbyMap'
 import { DATUM_NOTE, datumLine, refinedRowsNote, seasonalNote, stationHeading } from '#/lib/copy'
 import { compass16, dayLabel, dayStart, height, hhmm, shiftLocalDay } from '#/lib/format'
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
-import { APP_STORE, REQUIREMENT } from '#/lib/links'
+import { APP_STORE, ORIGIN, REQUIREMENT } from '#/lib/links'
 import type { Crumb, NearbyRow } from '#/lib/catalogue-server'
 import type { PassGuide } from '#/lib/passes'
 import { findEvents, tideExtremes, type StationEvent, type TideExtreme } from '#/lib/predict'
@@ -120,12 +120,12 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
   const note = seasonalNote(station)
   const lead = note?.place === 'lead' ? note : undefined
   return (
-    <main className="mx-auto max-w-3xl px-5 pb-24 pt-8 sm:px-6 sm:pt-14">
+    <main className="mx-auto max-w-3xl px-5 pb-24 pt-8 sm:px-6 sm:pt-14 print:max-w-none print:p-0">
       <Breadcrumb station={station} crumbs={crumbs} />
-      <h1 className="mt-4 text-3xl font-semibold tracking-tight text-sw-paper sm:text-5xl">
+      <h1 className="mt-4 text-3xl font-semibold tracking-tight text-sw-paper sm:text-5xl print:mt-0 print:text-2xl">
         {stationHeading(station)}
       </h1>
-      <p className="mt-3 text-sw-steel">
+      <p className="mt-3 text-sw-steel print:mt-1 print:text-sm">
         {station.kind === 'tide' ? 'Tide times & tide chart' : (
           <>Tidal currents &amp; <a href={SLACK_GUIDE} className="underline decoration-sw-steel/60 underline-offset-4 hover:text-sw-foam">slack water</a></>
         )}
@@ -143,7 +143,7 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
           </div>
         )
       ) : (
-        <>
+        <div className="print:hidden">
           <StationDayPager
             station={station}
             selectedAt={selectedAt}
@@ -169,9 +169,9 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
               </button>
             </p>
           )}
-        </>
+        </div>
       )}
-      <p className="mt-6 text-sm leading-relaxed text-sw-steel">
+      <p className="mt-6 text-sm leading-relaxed text-sw-steel print:mt-2">
         Predictions are not observations — conditions vary with weather and river flow.{' '}
         <strong className="font-semibold text-sw-foam">Not for navigation.</strong>
       </p>
@@ -180,6 +180,13 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
       {station.source === 'bundled' && <WeekTable station={station} at={at} refined={layer.refined} />}
       <Facts station={station} />
       <Nearby station={station} rows={nearby} />
+      {/* Paper loses the address bar, so the sheet carries the link back. The
+          date waits for the reader's own clock: a served page would otherwise
+          print the day the site was built. */}
+      <p className="mt-4 hidden text-sm text-sw-steel print:block">
+        {ORIGIN}{station.path}
+        {live && <> · Printed {dayLabel(now, station.timezone)}</>}
+      </p>
     </main>
   )
 }
@@ -192,7 +199,7 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
 function Breadcrumb({ station, crumbs }: { station: Station; crumbs: Crumb[] }) {
   const trail = crumbs.length ? crumbs : [kindIndex(station)]
   return (
-    <nav aria-label="Breadcrumb" className="text-sm text-sw-steel">
+    <nav aria-label="Breadcrumb" className="text-sm text-sw-steel print:hidden">
       <ol className="flex flex-wrap gap-x-2">
         <li><a href="/" className="hover:text-sw-paper">Slackwater</a></li>
         {trail.map((c) => (
@@ -350,12 +357,12 @@ function WeekTable({ station, at, refined }: { station: BundledStation; at: Date
   const tide = station.kind === 'tide'
   let lastDay = ''
   return (
-    <section className="mt-14">
-      <h2 className="text-xl font-semibold text-sw-paper">
+    <section className="mt-14 print:mt-4">
+      <h2 className="text-xl font-semibold text-sw-paper print:text-base">
         {tide ? 'Tide times for the next 7 days' : 'Slack water and maximums for the next 7 days'}
       </h2>
-      <table className="mt-4 w-full text-sm">
-        <caption className="pb-3 text-left leading-relaxed text-sw-steel">
+      <table className="mt-4 w-full text-sm print:mt-1 print:block">
+        <caption className="pb-3 text-left leading-relaxed text-sw-steel print:block print:pb-2 print:text-xs">
           {dayLabel(week[0], tz)} through {dayLabel(week[6], tz)}.
           {' '}All times are local to {station.name} ({tz}).
           {tide && station.chartDatum && <> Heights are in feet above {station.chartDatum}.</>}
@@ -363,14 +370,14 @@ function WeekTable({ station, at, refined }: { station: BundledStation; at: Date
           {!tide && (
             <>
               {' '}
-              <a href={SLACK_GUIDE} className="underline underline-offset-4 hover:text-sw-foam">
+              <a href={SLACK_GUIDE} className="underline underline-offset-4 hover:text-sw-foam print:no-underline">
                 What slack water is, and why it isn&rsquo;t high or low tide
               </a>
               .
             </>
           )}
         </caption>
-        <thead className="text-left text-xs uppercase tracking-wider text-sw-leaf">
+        <thead className="text-left text-xs uppercase tracking-wider text-sw-leaf print:hidden">
           <tr>
             <th className="py-2 pr-3 font-medium">Day</th>
             <th className="py-2 pr-3 font-medium">{tide ? 'Tide' : 'Current'}</th>
@@ -378,7 +385,7 @@ function WeekTable({ station, at, refined }: { station: BundledStation; at: Date
             <th className="py-2 font-medium">{tide ? 'Height' : 'Speed'}</th>
           </tr>
         </thead>
-        <tbody className="tabular-nums">
+        <tbody className="tabular-nums print:block print:columns-2 print:gap-10">
           {rows.map((t) => {
             const day = dayLabel(t.time, tz)
             const first = day !== lastDay
@@ -386,13 +393,13 @@ function WeekTable({ station, at, refined }: { station: BundledStation; at: Date
             return (
               <tr
                 key={`${t.chs ? 'chs' : 'computed'}-${t.time.getTime()}`}
-                className={first ? 'border-t border-sw-steel/20' : ''}
+                className={`print:grid print:break-inside-avoid print:grid-cols-[8rem_5rem_3.5rem_1fr] ${first ? 'border-t border-sw-steel/20' : ''}`}
                 data-source={t.chs ? 'chs' : undefined}
               >
-                <td className="py-1.5 pr-3 text-sw-steel">{day}</td>
-                <td className="py-1.5 pr-3">{t.what}</td>
-                <td className="py-1.5 pr-3"><time dateTime={t.time.toISOString()}>{t.hhmm}</time></td>
-                <td className="py-1.5">
+                <td className="py-1.5 pr-3 text-sw-steel print:py-px">{day}</td>
+                <td className="py-1.5 pr-3 print:py-px">{t.what}</td>
+                <td className="py-1.5 pr-3 print:py-px"><time dateTime={t.time.toISOString()}>{t.hhmm}</time></td>
+                <td className="py-1.5 print:py-px">
                   {t.value ?? ''}
                   {/* The row-level mark the caption explains. */}
                   {t.chs && <span className="ml-2 rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-sw-steel">CHS</span>}
@@ -441,9 +448,9 @@ function Facts({ station }: { station: Station }) {
       : 'https://tidesandcurrents.noaa.gov/noaacurrents/'
     : 'https://tides.gc.ca/en/tides-currents-and-water-levels'
   return (
-    <section className="mt-14">
-      <h2 className="text-xl font-semibold text-sw-paper">Station facts</h2>
-      <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
+    <section className="mt-14 print:mt-4">
+      <h2 className="text-xl font-semibold text-sw-paper print:text-base">Station facts</h2>
+      <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm print:mt-1 print:gap-y-0 print:text-xs">
         {rows.map(([k, v]) => v && (
           <div key={k} className="contents">
             <dt className="text-sw-steel">{k}</dt>
@@ -456,7 +463,7 @@ function Facts({ station }: { station: Station }) {
       {datum && <p className="mt-3 text-sm text-sw-steel/70">{DATUM_NOTE}</p>}
       {aside && <p className="mt-3 text-sm text-sw-steel/70">{aside.text}</p>}
       {bundled && station.attribution && <p className="mt-3 break-words text-sm text-sw-steel/70">{station.attribution}</p>}
-      <p className="mt-3 text-sm text-sw-steel">
+      <p className="mt-3 text-sm text-sw-steel print:hidden">
         <a href="/accuracy/" className="underline underline-offset-4 hover:text-sw-paper">How we check predictions</a>
         {' '}— dated samples and their limits.
       </p>
@@ -562,7 +569,7 @@ function ChsGate({
         fetched under DFO&rsquo;s own terms. Slackwater covers this water in the app.
       </p>
       {(inFlight || stopped) && (
-        <div className="mt-5">
+        <div className="mt-5 print:hidden">
           <button
             type="button"
             onClick={() => {
@@ -684,7 +691,7 @@ function Nearby({ station, rows }: { station: Station; rows: NearbyRow[] }) {
   if (!rows.length) return null
   const all = kindIndex(station).href
   return (
-    <section className="mt-14">
+    <section className="mt-14 print:hidden">
       <h2 className="text-xl font-semibold text-sw-paper">Nearby</h2>
       <ul className="mt-4 grid gap-x-6 gap-y-2 sm:grid-cols-2">
         {rows.map((r) => (
@@ -731,7 +738,7 @@ function Cta({ station }: { station: Station }) {
       ? 'Slackwater shows tides and tidal currents on your phone — tides worldwide, currents across the US and Canada.'
       : 'Slackwater predicts tides and currents offline, on your phone — tides worldwide, currents across the US and Canada.'
   return (
-    <section className="mt-14 border-t border-sw-steel/15 pt-8">
+    <section className="mt-14 border-t border-sw-steel/15 pt-8 print:hidden">
       <p className="text-sw-steel">{pitch}</p>
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
         <a

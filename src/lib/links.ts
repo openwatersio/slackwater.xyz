@@ -2,6 +2,9 @@ import { version as DATABASE_VERSION } from '@slackwater/database/package.json'
 
 export const APP_STORE_ID = '6813654837'
 
+/** The site's own origin, for a link that has to stand on its own, like a printed page's. */
+export const ORIGIN = 'https://slackwater.xyz'
+
 /** The listing's minimum OS for iPhone and iPad, which install buttons state. */
 export const MINIMUM_IOS = '26'
 export const REQUIREMENT = `Requires iOS ${MINIMUM_IOS} or later.`
