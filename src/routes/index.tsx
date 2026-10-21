@@ -234,7 +234,7 @@ function LearnCard({ href, title, body, figure }: { href: string; title: string;
       href={href}
       className="group flex h-full flex-col overflow-hidden rounded-2xl bg-sw-canvas ring-1 ring-white/10 transition hover:ring-white/30"
     >
-      <div className="flex aspect-[8/3] items-center justify-center bg-sw-navy-deep/40 px-6 py-3">{figure}</div>
+      <div className="flex aspect-[8/3] items-center justify-center overflow-hidden bg-sw-navy-deep/40 px-6 py-3 [&>svg]:h-full [&>svg]:w-auto">{figure}</div>
       <div className="p-4">
         <p className="font-mono text-xs uppercase tracking-[0.14em] text-sw-leaf">Visual guide</p>
         <h3 className="mt-1 font-semibold leading-snug text-sw-paper">
@@ -350,13 +350,13 @@ function Home() {
           href="/learn/tides/"
           title="Learn how tides work"
           body="Why the Moon makes two high tides a day, one step at a time."
-          figure={<TidesFigure className="h-full w-full" />}
+          figure={<TidesFigure />}
         />
         <LearnCard
           href="/learn/slack-water/"
           title="What is slack water?"
           body="The window around the turn of a current, and why it isn't high or low tide."
-          figure={<SlackFigure className="h-full w-full" />}
+          figure={<SlackFigure />}
         />
       </div>
 
