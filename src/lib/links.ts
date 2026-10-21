@@ -1,5 +1,3 @@
-import { version as DATABASE_VERSION } from '@slackwater/database/package.json'
-
 export const APP_STORE_ID = '6813654837'
 
 /** The site's own origin, for a link that has to stand on its own, like a printed page's. */
@@ -32,4 +30,4 @@ export function tcdLink(version: string): { url: string; date?: string } {
     : { url: 'https://github.com/openwatersio/slackwater-database/releases' }
 }
 
-export const TCD = tcdLink(DATABASE_VERSION)
+export const TCD = tcdLink(__DATABASE_VERSION__)
