@@ -44,12 +44,12 @@ describe('landing page', () => {
     expect(html).not.toMatch(/<link[^>]+rel="preload"[^>]+href="\/shots\/tides-night.webp"/)
   })
 
-  it('links the tides explainer and slack water guide just below the hero', () => {
-    const belowHero = html.match(/<\/header>([\s\S]*?)<section/)?.[1]
+  it('links the tides explainer and slack water guide just above the accuracy section', () => {
+    const beforeAccuracy = html.match(/Where are you headed\?([\s\S]*?)Checked against the agencies/)?.[1]
 
-    expect(belowHero).toContain('href="/learn/tides/"')
-    expect(belowHero).toContain('Learn how tides work')
-    expect(belowHero).toContain('href="/learn/slack-water/"')
+    expect(beforeAccuracy).toContain('href="/learn/tides/"')
+    expect(beforeAccuracy).toContain('Learn how tides work')
+    expect(beforeAccuracy).toContain('href="/learn/slack-water/"')
   })
 
   it('computes nothing in the page', () => {

@@ -10,6 +10,8 @@ Fetch any page below with `Accept: text/markdown` for Markdown at the same URL, 
 
 - [Product overview](https://slackwater.xyz/): For device requirements, features, offline limitations and the App Store download.
 - [Stations](https://slackwater.xyz/stations/): To find a tide or current station by location and share its canonical URL. The directory has a Markdown twin; country, state and station pages are HTML.
+- [Boaters](https://slackwater.xyz/boating/): For sailors and cruisers away from signal: offline predictions, timing a pass with slack windows for the boat, Apple Watch at the helm.
+- [Tide pools](https://slackwater.xyz/tide-pools/): For planning a low-tide walk: the fortnight's lowest low, whether it falls in daylight, and shore etiquette and harvesting rules.
 - [Sea kayakers](https://slackwater.xyz/kayak/): For paddlers planning around slack: the comfort-current setting that marks slack windows, offline use at a launch, and the BC pass guides.
 - [Accuracy](https://slackwater.xyz/accuracy/): For prediction sources, validation samples and limits; never present predictions as live observations.
 - [Support](https://slackwater.xyz/support/): For setup questions and reporting a station problem; include station, date, time and time zone.

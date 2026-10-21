@@ -7,7 +7,7 @@ const ORIGIN = 'https://slackwater.xyz'
 /** Each page with a Markdown twin, as [HTML path, Markdown path]. */
 export const MARKDOWN_TWINS: [string, string][] = [
   ['/', '/index.md'],
-  ...['/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/kayak/', '/stations/', '/learn/tides/', '/learn/slack-water/', ...COMPARE_PATHS].map(
+  ...['/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/boating/', '/kayak/', '/tide-pools/', '/stations/', '/learn/tides/', '/learn/slack-water/', ...COMPARE_PATHS].map(
     (path): [string, string] => [path, `${path.slice(0, -1)}.md`],
   ),
 ]

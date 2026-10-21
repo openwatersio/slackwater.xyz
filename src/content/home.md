@@ -6,6 +6,12 @@ Slackwater is a free, open-source tide and tidal currents app from [Open Waters]
 
 An Android version is in development. Join the [Slackwater Android testers group](https://groups.google.com/g/slackwater-android-testers) with the Google account you use on your phone to get test builds through Google Play as they become available.
 
+## Where are you headed?
+
+- [Anchored, no bars](https://slackwater.xyz/boating/) (sailing and cruising): your phone roamed and every tide app is spinning. Slackwater predicts on your phone, so the week of turns at the next pass is already there.
+- [When's the lowest daylight low?](https://slackwater.xyz/tide-pools/) (tide pools and beaches): Slackwater marks the fortnight's lowest low and puts sunrise and sunset on the same timeline, so you can see whether it falls in daylight. Spring tides are labelled.
+- [Is the pass slow enough for me?](https://slackwater.xyz/kayak/) (sea kayaking): set the fastest current you'll paddle in, and every curve shows your slack windows in green.
+
 ## Tides and currents
 
 Check high and low tides, current speed and direction, and slack-water times for a beach visit, fishing trip or passage. Scrub the timeline to see conditions at a chosen minute, with a week of highs, lows, maximum currents and slacks below. The app shows sunrise, sunset and moon phase alongside the predictions. Search for stations, browse the map, or use location permission to find nearby stations. Location permission is optional and your GPS coordinates stay on your device.
