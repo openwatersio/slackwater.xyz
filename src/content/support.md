@@ -4,7 +4,7 @@ Have a question or found a problem? Email [slackwater@openwaters.io](mailto:slac
 
 For a problem with a prediction, include the station name, date, time and time zone, what you expected, and a screenshot if possible. Your app version, device and iOS version help us investigate other problems.
 
-Frequently asked questions: [downloads and offline use](#downloads), [finding places and reading predictions](#predictions), [devices and privacy](#devices), and [free features and Premium](#premium).
+Frequently asked questions: [downloads and offline use](#downloads), [finding places and reading predictions](#predictions), [devices and privacy](#devices), and [free features and Premium](#premium), followed by [ways to help Slackwater](#help).
 
 <h2 id="downloads">Downloads and offline use</h2>
 
@@ -97,5 +97,14 @@ Open **Support Slackwater** from the main list or Settings, then choose **Restor
 ### How do I manage or cancel the yearly subscription?
 
 Manage or cancel it in your Apple account's subscription settings. The yearly subscription renews automatically until cancelled. Lifetime is a single purchase with no renewal. Cancelling a subscription does not require deleting the app.
+
+<h2 id="help">Help Slackwater</h2>
+
+If Slackwater has helped you, these help it most, in this order:
+
+1. **Give Slackwater a rating.** Ratings help other people find it on the App Store. [Rate Slackwater](https://apps.apple.com/app/id6813654837?action=write-review)
+2. **Rate it and write a review.** A few honest sentences on what works for you, and what doesn't, help the next person decide. [Write a review](https://apps.apple.com/app/id6813654837?action=write-review)
+3. **Share it with a friend.** Send someone who watches the tide a link to [slackwater.xyz](https://slackwater.xyz/).
+4. **Buy Premium.** It funds Slackwater's development. [See payment options](/pricing/#payment)
 
 Still need help? Email [slackwater@openwaters.io](mailto:slackwater@openwaters.io).

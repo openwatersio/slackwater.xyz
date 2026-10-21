@@ -1,8 +1,8 @@
 # Slackwater Premium
 
-Keep your next tide close at hand. Check it from your lock screen, get a reminder before low water, or put a slack window beside your plans.
+Premium funds Slackwater's development. The tide and current app is free for everyone, and Premium pays for the work that keeps it accurate and growing.
 
-One Premium, with every feature. Choose a lower yearly price or pay once for lifetime access.
+It also adds a few things of its own: your next tide on your lock screen, a reminder before low water, and slack windows beside your plans. One Premium, with every feature. Choose a lower yearly price or pay once for lifetime access.
 
 [See payment options](/pricing/#payment)
 
@@ -42,9 +42,18 @@ Already have the app? Open Settings and choose **Support Slackwater** to get Pre
 
 ## The free app stays free
 
-Tide charts, tidal current predictions, station search, favorites, home screen widgets and the Apple Watch app are free. Every prediction date is available without a subscription. Premium supports Slackwater's development and adds the features above.
+Tide charts, tidal current predictions, station search, favorites, home screen widgets and the Apple Watch app are free. Every prediction date is available without a subscription. Premium pays for Slackwater's development and adds the features above.
 
 Bundled stations work offline. Supported Canadian stations need an initial download; some passes require a connection and are labeled in the app. [Browse the station directory](/stations/) to check your destination.
+
+## Help Slackwater
+
+Most people who use Slackwater won't buy Premium, and there are other ways to help it grow. If Slackwater has helped you, these help most, in this order:
+
+1. **Give Slackwater a rating.** Ratings help other people find it on the App Store. [Rate Slackwater](https://apps.apple.com/app/id6813654837?action=write-review)
+2. **Rate it and write a review.** A few honest sentences on what works for you, and what doesn't, help the next person decide. [Write a review](https://apps.apple.com/app/id6813654837?action=write-review)
+3. **Share it with a friend.** Send someone who watches the tide a link to [slackwater.xyz](https://slackwater.xyz/).
+4. **Buy Premium.** It funds Slackwater's development. [See payment options](/pricing/#payment)
 
 ## Purchase details
 

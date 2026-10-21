@@ -8,6 +8,8 @@ Tide charts, current predictions, station search, favorites and home screen widg
 
 Slackwater's [app source code](https://github.com/openwatersio/slackwater-ios) is public under the GPL. The [accuracy report](/accuracy/) explains published prediction comparisons and their limits. Predictions are not observations: weather and river flow affect real conditions. Slackwater is not for navigation.
 
+If Slackwater has helped you, [rate it on the App Store](https://apps.apple.com/app/id6813654837?action=write-review), share it with a friend, or [buy Premium](/pricing/#payment), which funds its development. [Ways to help](/support/#help) lists them in order.
+
 [Download Slackwater](https://apps.apple.com/app/slackwater-tides-current/id6813654837), [contact us](/contact/) for help, or read the [privacy policy](/privacy/) for how the app and website handle data.
 
 ## Mailing address

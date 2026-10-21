@@ -13,6 +13,9 @@ export const ANDROID_TESTERS = 'https://groups.google.com/g/slackwater-android-t
 // The six comparison pages repeat this URL in Markdown; keep them aligned.
 export const APP_STORE = `https://apps.apple.com/app/slackwater-tides-current/id${APP_STORE_ID}`
 
+/** Opens the App Store's rating and review sheet; pricing, support and about repeat it in Markdown. */
+export const APP_STORE_REVIEW = `https://apps.apple.com/app/id${APP_STORE_ID}?action=write-review`
+
 /**
  * The XTide/OpenCPN harmonics file from the database release this site is
  * built against. 1.0 betas are GitHub prereleases, so `releases/latest`

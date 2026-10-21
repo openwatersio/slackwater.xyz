@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { COMPARE_PATHS } from './compare'
 import { ORGANIZATION } from './json-ld'
-import { TCD } from './links'
+import { APP_STORE_REVIEW, TCD } from './links'
 import counts from '../content/opencpn-counts.json' with { type: 'json' }
 // @ts-expect-error a plain .mjs tool shared with tools/count-opencpn.mjs
 import { qualityCounts } from '../../tools/quality.mjs'
@@ -24,6 +24,19 @@ it('publishes the accuracy receipt from its maintained Markdown source', () => {
   const markdown = readFileSync('.output/public/accuracy.md', 'utf8')
   expect(page).toContain('href="/accuracy.md"')
   expect(markdown).toBe(readFileSync('src/content/accuracy.md', 'utf8'))
+})
+
+it('lists the ways to help in order, with the review link links.ts names (#241)', () => {
+  for (const name of ['pricing', 'support']) {
+    const source = readFileSync(`src/content/${name}.md`, 'utf8')
+    const help = source.slice(source.search(/^(## |<h2 id="help">)Help Slackwater/m))
+    const order = ['a rating', 'write a review', 'with a friend', 'Buy Premium'].map((step) => help.indexOf(step))
+    expect(order, name).not.toContain(-1)
+    expect(order, name).toEqual([...order].sort((a, b) => a - b))
+    expect(help, name).toContain(`(${APP_STORE_REVIEW})`)
+    expect(help, name).toContain('(/pricing/#payment)')
+  }
+  expect(readFileSync('src/content/about.md', 'utf8')).toContain(`(${APP_STORE_REVIEW})`)
 })
 
 it('links the OpenCPN download to the database release the site is built against', async () => {
