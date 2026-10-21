@@ -181,14 +181,6 @@ const SITUATIONS: {
     alt: 'Discovery Island’s current off Oak Bay with a 1.4 knot comfort current: slack windows in green between faster runs in blue.',
     href: '/kayak/',
   },
-  {
-    title: 'Dive the slack',
-    art: '/shots/situations/diving.webp',
-    who: 'Diving and spearfishing',
-    body: 'Set a tight comfort current and read the window before you gear up, even at a site with no signal.',
-    shot: '/shots/currents-victoria.webp',
-    alt: 'The current off Trial Island near Victoria, with the slack windows around each turn marked in green.',
-  },
 ]
 
 /** One situation: the reader's question, the screenshot that answers it
@@ -338,7 +330,7 @@ function Home() {
 
       <section className="mt-24 sm:mt-28">
         <Heading>Where are you headed?</Heading>
-        <div className="mt-8 grid gap-6 sm:grid-cols-2">
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
           {SITUATIONS.map((s) => (
             <SituationCard key={s.title} {...s} />
           ))}
