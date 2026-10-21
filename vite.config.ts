@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process'
+import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
@@ -103,9 +104,13 @@ export default defineConfig({
   // from the nightly rebuild in .github/workflows/deploy.yml.
   // The static pages' sitemap dates, for the structured data of the pages that
   // print no date of their own: one function, so the two cannot disagree.
+  // The database's version is read here rather than imported by the page code:
+  // the bundler ships the package's package.json in the same chunk as its
+  // decoder, so importing it decoded every station at Worker startup (#242).
   define: {
     __BUILD_NOW__: JSON.stringify(BUILD_NOW),
     __LASTMOD__: JSON.stringify(Object.fromEntries(STATIC_PATHS.map((p) => [p, lastmod(p)]))),
+    __DATABASE_VERSION__: JSON.stringify(createRequire(import.meta.url)('@slackwater/database/package.json').version),
   },
   plugins: [
     tailwindcss(),

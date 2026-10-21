@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
+import { dirname, relative, resolve } from 'node:path'
 
 const ASSETS = '.output/public/assets'
 
@@ -38,6 +39,33 @@ describe('client bundle', () => {
       const src = readFileSync(`${ASSETS}/${f}`, 'utf8')
       expect(src.includes('@slackwater/database'), f).toBe(false)
     }
+  })
+})
+
+describe('Worker startup', () => {
+  const SERVER = '.output/server'
+
+  /** Every module the Worker evaluates before its first request: the static import graph from its entry. */
+  const startupGraph = () => {
+    const seen = new Set([resolve(SERVER, 'index.mjs')])
+    for (const file of seen) {
+      for (const [, spec] of readFileSync(file, 'utf8').matchAll(/(?:^|[;}\s])(?:import|export)\s*(?:[\w$*{}\s,]+from\s*)?["']([^"']+)["']/g)) {
+        if (spec.startsWith('.')) seen.add(resolve(dirname(file), spec))
+      }
+    }
+    return [...seen].map((f) => relative(SERVER, f))
+  }
+
+  it('decodes no station database at module load', () => {
+    // The database decodes every station when its module is evaluated, and
+    // Cloudflare rejects an upload whose startup passes its CPU limit (#242).
+    // Only a dynamic import (a server function's handler) may reach it. A
+    // static one did through `links.ts`, which wanted only the version string
+    // and got the whole decoder, because the bundler ships the package's
+    // package.json in the same chunk.
+    const graph = startupGraph()
+    expect(graph.length, 'the entry imports nothing').toBeGreaterThan(1)
+    expect(graph.filter((f) => f.includes('@slackwater/database') || f.includes('catalogue'))).toEqual([])
   })
 })
 
