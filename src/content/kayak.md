@@ -15,7 +15,7 @@ The opening of a window is when you need to be at the pass, not the slack instan
 
 ## It works at the launch, with no signal
 
-Bundled stations predict on your phone for any date, with nothing to load: tides around the world and currents across the United States. Close to the border your phone may roam onto the other country's network, and Slackwater does not need either one.
+Bundled stations predict on your phone for any date, with nothing to load: tides around the world and currents across the United States. If your phone roams or loses data, Slackwater does not notice.
 
 Canadian stations need one download from the Canadian Hydrographic Service while you have a connection, and then work offline. A few Canadian passes need a connection every time, and the app labels them. Set up your Canadian stations at home or at the dock.
 

@@ -158,9 +158,10 @@ const SITUATIONS: {
     title: 'Anchored, no bars',
     art: '/shots/situations/boat.webp',
     who: 'Sailing and cruising',
-    body: 'Your phone roamed onto the other country’s network and every tide app is spinning. Slackwater predicts on your phone, so the week of turns at the next pass is already there.',
-    shot: '/shots/map.webp',
-    alt: 'The app’s map of the Salish Sea, with tide markers and current arrows, drawn without a connection.',
+    body: 'Your phone roamed and every tide app is spinning. Slackwater predicts on your phone, so the week of turns at the next pass is already there.',
+    shot: '/shots/boating/currents-boat.webp',
+    alt: 'Deception Pass at 3:00pm with the comfort current at 2 knots: slack in 6 minutes, with the windows a boat can use marked in green on the curve.',
+    href: '/boating/',
   },
   {
     title: 'When’s the lowest daylight low?',

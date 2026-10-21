@@ -7,6 +7,7 @@ import support from '../content/support.md?raw'
 import privacy from '../content/privacy.md?raw'
 import accuracy from '../content/accuracy.md?raw'
 import learnTides from '../content/learn-tides.md?raw'
+import boating from '../content/boating.md?raw'
 import kayak from '../content/kayak.md?raw'
 import tidePools from '../content/tide-pools.md?raw'
 import { agentModeResponse, MARKDOWN_TWINS } from './agent-mode'
@@ -28,6 +29,7 @@ const BODIES: Record<string, string> = {
   '/privacy/': privacy,
   '/accuracy/': accuracy,
   '/opencpn/': opencpnMarkdown(),
+  '/boating/': boating,
   '/kayak/': kayak,
   '/tide-pools/': tidePools,
   '/learn/tides/': learnTides,

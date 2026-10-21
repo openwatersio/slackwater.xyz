@@ -56,6 +56,7 @@ const PAGE_SOURCES: Record<string, string[]> = {
   '/privacy/': ['./src/routes/privacy.tsx', './src/content/privacy.md'],
   '/accuracy/': ['./src/routes/accuracy.tsx', './src/content/accuracy.md'],
   '/opencpn/': ['./src/routes/opencpn.tsx', './src/content/opencpn.md'],
+  '/boating/': ['./src/routes/boating.tsx', './src/content/boating.md'],
   '/kayak/': ['./src/routes/kayak.tsx', './src/content/kayak.md'],
   '/tide-pools/': ['./src/routes/tide-pools.tsx', './src/content/tide-pools.md'],
   '/learn/tides/': ['./src/routes/learn.tides.tsx'],
