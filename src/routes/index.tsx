@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { SlackFigure, TidesFigure } from '#/components/LearnFigures'
 import { ANDROID_TESTERS, APP_STORE, MINIMUM_IOS, REQUIREMENT } from '#/lib/links'
 import { SITE_DESCRIPTION } from '#/routes/__root'
 import { ORGANIZATION_DESCRIPTION } from '#/lib/json-ld'
@@ -224,6 +225,27 @@ function SituationCard({ title, who, body, art, shot, alt, href }: (typeof SITUA
   )
 }
 
+/** A link into a visual guide: a small figure and one line, about half a
+ *  situation card's height, so the guides read as further reading rather
+ *  than another situation. */
+function LearnCard({ href, title, body, figure }: { href: string; title: string; body: string; figure: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      className="group flex h-full flex-col overflow-hidden rounded-2xl bg-sw-canvas ring-1 ring-white/10 transition hover:ring-white/30"
+    >
+      <div className="flex aspect-[8/3] items-center justify-center bg-sw-navy-deep/40 px-6 py-3">{figure}</div>
+      <div className="p-4">
+        <p className="font-mono text-xs uppercase tracking-[0.14em] text-sw-leaf">Visual guide</p>
+        <h3 className="mt-1 font-semibold leading-snug text-sw-paper">
+          {title} <span aria-hidden>→</span>
+        </h3>
+        <p className="mt-1 text-sm leading-relaxed text-sw-steel">{body}</p>
+      </div>
+    </a>
+  )
+}
+
 function Home() {
   return (
     <main className="mx-auto max-w-5xl px-5 pb-24 pt-8 sm:px-6 sm:pt-10">
@@ -285,21 +307,7 @@ function Home() {
       {/* Kept below the recording so a phone's first screen holds only the
           promise, the download button and the app itself. */}
       <div className="mx-auto mt-8 max-w-2xl text-center">
-        <p className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-          <a
-            href="/learn/tides/"
-            className="font-medium text-sw-foam underline underline-offset-4 transition hover:text-sw-paper"
-          >
-            Learn how tides work <span aria-hidden>→</span>
-          </a>
-          <a
-            href="/learn/slack-water/"
-            className="font-medium text-sw-foam underline underline-offset-4 transition hover:text-sw-paper"
-          >
-            What is slack water? <span aria-hidden>→</span>
-          </a>
-        </p>
-        <p className="mt-6 text-sm leading-relaxed text-sw-steel">
+        <p className="text-sm leading-relaxed text-sw-steel">
           Canadian stations need an initial download. Some passes require a connection;
           the app tells you which.
         </p>
@@ -337,7 +345,22 @@ function Home() {
         </div>
       </section>
 
-      <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
+      <div className="mt-16 grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+        <LearnCard
+          href="/learn/tides/"
+          title="Learn how tides work"
+          body="Why the Moon makes two high tides a day, one step at a time."
+          figure={<TidesFigure className="h-full w-full" />}
+        />
+        <LearnCard
+          href="/learn/slack-water/"
+          title="What is slack water?"
+          body="The window around the turn of a current, and why it isn't high or low tide."
+          figure={<SlackFigure className="h-full w-full" />}
+        />
+      </div>
+
+      <section className="mt-16 border-t border-white/10 pt-10 sm:mt-20">
         <Heading>Checked against the agencies&rsquo; own predictions.</Heading>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-sw-foam">
           NOAA predictions use published harmonic constituents. Most Canadian stations build a
