@@ -8,6 +8,7 @@ import privacy from '../content/privacy.md?raw'
 import accuracy from '../content/accuracy.md?raw'
 import learnTides from '../content/learn-tides.md?raw'
 import kayak from '../content/kayak.md?raw'
+import tidePools from '../content/tide-pools.md?raw'
 import { agentModeResponse, MARKDOWN_TWINS } from './agent-mode'
 import { COMPARE_PAGES } from './compare'
 import { compareMarkdown, opencpnMarkdown } from './markdown-twins'
@@ -28,6 +29,7 @@ const BODIES: Record<string, string> = {
   '/accuracy/': accuracy,
   '/opencpn/': opencpnMarkdown(),
   '/kayak/': kayak,
+  '/tide-pools/': tidePools,
   '/learn/tides/': learnTides,
   ...Object.fromEntries(Object.entries(COMPARE_PAGES).map(([path, page]) => [path, compareMarkdown(page)])),
 }

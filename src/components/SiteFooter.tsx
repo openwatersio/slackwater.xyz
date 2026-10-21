@@ -25,6 +25,7 @@ export function SiteFooter() {
               links: [
                 ['Pricing', '/pricing/'],
                 ['Compare apps', '/compare/best-tide-and-current-apps-iphone/'],
+                ['For tide pools', '/tide-pools/'],
                 ['For sea kayakers', '/kayak/'],
                 ['About Slackwater', '/about/'],
               ],

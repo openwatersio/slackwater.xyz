@@ -167,8 +167,9 @@ const SITUATIONS: {
     art: '/shots/situations/tidepools.webp',
     who: 'Tide pools and beaches',
     body: 'Slackwater marks the fortnight’s lowest low and puts sunrise and sunset on the same timeline, so you can see whether it falls in daylight. Spring tides are labelled.',
-    shot: '/shots/tides-day.webp',
-    alt: 'Friday Harbor’s tide at 1:00pm with sunrise and sunset marked on the timeline and a full-moon spring tide.',
+    shot: '/shots/tide-pools/tides-lowest.webp',
+    alt: 'Friday Harbor at its lowest low of the fortnight, 12:31pm on Sunday 6 June 2027, with sunrise and sunset on the timeline.',
+    href: '/tide-pools/',
   },
   {
     title: 'Is the pass slow enough for me?',

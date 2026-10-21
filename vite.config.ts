@@ -57,6 +57,7 @@ const PAGE_SOURCES: Record<string, string[]> = {
   '/accuracy/': ['./src/routes/accuracy.tsx', './src/content/accuracy.md'],
   '/opencpn/': ['./src/routes/opencpn.tsx', './src/content/opencpn.md'],
   '/kayak/': ['./src/routes/kayak.tsx', './src/content/kayak.md'],
+  '/tide-pools/': ['./src/routes/tide-pools.tsx', './src/content/tide-pools.md'],
   '/learn/tides/': ['./src/routes/learn.tides.tsx'],
   '/learn/slack-water/': ['./src/routes/learn.slack-water.tsx', './src/lib/slack-guide.ts', './src/components/SlackTideChart.tsx'],
   '/stations/': ['./src/routes/stations.index.tsx'],
