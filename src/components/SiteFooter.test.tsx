@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { SiteFooter } from './SiteFooter'
+import { APP_STORE_REVIEW } from '../lib/links'
 
 describe('shared site footer', () => {
   const html = renderToStaticMarkup(<SiteFooter />)
@@ -22,6 +23,11 @@ describe('shared site footer', () => {
     expect(footer).toContain('aria-label="Footer"')
     expect(footer).toContain('Not for navigation.')
     expect(footer).toContain('href="https://openwaters.io"')
+  })
+
+  it('asks for a rating and points to the other ways to help', () => {
+    expect(html).toContain(`href="${APP_STORE_REVIEW}"`)
+    expect(html).toContain('href="/support/#help"')
   })
 
 })

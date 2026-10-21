@@ -1,3 +1,5 @@
+import { APP_STORE_REVIEW } from '../lib/links'
+
 const SOURCE = 'https://github.com/openwatersio/slackwater-ios'
 
 export function SiteFooter() {
@@ -59,6 +61,17 @@ export function SiteFooter() {
           ))}
         </nav>
         <p className="mt-8 border-t border-white/10 pt-6">
+          Has Slackwater helped you?{' '}
+          <a href={APP_STORE_REVIEW} className="underline underline-offset-4 hover:text-sw-foam">
+            Rate it on the App Store
+          </a>{' '}
+          or see{' '}
+          <a href="/support/#help" className="underline underline-offset-4 hover:text-sw-foam">
+            other ways to help
+          </a>
+          .
+        </p>
+        <p className="mt-4">
           Built by{' '}
           <a href="https://openwaters.io" className="underline underline-offset-4 hover:text-sw-foam">
             Open Waters

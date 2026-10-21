@@ -22,7 +22,7 @@ export const Route = createFileRoute('/pricing')({
   component: Pricing,
 })
 
-const PROSE = 'leading-relaxed text-sw-foam [&_a]:underline [&_a]:decoration-sw-steel [&_a]:underline-offset-4 [&_a:hover]:decoration-sw-foam [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-sw-paper sm:[&_h2]:text-3xl [&_p]:mt-4 [&_p]:max-w-2xl'
+const PROSE = 'leading-relaxed text-sw-foam [&_a]:underline [&_a]:decoration-sw-steel [&_a]:underline-offset-4 [&_a:hover]:decoration-sw-foam [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-sw-paper sm:[&_h2]:text-3xl [&_p]:mt-4 [&_p]:max-w-2xl [&_ol]:mt-4 [&_ol]:max-w-2xl [&_ol]:list-decimal [&_ol]:space-y-3 [&_ol]:pl-6'
 const SCREENSHOTS: Record<string, { width: number; height: number }> = {
   '/shots/premium/lock-screen.webp': { width: 1080, height: 492 },
   '/shots/premium/alert.webp': { width: 1080, height: 424 },
