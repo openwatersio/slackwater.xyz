@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { ANDROID_TESTERS, APP_STORE, MINIMUM_IOS, REQUIREMENT } from '#/lib/links'
-import { Shot } from '#/components/Shot'
 import { SITE_DESCRIPTION } from '#/routes/__root'
 import { ORGANIZATION_DESCRIPTION } from '#/lib/json-ld'
 
@@ -142,32 +141,74 @@ function Prose({ children }: { children: React.ReactNode }) {
     </div>
   )
 }
+/** The moments people open a tide app in, each answered with what Slackwater
+ *  does there. A card links only once its page exists; `href` is absent until
+ *  then. */
+const SITUATIONS: {
+  title: string
+  who: string
+  body: string
+  shot: string
+  alt: string
+  href?: string
+}[] = [
+  {
+    title: 'Anchored, no bars',
+    who: 'Sailing and cruising',
+    body: 'Your phone roamed onto the other country’s network and every tide app is spinning. Slackwater predicts on your phone, so the week of turns at the next pass is already there.',
+    shot: '/shots/map.webp',
+    alt: 'The app’s map of the Salish Sea, with tide markers and current arrows, drawn without a connection.',
+  },
+  {
+    title: 'When’s the lowest daylight low?',
+    who: 'Tide pools and beaches',
+    body: 'Slackwater marks the fortnight’s lowest low and puts sunrise and sunset on the same timeline, so you can see whether it falls in daylight. Spring tides are labelled.',
+    shot: '/shots/tides-day.webp',
+    alt: 'Friday Harbor’s tide at 1:00pm with sunrise and sunset marked on the timeline and a full-moon spring tide.',
+  },
+  {
+    title: 'Is the pass slow enough for me?',
+    who: 'Sea kayaking',
+    body: 'Set the fastest current you’ll paddle in, and every curve shows your slack windows in green.',
+    shot: '/shots/kayak/currents-comfort.webp',
+    alt: 'Discovery Island’s current off Oak Bay with a 1.4 knot comfort current: slack windows in green between faster runs in blue.',
+    href: '/kayak/',
+  },
+  {
+    title: 'Dive the slack',
+    who: 'Diving and spearfishing',
+    body: 'Set a tight comfort current and read the window before you gear up, even at a site with no signal.',
+    shot: '/shots/currents-victoria.webp',
+    alt: 'The current off Trial Island near Victoria, with the slack windows around each turn marked in green.',
+  },
+]
 
-/** A feature: a heading and its prose beside one shot. `flip` puts the shot
- *  on the left so consecutive features alternate down the page. */
-function Feature({
-  title,
-  children,
-  shot,
-  flip,
-}: {
-  title: React.ReactNode
-  children: React.ReactNode
-  shot: React.ReactNode
-  flip?: boolean
-}) {
-  return (
-    <section
-      className={`mt-24 grid gap-10 sm:items-center sm:gap-16 ${
-        flip ? 'sm:grid-cols-[320px_1fr]' : 'sm:grid-cols-[1fr_320px]'
-      }`}
-    >
-      <div className="max-w-xl">
-        <Heading>{title}</Heading>
-        <Prose>{children}</Prose>
+/** One situation: the reader's question, the screenshot that answers it
+ *  (its top, where the reading and curve are), and two sentences. */
+function SituationCard({ title, who, body, shot, alt, href }: (typeof SITUATIONS)[number]) {
+  const card = (
+    <article className="flex h-full flex-col overflow-hidden rounded-3xl bg-sw-canvas ring-1 ring-white/10 transition">
+      <div className="aspect-square overflow-hidden [mask-image:linear-gradient(to_bottom,black_80%,transparent)]">
+        <img src={shot} alt={alt} loading="lazy" width={780} height={1695} className="h-full w-full object-cover object-[50%_21%]" />
       </div>
-      <div className={`mx-auto w-full max-w-[320px] ${flip ? 'sm:order-first' : ''}`}>{shot}</div>
-    </section>
+      <div className="flex flex-1 flex-col p-6 pt-2">
+        <p className="font-mono text-xs uppercase tracking-[0.14em] text-sw-leaf">{who}</p>
+        <h3 className="mt-2 text-xl font-semibold leading-snug text-sw-paper">{title}</h3>
+        <p className="mt-3 leading-relaxed text-sw-foam">{body}</p>
+        {href && (
+          <p className="mt-auto pt-4 font-medium text-sw-foam">
+            Read more <span aria-hidden>→</span>
+          </p>
+        )}
+      </div>
+    </article>
+  )
+  return href ? (
+    <a href={href} className="block rounded-3xl hover:[&>article]:ring-white/30">
+      {card}
+    </a>
+  ) : (
+    card
   )
 }
 
@@ -275,6 +316,15 @@ function Home() {
         </ul>
       </div>
 
+      <section className="mt-24 sm:mt-28">
+        <Heading>Where are you headed?</Heading>
+        <div className="mt-8 grid gap-6 sm:grid-cols-2">
+          {SITUATIONS.map((s) => (
+            <SituationCard key={s.title} {...s} />
+          ))}
+        </div>
+      </section>
+
       <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
         <Heading>Checked against the agencies&rsquo; own predictions.</Heading>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-sw-foam">
@@ -309,59 +359,6 @@ function Home() {
           Where a source is online-only or lower confidence, the app says so rather than
           presenting it as settled.
         </p>
-      </section>
-
-      <Feature
-        title="Scrub to the hour you care about."
-        shot={
-          <Shot
-            src="/shots/tides-day.webp"
-            alt="Friday Harbor in the app at 1:00pm under a daytime sky: rising through 3.1 feet, high 4 hours 31 minutes later, a 4.7 foot range, sunrise at 7:04am and sunset at 7:01pm marked on the axis."
-            caption="Friday Harbor at 1:00pm, rising through 3.1 feet toward a 6.9 foot high. Sunrise and sunset sit on the axis, and the moon shows its phase."
-            crop
-          />
-        }
-      >
-        <p>
-          Drag the timeline and the whole screen follows it: the height at that minute, whether
-          it is rising or falling, the range for the day, and the sky overhead.
-        </p>
-        <p>
-          A week of highs and lows sits underneath, so working out tomorrow&rsquo;s departure
-          does not mean doing arithmetic on a printed table.
-        </p>
-      </Feature>
-
-      <section className="mt-24">
-        <div className="max-w-xl">
-          <Heading>Currents too, with direction and slack.</Heading>
-          <Prose>
-            <p>
-              Heights are the easy half. The harder question at a pass is the current: when it
-              goes slack, how long it stays that way, and how hard it runs at max. Slackwater
-              gives the speed and set right now, the time to the next slack, and a week of maxes
-              underneath.
-            </p>
-            <p>
-              One afternoon on both sides of the border: Deception Pass flooding hard, and the
-              Strait of Juan de Fuca off Victoria near its maximum flood.
-            </p>
-          </Prose>
-        </div>
-        <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-4 sm:gap-8">
-          <Shot
-            src="/shots/currents-day.webp"
-            alt="Deception Pass (Narrows) in the app at 1:00pm: flooding at 5.2 knots to the east-south-east, slack 2 hours 37 minutes later, a next max of 7.2 knots ebbing at 6:30pm, and the week's floods, slacks and ebbs listed underneath."
-            caption="Deception Pass at 1:00pm, flooding at 5.2 knots. The ebb behind it peaks at 7.2."
-            crop
-          />
-          <Shot
-            src="/shots/currents-victoria.webp"
-            alt="The current 4.5 nautical miles south-south-west of Trial Island, off Victoria, in the app at 3:30pm: flooding north-east at 1.2 knots, two minutes before maximum flood, with sunrise and sunset on the axis and a link to the tide at Victoria."
-            caption="Off Trial Island at 3:30pm, flooding at 1.2 knots. Max flood is 2 minutes away."
-            crop
-          />
-        </div>
       </section>
 
       <section className="mt-24">
@@ -413,44 +410,6 @@ function Home() {
           </figure>
         </div>
       </section>
-
-      <Feature
-        title="Tides and currents, nearest first."
-        flip
-        shot={
-          <Shot
-            src="/shots/list.webp"
-            alt="The app's list located at Friday Harbor: the harbour's tide on top at 2.7 feet and falling, Point George's current under it at 1.1 knots and ebbing, then favourite Port Townsend and nearby Wasp Passage, each with its curve for the day."
-            caption="Located at Friday Harbor: the harbour's tide and nearest current on top, Port Townsend saved as a favourite, and nearby places below."
-            crop
-          />
-        }
-      >
-        <p>
-          One list holds both kinds: a harbour&rsquo;s height and a pass&rsquo;s speed and set,
-          each with the next thing it does and how far away it is. No mode to switch.
-        </p>
-        <p>Where you are sits on top, favourites under it, the rest by distance.</p>
-      </Feature>
-
-      <Feature
-        title={<>Bundled predictions, without a connection.</>}
-        shot={
-          <Shot
-            src="/shots/map.webp"
-            alt="The app's map of the Salish Sea, with circular tide markers and direction arrows for currents."
-            caption="The Salish Sea. Circles mark tide locations; arrows show current direction."
-            crop
-          />
-        }
-      >
-        <p>
-          Bundled stations predict on your phone for any date, without a download or an expiring
-          cache. Canadian stations need an initial download to build their offline model.
-          Online-only passes need a connection and are labeled in the app.
-        </p>
-        <p>Thousands of stations ship inside the app.</p>
-      </Feature>
 
       <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
         <Heading>Free, open source, no account, no ads.</Heading>
