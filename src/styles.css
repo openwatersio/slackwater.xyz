@@ -55,6 +55,19 @@
      don't load a webfont for a page that sells "no waiting". */
   --font-sans: ui-sans-serif, -apple-system, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", monospace;
+
+  /* A slow drift for the situation illustrations, like light moving over
+     water. Slow enough to read as calm; `motion-safe:` keeps it off for
+     anyone who asked for reduced motion. */
+  --animate-drift: drift 28s ease-in-out infinite alternate;
+  @keyframes drift {
+    from {
+      transform: scale(1.03) translate3d(0, 0, 0);
+    }
+    to {
+      transform: scale(1.09) translate3d(-1.5%, -1%, 0);
+    }
+  }
 }
 
 /* Dark-only, matching the app (.preferredColorScheme(.dark)). */

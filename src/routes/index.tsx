@@ -148,12 +148,15 @@ const SITUATIONS: {
   title: string
   who: string
   body: string
+  /** The scene, an illustration; decorative, so its alt is empty. */
+  art: string
   shot: string
   alt: string
   href?: string
 }[] = [
   {
     title: 'Anchored, no bars',
+    art: '/shots/situations/boat.webp',
     who: 'Sailing and cruising',
     body: 'Your phone roamed onto the other country’s network and every tide app is spinning. Slackwater predicts on your phone, so the week of turns at the next pass is already there.',
     shot: '/shots/map.webp',
@@ -161,6 +164,7 @@ const SITUATIONS: {
   },
   {
     title: 'When’s the lowest daylight low?',
+    art: '/shots/situations/tidepools.webp',
     who: 'Tide pools and beaches',
     body: 'Slackwater marks the fortnight’s lowest low and puts sunrise and sunset on the same timeline, so you can see whether it falls in daylight. Spring tides are labelled.',
     shot: '/shots/tides-day.webp',
@@ -168,6 +172,7 @@ const SITUATIONS: {
   },
   {
     title: 'Is the pass slow enough for me?',
+    art: '/shots/situations/kayak.webp',
     who: 'Sea kayaking',
     body: 'Set the fastest current you’ll paddle in, and every curve shows your slack windows in green.',
     shot: '/shots/kayak/currents-comfort.webp',
@@ -176,6 +181,7 @@ const SITUATIONS: {
   },
   {
     title: 'Dive the slack',
+    art: '/shots/situations/diving.webp',
     who: 'Diving and spearfishing',
     body: 'Set a tight comfort current and read the window before you gear up, even at a site with no signal.',
     shot: '/shots/currents-victoria.webp',
@@ -185,13 +191,25 @@ const SITUATIONS: {
 
 /** One situation: the reader's question, the screenshot that answers it
  *  (its top, where the reading and curve are), and two sentences. */
-function SituationCard({ title, who, body, shot, alt, href }: (typeof SITUATIONS)[number]) {
+function SituationCard({ title, who, body, art, shot, alt, href }: (typeof SITUATIONS)[number]) {
   const card = (
     <article className="flex h-full flex-col overflow-hidden rounded-3xl bg-sw-canvas ring-1 ring-white/10 transition">
-      <div className="aspect-square overflow-hidden [mask-image:linear-gradient(to_bottom,black_80%,transparent)]">
-        <img src={shot} alt={alt} loading="lazy" width={780} height={1695} className="h-full w-full object-cover object-[50%_21%]" />
+      <div className="relative aspect-[4/3] overflow-hidden">
+        <img
+          src={art}
+          alt=""
+          loading="lazy"
+          width={960}
+          height={720}
+          className="h-full w-full object-cover motion-safe:animate-drift"
+        />
+        {/* The app's answer, inset over the scene: the station through its
+            timeline, cropped from the full screenshot. */}
+        <div className="absolute bottom-4 right-4 aspect-square w-[38%] overflow-hidden rounded-2xl shadow-2xl shadow-sw-navy-deep/70 ring-1 ring-white/20">
+          <img src={shot} alt={alt} loading="lazy" width={780} height={1695} className="h-full w-full object-cover object-[50%_21%]" />
+        </div>
       </div>
-      <div className="flex flex-1 flex-col p-6 pt-2">
+      <div className="flex flex-1 flex-col p-6">
         <p className="font-mono text-xs uppercase tracking-[0.14em] text-sw-leaf">{who}</p>
         <h3 className="mt-2 text-xl font-semibold leading-snug text-sw-paper">{title}</h3>
         <p className="mt-3 leading-relaxed text-sw-foam">{body}</p>
