@@ -37,7 +37,7 @@ Slackwater features checked October 9, 2026; OceanConnect's details checked agai
 There is no OceanConnect screenshot here; [open it](https://www.oceanconnect.ca/) beside
 this page and drag the time slider through tomorrow. Here is Slackwater at Deception Pass:
 
-![Slackwater: Deception Pass scrubbed to 3:46 PM, slack at 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM](/shots/compare/slackwater-deception-slack.webp)
+![Slackwater: Deception Pass at 3:46 PM, slack at 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM](/shots/compare/slackwater-deception-slack.webp)
 
 Deception Pass at slack: 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb
 at 6:30 PM. The green parts of the curve show the slack windows.
@@ -54,7 +54,7 @@ driven by forecast wind.
 
 Slackwater answers "when can I get through this pass?" Pick the station and the readout
 is the state now, the next slack and how long it lasts, and max flood and ebb with speed
-and set, over a curve you scrub through the week. The reference port's tide is on the
+and set, over a curve you slide through the week. The reference port's tide is on the
 same screen. Predictions come from the published harmonics of NOAA and the Canadian
 Hydrographic Service.
 

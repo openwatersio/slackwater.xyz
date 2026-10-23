@@ -24,7 +24,7 @@ Slackwater features checked October 9, 2026; Dairiki.org's pages and station lis
 |---|---|---|
 | What it is | Website of XTide tide and current tables | Tide and current app |
 | Price | Free, donations welcome | Free core; optional Premium |
-| Currents | Turn (slack) and max times with speed, daily plot | Slack time and duration, max flood/ebb with speed and set, scrubbable curve |
+| Currents | Turn (slack) and max times with speed, daily plot | Slack time and duration, max flood/ebb with speed and set, a curve you slide through |
 | How far ahead | Any month | Any date |
 | Stations | 76 tide, 38 current: Washington, BC, Oregon, California | Tides worldwide; currents in the US and Canada |
 | Source of the numbers | XTide's harmonic constants; the site does not say which file | NOAA constituents, CHS; named per station |
@@ -37,7 +37,7 @@ Slackwater features checked October 9, 2026; Dairiki.org's pages and station lis
 There is no Dairiki screenshot here; [open its Deception Pass page](https://www.dairiki.org/tides/daily.php/dec)
 beside this one. Here is Slackwater at the same pass:
 
-![Slackwater: Deception Pass scrubbed to 3:46 PM, slack at 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM](/shots/compare/slackwater-deception-slack.webp)
+![Slackwater: Deception Pass at 3:46 PM, slack at 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM](/shots/compare/slackwater-deception-slack.webp)
 
 Deception Pass at slack: 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb
 at 6:30 PM. The green parts of the curve show the slack windows.
@@ -83,7 +83,7 @@ plot shows the curve, sunrise and sunset, and the nominal flood and ebb directio
 
 Slackwater answers "when can I get through?" directly. Pick the station and the readout
 is the state now, the next slack and how long it lasts, and max flood and ebb with speed
-and set, over a curve you scrub through the week. The reference port's tide is on the same
+and set, over a curve you slide through the week. The reference port's tide is on the same
 screen. Home screen widgets and a standalone Apple Watch app are free.
 
 ## Offline
