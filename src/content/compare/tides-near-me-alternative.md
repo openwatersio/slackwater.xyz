@@ -38,7 +38,7 @@ Slackwater features checked October 9, 2026; Tides Near Me's details checked aga
 | Price | Free with ads; Premium removes them; Go Mode charts extra | Free core; optional Premium |
 | Offline | No offline claim | Bundled predictions offline; Canadian setup, some passes online-only |
 | Tides | Worldwide | Worldwide |
-| Currents | Last and next current with speed, next slack time, daily curve, moving-currents map | Slack time and duration, max speed and set, scrubbable curve |
+| Currents | Last and next current with speed, next slack time, daily curve, moving-currents map | Slack time and duration, max speed and set, a curve you slide through |
 | Canada | Yes | Yes, CHS |
 | Data sources | Providers listed by country on its website | Named per station, with datum |
 | Marine weather | Wind, seas, water temperature, warnings | Not included |
@@ -52,7 +52,7 @@ Slackwater features checked October 9, 2026; Tides Near Me's details checked aga
 
 | Tides Near Me | Slackwater |
 |---|---|
-| ![Tides Near Me's App Store image: Coecles Harbor, last tide high at 5:27 PM 31 minutes ago, next tide low at 12:07 AM, the day's tide curve, and marine weather with 31 mph wind and 3.5 foot seas](/shots/compare/tides-near-me-coecles-harbor.webp) | ![Slackwater: St Martins, Bay of Fundy, rising at 14.3 ft at 6.2 ft per hour, over a scrubbable curve marked 29.3 and 30.4 ft highs and a 25.3 ft range](/shots/compare/slackwater-st-martins-tide.webp) |
+| ![Tides Near Me's App Store image: Coecles Harbor, last tide high at 5:27 PM 31 minutes ago, next tide low at 12:07 AM, the day's tide curve, and marine weather with 31 mph wind and 3.5 foot seas](/shots/compare/tides-near-me-coecles-harbor.webp) | ![Slackwater: St Martins, Bay of Fundy, rising at 14.3 ft at 6.2 ft per hour, over a curve you slide through marked 29.3 and 30.4 ft highs and a 25.3 ft range](/shots/compare/slackwater-st-martins-tide.webp) |
 | Tides Near Me's own listing: Coecles Harbor, last tide and next tide as big times over the day's curve. Nothing to learn; that is the point of it. | Slackwater at St Martins: the same answer, rising at 14.3 ft at 6.2 ft per hour, with the curve so you can see where in the cycle you are. |
 
 Both apps show current stations:

@@ -46,7 +46,7 @@ That is a good annotation and it is honest about being an estimate.
 
 Slackwater treats a current station as its own thing, with its own curve. The readout is
 the state now, the next slack and how long it lasts, and max flood and ebb with speed and
-direction, scrubbable through the week. The reference port's tide sits on the same screen.
+direction, on a curve you slide through the week. The reference port's tide sits on the same screen.
 For a pass like Deception or Active, the difference between an estimated slack band on a
 tide chart and a predicted 19-minute window is the difference between a guess and a plan.
 

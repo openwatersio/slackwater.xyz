@@ -22,7 +22,7 @@ Slackwater features checked October 9, 2026. AyeTides' price, rating and feature
 | Price | $7.99 once, no in-app purchases, no ads | Free core; optional Premium |
 | Shipping since | 2008 | 2026 |
 | Tides | 13,400+ locations worldwide, tides and/or currents | Thousands of stations worldwide |
-| Currents | Harmonic current stations, table of slack and max | Stations with slack time and duration, max flood/ebb speed and set, scrubbable curve |
+| Currents | Harmonic current stations, table of slack and max | Stations with slack time and duration, max flood/ebb speed and set, a curve you slide through |
 | Currents outside US and Canada | Some | None |
 | Canada currents | Sparse; BC stations mostly placed to the nearest arc-minute | 23 CHS gates from Salish Sea to Cape Breton, checked against CHS predictions |
 | Offline | Predictions yes; map and sharing online | Bundled predictions offline; Canadian setup, some passes online-only |
@@ -38,8 +38,8 @@ Slackwater features checked October 9, 2026. AyeTides' price, rating and feature
 
 | AyeTides | Slackwater |
 |---|---|
-| ![AyeTides' App Store screenshot: Bergen Point West Reach, Kill Van Kull, New York, rising at 4.47 feet on Sunday June 23 2019, a list of highs, lows, sun and moon times, and a gridded tide graph below](/shots/compare/ayetides-bergen-point-tide.webp) | ![Slackwater: St Martins, Bay of Fundy, rising at 14.3 ft at 6.2 ft per hour, over a scrubbable curve marked 29.3 and 30.4 ft highs and a 25.3 ft range](/shots/compare/slackwater-st-martins-tide.webp) |
-| AyeTides' own App Store screenshot: a day at Bergen Point as a list of events with the graph underneath. | Slackwater at St Martins in the Bay of Fundy: the state and height first, its rate of rise, the curve you scrub, and the range. |
+| ![AyeTides' App Store screenshot: Bergen Point West Reach, Kill Van Kull, New York, rising at 4.47 feet on Sunday June 23 2019, a list of highs, lows, sun and moon times, and a gridded tide graph below](/shots/compare/ayetides-bergen-point-tide.webp) | ![Slackwater: St Martins, Bay of Fundy, rising at 14.3 ft at 6.2 ft per hour, over a curve you slide through marked 29.3 and 30.4 ft highs and a 25.3 ft range](/shots/compare/slackwater-st-martins-tide.webp) |
+| AyeTides' own App Store screenshot: a day at Bergen Point as a list of events with the graph underneath. | Slackwater at St Martins in the Bay of Fundy: the state and height first, its rate of rise, the curve you slide through, and the range. |
 
 AyeTides' listing shows no current station screen, so there is nothing to put beside this one. Here is Slackwater's:
 
@@ -88,7 +88,7 @@ station against the agencies' own predictions before it ships.
 ## Interface
 
 AyeTides leads with the day's events as a list, with a graph you drag below it or full
-screen when you rotate the phone. It was updated for Liquid Glass in January. Slackwater is built for iOS 26, with the curve on every card, a scrubber that follows
+screen when you rotate the phone. It was updated for Liquid Glass in January. Slackwater is built for iOS 26, with the curve on every card, a timeline that follows
 your thumb, and a chart that draws offline. Whether that is worth anything to you depends
 on how you read a table.
 

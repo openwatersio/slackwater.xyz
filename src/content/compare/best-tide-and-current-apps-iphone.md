@@ -48,10 +48,10 @@ Prices, ratings and features are from the US App Store, checked October 14, 2026
 ## Slackwater
 
 Free, no ads, no account. Tides worldwide, currents across the US and Canada. Bundled stations compute predictions on the phone without a connection. Canadian stations need an initial download; some passes remain online-only and are labeled in the app. A current station shows the next slack and
-how long it lasts, the speed and set at max flood and max ebb, and a curve you can scrub
+how long it lasts, the speed and set at max flood and max ebb, and a curve you can slide
 through the week. Charts for bundled and downloaded models draw offline too.
 
-![Slackwater: Deception Pass scrubbed to 3:46 PM, slack at 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM](/shots/compare/slackwater-deception-slack.webp)
+![Slackwater: Deception Pass at 3:46 PM, slack at 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM](/shots/compare/slackwater-deception-slack.webp)
 
 Deception Pass at slack: 0.0 knots, ebb in 8 minutes, with the next 7.2 knot maximum ebb at 6:30 PM. The green parts of the curve show the slack windows. Screenshot captured October 12, 2026.
 
@@ -110,7 +110,7 @@ US waters.
 ## Actual Currents
 
 Currents-first, and the best picture of flow you can get on a phone: animated particles
-over a nautical chart, with a time scrubber, route analysis and departure timing. Canadian
+over a nautical chart, with a time slider, route analysis and departure timing. Canadian
 stations arrived in June. Its model data loads over a connection, and the free tier is a
 three-hour window around now. Tides come from a virtual tide gauge and NOAA tide stations.
 No widgets, no Watch. Launched April 2026.

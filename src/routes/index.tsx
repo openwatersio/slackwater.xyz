@@ -284,7 +284,7 @@ function Home() {
               poster="/shots/tides-day.webp"
               width={780}
               height={1694}
-              aria-label="Friday Harbor in Slackwater scrubbing from afternoon into a full-moon night."
+              aria-label="Friday Harbor in Slackwater sliding from afternoon into a full-moon night."
               className="w-full rounded-[min(3rem,13cqw)] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
             >
               <source
