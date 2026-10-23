@@ -187,10 +187,15 @@ const SITUATIONS: {
 
 /** One situation: the reader's question, the screenshot that answers it
  *  (its top, where the reading and curve are), and two sentences. */
-function SituationCard({ title, who, body, art, shot, alt, href }: (typeof SITUATIONS)[number]) {
+/** `a`: the illustration alone; the screenshot lives on the situation's page.
+ *  `b`: the illustration, then a strip of the app's curve under it.
+ *  Both render on the draft for comparison; the loser goes before merge. */
+function SituationCard({
+  title, who, body, art, shot, alt, href, variant,
+}: (typeof SITUATIONS)[number] & { variant: 'a' | 'b' }) {
   const card = (
     <article className="flex h-full flex-col overflow-hidden rounded-3xl bg-sw-canvas ring-1 ring-white/10 transition">
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div className={`overflow-hidden ${variant === 'a' ? 'aspect-[4/3]' : 'aspect-[16/9]'}`}>
         <img
           src={art}
           alt=""
@@ -199,12 +204,14 @@ function SituationCard({ title, who, body, art, shot, alt, href }: (typeof SITUA
           height={720}
           className="h-full w-full object-cover motion-safe:animate-drift"
         />
-        {/* The app's answer, inset over the scene: the station through its
-            timeline, cropped from the full screenshot. */}
-        <div className="absolute bottom-4 right-4 aspect-square w-[38%] overflow-hidden rounded-2xl shadow-2xl shadow-sw-navy-deep/70 ring-1 ring-white/20">
-          <img src={shot} alt={alt} loading="lazy" width={780} height={1695} className="h-full w-full object-cover object-[50%_21%]" />
-        </div>
       </div>
+      {variant === 'b' && (
+        // A strip across the screenshot's curve, under the scene rather
+        // than over it.
+        <div className="aspect-[5/2] overflow-hidden border-t border-white/10">
+          <img src={shot} alt={alt} loading="lazy" width={780} height={1695} className="h-full w-full object-cover object-[50%_47%]" />
+        </div>
+      )}
       <div className="flex flex-1 flex-col p-6">
         <p className="font-mono text-xs uppercase tracking-[0.14em] text-sw-leaf">{who}</p>
         <h3 className="mt-2 text-xl font-semibold leading-snug text-sw-paper">{title}</h3>
@@ -369,7 +376,17 @@ function Home() {
         <Heading>Where are you headed?</Heading>
         <div className="mt-8 grid gap-6 md:grid-cols-3">
           {SITUATIONS.map((s) => (
-            <SituationCard key={s.title} {...s} />
+            <SituationCard key={s.title} {...s} variant="a" />
+          ))}
+        </div>
+      </section>
+
+      {/* DRAFT ONLY: option B beside option A for review. Remove before merge. */}
+      <section className="mt-16">
+        <p className="font-mono text-xs uppercase tracking-[0.14em] text-sw-amber">Option B, for comparison</p>
+        <div className="mt-4 grid gap-6 md:grid-cols-3">
+          {SITUATIONS.map((s) => (
+            <SituationCard key={`b-${s.title}`} {...s} variant="b" />
           ))}
         </div>
       </section>
