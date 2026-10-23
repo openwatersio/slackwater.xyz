@@ -14,7 +14,7 @@ An Android version is in development. Join the [Slackwater Android testers group
 
 ## Tides and currents
 
-Check high and low tides, current speed and direction, and slack-water times for a beach visit, fishing trip or passage. Slide the timeline to see conditions at a chosen minute, with a week of highs, lows, maximum currents and slacks below. The app shows sunrise, sunset and moon phase alongside the predictions. Search for stations, browse the map, or use location permission to find nearby stations. Location permission is optional and your GPS coordinates stay on your device.
+Check high and low tides, current speed and direction, and slack-water times for a beach visit, fishing trip or passage. Slide the timeline to see conditions at a chosen minute, with a week of highs, lows, maximum currents and slacks below. The app shows sunrise, sunset, twilight, the moon's phase and the night's stars alongside the predictions, names spring and neap tides, and shows solar and lunar eclipses. Search for stations, browse the map, or use location permission to find nearby stations. Location permission is optional and your GPS coordinates stay on your device.
 
 Tide stations are available around the world; current stations cover the US and Canada. Coverage varies by place. [Browse the station directory](https://slackwater.xyz/stations/) to check your destination. Website coverage is not identical to the app's coverage.
 

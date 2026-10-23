@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { SlackFigure, TidesFigure } from '#/components/LearnFigures'
+import { Shot } from '#/components/Shot'
 import { ANDROID_TESTERS, APP_STORE, MINIMUM_IOS, REQUIREMENT } from '#/lib/links'
 import { SITE_DESCRIPTION } from '#/routes/__root'
 import { ORGANIZATION_DESCRIPTION } from '#/lib/json-ld'
@@ -246,6 +247,34 @@ function LearnCard({ href, title, body, figure }: { href: string; title: string;
   )
 }
 
+/** A feature: a heading and its prose beside one shot. `flip` puts the shot
+ *  on the left so consecutive features alternate down the page. */
+function Feature({
+  title,
+  children,
+  shot,
+  flip,
+}: {
+  title: React.ReactNode
+  children: React.ReactNode
+  shot: React.ReactNode
+  flip?: boolean
+}) {
+  return (
+    <section
+      className={`mt-24 grid gap-10 sm:items-center sm:gap-16 ${
+        flip ? 'sm:grid-cols-[320px_1fr]' : 'sm:grid-cols-[1fr_320px]'
+      }`}
+    >
+      <div className="max-w-xl">
+        <Heading>{title}</Heading>
+        <Prose>{children}</Prose>
+      </div>
+      <div className={`mx-auto w-full max-w-[320px] ${flip ? 'sm:order-first' : ''}`}>{shot}</div>
+    </section>
+  )
+}
+
 function Home() {
   return (
     <main className="mx-auto max-w-5xl px-5 pb-24 pt-8 sm:px-6 sm:pt-10">
@@ -360,10 +389,173 @@ function Home() {
         />
       </div>
 
-      <section className="mt-16 border-t border-white/10 pt-10 sm:mt-20">
+
+      {/* What the app does, in the order the launch feedback asked about it:
+          planning repo, slackwater-ios/gtm.md, Launch feedback. Reorder there
+          first, then here. */}
+      <Feature
+        title="A curve, not a table of numbers."
+        shot={
+          <Shot
+            src="/shots/tides-day.webp"
+            alt="Friday Harbor in the app at 1:00pm under a daytime sky: rising through 3.1 feet, high 4 hours 31 minutes later, a 4.7 foot range, sunrise at 7:04am and sunset at 7:01pm marked on the axis."
+            caption="Friday Harbor at 1:00pm, rising through 3.1 feet toward a 6.9 foot high. Sunrise and sunset sit on the axis, and the moon shows its phase."
+            crop
+          />
+        }
+      >
+        <p>
+          Slide the timeline and the whole screen follows: the height at that minute, whether
+          it is rising or falling, the range for the day, and the sun and moon moving across
+          the sky above it.
+        </p>
+        <p>
+          A week of highs and lows sits underneath, so working out tomorrow&rsquo;s departure
+          does not mean doing arithmetic on a printed table.
+        </p>
+      </Feature>
+
+      <section className="mt-24">
+        <div className="max-w-xl">
+          <Heading>Check it without opening the app.</Heading>
+          <Prose>
+            <p>
+              Free home screen widgets show the next high, low or slack and today&rsquo;s
+              curve, for where you are or a station you pick. Long-press your home screen, tap
+              +, and search for Slackwater.
+            </p>
+            <p>
+              <a href="/pricing/" className="underline underline-offset-4 hover:text-sw-foam">
+                Premium
+              </a>{' '}
+              puts the next turn on your lock screen and in Apple Watch complications, where a
+              glance at your phone or wrist answers it.
+            </p>
+          </Prose>
+        </div>
+        {/* The home screen is a device capture, cropped to the widgets; the
+            lock-screen image is the app's own Premium preview. */}
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+          <figure className="m-0 w-full max-w-[390px]">
+            <img
+              src="/shots/widgets/home-screen.webp"
+              alt="An iPhone home screen with two Slackwater widgets: Oak Bay's tide at 7.9 feet and falling, and Nakwakto Rapids flooding north at 4.3 knots with the day's maximums and slacks on its curve."
+              loading="lazy"
+              width={780}
+              height={801}
+              className="w-full rounded-[2rem] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
+            />
+            <figcaption className="mt-4 text-sm leading-relaxed text-sw-steel">
+              Free: Oak Bay&rsquo;s tide and Nakwakto Rapids, on the home screen.
+            </figcaption>
+          </figure>
+          <figure className="m-0 w-full max-w-[390px]">
+            <img
+              src="/shots/premium/lock-screen.webp"
+              alt="Slackwater's lock-screen widget examples showing Port Townsend's tide curve, a 3.1-foot height and an 8:15 AM low tide."
+              loading="lazy"
+              width={1080}
+              height={492}
+              className="w-full rounded-[2rem] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
+            />
+            <figcaption className="mt-4 text-sm leading-relaxed text-sw-steel">
+              Premium: the next low on the lock screen.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <Feature
+        title="On your wrist, without your phone."
+        flip
+        shot={
+          <figure className="@container m-0 mx-auto max-w-[240px]">
+            <img
+              src="/shots/watch/watch-tide.webp"
+              alt="Friday Harbor on Apple Watch, turned with the Digital Crown to 3:49pm: 6.1 feet and rising toward a 6.9 foot high at 5:31pm."
+              loading="lazy"
+              width={422}
+              height={514}
+              className="w-full rounded-[28%/23%] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
+            />
+            <figcaption className="mt-4 text-sm leading-relaxed text-sw-steel">
+              Friday Harbor, turned with the Digital Crown to 3:49pm.
+            </figcaption>
+          </figure>
+        }
+      >
+        <p>
+          The Apple Watch app is free and predicts on the watch itself. Turn the Digital Crown to
+          move through the day, and the reading follows: the height or the current, which way it
+          is going, and the next turn.
+        </p>
+        <p>Your favourites and the place you are come first in its list.</p>
+      </Feature>
+
+      <section className="mt-24">
+        <div className="max-w-xl">
+          <Heading>Currents and slack at the passes.</Heading>
+          <Prose>
+            <p>
+              Heights are the easy half. The harder question at a pass is the current: when it
+              goes slack, how long it stays that way, and how hard it runs at max. Slackwater
+              gives the speed and set right now, the time to the next slack, and a week of maxes
+              underneath.
+            </p>
+            <p>
+              Set a comfort current in Settings and every curve marks the slack windows you can
+              use in green. The BC passes have guides of their own:{' '}
+              <a href="/currents/active-pass/" className="underline underline-offset-4 hover:text-sw-foam">Active Pass</a>,{' '}
+              <a href="/currents/dodd-narrows/" className="underline underline-offset-4 hover:text-sw-foam">Dodd Narrows</a>,{' '}
+              <a href="/currents/seymour-narrows/" className="underline underline-offset-4 hover:text-sw-foam">Seymour Narrows</a>{' '}
+              and more.
+            </p>
+          </Prose>
+        </div>
+        <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-4 sm:gap-8">
+          <Shot
+            src="/shots/currents-day.webp"
+            alt="Deception Pass (Narrows) in the app at 1:00pm: flooding at 5.2 knots to the east-south-east, slack 2 hours 37 minutes later, a next max of 7.2 knots ebbing at 6:30pm, and the week's floods, slacks and ebbs listed underneath."
+            caption="Deception Pass at 1:00pm, flooding at 5.2 knots. The ebb behind it peaks at 7.2."
+            crop
+          />
+          <Shot
+            src="/shots/currents-victoria.webp"
+            alt="The current 4.5 nautical miles south-south-west of Trial Island, off Victoria, in the app at 3:30pm: flooding north-east at 1.2 knots, two minutes before maximum flood, with sunrise and sunset on the axis and a link to the tide at Victoria."
+            caption="Off Trial Island at 3:30pm, flooding at 1.2 knots. Max flood is 2 minutes away."
+            crop
+          />
+        </div>
+      </section>
+
+      <Feature
+        title="Works with no signal."
+        flip
+        shot={
+          <Shot
+            src="/shots/map.webp"
+            alt="The app's map of the Salish Sea, with circular tide markers and direction arrows for currents."
+            caption="The Salish Sea. Circles mark tide locations; arrows show current direction."
+            crop
+          />
+        }
+      >
+        <p>
+          Bundled stations predict on your phone for any date, without a download or an expiring
+          cache. If your phone roams or loses data, Slackwater does not notice.
+        </p>
+        <p>
+          Canadian stations need one download to build their offline model. Online-only passes
+          need a connection and are labelled in the app.
+        </p>
+      </Feature>
+
+      <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
         <Heading>Checked against the agencies&rsquo; own predictions.</Heading>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-sw-foam">
-          NOAA predictions use published harmonic constituents. Most Canadian stations build a
+          Tides and currents come from public agency data: NOAA in the United States, the
+          Canadian Hydrographic Service in Canada, Norway&rsquo;s Kartverket, and the TICON
+          global tide-gauge catalogue. NOAA predictions use published harmonic constituents. Most Canadian stations build a
           model on your phone from Canadian Hydrographic Service predictions after a download;
           some passes fetch predictions when online. The engine is checked against the agencies&rsquo;
           published predictions.
@@ -396,55 +588,27 @@ function Home() {
         </p>
       </section>
 
-      <section className="mt-24">
-        <div className="max-w-xl">
-          <Heading>On your home screen and your wrist, free.</Heading>
-          <Prose>
-            <p>
-              Home screen widgets show the next high, low or slack and today&rsquo;s curve, for
-              where you are or a station you pick. The Apple Watch app works without your
-              phone: turn the Digital Crown to move through the day. Both are free.
-            </p>
-            <p>
-              Long-press your home screen, tap +, and search for Slackwater.{' '}
-              <a href="/pricing/" className="underline underline-offset-4 hover:text-sw-foam">
-                Premium
-              </a>{' '}
-              adds lock-screen widgets and Watch complications.
-            </p>
-          </Prose>
-        </div>
-        {/* The home screen is a device capture, cropped to the widgets; the
-            watch frame comes from the watch App Store walk. */}
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-8 sm:gap-12">
-          <figure className="m-0 w-full max-w-[390px]">
-            <img
-              src="/shots/widgets/home-screen.webp"
-              alt="An iPhone home screen with two Slackwater widgets: Oak Bay's tide at 7.9 feet and falling, and Nakwakto Rapids flooding north at 4.3 knots with the day's maximums and slacks on its curve."
-              loading="lazy"
-              width={780}
-              height={801}
-              className="w-full rounded-[2rem] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
-            />
-            <figcaption className="mt-4 text-sm leading-relaxed text-sw-steel">
-              Oak Bay&rsquo;s tide and Nakwakto Rapids, on the home screen.
-            </figcaption>
-          </figure>
-          <figure className="m-0 w-[200px]">
-            <img
-              src="/shots/watch/watch-tide.webp"
-              alt="Friday Harbor on Apple Watch, turned with the Digital Crown to 3:49pm: 6.1 feet and rising toward a 6.9 foot high at 5:31pm."
-              loading="lazy"
-              width={422}
-              height={514}
-              className="w-full rounded-[28%/23%] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
-            />
-            <figcaption className="mt-4 text-sm leading-relaxed text-sw-steel">
-              On the watch, the Digital Crown moves through the day.
-            </figcaption>
-          </figure>
-        </div>
-      </section>
+      <Feature
+        title="The sky over the water."
+        shot={
+          <Shot
+            src="/shots/tides-night.webp"
+            alt="Friday Harbor in Slackwater at 11:30pm under a starry sky with a full moon."
+            caption="Friday Harbor at 11:30pm under the full moon, with the stars where they stand that night."
+            crop
+          />
+        }
+      >
+        <p>
+          Every station carries its sky: sunrise, sunset and twilight on the timeline, the
+          moon&rsquo;s phase, and the stars as they stand that night.
+        </p>
+        <p>
+          The moon card names spring and neap tides and explains them, and Slackwater shows
+          solar and lunar eclipses when one is coming.
+        </p>
+      </Feature>
+
 
       <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
         <Heading>Free, open source, no account, no ads.</Heading>
