@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { SlackFigure, TidesFigure } from '#/components/LearnFigures'
+import { SceneCurve, SlackFigure, TidesFigure } from '#/components/LearnFigures'
 import { Shot } from '#/components/Shot'
 import { ANDROID_TESTERS, APP_STORE, MINIMUM_IOS, REQUIREMENT } from '#/lib/links'
 import { SITE_DESCRIPTION } from '#/routes/__root'
@@ -152,42 +152,40 @@ const SITUATIONS: {
   body: string
   /** The scene, an illustration; decorative, so its alt is empty. */
   art: string
-  shot: string
-  alt: string
+  /** The app's curve drawn into the scene's water. */
+  curve: { kind: 'current' | 'tide'; phase: number }
   href?: string
 }[] = [
   {
     title: 'Anchored, no bars',
+    curve: { kind: 'current', phase: 0.6 } as const,
     art: '/shots/situations/boat.webp',
     who: 'Sailing and cruising',
     body: 'Your phone roamed and every tide app is spinning. Slackwater predicts on your phone, so the week of turns at the next pass is already there.',
-    shot: '/shots/boating/currents-boat.webp',
-    alt: 'Deception Pass at 3:00pm with the comfort current at 2 knots: slack in 6 minutes, with the windows a boat can use marked in green on the curve.',
     href: '/boating/',
   },
   {
     title: 'When’s the lowest daylight low?',
+    curve: { kind: 'tide', phase: 2.2 } as const,
     art: '/shots/situations/tidepools.webp',
     who: 'Tide pools and beaches',
     body: 'Slackwater marks the fortnight’s lowest low and puts sunrise and sunset on the same timeline, so you can see whether it falls in daylight. Spring tides are labelled.',
-    shot: '/shots/tide-pools/tides-lowest.webp',
-    alt: 'Friday Harbor at its lowest low of the fortnight, 12:31pm on Sunday 6 June 2027, with sunrise and sunset on the timeline.',
     href: '/tide-pools/',
   },
   {
     title: 'Is the pass slow enough for me?',
+    curve: { kind: 'current', phase: -0.3 } as const,
     art: '/shots/situations/kayak.webp',
     who: 'Sea kayaking',
     body: 'Set the fastest current you’ll paddle in, and every curve shows your slack windows in green.',
-    shot: '/shots/kayak/currents-comfort.webp',
-    alt: 'Discovery Island’s current off Oak Bay with a 1.4 knot comfort current: slack windows in green between faster runs in blue.',
     href: '/kayak/',
   },
 ]
 
-/** One situation: the reader's question, the screenshot that answers it
- *  (its top, where the reading and curve are), and two sentences. */
-function SituationCard({ title, who, body, art, shot, alt, href }: (typeof SITUATIONS)[number]) {
+/** One situation: the scene with the app's curve cut into its water, who it's
+ *  for, the reader's question and two sentences. The screenshots that prove
+ *  it are on the situation's own page. */
+function SituationCard({ title, who, body, art, curve, href }: (typeof SITUATIONS)[number]) {
   const card = (
     <article className="flex h-full flex-col overflow-hidden rounded-3xl bg-sw-canvas ring-1 ring-white/10 transition">
       <div className="relative aspect-[4/3] overflow-hidden">
@@ -199,11 +197,7 @@ function SituationCard({ title, who, body, art, shot, alt, href }: (typeof SITUA
           height={720}
           className="h-full w-full object-cover motion-safe:animate-drift"
         />
-        {/* The app's answer, inset over the scene: the station through its
-            timeline, cropped from the full screenshot. */}
-        <div className="absolute bottom-4 right-4 aspect-square w-[38%] overflow-hidden rounded-2xl shadow-2xl shadow-sw-navy-deep/70 ring-1 ring-white/20">
-          <img src={shot} alt={alt} loading="lazy" width={780} height={1695} className="h-full w-full object-cover object-[50%_21%]" />
-        </div>
+        <SceneCurve {...curve} className="absolute inset-x-0 bottom-0 h-[35%] w-full" />
       </div>
       <div className="flex flex-1 flex-col p-6">
         <p className="font-mono text-xs uppercase tracking-[0.14em] text-sw-leaf">{who}</p>
