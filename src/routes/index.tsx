@@ -180,7 +180,7 @@ const SITUATIONS: {
   },
   {
     title: 'Is the pass slow enough for me?',
-    curve: { kind: 'current', phase: 2.6 } as const,
+    curve: { kind: 'current', phase: -0.3 } as const,
     art: '/shots/situations/kayak.webp',
     who: 'Sea kayaking',
     body: 'Set the fastest current you’ll paddle in, and every curve shows your slack windows in green.',
@@ -210,7 +210,7 @@ function SituationCard({
           className="h-full w-full object-cover motion-safe:animate-drift"
         />
         {variant === 'b' && (
-          <SceneCurve {...curve} className="absolute inset-x-0 bottom-0 h-[45%] w-full" />
+          <SceneCurve {...curve} className="absolute inset-x-0 bottom-0 h-[35%] w-full" />
         )}
       </div>
       <div className="flex flex-1 flex-col p-6">

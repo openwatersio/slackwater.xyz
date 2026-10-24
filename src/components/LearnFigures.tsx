@@ -80,14 +80,14 @@ export function SlackFigure({ className }: { className?: string }) {
  *  Below the curve is the card's own navy, so the scene runs into the card's
  *  text with no edge. No times, no numbers: the shape is the point.
  *
- *  Its viewBox matches the band it fills (the bottom 45% of a 4:3 scene), so
+ *  Its viewBox matches the band it fills (the bottom 35% of a 4:3 scene), so
  *  nothing stretches. A current is coloured flood, ebb and slack; a tide is
  *  one line dipping to a marked low. Decorative. */
 export function SceneCurve({ kind, phase = 0, className }: { kind: 'current' | 'tide'; phase?: number; className?: string }) {
   const W = 300
-  const H = 101
-  const mid = 52
-  const amp = 26
+  const H = 79
+  const mid = 44
+  const amp = 22
   const { runs, at } = currentRuns({ width: W, mid, amp, cycles: 1.5, phase, slack: 0.3 })
   const all = runs.flatMap((r, n) => (n === 0 ? r.points : r.points.slice(1)))
   const below = `M${all.join(' L')} L${W} ${H} L0 ${H} Z`
