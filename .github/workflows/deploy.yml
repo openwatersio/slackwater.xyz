@@ -29,7 +29,7 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       # Full history: the sitemap dates each non-station page by the last
       # commit to its source (vite.config.ts), and a shallow clone has one.
