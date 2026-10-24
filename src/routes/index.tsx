@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { SlackFigure, TidesFigure } from '#/components/LearnFigures'
+import { SceneCurve, SlackFigure, TidesFigure } from '#/components/LearnFigures'
 import { Shot } from '#/components/Shot'
 import { ANDROID_TESTERS, APP_STORE, MINIMUM_IOS, REQUIREMENT } from '#/lib/links'
 import { SITE_DESCRIPTION } from '#/routes/__root'
@@ -152,12 +152,15 @@ const SITUATIONS: {
   body: string
   /** The scene, an illustration; decorative, so its alt is empty. */
   art: string
+  /** Option B's curve, drawn into the scene's water. */
+  curve: { kind: 'current' | 'tide'; phase: number }
   shot: string
   alt: string
   href?: string
 }[] = [
   {
     title: 'Anchored, no bars',
+    curve: { kind: 'current', phase: 0.6 } as const,
     art: '/shots/situations/boat.webp',
     who: 'Sailing and cruising',
     body: 'Your phone roamed and every tide app is spinning. Slackwater predicts on your phone, so the week of turns at the next pass is already there.',
@@ -167,6 +170,7 @@ const SITUATIONS: {
   },
   {
     title: 'When’s the lowest daylight low?',
+    curve: { kind: 'tide', phase: 2.2 } as const,
     art: '/shots/situations/tidepools.webp',
     who: 'Tide pools and beaches',
     body: 'Slackwater marks the fortnight’s lowest low and puts sunrise and sunset on the same timeline, so you can see whether it falls in daylight. Spring tides are labelled.',
@@ -176,6 +180,7 @@ const SITUATIONS: {
   },
   {
     title: 'Is the pass slow enough for me?',
+    curve: { kind: 'current', phase: 2.6 } as const,
     art: '/shots/situations/kayak.webp',
     who: 'Sea kayaking',
     body: 'Set the fastest current you’ll paddle in, and every curve shows your slack windows in green.',
@@ -188,14 +193,14 @@ const SITUATIONS: {
 /** One situation: the reader's question, the screenshot that answers it
  *  (its top, where the reading and curve are), and two sentences. */
 /** `a`: the illustration alone; the screenshot lives on the situation's page.
- *  `b`: the illustration, then a strip of the app's curve under it.
+ *  `b`: the app's curve cut into the illustration's water.
  *  Both render on the draft for comparison; the loser goes before merge. */
 function SituationCard({
-  title, who, body, art, shot, alt, href, variant,
+  title, who, body, art, curve, href, variant,
 }: (typeof SITUATIONS)[number] & { variant: 'a' | 'b' }) {
   const card = (
     <article className="flex h-full flex-col overflow-hidden rounded-3xl bg-sw-canvas ring-1 ring-white/10 transition">
-      <div className={`overflow-hidden ${variant === 'a' ? 'aspect-[4/3]' : 'aspect-[16/9]'}`}>
+      <div className="relative aspect-[4/3] overflow-hidden">
         <img
           src={art}
           alt=""
@@ -204,14 +209,10 @@ function SituationCard({
           height={720}
           className="h-full w-full object-cover motion-safe:animate-drift"
         />
+        {variant === 'b' && (
+          <SceneCurve {...curve} className="absolute inset-x-0 bottom-0 h-[45%] w-full" />
+        )}
       </div>
-      {variant === 'b' && (
-        // A strip across the screenshot's curve, under the scene rather
-        // than over it.
-        <div className="aspect-[5/2] overflow-hidden border-t border-white/10">
-          <img src={shot} alt={alt} loading="lazy" width={780} height={1695} className="h-full w-full object-cover object-[50%_47%]" />
-        </div>
-      )}
       <div className="flex flex-1 flex-col p-6">
         <p className="font-mono text-xs uppercase tracking-[0.14em] text-sw-leaf">{who}</p>
         <h3 className="mt-2 text-xl font-semibold leading-snug text-sw-paper">{title}</h3>
