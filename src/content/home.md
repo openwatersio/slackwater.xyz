@@ -22,6 +22,12 @@ Tide stations are available around the world; current stations cover the US and 
 
 Free home screen widgets show the next high, low or slack and today's curve, for your location or a station you choose. To add one, long-press your home screen, tap +, and search for Slackwater. The free Apple Watch app works without your phone; turn the Digital Crown to move through the day. Premium adds lock-screen widgets and Watch complications.
 
+## Siri and Shortcuts
+
+Ask “When is the next low tide in Slackwater?”, “When is the next high tide in Slackwater?” or “When is the next slack window in Slackwater?” Siri answers for a nearby place with an approximate wait, with the local time and prediction curve on screen. The three actions are free and also appear in the Shortcuts app, with no separate download.
+
+Open Slackwater and allow location first. For Canadian places that need a prediction download, save it in the app before asking Siri.
+
 ## Offline use
 
 Bundled stations predict on your phone for any date without a download or an expiring cache. Supported Canadian stations need an initial download to build an offline model. Some Canadian passes require a connection and are labeled in the app. Set up Canadian stations before leaving signal. Canadian station pages on this website fetch predictions directly from the Canadian Hydrographic Service in the browser; raw HTML and Markdown do not contain those predictions.

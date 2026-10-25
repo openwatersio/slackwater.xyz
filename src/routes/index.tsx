@@ -460,6 +460,39 @@ function Home() {
       </section>
 
       <Feature
+        title="Just ask Siri."
+        shot={
+          <figure className="m-0">
+            <img
+              src="/shots/siri/low-tide.webp"
+              alt="Siri answering that the next low tide at Oak Bay is in about 10 hours, with the 9:23 PM local time, 3.3-foot height and tide curve below."
+              loading="lazy"
+              width={780}
+              height={1010}
+              className="w-full rounded-[2rem] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
+            />
+            <figcaption className="mt-4 text-sm leading-relaxed text-sw-steel">
+              A real Siri answer for Oak Bay, captured on iPhone.
+            </figcaption>
+          </figure>
+        }
+      >
+        <p>
+          “When is the next low tide in Slackwater?” Siri tells you how long until the
+          next turn at a nearby place, with the local time and curve on screen.
+        </p>
+        <p>
+          Try “When is the next high tide in Slackwater?” or “When is the next slack
+          window in Slackwater?” too. The three actions are free and also appear in
+          the Shortcuts app, with no separate download.
+        </p>
+        <p>
+          Open Slackwater and allow location first. For Canadian places that need a
+          prediction download, save it in the app before asking Siri.
+        </p>
+      </Feature>
+
+      <Feature
         title="On your wrist, without your phone."
         flip
         shot={

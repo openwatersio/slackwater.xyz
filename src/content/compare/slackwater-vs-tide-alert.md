@@ -9,7 +9,7 @@ verified: 2026-10-14
 
 **Short version.** Tide Alert is built around one feature its name promises: the phone
 tells you when the tide reaches a level or a time. It has a full Watch app, Siri, and now
-covers Canada and Mexico. Slackwater has a free Watch app and optional Premium alerts and station calendars. Its current
+covers Canada and Mexico. Slackwater has free Watch and Siri support, plus optional Premium alerts and station calendars. Its current
 stations show the slack window and max, free with no ads. Bundled predictions work offline. Canadian stations need setup, and some passes remain online-only.
 
 Compare the alert types you need as well as the tide and current views.
@@ -23,7 +23,7 @@ Slackwater features checked October 9, 2026; Tide Alert's details checked agains
 | Price | Free trial, then $6.99/3 mo or $19.99/yr; Tide Alert Gold $99.99 | Free core; optional Premium |
 | Alerts | Tide level and time, phone and Watch | Premium; phone notifications and alarms |
 | Apple Watch | Full app with complications | Free standalone app; complications Premium |
-| Siri | Yes | No |
+| Siri | Yes | Free high tide, low tide and slack-window answers |
 | Tides | US, Canada, Mexico, Latin America | Worldwide |
 | Currents | Speed from NOAA current stations overlaid on the tide chart, estimated slack windows | Current stations: slack time and duration, max flood/ebb with set, own curve |
 | Offline | Favourite stations and month tables | Bundled predictions offline; Canadian setup, some passes online-only |
@@ -66,7 +66,7 @@ and stays free, including home screen widgets. Optional Premium adds alerts, sta
 
 ## Who should pick which
 
-**Tide Alert** if its tide-level alerts, Watch interface or Siri support suit you.
+**Tide Alert** if its tide-level alerts or Watch interface suit you.
 
 **Slackwater** if you need the slack window at a current station, want every prediction
 at bundled stations offline without favoriting first, or want free charts with no subscription. Download Canadian stations before leaving signal and check for online-only passes.
