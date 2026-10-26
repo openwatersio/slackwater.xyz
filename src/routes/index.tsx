@@ -23,6 +23,8 @@ const LANGUAGES = [
   ['da', '🇩🇰', 'Dansk'],
   ['pt-PT', '🇵🇹', 'Português (Portugal)'],
   ['fi', '🇫🇮', 'Suomi'],
+  ['ga', '🇮🇪', 'Gaeilge'],
+  ['gd', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Gàidhlig'],
 ] as const
 
 export const Route = createFileRoute('/')({
