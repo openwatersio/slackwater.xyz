@@ -128,6 +128,8 @@ failed and nothing said so.
 
 The workflow also reports changed URLs to [IndexNow](https://www.indexnow.org/documentation), which shares them with Bing and the other participating engines. Before `wrangler deploy`, `node tools/indexnow.mjs plan` compares the live sitemaps with the build's. It lists URLs that were added or removed, and pages outside the station sitemaps whose `<lastmod>` changed. After the deploy, `submit` sends that list. A station's `<lastmod>` is always the build date, so a station is only submitted when it arrives or leaves. A nightly rebuild therefore normally submits nothing. Neither step can fail the deploy, so a failed submission shows only in the job log. The key in `src/lib/indexnow.ts` is public by design: engines verify it by fetching `public/<key>.txt`, and `npm run test:agents` checks that the file is served. Bing Webmaster Tools' IndexNow report shows what was received. `npm run deploy` does not submit.
 
+Because the deploy only sends changes, a page that was already live when IndexNow was wired up is never sent. To send every page once, run `node tools/indexnow.mjs all urls.txt`, then `node tools/indexnow.mjs submit urls.txt`. Do this once, for example after a new engine joins IndexNow or after a move to new URLs, not on a schedule: about 9,500 URLs a day is what IndexNow answers with a 429.
+
 `npm run deploy` still publishes from a laptop, for a rollback or when the token is being
 rotated. `workflow_dispatch` on the Deploy workflow does the same thing from Actions.
 
