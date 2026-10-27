@@ -56,7 +56,6 @@ export function directoryHead(kind: Kind, page: Page | undefined) {
   const title = pageTitle(s)
   // A pass guide describes the water; without one a CHS page can promise only its identity.
   const description = page.guide?.description ?? pageDescription(s)
-  const alt = ogImageAlt(s)
   const card = `${ORIGIN}/og/${kind === 'tide' ? 'tides' : 'currents'}/${s.slug}`
   // The flat share form, not the page's own path: shipped app builds parse
   // only `/<kind>/<slug>[/<instant>]` (`stationLink(from:)` in slackwater-ios).
@@ -73,8 +72,8 @@ export function directoryHead(kind: Kind, page: Page | undefined) {
       { property: 'og:description', content: description },
       { property: 'og:url', content: page.instant ? canonical + page.instant.raw : canonical },
       { property: 'og:image', content: page.instant ? `${card}/${page.instant.raw}.png` : `${card}.png` },
-      // Overrides the site default only where it would be false — see `ogImageAlt`.
-      ...(alt ? [{ property: 'og:image:alt', content: alt }] : []),
+      // Replaces the root's alt, which describes the app screenshot, not this card.
+      { property: 'og:image:alt', content: ogImageAlt(s) },
       // Replaces the root's banner by name, so Open lands on this station.
       { name: 'apple-itunes-app', content: `app-id=${APP_STORE_ID}, app-argument=${opens}` },
     ],
