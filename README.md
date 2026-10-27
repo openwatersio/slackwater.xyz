@@ -8,8 +8,8 @@ currents across the US and Canada.
 ## What this is
 
 The marketing site — and, now, a page per station. It explains the app, points people at the
-App Store, and prerenders a page under its country and subdivision (`/tides/us/pa/bridesburg/`, `/currents/ca/bc/dodd-narrows/`) for 9,318 stations — a
-real computed curve for 8,436 of them, and identity only for 882 Canadian ones: the
+App Store, and prerenders a page under its country and subdivision (`/tides/us/pa/bridesburg/`, `/currents/ca/bc/dodd-narrows/`) for 9,518 stations — a
+real computed curve for 8,636 of them, and identity only for 882 Canadian ones: the
 share-landing surface for anyone sent a link, and indexable content the site previously had
 none of.
 
@@ -24,7 +24,7 @@ rows whose GESLA provider forbids commercial use and the 834 the database's own 
 rejects. A rejected station's address still answers — a 301 to the nearest place page above it,
 because some of them were pages here before the site read the whole corpus.
 
-9,318 pages: 8,436 get a computed curve, and 882 Canadian (CHS) stations get identity
+9,518 pages: 8,636 get a computed curve, and 882 Canadian (CHS) stations get identity
 only: the 23 current gates and the 859 tide ports with no predictable provider row. DFO's
 terms don't allow re-serving predictions, so no CHS prediction is prerendered anywhere; the
 reader's own browser fetches DFO's published numbers and draws them. Where the database

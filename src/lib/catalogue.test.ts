@@ -11,19 +11,19 @@ describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
   it('yields every predictable station the database routes and the quality pass accepts, plus the CHS gates and ports', () => {
-    expect(all.length).toBe(9318)
-    expect(all.filter((s) => s.kind === 'tide').length).toBe(6761)
+    expect(all.length).toBe(9518)
+    expect(all.filter((s) => s.kind === 'tide').length).toBe(6961)
     expect(all.filter((s) => s.kind === 'current').length).toBe(2557)
   })
 
 
   it('carries the seasonal ratio for the stations the database labels, and nothing else', () => {
     // The verdict is the database's (`quality.seasonal_dominant`) and the number
-    // is the site's, used only to pick how loudly a page speaks. 396 of the
-    // 6,761 tide pages carry it and no current page does — currents are
+    // is the site's, used only to pick how loudly a page speaks. 413 of the
+    // 6,961 tide pages carry it and no current page does — currents are
     // measured in knots against no datum, so the question does not arise.
     const seasonal = all.filter((s) => s.source === 'bundled' && s.seasonal !== undefined)
-    expect(seasonal).toHaveLength(396)
+    expect(seasonal).toHaveLength(413)
     expect(seasonal.every((s) => s.kind === 'tide')).toBe(true)
 
     // Cobourg on Lake Ontario, the extreme: SA 0.289 m against 0.002 m of M2.
@@ -399,20 +399,20 @@ describe('chart datum', () => {
   })
 
   it('uses each station its own datum, not MLLW everywhere', () => {
-    // The corpus spans 9 chart datums and MLLW covers 4,313 of 5,833 bundled tide
+    // The corpus spans 9 chart datums and MLLW covers 4,337 of 6,102 bundled tide
     // stations. Shifting a Greenland or Canadian station by an MLLW offset —
     // or labelling it MLLW — is wrong for more than half the world.
     const aasiaat = bundled('ticon/aasiaat-aas-grl-gloss')
     expect(aasiaat.chartDatum).toBe('LAT')
-    expect(aasiaat.offset).toBeCloseTo(1.572 * FEET_PER_METRE, 2)
+    expect(aasiaat.offset).toBeCloseTo(1.581 * FEET_PER_METRE, 2)
 
     const albert = bundled('ticon/albert_harbour-5803-can-meds')
     expect(albert.chartDatum).toBe('LLWLT')
-    expect(albert.offset).toBeCloseTo(1.023 * FEET_PER_METRE, 2)
+    expect(albert.offset).toBeCloseTo(1.086 * FEET_PER_METRE, 2)
   })
 
   it('leaves a station already quoted on MSL exactly where it was', () => {
-    // 112 published stations chart to MSL, so MSL - MSL = 0 and the curve must
+    // 194 published stations chart to MSL, so MSL - MSL = 0 and the curve must
     // not move.
     const arko = bundled('ticon/arko-2545-swe-smhi')
     expect(arko.chartDatum).toBe('MSL')
