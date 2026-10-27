@@ -7,12 +7,18 @@
 // The live sitemaps are the record of what was last published, so plan has to
 // read them before the deploy replaces them. Submitting after the deploy means
 // an engine that fetches straight away sees the new pages.
+//
+//   node tools/indexnow.mjs all <file>     by hand: list every live URL for submit
+//
+// The deploy only ever sends changes, so a page live before IndexNow was wired
+// up is never sent. `all` backfills those, once. It is not for every deploy:
+// repeating it daily is what IndexNow answers with a 429.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { addUrlset, changedUrls, ENDPOINT, HOST, payloads, sitemapIndex } from '../src/lib/indexnow.ts'
 
 const [command, file] = process.argv.slice(2)
-if (!['plan', 'submit'].includes(command) || !file) {
-  console.error('usage: node tools/indexnow.mjs plan|submit <file>')
+if (!['plan', 'all', 'submit'].includes(command) || !file) {
+  console.error('usage: node tools/indexnow.mjs plan|all|submit <file>')
   process.exit(2)
 }
 
@@ -39,6 +45,11 @@ if (command === 'plan') {
   console.log(`${urls.length} of ${built.size} URLs changed since the live deploy`)
   for (const url of urls.slice(0, 50)) console.log(`  ${url}`)
   if (urls.length > 50) console.log(`  … and ${urls.length - 50} more`)
+} else if (command === 'all') {
+  const live = await readSitemaps((name) => fetchText(`https://${HOST}/${name}`))
+  const urls = [...live.keys()].sort()
+  writeFileSync(file, urls.map((u) => `${u}\n`).join(''))
+  console.log(`${urls.length} URLs in the live sitemaps`)
 } else {
   // No plan file means plan failed and already said why.
   const urls = existsSync(file) ? readFileSync(file, 'utf8').split('\n').filter(Boolean) : []
