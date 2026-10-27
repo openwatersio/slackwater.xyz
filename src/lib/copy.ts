@@ -264,17 +264,16 @@ export function pageDescription(station: Station): string {
 }
 
 /**
- * `og:image:alt` for one station's card, where it must say something other
- * than the site default.
+ * `og:image:alt` for one station's card. The site default in `__root.tsx`
+ * describes the app screenshot in `og.png`, which no station card shows.
  *
- * `__root.tsx` sets a site-wide default describing "a tide curve crossing
- * the datum line, with the slack marker on the crossing" — true of every
- * bundled card, so those pages keep it and this returns `undefined`. A CHS
- * card has no curve at all (see `identityCard` in `og-image.ts`), so that
- * description is false for it and needs its own, naming only what the card
- * shows: the station, not a chart.
+ * A bundled card draws the station's own 24-hour curve (`curveCard` in
+ * `og-image.ts`). A CHS card has no curve at all (`identityCard`), so its
+ * alt names only what the card shows: the station, not a chart.
  */
-export function ogImageAlt(station: Station): string | undefined {
-  if (station.source !== 'chs') return undefined
-  return `${station.name}: a Slackwater station card naming the water, with no chart.`
+export function ogImageAlt(station: Station): string {
+  if (station.source === 'chs') return `${station.name}: a Slackwater station card naming the water, with no chart.`
+  return station.kind === 'tide'
+    ? `A 24-hour tide chart for ${station.name}, with each high and low marked by time and height.`
+    : `A 24-hour current chart for ${station.name}, with each slack marked and the peak flood and ebb speeds.`
 }
