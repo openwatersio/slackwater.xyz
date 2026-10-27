@@ -45,7 +45,7 @@ npm run test:agents
 
 The build comes before typechecking and tests because it generates `src/routeTree.gen.ts` and the prerendered artifacts that five integration suites inspect. Prediction changes arrive with a focused test; errors there can look plausible and matter on the water.
 
-Presentation is checked by looking at it. There is no snapshot suite: 9,318 pages come from
+Presentation is checked by looking at it. There is no snapshot suite: 9,518 pages come from
 three templates, so a representative tide page, a representative current page, and a
 representative CHS identity-only page (`/currents/dodd-narrows`) is the check, plus a merged
 Canadian port (`/tides/ca/bc/victoria/`) with the CHS layer loaded in a browser, and a diff
@@ -65,7 +65,7 @@ Look at any visible change before reporting it complete.
 
 ## Project rules
 
-- Keep dependencies, abstractions, and build steps to the minimum. Their cost is multiplied across 9,318 station pages.
+- Keep dependencies, abstractions, and build steps to the minimum. Their cost is multiplied across 9,518 station pages.
 - Every rendered curve comes from `src/lib/predict.ts` and bundled constituents. The landing page only shows the app's screenshots. Changes to `predict.ts`, `src/lib/ramp.ts`, or `src/lib/iwls.ts` require a test.
 - NOAA subordinate current stations reduce an exact reference station and bin through their published time offsets and speed ratios. A row with its own constituents remains harmonic regardless of NOAA's type label.
 - The 23 CHS gate pages and the 859 Canadian tide ports with no predictable provider row ship identity without a prerendered prediction. The visitor's browser fetches each one's day directly from DFO, except `chs-malibu-rapids`, which is derived and has no station to fetch. A route the database merges with a provider row that has constituents, which today is 198 of the 1,057 Canadian tide ports, prerenders that row's computed curve under the CHS record's name and position, and the browser then draws CHS's published day in place of today's chart and today's 7-day table rows as the refined data (`src/lib/refine.ts`), marking those rows CHS. A failed or slow fetch leaves the computed curve and rows. Copy on those pages names no app mechanism either (#44). Never proxy or re-serve IWLS predictions, and never prerender them. `src/lib/iwls.ts` converts DFO metres on chart datum to feet; CHS pages name chart datum without borrowing another datum code. The site publishes every Canadian tide port the database gives a record and a route. `chs-arran-rapids` is excluded by `EXCLUDED` in `src/lib/registry.ts`.

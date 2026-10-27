@@ -387,6 +387,13 @@
 /tides/bb /tides/bb/ 308
 /tides/bb/bridgetown /tides/bb/bridgetown/ 308
 /tides/bd /tides/bd/ 308
+/tides/bd/charchanga /tides/bd/charchanga/ 308
+/tides/bd/chattogram /tides/bd/chattogram/ 308
+/tides/bd/chittagong /tides/bd/chittagong/ 308
+/tides/bd/coxs-bazaar /tides/bd/coxs-bazaar/ 308
+/tides/bd/hiron-point /tides/bd/hiron-point/ 308
+/tides/bd/khepupara /tides/bd/khepupara/ 308
+/tides/bd/teknaf /tides/bd/teknaf/ 308
 /tides/bh /tides/bh/ 308
 /tides/bh/mina-sulman /tides/bh/mina-sulman/ 308
 /tides/bl /tides/bl/ 308
@@ -450,7 +457,7 @@
 /tides/dj/djibouti /tides/dj/djibouti/ 308
 /tides/dk /tides/dk/ 308
 /tides/dm /tides/dm/ 308
-/tides/dm/roseau-ticon-roseau-786a-dma-uhslc-rq /tides/dm/roseau-ticon-roseau-786a-dma-uhslc-rq/ 308
+/tides/dm/roseau /tides/dm/roseau/ 308
 /tides/do /tides/do/ 308
 /tides/ec /tides/ec/ 308
 /tides/eg /tides/eg/ 308
@@ -460,6 +467,7 @@
 /tides/fi /tides/fi/ 308
 /tides/fj /tides/fj/ 308
 /tides/fm /tides/fm/ 308
+/tides/fo /tides/fo/ 308
 /tides/fr /tides/fr/ 308
 /tides/gb /tides/gb/ 308
 /tides/gd /tides/gd/ 308
@@ -467,8 +475,6 @@
 /tides/gh /tides/gh/ 308
 /tides/gh/takoradi /tides/gh/takoradi/ 308
 /tides/gl /tides/gl/ 308
-/tides/gl/aasiaat /tides/gl/aasiaat/ 308
-/tides/gl/maniitsoq /tides/gl/maniitsoq/ 308
 /tides/gp /tides/gp/ 308
 /tides/gp/pointe-a-pitre-guadeloupe /tides/gp/pointe-a-pitre-guadeloupe/ 308
 /tides/gt /tides/gt/ 308
@@ -556,6 +562,13 @@
 /tides/ng /tides/ng/ 308
 /tides/ng/lagos /tides/ng/lagos/ 308
 /tides/ni /tides/ni/ 308
+/tides/ni/bluefields-lagoon-entrance /tides/ni/bluefields-lagoon-entrance/ 308
+/tides/ni/corinto-isla-cardon /tides/ni/corinto-isla-cardon/ 308
+/tides/ni/isla-del-maiz-grande /tides/ni/isla-del-maiz-grande/ 308
+/tides/ni/puerto-cabezas /tides/ni/puerto-cabezas/ 308
+/tides/ni/puerto-somoza /tides/ni/puerto-somoza/ 308
+/tides/ni/san-juan-del-norte-greytown /tides/ni/san-juan-del-norte-greytown/ 308
+/tides/ni/san-juan-del-sur /tides/ni/san-juan-del-sur/ 308
 /tides/nl /tides/nl/ 308
 /tides/no /tides/no/ 308
 /tides/nr /tides/nr/ 308
@@ -569,7 +582,7 @@
 /tides/om/salalah /tides/om/salalah/ 308
 /tides/pa /tides/pa/ 308
 /tides/pe /tides/pe/ 308
-/tides/pe/callao-ticon-callao-093b-per-uhslc-rq /tides/pe/callao-ticon-callao-093b-per-uhslc-rq/ 308
+/tides/pe/callao /tides/pe/callao/ 308
 /tides/pe/lobos-de-afuera /tides/pe/lobos-de-afuera/ 308
 /tides/pe/matarani /tides/pe/matarani/ 308
 /tides/pe/paita /tides/pe/paita/ 308
@@ -733,7 +746,6 @@
 /currents/us/wa/:page /currents/us/wa/:page/ 308
 /tides/ar/:page /tides/ar/:page/ 308
 /tides/au/:page /tides/au/:page/ 308
-/tides/bd/:page /tides/bd/:page/ 308
 /tides/br/:page /tides/br/:page/ 308
 /tides/bs/:page /tides/bs/:page/ 308
 /tides/ca/:page /tides/ca/:page/ 308
@@ -757,8 +769,10 @@
 /tides/fi/:page /tides/fi/:page/ 308
 /tides/fj/:page /tides/fj/:page/ 308
 /tides/fm/:page /tides/fm/:page/ 308
+/tides/fo/:page /tides/fo/:page/ 308
 /tides/fr/:page /tides/fr/:page/ 308
 /tides/gb/:page /tides/gb/:page/ 308
+/tides/gl/:page /tides/gl/:page/ 308
 /tides/hn/:page /tides/hn/:page/ 308
 /tides/id/:page /tides/id/:page/ 308
 /tides/ie/:page /tides/ie/:page/ 308
@@ -768,7 +782,6 @@
 /tides/mh/:page /tides/mh/:page/ 308
 /tides/mx/:page /tides/mx/:page/ 308
 /tides/my/:page /tides/my/:page/ 308
-/tides/ni/:page /tides/ni/:page/ 308
 /tides/nl/:page /tides/nl/:page/ 308
 /tides/no/:page /tides/no/:page/ 308
 /tides/nz/:page /tides/nz/:page/ 308

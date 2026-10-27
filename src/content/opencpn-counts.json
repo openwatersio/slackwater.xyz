@@ -1,49 +1,49 @@
 {
-  "database": "1.0.0-beta.20261017",
-  "tcd": "slackwater-20261017.tcd",
+  "database": "1.0.0-beta.20261027",
+  "tcd": "slackwater-20261027.tcd",
   "opencpn": "Release_5.14.2",
-  "counted": "2026-10-17",
+  "counted": "2026-10-27",
   "sources": {
-    "slackwater-20261017.tcd": {
-      "url": "https://github.com/openwatersio/slackwater-database/releases/download/v1.0.0-beta.20261017/slackwater-20261017.tcd",
-      "fetched": "2026-10-17"
-    },
-    "Release_5.14.2-harmonics-dwf-20210110-free.tcd": {
-      "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/harmonics-dwf-20210110-free.tcd",
-      "fetched": "2026-10-16"
+    "slackwater-20261027.tcd": {
+      "url": "https://github.com/openwatersio/slackwater-database/releases/download/v1.0.0-beta.20261027/slackwater-20261027.tcd",
+      "fetched": "2026-10-27"
     },
     "Release_5.14.2-HARMONICS_NO_US.IDX": {
       "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/HARMONICS_NO_US.IDX",
-      "fetched": "2026-10-16"
+      "fetched": "2026-10-27"
     },
     "Release_5.14.2-ticon-europe-global.tcd": {
       "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/ticon-europe-global.tcd",
-      "fetched": "2026-10-16"
+      "fetched": "2026-10-27"
+    },
+    "Release_5.14.2-harmonics-dwf-20210110-free.tcd": {
+      "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/harmonics-dwf-20210110-free.tcd",
+      "fetched": "2026-10-27"
     },
     "noaa-tidepredictions.json": {
       "url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=tidepredictions",
-      "fetched": "2026-10-17"
+      "fetched": "2026-10-27"
     },
     "noaa-currentpredictions.json": {
       "url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=currentpredictions",
-      "fetched": "2026-10-17"
+      "fetched": "2026-10-27"
     }
   },
   "quality": {
-    "evaluated": 8428,
-    "rejected": 2231,
+    "evaluated": 8655,
+    "rejected": 2276,
     "reasons": {
-      "duplicate": 1082,
-      "superseded": 746,
-      "datum": 281,
-      "range": 94,
+      "duplicate": 1099,
+      "superseded": 772,
+      "datum": 267,
+      "range": 103,
       "timing": 17,
-      "constituents": 9,
-      "seasonal": 2
+      "constituents": 12,
+      "seasonal": 6
     }
   },
   "slackwater": {
-    "tide": 6051,
+    "tide": 6233,
     "current": 2449
   },
   "opencpn514": {
@@ -56,7 +56,7 @@
   },
   "ticonRepeatedNames": 228,
   "retired": {
-    "asOf": "2026-10-17",
+    "asOf": "2026-10-27",
     "tide": {
       "count": 89,
       "states": {
@@ -119,31 +119,31 @@
     "bayOfFundy": 18
   },
   "extraTides": {
-    "total": 2371,
-    "usFile": 75,
-    "worldFile": 2122,
-    "ticonFile": 174,
+    "total": 2366,
+    "usFile": 74,
+    "worldFile": 2111,
+    "ticonFile": 181,
     "worldByCountry": {
-      "Can": 997,
-      "Jpn": 603,
+      "Can": 995,
+      "Jpn": 604,
       "Aus": 281,
-      "Grn": 35,
       "PNGu": 35,
       "": 32,
+      "Grn": 29,
       "Mex": 21,
       "Icel": 18,
       "Solm": 17,
       "Tasm": 16,
-      "Faer": 11,
       "Neth": 11,
       "Ant": 6,
       "Col": 6,
+      "Faer": 6,
       "NZ": 5,
+      "Pan": 3,
       "PR": 3,
       "Brz": 2,
       "Ger": 2,
       "Nica": 2,
-      "Pan": 2,
       "Bahm": 1,
       "Barb": 1,
       "Caic": 1,
