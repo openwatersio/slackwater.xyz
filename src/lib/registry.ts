@@ -60,24 +60,12 @@ export function curatedBySlug(kind: Kind): Map<string, Curated> {
 }
 
 /**
- * Excluded by owner decision (#45), and by name because the database
- * publishes it like any other gate — without this rule it would become a page
- * as a side effect of a data source. slackwater-ios excludes it fully as a
- * hazard call: violent rapids, "wrong water under a trusted name". The site
- * matches the app, because two surfaces disagreeing about whether a hazard is
- * nameable is worse than one missing page. Publishing it means the app and the
- * site change together; it is not settled by deleting this line.
- */
-const EXCLUDED = new Set(['chs-arran-rapids'])
-
-/**
  * The Canadian stations of one kind, from identity the database already
  * publishes.
  *
  * Every gate and every live Canadian tide port is a curated record with a
  * name, region, corrected position, timezone and province
- * (slackwater-database#210), and the site publishes all of them but the
- * excluded one. A station here that shares its route with a publishable
+ * (slackwater-database#210), and the site publishes all of them. A station here that shares its route with a publishable
  * provider row is folded into that row's page by the catalogue.
  */
 export function chsStations(kind: Kind): ChsStation[] {
@@ -100,7 +88,6 @@ export function chsStations(kind: Kind): ChsStation[] {
  * constituents sits on the same route. That page is the provider's, with the
  * curated identity and the browser's CHS layer on top, and it is a page
  * because the provider row is publishable — not because of this map.
- * EXCLUDED still holds.
  */
 export function chsTwins(kind: Kind): Map<string, ChsStation> {
   const out = new Map<string, ChsStation>()
@@ -112,7 +99,7 @@ export function chsTwins(kind: Kind): Map<string, ChsStation> {
 }
 
 const chsRecords = (kind: Kind) =>
-  curatedRecords.filter((s) => s.source?.name === CHS_SOURCE && s.kind === kind && !EXCLUDED.has(s.id))
+  curatedRecords.filter((s) => s.source?.name === CHS_SOURCE && s.kind === kind)
 
 function chsStation(s: Record): ChsStation | undefined {
   const kind = s.kind

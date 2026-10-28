@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { chsStations, curatedBySlug } from './registry'
+import { nearestStation } from './iwls'
+import fixture from './__fixtures__/iwls.json' with { type: 'json' }
 
 describe('curatedBySlug', () => {
   it('carries the curated name and region for a registry station', () => {
@@ -16,17 +18,25 @@ describe('curatedBySlug', () => {
 })
 
 describe('chsStations for the current gates', () => {
-  it('yields every CHS current gate the database publishes, less the excluded one', () => {
+  it('yields every CHS current gate the database publishes', () => {
     const gates = chsStations('current')
-    expect(gates.length).toBe(23)
+    expect(gates.length).toBe(24)
     expect(gates.every((g) => g.source === 'chs')).toBe(true)
   })
 
-  it('excludes chs-arran-rapids by name', () => {
-    // slackwater-ios excludes it fully as a hazard call - wrong water under a
-    // trusted name - and the site matches the app by owner decision (#45). The
-    // database publishes it, so only an explicit rule keeps it out.
-    expect(chsStations('current').some((g) => g.id === 'chs-arran-rapids')).toBe(false)
+  it('publishes Arran Rapids as a fetchable CHS identity', () => {
+    const arran = chsStations('current').find((g) => g.id === 'chs-arran-rapids')
+    expect(arran?.name).toBe('Arran Rapids')
+    expect(arran?.path).toBe('/currents/ca/bc/arran-rapids/')
+    expect(arran?.derived).toBeUndefined()
+  })
+
+  it('resolves Arran to its own CHS station and refuses neighbouring water if it disappears', () => {
+    const arran = chsStations('current').find((g) => g.id === 'chs-arran-rapids')!
+    const own = fixture.stations.find((s) => s.officialName === 'Arran Rapids')!
+    expect(own).toBeDefined()
+    expect(nearestStation(fixture.stations, arran.latitude, arran.longitude)?.id).toBe(own.id)
+    expect(nearestStation(fixture.stations.filter((s) => s.id !== own.id), arran.latitude, arran.longitude)).toBeUndefined()
   })
 
   it('names Dodd Narrows, the flagship gate', () => {
@@ -60,10 +70,10 @@ describe('chsStations and the derived gate', () => {
   })
 
   it('leaves every fetchable gate unflagged', () => {
-    // The other 22 all serve wcsp1 at their own published position, worst
+    // The other 23 all serve wcsp1 at their own published position, worst
     // match 0.17 km. A flag creeping onto one of them silently removes its
     // curve, and the page would still render and still look finished.
     expect(gates.find((g) => g.id === 'chs-dodd-narrows')?.derived).toBeUndefined()
-    expect(gates.filter((g) => !g.derived)).toHaveLength(22)
+    expect(gates.filter((g) => !g.derived)).toHaveLength(23)
   })
 })

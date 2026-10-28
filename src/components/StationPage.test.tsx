@@ -34,9 +34,7 @@ describe('StationPage for a CHS station', () => {
   })
 
   it('does not claim the app works offline here', () => {
-    // Nine of the 23 gates are never fitted on device, and nothing in the
-    // published registry says which nine. Any offline claim is false for some
-    // of them, so the page makes none.
+    // Shared coverage copy cannot promise offline predictions for online gates (#44).
     expect(html).not.toMatch(/offline/i)
   })
 

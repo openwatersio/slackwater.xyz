@@ -24,7 +24,7 @@ Slackwater features checked October 9, 2026; Actual Currents' details checked ag
 | Currents | Animated flow field on ENC charts, NOAA and CHS station arrows, route analysis, next slack at saved places | Station predictions: slack time and duration, max flood/ebb with set, curve |
 | Tides | Virtual tide gauge and NOAA tide stations | Worldwide |
 | Offline | No offline mode listed | Bundled predictions offline; Canadian setup, some passes online-only |
-| Canada | CHS station arrows since v2.04 | 23 CHS gates, checked against CHS predictions |
+| Canada | CHS station arrows since v2.04 | CHS current gates, checked against CHS predictions |
 | Data | Its own tidal model; NOAA and CHS stations, NOAA PORTS | NOAA constituents, CHS; named per station |
 | Widgets | No | Home screen free; lock screen Premium |
 | Apple Watch | No | Free standalone app; complications Premium |

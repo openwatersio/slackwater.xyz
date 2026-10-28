@@ -70,7 +70,7 @@ describe('prerendered station pages', () => {
     // route back into the site. Both shipped missing once; this is the guard.
     //
     // `currents/dodd-narrows` is here too: the CHS branch replaces the whole
-    // page body and the CTA for 23 gates, and before this was only covered by
+    // page body and the CTA for 24 gates, and before this was only covered by
     // "the file exists" - not by "it still has a CTA and a way home".
     const paths = [
       page('current', 'deception-pass-narrows'),

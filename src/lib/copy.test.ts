@@ -37,12 +37,7 @@ describe('provenance', () => {
   })
 
   it('names CHS as the publisher, which is only true once the curve is drawn', () => {
-    // The identity panel may not say this (#44): nine of the 23 gates are
-    // never fitted on device and nothing published says which nine, so any
-    // sentence naming a mechanism is false for one group or the other. That
-    // constraint does not reach here. What this clause describes is a curve
-    // the reader's browser fetched from DFO, which is CHS's own published
-    // prediction for every gate without exception.
+    // The shared identity panel cannot promise an on-device fit for online gates (#44).
     expect(provenance(chs)).toBe('published by the Canadian Hydrographic Service')
   })
 
@@ -205,7 +200,7 @@ describe('seasonalNote', () => {
   })
 
   it('says nothing where the database did not label the station', () => {
-    // 6,548 of the 6,961 tide pages. Absence is the database's verdict, and the
+    // 6,544 of the 6,957 tide pages. Absence is the database's verdict, and the
     // site never decides it — that is why the field is optional rather than 0.
     expect(seasonalNote(tide())).toBeUndefined()
   })

@@ -52,6 +52,12 @@ describe('the OpenCPN comparison', () => {
   const markdown = readFileSync('src/content/opencpn.md', 'utf8')
   const n = (value: number) => value.toLocaleString('en-US')
 
+  it('names the Japan Coast Guard reuse terms and requires credit for modified data', () => {
+    expect(markdown).toContain('[Government Standard Terms of Use 2.0](https://www1.kaiho.mlit.go.jp/copyright.html)')
+    expect(markdown).toContain('identify modifications')
+    expect(markdown).toContain('government-produced')
+  })
+
   it('was counted from the database release the site is built against', async () => {
     const { version } = await import('@slackwater/database/package.json')
     expect(counts.database, 'run `node tools/count-opencpn.mjs` after a database bump').toBe(version)

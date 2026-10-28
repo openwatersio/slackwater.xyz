@@ -23,7 +23,7 @@ describe('buildSitemaps', () => {
 
   it('lists every station exactly once, at its canonical URL', () => {
     const tides = maps['sitemap-tides.xml']
-    expect((tides.match(/<loc>/g) ?? []).length).toBe(6961)
+    expect((tides.match(/<loc>/g) ?? []).length).toBe(6957)
     expect(tides).toContain('<loc>https://slackwater.xyz/tides/us/wa/seattle/</loc>')
   })
 
