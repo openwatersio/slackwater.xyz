@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { loadCatalogue } from './catalogue'
 import {
-  DESCRIPTION_LIMIT, TITLE_LIMIT, datumLine, pageDescription, pageTitle, placeLine, provenance, refinedCredit, seasonalNote,
+  DESCRIPTION_LIMIT, TITLE_LIMIT, datumLine, ogImageAlt, pageDescription, pageTitle, placeLine, provenance, refinedCredit,
+  seasonalNote,
 } from './copy'
 import { PASS_GUIDES } from './passes'
 import type { BundledStation, ChsStation } from './station'
@@ -134,6 +135,23 @@ describe('pageDescription', () => {
       'Station information for Dodd Narrows, Nanaimo. Predictions based on ' +
         'Canadian Hydrographic Service data are in the Slackwater app.',
     )
+  })
+})
+
+describe('ogImageAlt', () => {
+  // The site default describes the Friday Harbor app screenshot, so a station
+  // card that fell back to it would describe another place.
+  it('describes the station’s own curve on a bundled card', () => {
+    expect(ogImageAlt({ ...bundled, kind: 'tide', name: 'Trenton' })).toBe(
+      'A 24-hour tide chart for Trenton, with each high and low marked by time and height.',
+    )
+    expect(ogImageAlt(bundled)).toBe(
+      'A 24-hour current chart for Deception Pass, with each slack marked and the peak flood and ebb speeds.',
+    )
+  })
+
+  it('promises no chart on a CHS card', () => {
+    expect(ogImageAlt(chs)).toBe('Dodd Narrows: a Slackwater station card naming the water, with no chart.')
   })
 })
 
