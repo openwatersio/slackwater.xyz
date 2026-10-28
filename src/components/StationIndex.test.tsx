@@ -17,7 +17,7 @@ const rowsFor = (kind: Kind) => loadCatalogue().filter((s) => s.kind === kind).m
 
 describe('StationIndex', () => {
   it('never buries more than half of one kind under a single Elsewhere-shaped heading', () => {
-    // The regression this guards: 24 curated Canadian rows (23 CHS gates plus
+    // The regression this guards: 25 curated Canadian rows (24 CHS gates plus
     // `boundary-pass`) each carrying a region used to be enough to flip the
     // whole current index into "grouped", which sorted 24 one-station
     // headings ahead of an `Elsewhere` bucket holding the other 841 US

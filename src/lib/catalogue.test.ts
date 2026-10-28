@@ -11,16 +11,16 @@ describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
   it('yields every predictable station the database routes and the quality pass accepts, plus the CHS gates and ports', () => {
-    expect(all.length).toBe(9518)
-    expect(all.filter((s) => s.kind === 'tide').length).toBe(6961)
-    expect(all.filter((s) => s.kind === 'current').length).toBe(2557)
+    expect(all.length).toBe(9537)
+    expect(all.filter((s) => s.kind === 'tide').length).toBe(6957)
+    expect(all.filter((s) => s.kind === 'current').length).toBe(2580)
   })
 
 
   it('carries the seasonal ratio for the stations the database labels, and nothing else', () => {
     // The verdict is the database's (`quality.seasonal_dominant`) and the number
     // is the site's, used only to pick how loudly a page speaks. 413 of the
-    // 6,961 tide pages carry it and no current page does — currents are
+    // 6,957 tide pages carry it and no current page does — currents are
     // measured in knots against no datum, so the question does not arise.
     const seasonal = all.filter((s) => s.source === 'bundled' && s.seasonal !== undefined)
     expect(seasonal).toHaveLength(413)
@@ -109,13 +109,13 @@ describe('loadCatalogue', () => {
   })
 
   it('withholds every route the quality pass rejects, and keeps its address answerable', () => {
-    // 834 commercially licensed routes fail `qualityFilter`, some of them
+    // 830 commercially licensed routes fail `qualityFilter`, some of them
     // pages the site published before it read the whole corpus. A withheld
     // station must not be in the catalogue and must not 404 either: both its
     // canonical path and the flat `/tides/<slug>/` the share sheet mints are
     // keys here, so `resolvePath` can answer with a 301.
     const withheld = loadWithheld()
-    expect(withheld.size).toBe(834 * 2)
+    expect(withheld.size).toBe(830 * 2)
     const published = new Set(all.map((s) => s.path))
     for (const [address, canonical] of withheld) {
       expect(published.has(address), address).toBe(false)
@@ -191,9 +191,23 @@ describe('loadCatalogue', () => {
     }
   })
 
-  it('keeps chs-arran-rapids off every page, merged or not (#45)', () => {
-    expect(all.some((s) => s.id === 'chs-arran-rapids')).toBe(false)
+  it('publishes Arran Rapids once as a CHS identity (slackwater-ios#752)', () => {
+    expect(all.filter((s) => s.id === 'chs-arran-rapids').map((s) => s.source)).toEqual(['chs'])
     expect(all.some((s) => s.source === 'bundled' && s.chs?.id === 'chs-arran-rapids')).toBe(false)
+  })
+
+  it.each([
+    ['dk/gedser', 'ticon/gedser-837a-dnk-uhslc_rq', 'dk/gedser-dmi-31616'],
+    ['dk/hornbaek', 'ticon/hornbaek-838a-dnk-uhslc_rq', 'dk/hornbaek-dmi-30017'],
+    ['dk/esbjerg', 'ticon/esbjerg-esb-dnk-dmi', 'dk/esbjerg-havn'],
+    ['gl/ittoqqortoormiit', 'ticon/ittoqqortoormiit-809-dnk-uhslc_fd', 'dk/ittoqqortoormiit'],
+    ['gl/maniitsoq', 'ticon/maniitsoq-man-grl-gloss', 'gl/maniitsoq-dmi-2991380'],
+    ['gl/qaqortoq', 'ticon/qaqortoq-299-dnk-uhslc_fd', 'gl/qaqortoq-julianehabsfjord'],
+  ])('publishes %s once with its preferred record and redirects its absorbed path', (route, id, former) => {
+    const path = `/tides/${route}/`
+    expect(all.filter((s) => s.path === path).map((s) => s.id)).toEqual([id])
+    expect(loadMoved().get(`/tides/${former}/`)).toBe(path)
+    expect(all.some((s) => s.path === `/tides/${former}/`)).toBe(false)
   })
 
   it('never carries a CHS prediction on a merged page, only the identity to fetch one', () => {

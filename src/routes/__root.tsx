@@ -53,11 +53,7 @@ export const Route = createRootRoute({
     ],
   }),
   shellComponent: RootDocument,
-  // One known station URL still 404s by design: `chs-arran-rapids`, a gate
-  // excluded by name to match the app (#45).
-  // `dodd-narrows`, the former flagship share case, resolves.
-  // The router's default is a bare title, so the receiver of that link got a
-  // blank page. Say what happened and give them a way onward.
+  // Give an unpublished station link a way onward through the directory.
   notFoundComponent: NotFound,
 })
 

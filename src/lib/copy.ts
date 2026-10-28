@@ -11,7 +11,7 @@ import type { BundledStation, Station } from './station'
  *
  * "Published by", not "based on". Everywhere else on a CHS page the site says
  * "based on Canadian Hydrographic Service data", because the identity panel
- * cannot name a mechanism (#44) and the app fits 14 of the 23 gates itself.
+ * cannot name a mechanism (#44) and the app fits some gates itself and fetches official predictions for others.
  * Here the reader's browser has just fetched DFO's own published prediction
  * and it is on the screen, so the stronger, more specific claim is the true
  * one. Do NOT let this wording drift back into the panel, which describes

@@ -486,14 +486,7 @@ function Facts({ station }: { station: Station }) {
  * carries it. The request is still the visitor's, still straight to
  * `api-iwls.dfo-mpo.gc.ca`, and still never touches us.
  *
- * The panel's own wording deliberately says nothing about HOW THE APP answers
- * here. Fourteen of these gates are predicted on device from a fitted model;
- * nine are never fitted and are fetched from CHS on demand. Nothing in the
- * published registry says which is which, so any sentence naming a mechanism
- * is false for one group or the other (#44). That constraint is about the app
- * and does not reach the curve, which is CHS's own published prediction for
- * every gate without exception — so the stronger claim lives in the curve's
- * caption, and must not drift up into this panel.
+ * The panel describes coverage without naming the app's per-gate mechanism (#44); the curve caption credits the official predictions fetched by the browser.
  */
 function ChsGate({
   station,

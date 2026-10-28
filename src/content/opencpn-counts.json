@@ -1,11 +1,15 @@
 {
-  "database": "1.0.0-beta.20261027",
-  "tcd": "slackwater-20261027.tcd",
+  "database": "1.0.0-beta.20261028",
+  "tcd": "slackwater-20261028.tcd",
   "opencpn": "Release_5.14.2",
-  "counted": "2026-10-27",
+  "counted": "2026-10-28",
   "sources": {
-    "slackwater-20261027.tcd": {
-      "url": "https://github.com/openwatersio/slackwater-database/releases/download/v1.0.0-beta.20261027/slackwater-20261027.tcd",
+    "slackwater-20261028.tcd": {
+      "url": "https://github.com/openwatersio/slackwater-database/releases/download/v1.0.0-beta.20261028/slackwater-20261028.tcd",
+      "fetched": "2026-10-28"
+    },
+    "Release_5.14.2-harmonics-dwf-20210110-free.tcd": {
+      "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/harmonics-dwf-20210110-free.tcd",
       "fetched": "2026-10-27"
     },
     "Release_5.14.2-HARMONICS_NO_US.IDX": {
@@ -14,10 +18,6 @@
     },
     "Release_5.14.2-ticon-europe-global.tcd": {
       "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/ticon-europe-global.tcd",
-      "fetched": "2026-10-27"
-    },
-    "Release_5.14.2-harmonics-dwf-20210110-free.tcd": {
-      "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/harmonics-dwf-20210110-free.tcd",
       "fetched": "2026-10-27"
     },
     "noaa-tidepredictions.json": {
@@ -44,7 +44,7 @@
   },
   "slackwater": {
     "tide": 6233,
-    "current": 2449
+    "current": 2465
   },
   "opencpn514": {
     "tide": 7160,
@@ -97,8 +97,8 @@
   },
   "usCurrents": {
     "stations": 2528,
-    "inSlackwater": 2471,
-    "missingRetired": 49
+    "inSlackwater": 2468,
+    "missingRetired": 52
   },
   "worldCurrents": {
     "boxes": {

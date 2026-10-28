@@ -24,7 +24,7 @@ Slackwater features checked October 9, 2026. AyeTides' price, rating and feature
 | Tides | 13,400+ locations worldwide, tides and/or currents | Thousands of stations worldwide |
 | Currents | Harmonic current stations, table of slack and max | Stations with slack time and duration, max flood/ebb speed and set, a curve you slide through |
 | Currents outside US and Canada | Some | None |
-| Canada currents | Sparse; BC stations mostly placed to the nearest arc-minute | 23 CHS gates from Salish Sea to Cape Breton, checked against CHS predictions |
+| Canada currents | Sparse; BC stations mostly placed to the nearest arc-minute | CHS current gates from Salish Sea to Cape Breton, checked against CHS predictions |
 | Offline | Predictions yes; map and sharing online | Bundled predictions offline; Canadian setup, some passes online-only |
 | Data | XTide harmonics plus licensed station database | Bundled harmonics; CHS models fitted after download, some passes fetch online |
 | Widgets | Home and lock screen | Home screen free; lock screen Premium |
@@ -64,11 +64,7 @@ This is where the two part. AyeTides' BC current coverage is thin, and paddlers 
 reported stations placed on land. That is measurable from AyeTides' own public station
 list, measured October 14, 2026: 364 of its 442 BC stations are positioned to the nearest
 arc-minute, and where one of those shares a name with a CHS station it sits a median 700 m
-from CHS's position, against about 130 m for the stations with full-precision coordinates. Slackwater's Canadian gates come from Canadian
-Hydrographic Service predictions, fitted on the device and checked against CHS's
-published numbers before they ship. The list today is 23 gates from Active Pass and
-Seymour Narrows out to Cape Breton. A few sit in water the on-device model cannot fit,
-so those fetch when you have a signal and say so.
+from CHS's position, against about 130 m for the stations with full-precision coordinates. Slackwater's Canadian gates use Canadian Hydrographic Service predictions. Gates whose on-device model passes validation against CHS's published numbers can work offline after setup. The coverage ranges from Active Pass and Seymour Narrows out to Cape Breton. Other gates fetch official predictions when you have a signal and say so.
 
 Canadian tide ports need an initial download of CHS predictions to build their offline model. Check that the download is complete before leaving signal.
 
