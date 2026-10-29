@@ -131,6 +131,14 @@ describe('pageDescription', () => {
         'Canadian Hydrographic Service data are in the Slackwater app.',
     )
   })
+
+  it('names Beta availability in Arran search and link descriptions', () => {
+    const arran = loadCatalogue().find((station) => station.path === '/currents/ca/bc/arran-rapids/')!
+    expect(arran).toBeDefined()
+    const description = pageDescription(arran)
+    expect(description).toContain('Slackwater beta on TestFlight')
+    expect(description.length).toBeLessThanOrEqual(DESCRIPTION_LIMIT)
+  })
 })
 
 describe('ogImageAlt', () => {

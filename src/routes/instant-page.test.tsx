@@ -4,7 +4,7 @@ import { RouterProvider, createMemoryHistory, createRouter } from '@tanstack/rea
 import { dayLabel, hhmm } from '#/lib/format'
 import { findEvents } from '#/lib/predict'
 import { SERVER_NOW } from '#/lib/use-live-now'
-import type { BundledStation } from '#/lib/station'
+import type { BundledStation, ChsStation } from '#/lib/station'
 
 /**
  * The instant URL must render ITS OWN moment.
@@ -36,6 +36,11 @@ const SEATTLE: BundledStation = {
   source: 'bundled',
   constituents: [{ name: 'M2', amplitude: 3.487, phase: 10.8 }, { name: 'K1', amplitude: 2.625, phase: 300 }],
 }
+const ARRAN: ChsStation = {
+  id: 'chs-arran-rapids', kind: 'current', slug: 'arran-rapids', path: '/currents/ca/bc/arran-rapids/',
+  name: 'Arran Rapids', source: 'chs', region: 'Stuart Island',
+  latitude: 50.42, longitude: -125.14, timezone: 'America/Vancouver',
+}
 
 // The loader reaches the catalogue through a server function, which needs a
 // Start server context this test has no business standing up. The subject here
@@ -47,7 +52,7 @@ const SEATTLE: BundledStation = {
 // catch, and sends you hunting in the wrong place.
 vi.mock('#/lib/catalogue-server', () => ({
   resolvePath: async ({ data }: { data: { kind: string; path: string } }) => {
-    const mine = [DECEPTION, SEATTLE].filter((s) => s.kind === data.kind)
+    const mine = [DECEPTION, SEATTLE, ARRAN].filter((s) => s.kind === data.kind)
     const station = mine.find((s) => s.path === data.path)
     if (station) return { page: 'station', station, nearby: [], crumbs: [] }
     const flat = mine.find((s) => data.path.endsWith(`s/${s.slug}/`))
@@ -158,6 +163,11 @@ describe('the App Store banner opens the station being read', () => {
 
   it('keeps the bare banner on pages that are not a station', async () => {
     expect(await banners('/support')).toEqual(['app-id=6813654837'])
+  })
+
+  it('suppresses the inherited App Store banner for Beta-only Arran coverage', async () => {
+    expect(await banners('/currents/ca/bc/arran-rapids')).toEqual([''])
+    expect(await banners('/currents/ca/bc/arran-rapids/2026-12-25T03:15-08:00')).toEqual([''])
   })
 })
 

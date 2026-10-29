@@ -1,5 +1,8 @@
 import type { BundledStation, Station } from './station'
 
+// shortcut: Arran coverage is Beta-only; check App Store availability before removing this gate.
+export const requiresBeta = (stationId: string) => stationId === 'chs-arran-rapids'
+
 /**
  * Where this station's numbers come from, as a clause with no full stop.
  *
@@ -246,8 +249,9 @@ export function placeLine(station: Station): string | undefined {
  */
 export function pageDescription(station: Station): string {
   if (station.source === 'chs') {
+    const app = requiresBeta(station.id) ? 'Slackwater beta on TestFlight' : 'Slackwater app'
     const say = (name: string) =>
-      `Station information for ${name}. Predictions based on Canadian Hydrographic Service data are in the Slackwater app.`
+      `Station information for ${name}. Predictions based on Canadian Hydrographic Service data are in the ${app}.`
     return firstFitting(DESCRIPTION_LIMIT, [
       ...(station.region ? [say(`${station.name}, ${station.region}`)] : []),
       say(station.name),

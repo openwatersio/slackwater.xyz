@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { StationPage } from './StationPage'
+import { loadCatalogue } from '#/lib/catalogue'
 import portFixture from '#/lib/__fixtures__/iwls-ports.json' with { type: 'json' }
 import { fetchRefinement } from '#/lib/refine'
 import type { BundledStation, ChsStation } from '#/lib/station'
@@ -41,6 +42,17 @@ describe('StationPage for a CHS station', () => {
   it('still offers the app, which is why these pages exist', () => {
     expect(html).toContain('https://apps.apple.com/app/slackwater-tides-current/id6813654837')
     expect(html).toContain('Requires iOS 26 or later.')
+  })
+
+  it('offers Arran coverage through the beta rather than the App Store', () => {
+    const arran = loadCatalogue().find((station) => station.path === '/currents/ca/bc/arran-rapids/')!
+    expect(arran).toBeDefined()
+    const page = renderToStaticMarkup(<StationPage station={arran} now={new Date('2026-09-01T12:00:00Z')} />)
+    expect(page).toContain('href="https://testflight.apple.com/join/5gwh791N"')
+    expect(page).toContain('Join the TestFlight beta')
+    expect(page).toContain('available in the Slackwater beta')
+    expect(page).not.toContain('Slackwater covers this water in the app.')
+    expect(page).not.toContain('https://apps.apple.com/app/slackwater-tides-current/id6813654837')
   })
 })
 
