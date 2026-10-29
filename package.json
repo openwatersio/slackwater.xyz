@@ -16,12 +16,12 @@
   },
   "dependencies": {
     "@cf-wasm/resvg": "0.4.0",
-    "@openwaters/almanac": "0.11.0",
+    "@openwaters/almanac": "0.12.1",
     "@slackwater/database": "1.0.0-beta.20261028",
     "@slackwater/engine": "^1.0.0-beta.6",
     "@tailwindcss/vite": "^4.1.18",
-    "@tanstack/react-router": "^1.170.45",
-    "@tanstack/react-start": "^1.169.3",
+    "@tanstack/react-router": "^1.170.46",
+    "@tanstack/react-start": "^1.169.4",
     "@tanstack/router-plugin": "^1.168.42",
     "destr": "^2.0.5",
     "leaflet": "^1.9.4",
@@ -42,9 +42,9 @@
     "@types/tz-lookup": "^6.1.2",
     "@vitejs/plugin-react": "^6.1.2",
     "typescript": "^7.0.2",
-    "vite": "8.3.4",
+    "vite": "8.3.5",
     "vitest": "^5.0.5",
-    "wrangler": "^4.151.1"
+    "wrangler": "^4.152.0"
   },
   "allowScripts": {
     "esbuild": true,
