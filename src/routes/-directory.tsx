@@ -4,7 +4,7 @@ import { notFound, redirect } from '@tanstack/react-router'
 import { StationIndex } from '#/components/StationIndex'
 import { StationPage } from '#/components/StationPage'
 import { resolvePath, type PlaceIndex, type Resolved } from '#/lib/catalogue-server'
-import { ogImageAlt, pageDescription, pageTitle } from '#/lib/copy'
+import { ogImageAlt, pageDescription, pageTitle, requiresBeta } from '#/lib/copy'
 import { faqJsonLd, stationJsonLd } from '#/lib/json-ld'
 import { APP_STORE_ID } from '#/lib/links'
 import { placeHead } from '#/lib/place-head'
@@ -74,8 +74,8 @@ export function directoryHead(kind: Kind, page: Page | undefined) {
       { property: 'og:image', content: page.instant ? `${card}/${page.instant.raw}.png` : `${card}.png` },
       // Replaces the root's alt, which describes the app screenshot, not this card.
       { property: 'og:image:alt', content: ogImageAlt(s) },
-      // Replaces the root's banner by name, so Open lands on this station.
-      { name: 'apple-itunes-app', content: `app-id=${APP_STORE_ID}, app-argument=${opens}` },
+      // An empty override suppresses the inherited App Store banner on Beta-only pages.
+      { name: 'apple-itunes-app', content: requiresBeta(s.id) ? '' : `app-id=${APP_STORE_ID}, app-argument=${opens}` },
     ],
     // Structured data lives on the canonical page only: an instant page
     // canonicalises there, so a second copy would describe the same place twice.

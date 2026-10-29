@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { requiresBeta } from '#/lib/copy'
 
 /**
  * The apps allowed to open a station link, as `<Apple Team ID>.<bundle id>`.
@@ -70,6 +71,11 @@ const association = {
             { '/': `/${kind}/??`, exclude: true, comment: 'A country, a browse page' },
             { '/': `/${kind}/??/*`, exclude: true, comment: 'Anything under a country' },
           ]),
+          // App Store and Beta share a bundle ID, so both use the web for Beta-only coverage.
+          ...(requiresBeta('chs-arran-rapids') ? [
+            { '/': '/currents/arran-rapids', exclude: true, comment: 'Beta-only coverage stays in the browser' },
+            { '/': '/currents/arran-rapids/*', exclude: true, comment: 'Beta-only coverage stays in the browser' },
+          ] : []),
           { '/': '/tides/*', comment: 'A tide station, with or without an instant' },
           { '/': '/currents/*', comment: 'A current station, with or without an instant' },
         ],

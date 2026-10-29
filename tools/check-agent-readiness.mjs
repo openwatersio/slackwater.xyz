@@ -163,6 +163,25 @@ try {
   const robots = await get('/robots.txt')
   assert.equal(robots.status, 200)
   assert.ok((await robots.text()).includes('Sitemap: https://slackwater.xyz/sitemap.xml'))
+
+  const arran = await get('/currents/ca/bc/arran-rapids/')
+  assert.equal(arran.status, 200)
+  const arranHtml = await arran.text()
+  assert.ok(arranHtml.includes('href="https://testflight.apple.com/join/5gwh791N"'))
+  assert.ok(arranHtml.includes('Slackwater beta on TestFlight'))
+  const banners = [...arranHtml.matchAll(/<meta\b[^>]*\bname=["']apple-itunes-app["'][^>]*>/gi)]
+  assert.equal(banners.length, 1)
+  assert.match(banners[0][0], /\bcontent=(?:""|'')/)
+
+  const association = await get('/.well-known/apple-app-site-association')
+  assert.equal(association.status, 200)
+  const components = (await association.json()).applinks.details[0].components
+  const currentRule = components.findIndex((rule) => rule['/'] === '/currents/*' && !rule.exclude)
+  assert.ok(currentRule >= 0, 'ordinary current shares still open the app')
+  for (const path of ['/currents/arran-rapids', '/currents/arran-rapids/*']) {
+    const excluded = components.findIndex((rule) => rule['/'] === path && rule.exclude)
+    assert.ok(excluded >= 0 && excluded < currentRule, `${path}: both app channels must land on the Beta web page`)
+  }
   console.log(`Passed ${checks} Worker endpoint checks at ${base}`)
 
 } finally {

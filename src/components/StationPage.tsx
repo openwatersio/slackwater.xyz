@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DayStrip, type Fetched } from './DayStrip'
 import { NearbyMap } from './NearbyMap'
-import { DATUM_NOTE, datumLine, refinedRowsNote, seasonalNote, stationHeading } from '#/lib/copy'
+import { DATUM_NOTE, datumLine, refinedRowsNote, requiresBeta, seasonalNote, stationHeading } from '#/lib/copy'
 import { compass16, dayLabel, dayStart, height, hhmm, shiftLocalDay } from '#/lib/format'
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
-import { APP_STORE, ORIGIN, REQUIREMENT } from '#/lib/links'
+import { APP_STORE, ORIGIN, REQUIREMENT, TESTFLIGHT_BETA } from '#/lib/links'
 import type { Crumb, NearbyRow } from '#/lib/catalogue-server'
 import type { PassGuide } from '#/lib/passes'
 import { findEvents, tideExtremes, type StationEvent, type TideExtreme } from '#/lib/predict'
@@ -559,7 +559,10 @@ function ChsGate({
     <section className="mt-10 rounded-lg border border-sw-steel/20 p-6">
       <p className="text-sw-foam">
         Predictions for {station.name} are based on Canadian Hydrographic Service data,
-        fetched under DFO&rsquo;s own terms. Slackwater covers this water in the app.
+        fetched under DFO&rsquo;s own terms.{' '}
+        {requiresBeta(station.id)
+          ? `${station.name} is available in the Slackwater beta on TestFlight.`
+          : 'Slackwater covers this water in the app.'}
       </p>
       {(inFlight || stopped) && (
         <div className="mt-5 print:hidden">
@@ -723,11 +726,13 @@ function Nearby({ station, rows }: { station: Station; rows: NearbyRow[] }) {
  * orphans with no internal link back into the site.
  */
 function Cta({ station }: { station: Station }) {
+  const beta = requiresBeta(station.id)
   // A computed page that carries a CHS identity pitches as a CHS page does:
   // nothing published says how the app answers for a Canadian station (#44),
   // so neither page says "offline".
-  const pitch =
-    station.source === 'chs' || station.chs
+  const pitch = beta
+    ? `Try ${station.name} in the Slackwater beta on TestFlight.`
+    : station.source === 'chs' || station.chs
       ? 'Slackwater shows tides and tidal currents on your phone — tides worldwide, currents across the US and Canada.'
       : 'Slackwater predicts tides and currents offline, on your phone — tides worldwide, currents across the US and Canada.'
   return (
@@ -735,10 +740,10 @@ function Cta({ station }: { station: Station }) {
       <p className="text-sw-steel">{pitch}</p>
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
         <a
-          href={APP_STORE}
+          href={beta ? TESTFLIGHT_BETA : APP_STORE}
           className="rounded-md bg-sw-leaf px-5 py-3 font-medium text-sw-navy-deep transition hover:bg-sw-leaf/90"
         >
-          Download on the App Store
+          {beta ? 'Join the TestFlight beta' : 'Download on the App Store'}
         </a>
         <a
           href="/"
