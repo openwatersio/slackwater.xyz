@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { stationsById } from '@slackwater/database'
+import { loadStations } from '@slackwater/database'
 import { loadCatalogue, loadMoved, loadWithheld } from './catalogue'
 import { predictSeries, tideExtremes } from './predict'
 import { nearby } from './nearby'
+
+const db = await loadStations()
 
 /** The ten provinces and three territories, as ISO 3166-2 spells their codes. */
 const CANADA = new Set(['AB', 'BC', 'MB', 'NB', 'NL', 'NS', 'NT', 'NU', 'ON', 'PE', 'QC', 'SK', 'YT'])
@@ -93,7 +95,7 @@ describe('loadCatalogue', () => {
     // rendering bug — and the filter reads `commercial_use` as truthiness, so
     // a release that drops the field fails this rather than publishing them.
     for (const s of all.filter((x) => x.source === 'bundled')) {
-      expect(stationsById.get(s.id)?.license?.commercial_use, s.id).toBe(true)
+      expect(db.byId(s.id)?.license?.commercial_use, s.id).toBe(true)
     }
   })
 
@@ -101,8 +103,8 @@ describe('loadCatalogue', () => {
     const tides = all.filter((s) => s.source === 'bundled' && s.kind === 'tide')
     for (const s of tides) {
       if (s.source !== 'bundled') continue
-      expect(s.publisher, s.id).toBe(stationsById.get(s.id)?.source?.name)
-      expect(s.attribution, s.id).toBe(stationsById.get(s.id)?.attribution)
+      expect(s.publisher, s.id).toBe(db.byId(s.id)?.source?.name)
+      expect(s.attribution, s.id).toBe(db.byId(s.id)?.attribution)
     }
     const andenes = tides.find((s) => s.id === 'kartverket/ANX')
     expect(andenes?.source === 'bundled' && andenes.attribution).toContain('Kartverket')
@@ -177,7 +179,7 @@ describe('loadCatalogue', () => {
     expect(victoria?.source).toBe('bundled')
     expect(victoria?.id).toBe('ticon/victoria_bc-543a-can-uhslc_rq')
     expect(victoria?.name).toBe('Victoria')
-    const curated = (stationsById as unknown as Map<string, { latitude: number; longitude: number }>).get('chs-victoria')!
+    const curated = db.byId('chs-victoria')!
     expect(victoria?.latitude).toBe(curated.latitude)
     expect(victoria?.longitude).toBe(curated.longitude)
   })

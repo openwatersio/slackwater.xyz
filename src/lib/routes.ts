@@ -1,7 +1,9 @@
 //
 // BUILD-TIME ONLY, like catalogue.ts: it decodes the tide database's route index.
-import { stationRoutes } from '@slackwater/database'
+import { loadStations } from '@slackwater/database'
 import type { Kind } from './station'
+
+const db = await loadStations()
 
 interface Route {
   slug: string
@@ -24,7 +26,7 @@ const index = (() => {
     if (!cache) {
       cache = new Map()
       for (const kind of ['tide', 'current'] as Kind[])
-        for (const { slug, path, stationIds } of stationRoutes(kind))
+        for (const { slug, path, stationIds } of db.stationRoutes(kind))
           for (const id of stationIds) cache.set(`${kind}/${id}`, { slug, path })
     }
     return cache
