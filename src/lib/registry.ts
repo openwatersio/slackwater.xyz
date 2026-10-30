@@ -6,7 +6,7 @@
 // provider row for the same water carries the provider's own name, which is
 // why /currents/boundary-pass read "Turn Point, Boundary Pass" until this
 // existed.
-import { allStations } from '@slackwater/database'
+import { loadStations } from '@slackwater/database'
 import { stationRoute } from './routes'
 import type { ChsStation, Kind } from './station'
 
@@ -24,6 +24,8 @@ interface Record {
   current?: { derived?: unknown }
 }
 
+const db = await loadStations()
+
 /** The `source.name` the database gives every curated CHS record. */
 const CHS_SOURCE = 'Canadian Hydrographic Service'
 
@@ -33,7 +35,7 @@ const CHS_SOURCE = 'Canadian Hydrographic Service'
  * `ticon/…`, a curated one is a bare key (`chs-victoria`, `noaa-boundary-pass`).
  * The same rule `isBuildable` in catalogue.ts reads the other way round.
  */
-const curatedRecords = (allStations as unknown as Record[]).filter((s) => !s.id.includes('/'))
+const curatedRecords = (db.all as unknown as Record[]).filter((s) => !s.id.includes('/'))
 
 export interface Curated {
   name: string
