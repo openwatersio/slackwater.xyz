@@ -2,11 +2,13 @@
 // BUILD-TIME ONLY. Never import this from a route module: it pulls the whole
 // station database, and TanStack loaders are isomorphic, so one careless import
 // ships megabytes to every visitor. Task 4 asserts that.
-import { stationRoutes, stations, stationsById } from '@slackwater/database'
+import { loadStations } from '@slackwater/database'
 import { FEET_PER_METRE } from './format'
 import { kindRoot } from './places'
 import { chsStations, chsTwins, curatedBySlug } from './registry'
 import type { BundledStation, Constituent, CurrentReduction, Kind, Station, TideReduction } from './station'
+
+const db = await loadStations()
 
 /**
  * A station is buildable when a provider row ships its constituents, which the
@@ -26,7 +28,7 @@ export function isBuildable(id: string): boolean {
 /**
  * Every station id the database's quality pass accepts.
  *
- * `stations` is the database's own accepted list — `allStations.filter(qualityFilter)` —
+ * `db.accepted` is the database's own accepted list — `db.all.filter(qualityFilter)` —
  * so the rule this site publishes by is the database's rule rather than a copy
  * of it that drifts. A station carrying no verdict counts as accepted, which is
  * what the database itself does, and 2,561 provider rows are in that state.
@@ -37,7 +39,7 @@ export function isBuildable(id: string): boolean {
  * it, adopting the corpus would double the duplicate pages rather than remove
  * them.
  */
-const ACCEPTED = new Set(stations.map((s) => s.id))
+const ACCEPTED = new Set(db.accepted.map((s) => s.id))
 
 // A release that shipped no verdicts at all would withhold every station and
 // build a site of place pages with nothing on them — a corpus-wide failure that
@@ -211,8 +213,7 @@ function datumShift(r: Record<string, unknown>): number {
 }
 
 function record(id: string): Record<string, unknown> | undefined {
-  const db = stationsById as unknown
-  return db instanceof Map ? db.get(id) : (db as Record<string, never>)[id]
+  return db.byId(id) as Record<string, unknown> | undefined
 }
 
 function currentReduction(r: Record<string, unknown>): CurrentReduction | undefined {
@@ -301,7 +302,7 @@ export function loadCatalogue(): Station[] {
     // the addresses from the same place the pages link to them from is what
     // makes a published slug and a published page the same set by construction
     // rather than by agreement between two tables.
-    for (const { slug, path, stationIds } of stationRoutes(kind)) {
+    for (const { slug, path, stationIds } of db.stationRoutes(kind)) {
       for (const id of stationIds) {
         if (!isBuildable(id)) continue
         const r = record(id)
@@ -403,7 +404,7 @@ export function loadWithheld(): Map<string, string> {
   const out = new Map<string, string>()
   for (const kind of ['tide', 'current'] as Kind[]) {
     const chs = chsTwins(kind)
-    for (const { slug, path, stationIds } of stationRoutes(kind)) {
+    for (const { slug, path, stationIds } of db.stationRoutes(kind)) {
       // A route carrying a CHS record is a page whatever its provider row's
       // verdict: the CHS identity publishes on its own when the row is rejected.
       if (chs.has(slug)) continue
@@ -432,7 +433,7 @@ export function loadWithheld(): Map<string, string> {
 export function loadMoved(): Map<string, string> {
   const out = new Map<string, string>()
   for (const kind of ['tide', 'current'] as Kind[])
-    for (const { path, formerPaths } of stationRoutes(kind))
+    for (const { path, formerPaths } of db.stationRoutes(kind))
       for (const former of formerPaths) {
         out.set(former, path)
         out.set(`${kindRoot(kind)}${former.split('/').at(-2)}/`, path)
