@@ -3,9 +3,11 @@
 // rejected ones by the reason the database records for each, which is the
 // first check it failed (docs/quality-evaluation.md in slackwater-database).
 // Shared by tools/count-opencpn.mjs and the test that checks the page.
+import { loadStations } from '@slackwater/database'
+
 export async function qualityCounts() {
-  const { allStations } = await import('@slackwater/database')
-  const evaluated = allStations.filter((s) => s.kind === 'tide' && s.quality)
+  const db = await loadStations()
+  const evaluated = db.all.filter((s) => s.kind === 'tide' && s.quality)
   const reasons = {}
   for (const s of evaluated) {
     if (s.quality.accepted) continue

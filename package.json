@@ -17,7 +17,7 @@
   "dependencies": {
     "@cf-wasm/resvg": "0.4.0",
     "@openwaters/almanac": "0.12.1",
-    "@slackwater/database": "1.0.0-beta.20261028",
+    "@slackwater/database": "https://pkg.pr.new/@slackwater/database@372",
     "@slackwater/engine": "^1.0.0-beta.7",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-router": "^1.170.46",
@@ -49,6 +49,7 @@
   "allowScripts": {
     "esbuild": true,
     "workerd": true,
-    "fsevents": false
+    "fsevents": false,
+    "https://pkg.pr.new/@slackwater/database@372": false
   }
 }
