@@ -8,11 +8,11 @@ Slackwater is rebuilt from its sources for every release, and every station is c
 
 ### Fresher
 
-NOAA's tide and current stations are refreshed every month. As of October 27, 2026, OpenCPN's 2021 file still lists 89 tide stations and 52 current stations that NOAA no longer publishes predictions for. The largest groups are 25 tide stations in Alaska and 38 current stations in New Jersey and Delaware. Each Slackwater file is named for its release date, so you can tell how old your data is.
+NOAA's tide and current stations are refreshed every month. As of November 2, 2026, OpenCPN's 2021 file still lists 89 tide stations and 52 current stations that NOAA no longer publishes predictions for. The largest groups are 25 tide stations in Alaska and 38 current stations in New Jersey and Delaware. Each Slackwater file is named for its release date, so you can tell how old your data is.
 
 ### Quality Controlled
 
-For this release, Slackwater evaluated 8,655 candidate tide stations and left out 2,276. 1,099 duplicated a better station nearby, and 772 relayed a gauge whose operator publishes its own record. The rest failed a check: 267 had tidal levels in the wrong order, 103 had a tidal range under 2 cm, 17 ran on a clock offset from their neighbors, 12 had constituents that aren't physically plausible, and 6 had a yearly term out of line with nearby gauges. [How stations are evaluated](https://github.com/openwatersio/slackwater-database/blob/v1.0.0-beta.20261028/docs/quality-evaluation.md) explains each check, and every station's file in [`stations/`](https://github.com/openwatersio/slackwater-database/tree/v1.0.0-beta.20261028/stations) records its result.
+For this release, Slackwater evaluated 8,658 candidate tide stations and left out 2,277. 1,100 duplicated a better station nearby, and 772 relayed a gauge whose operator publishes its own record. The rest failed a check: 267 had tidal levels in the wrong order, 103 had a tidal range under 2 cm, 17 ran on a clock offset from their neighbors, 12 had constituents that aren't physically plausible, and 6 had a yearly term out of line with nearby gauges. [How stations are evaluated](https://github.com/openwatersio/slackwater-database/blob/v1.0.0-beta.20261102/docs/quality-evaluation.md) explains each check, and every station's file in [`stations/`](https://github.com/openwatersio/slackwater-database/tree/v1.0.0-beta.20261102/stations) records its result.
 
 ### Chart datum
 
@@ -24,15 +24,15 @@ Counts are unique station locations to the nearest 0.01°, so a NOAA current sta
 
 |                  | Slackwater                               | OpenCPN 5.14                                         | OpenCPN 5.12 and earlier                      |
 | ---------------- | ---------------------------------------- | ---------------------------------------------------- | --------------------------------------------- |
-| Tide stations    | 6,233                                    | 7,160                                                | 5,771                                         |
+| Tide stations    | 6,235                                    | 7,160                                                | 5,771                                         |
 | Current stations | 2,465                                    | 2,526                                                | 2,526                                         |
 | US data          | NOAA<br><small>refreshed monthly</small> | NOAA via XTide<br><small>January 2021</small>        | NOAA via XTide<br><small>January 2021</small> |
 | Rest of world    | TICON-4 and national agencies            | TICON-4 (March 2026) and harmonics from 1995 to 2003 | Harmonics compiled 1995 to 2003               |
 | Chart datum      | Each country's own                       | MLLW in the US, LAT for TICON stations               | MLLW in the US, varies elsewhere              |
 
-<small>Counted October 28, 2026, from `slackwater-20261028.tcd`, the files in OpenCPN 5.14.2's `tcdata` folder, and NOAA's lists of the stations it publishes predictions for.</small>
+<small>Counted November 2, 2026, from `slackwater-20261102.tcd`, the files in OpenCPN 5.14.2's `tcdata` folder, and NOAA's lists of the stations it publishes predictions for.</small>
 
-OpenCPN 5.14 has 2,366 tide locations with no Slackwater tide station within 1 km, and 2,111 of them come from its 1995 to 2003 world file: 995 in Canada, 604 in Japan and 332 around Australia and Papua New Guinea. They carry no license information, and the newest of their sources is decades old. On currents the two are close: Slackwater carries 2,468 of the 2,528 NOAA current stations in OpenCPN's US file, and NOAA no longer publishes 52 of the other 60.
+OpenCPN 5.14 has 2,369 tide locations with no Slackwater tide station within 1 km, and 2,110 of them come from its 1995 to 2003 world file: 995 in Canada, 604 in Japan and 331 around Australia and Papua New Guinea. They carry no license information, and the newest of their sources is decades old. On currents the two are close: Slackwater carries 2,468 of the 2,528 NOAA current stations in OpenCPN's US file, and NOAA no longer publishes 52 of the other 60.
 
 ### What Slackwater lacks
 
