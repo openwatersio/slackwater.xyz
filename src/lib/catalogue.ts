@@ -72,49 +72,42 @@ function publishable(r: Record<string, unknown>): boolean {
 /** A subdivision code the provider published rather than the gazetteer. */
 const USPS = /^[A-Z]{2}$/
 
-/**
- * The constituents that are the tide itself, and the seasonal band measured
- * against them.
- *
- * Mirrors `TIDAL_CONSTITUENTS` and `SEASONAL_CONSTITUENTS` in
- * `@slackwater/stations`, which is private to the database repo, so the lists
- * cannot be imported. Only the RATIO is computed here and only to choose how
- * loudly a page speaks — the verdict is `quality.seasonal_dominant` and comes
- * from the database — so if the lists ever drift apart a marginal station moves
- * between bands rather than gaining or losing its label.
- *
- * The minor terms are not padding: at 159 stations the largest tidal
- * constituent is one of them rather than a major, by up to 85%, and those are
- * exactly the near-tideless stations this measures. Trimming the list to the
- * eight majors would inflate the ratio and make those pages overstate their case.
- */
-const TIDAL = [
-  'M2', 'S2', 'N2', 'K2', 'L2', 'T2', 'NU2', 'MU2', '2N2', 'LDA2',
-  'K1', 'O1', 'P1', 'Q1', 'J1', 'M1', 'OO1', 'RHO1', '2Q1', 'SIGMA1',
-  'CHI1', 'PI1', 'PHI1', 'THETA1', 'S1',
-]
-const SEASONAL = ['SA', 'SSA']
+// Match the database's seasonal label: https://github.com/openwatersio/slackwater-database/blob/main/packages/stations/filtering.ts
+const PRINCIPAL = ['M2', 'S2', 'K1', 'O1']
 
-/**
- * How many times the seasonal band exceeds the largest tidal constituent, for a
- * station the database labelled seasonal — and `undefined` for every other,
- * which is what a page reads to decide whether to say anything at all.
- *
- * Measured on the same amplitudes the database used, in metres, before the
- * catalogue converts to feet: a ratio has no unit, but taking it after a
- * one-sided conversion would not.
- */
-function seasonalRatio(r: Record<string, unknown>): number | undefined {
+// Kartverket's SA_KV uses h − p′, so shift its phase onto SA's clock.
+const PERIHELION_LONGITUDE = 283.4
+
+// Sample the annual + semiannual curve every half degree, including both crests and troughs.
+function seasonalPeak(constituents: Constituent[]): number {
+  const find = (...names: string[]) => constituents.find((c) => names.includes(c.name))
+  const kv = find('SA_KV')
+  const annual = find('SA', 'Sa') ?? (kv && { ...kv, phase: (kv.phase + PERIHELION_LONGITUDE) % 360 })
+  const semiannual = find('SSA', 'Ssa')
+  const rad = Math.PI / 180
+  let peak = 0
+  for (let step = 0; step < 720; step++) {
+    const theta = step / 2
+    const level =
+      (annual ? annual.amplitude * Math.cos((theta - annual.phase) * rad) : 0) +
+      (semiannual ? semiannual.amplitude * Math.cos((2 * theta - semiannual.phase) * rad) : 0)
+    peak = Math.max(peak, Math.abs(level))
+  }
+  return peak
+}
+
+// Measure before converting tide amplitudes to feet; only the database decides which stations are seasonal.
+export function seasonalRatio(r: Record<string, unknown>): number | undefined {
   if (!(r.quality as { seasonal_dominant?: boolean } | undefined)?.seasonal_dominant) return undefined
   const constituents = (r.harmonic_constituents ?? []) as Constituent[]
-  const amplitude = (name: string) =>
-    Math.abs(constituents.find((c) => c.name === name)?.amplitude ?? 0)
-  const seasonal = Math.max(...SEASONAL.map(amplitude))
-  const tidal = Math.max(...TIDAL.map(amplitude))
-  // The database labels nothing with a zero denominator, so this is a broken
-  // release rather than a station to quietly un-label.
-  if (!tidal) throw new Error(`catalogue: ${String(r.id)} is labelled seasonal with no tidal constituent`)
-  return seasonal / tidal
+  const principal = PRINCIPAL.reduce(
+    (sum, name) => sum + Math.abs(constituents.find((c) => c.name === name)?.amplitude ?? 0),
+    0,
+  )
+  const peak = seasonalPeak(constituents)
+  // A labelled station without a seasonal curve is a broken database release.
+  if (!peak) throw new Error(`catalogue: ${String(r.id)} is labelled seasonal with no seasonal term`)
+  return peak / principal
 }
 
 /**

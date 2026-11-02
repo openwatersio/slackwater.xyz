@@ -91,29 +91,10 @@ export function datumLine(station: Station): string | undefined {
 export const DATUM_NOTE =
   'Heights are measured above chart datum. A negative height means there is that much less water than the charted depth shows.'
 
-/**
- * Above this ratio a page leads with the fact that its water is seasonal;
- * below it, the page says so quietly and lower down.
- *
- * 3 is where the corpus changes character. Above it the stations are rivers,
- * lagoons and lakes — the Neuse at Oriental, the St Johns at Piney Bluff, Indian
- * River Lagoon at Melbourne Causeway, Lake Ontario at Cobourg — and a tide table
- * is the wrong frame for all of them. Below it are Gulf and Chesapeake ports
- * with a real tide and a comparable annual signal, and they are the reason the
- * line is not at 1: the database labels some of them at a ratio near or below
- * 1 (Palatka on the St Johns at 0.92), and telling a reader such a gauge is
- * "mostly seasonal" would be false in effect while true in arithmetic.
- *
- * Of the 491 labelled pages, 159 are above this and 332 below.
- */
+// Match iOS: lead with seasonal water at 3×; keep comparable yearly changes beside the station facts.
 const SEASONAL_LEAD_RATIO = 3
 
-/**
- * Round a ratio to a figure a reader can carry, because none of its precision
- * is meaningful to them: "about 160 times" says what 161.6 says, and a page
- * quoting two decimals of a constituent ratio is pretending to an accuracy the
- * statement does not have.
- */
+// Round away precision the harmonic fit cannot support.
 function aboutTimes(ratio: number): string {
   // Round to a ten once there is a ten to round to, so the number reads as the
   // estimate "about" promises: 43.3 is "about 40 times", not "about 43 times",
@@ -129,29 +110,15 @@ export interface SeasonalNote {
   text: string
 }
 
-/**
- * What a page says about water whose yearly swing rivals or exceeds its daily
- * one, or `undefined` for the 5,352 tide pages where that is not true.
- *
- * Two bands rather than one sentence, because one sentence cannot be honest
- * across a 160x range. At Cobourg the annual cycle IS the signal and a reader
- * planning anything from the high and low needs to know before reading them, so
- * it leads. At Palatka the tide is real and the annual cycle merely comparable,
- * so the same prominence would be a false alarm — but saying nothing leaves a
- * reader wondering why the heights drift through the year, which is the thing
- * the database now knows and the page can explain.
- *
- * Neither band hides the numbers or adds a warning icon: the predictions are
- * correct, and this is a statement about what kind of water they describe.
- */
 export function seasonalNote(station: Station): SeasonalNote | undefined {
   if (station.source !== 'bundled' || station.seasonal === undefined) return undefined
   return station.seasonal >= SEASONAL_LEAD_RATIO
     ? {
         place: 'lead',
-        text:
-          `Mostly seasonal — the yearly change in water level here is about ` +
-          `${aboutTimes(station.seasonal)} times the daily tide.`,
+        text: Number.isFinite(station.seasonal)
+          ? `Mostly seasonal — the yearly change in water level here is about ` +
+            `${aboutTimes(station.seasonal)} times the daily tide.`
+          : 'Mostly seasonal — the water level here changes through the year, and the daily tide is too small to measure.',
       }
     : {
         place: 'aside',

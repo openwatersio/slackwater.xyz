@@ -102,17 +102,7 @@ export interface BundledStation extends StationIdentity {
   reduction?: CurrentReduction
   /** Tides only: present for a NOAA subordinate, whose `constituents` are then empty. */
   tideReduction?: TideReduction
-  /**
-   * Tides only, and only where the database labelled the station
-   * `quality.seasonal_dominant`: how many times the seasonal band exceeds the
-   * largest tidal constituent.
-   *
-   * Present or absent is the database's verdict and is never decided here — that
-   * is the point of it living upstream, so the app and this site do not describe
-   * the same water two ways. The number is the site's own, and only chooses how
-   * loudly a page says it: 0.92 at Palatka on the St Johns, which has a real tide,
-   * and 162 at Cobourg on Lake Ontario, which has none. See `seasonalNote`.
-   */
+  /** Database-labelled tides: seasonal peak / (M2+S2+K1+O1), or Infinity for a zero principal tide. */
   seasonal?: number
   /**
    * The curated CHS record this station's route also carries, where the
