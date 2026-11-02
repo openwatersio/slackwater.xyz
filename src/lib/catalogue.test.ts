@@ -13,19 +13,19 @@ describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
   it('yields every predictable station the database routes and the quality pass accepts, plus the CHS gates and ports', () => {
-    expect(all.length).toBe(9537)
-    expect(all.filter((s) => s.kind === 'tide').length).toBe(6957)
+    expect(all.length).toBe(9539)
+    expect(all.filter((s) => s.kind === 'tide').length).toBe(6959)
     expect(all.filter((s) => s.kind === 'current').length).toBe(2580)
   })
 
 
   it('carries the seasonal ratio for the stations the database labels, and nothing else', () => {
     // The verdict is the database's (`quality.seasonal_dominant`) and the number
-    // is the site's, used only to pick how loudly a page speaks. 413 of the
-    // 6,957 tide pages carry it and no current page does — currents are
+    // is the site's, used only to pick how loudly a page speaks. 414 of the
+    // 6,959 tide pages carry it and no current page does — currents are
     // measured in knots against no datum, so the question does not arise.
     const seasonal = all.filter((s) => s.source === 'bundled' && s.seasonal !== undefined)
-    expect(seasonal).toHaveLength(413)
+    expect(seasonal).toHaveLength(414)
     expect(seasonal.every((s) => s.kind === 'tide')).toBe(true)
 
     // Cobourg on Lake Ontario, the extreme: SA 0.289 m against 0.002 m of M2.

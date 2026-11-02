@@ -208,7 +208,7 @@ describe('seasonalNote', () => {
   })
 
   it('says nothing where the database did not label the station', () => {
-    // 6,544 of the 6,957 tide pages. Absence is the database's verdict, and the
+    // 6,545 of the 6,959 tide pages. Absence is the database's verdict, and the
     // site never decides it — that is why the field is optional rather than 0.
     expect(seasonalNote(tide())).toBeUndefined()
   })

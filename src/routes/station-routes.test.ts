@@ -107,7 +107,9 @@ describe('prerendered station pages', () => {
     // it loads instantly. The split answers that, and this is what keeps it
     // answered: the budget binds every page the tree mints, so a country or
     // subdivision quietly growing past it fails here rather than on the wire.
-    const BUDGET = 250_000
+    // Raised from 250,000 for Florida (#262), which needs a level below the
+    // state in its station paths before it can split.
+    const BUDGET = 260_000
     const pages = (['tide', 'current'] as Kind[]).flatMap((kind) => [
       kindRoot(kind),
       ...placeTree(loadCatalogue().filter((s) => s.kind === kind)).keys(),
