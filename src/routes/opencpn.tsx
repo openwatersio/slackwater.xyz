@@ -35,7 +35,7 @@ const markdown = new Marked({
 
 export const Route = createFileRoute('/opencpn')({
   head: () => ({
-    links: [{ rel: 'canonical', href: CANONICAL }],
+    links: [{ rel: 'canonical', href: CANONICAL }, { rel: 'alternate', type: 'text/markdown', href: '/opencpn.md' }],
     meta: [
       { title: TITLE },
       { name: 'description', content: DESCRIPTION },

@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DayStrip, type Fetched } from './DayStrip'
 import { NearbyMap } from './NearbyMap'
-import { DATUM_NOTE, datumLine, seasonalNote, stationHeading } from '#/lib/copy'
+import { DATUM_NOTE, datumLine, refinedRowsNote, requiresBeta, seasonalNote, stationHeading } from '#/lib/copy'
 import { compass16, dayLabel, dayStart, height, hhmm, shiftLocalDay } from '#/lib/format'
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
-import { APP_STORE, REQUIREMENT } from '#/lib/links'
+import { APP_STORE, ORIGIN, REQUIREMENT, TESTFLIGHT_BETA } from '#/lib/links'
 import type { Crumb, NearbyRow } from '#/lib/catalogue-server'
 import type { PassGuide } from '#/lib/passes'
-import { findEvents, tideExtremes } from '#/lib/predict'
+import { findEvents, tideExtremes, type StationEvent, type TideExtreme } from '#/lib/predict'
+import { fetchRefinement, type Refined } from '#/lib/refine'
 import type { BundledStation, ChsStation, Station } from '#/lib/station'
 import { instantPath } from '#/routes/instant-url'
 
@@ -65,6 +66,12 @@ interface Props {
   crumbs?: Crumb[]
   /** A CHS pass's written guide, where one exists — see `passes.ts`. */
   guide?: PassGuide
+  /**
+   * CHS's day for a computed station, already in hand. A page never gets one
+   * from a loader — that would be prerendering it — so in practice this is
+   * how a test renders what the reader's browser shows once the fetch lands.
+   */
+  refined?: Refined
 }
 
 /**
@@ -77,7 +84,7 @@ interface Props {
  * Order is the argument: the selected day first, the app, then everything a
  * reader or a crawler goes on to want.
  */
-export function StationPage({ station, now, selectedAt: initialSelection, live = false, settled = live, nearby = [], crumbs = [], guide }: Props) {
+export function StationPage({ station, now, selectedAt: initialSelection, live = false, settled = live, nearby = [], crumbs = [], guide, refined: initialRefined }: Props) {
   const [selectedAt, setSelectedAt] = useState(initialSelection ?? now)
   const [trackingNow, setTrackingNow] = useState(initialSelection === undefined)
   useEffect(() => {
@@ -86,6 +93,7 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
   // Held here rather than in `ChsGate` because the subtitle is here: a page
   // that has just gained a chart also gains the date that chart needs.
   const [curve, setCurve] = useState<Curve | undefined>()
+  const layer = useRefinement(station, now, settled, initialRefined)
   // The moment the page is ABOUT, which stops being the live clock the instant
   // a Canadian curve arrives: DFO sent one fixed day, and the frame, the date
   // and the numbers all have to be that same day or the page contradicts
@@ -112,12 +120,12 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
   const note = seasonalNote(station)
   const lead = note?.place === 'lead' ? note : undefined
   return (
-    <main className="mx-auto max-w-3xl px-5 pb-24 pt-8 sm:px-6 sm:pt-14">
+    <main className="mx-auto max-w-3xl px-5 pb-24 pt-8 sm:px-6 sm:pt-14 print:max-w-none print:p-0">
       <Breadcrumb station={station} crumbs={crumbs} />
-      <h1 className="mt-4 text-3xl font-semibold tracking-tight text-sw-paper sm:text-5xl">
+      <h1 className="mt-4 text-3xl font-semibold tracking-tight text-sw-paper sm:text-5xl print:mt-0 print:text-2xl">
         {stationHeading(station)}
       </h1>
-      <p className="mt-3 text-sw-steel">
+      <p className="mt-3 text-sw-steel print:mt-1 print:text-sm">
         {station.kind === 'tide' ? 'Tide times & tide chart' : (
           <>Tidal currents &amp; <a href={SLACK_GUIDE} className="underline decoration-sw-steel/60 underline-offset-4 hover:text-sw-foam">slack water</a></>
         )}
@@ -135,27 +143,50 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
           </div>
         )
       ) : (
-        <StationDayPager
-          station={station}
-          selectedAt={selectedAt}
-          actualNow={now}
-          live={live}
-          trackingNow={trackingNow}
-          showSelection={live || initialSelection !== undefined}
-          onSelect={select}
-          onCommit={commit}
-          onNow={returnToNow}
-        />
+        <div className="print:hidden">
+          <StationDayPager
+            station={station}
+            selectedAt={selectedAt}
+            actualNow={now}
+            live={live}
+            trackingNow={trackingNow}
+            showSelection={live || initialSelection !== undefined}
+            refined={layer.refined}
+            onSelect={select}
+            onCommit={commit}
+            onNow={returnToNow}
+          />
+          {/* Only while the request is actually in flight, so the page we
+              serve says nothing about a fetch that has not started. The words
+              are the privacy policy's. A failure says nothing at all: the
+              computed curve is still a real prediction, and stays. */}
+          {layer.inFlight && (
+            <p className="mt-3 text-sm text-sw-steel">
+              Your browser is fetching today&rsquo;s predictions directly from the Canadian
+              Hydrographic Service. Nothing is sent to us.{' '}
+              <button type="button" onClick={layer.cancel} className="underline underline-offset-4 hover:text-sw-foam">
+                Cancel
+              </button>
+            </p>
+          )}
+        </div>
       )}
-      <p className="mt-6 text-sm leading-relaxed text-sw-steel">
+      <p className="mt-6 text-sm leading-relaxed text-sw-steel print:mt-2">
         Predictions are not observations — conditions vary with weather and river flow.{' '}
         <strong className="font-semibold text-sw-foam">Not for navigation.</strong>
       </p>
       {guide && <Guide guide={guide} />}
       <Cta station={station} />
-      {station.source === 'bundled' && <WeekTable station={station} at={at} />}
+      {station.source === 'bundled' && <WeekTable station={station} at={at} refined={layer.refined} />}
       <Facts station={station} />
       <Nearby station={station} rows={nearby} />
+      {/* Paper loses the address bar, so the sheet carries the link back. The
+          date waits for the reader's own clock: a served page would otherwise
+          print the day the site was built. */}
+      <p className="mt-4 hidden text-sm text-sw-steel print:block">
+        {ORIGIN}{station.path}
+        {live && <> · Printed {dayLabel(now, station.timezone)}</>}
+      </p>
     </main>
   )
 }
@@ -168,7 +199,7 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
 function Breadcrumb({ station, crumbs }: { station: Station; crumbs: Crumb[] }) {
   const trail = crumbs.length ? crumbs : [kindIndex(station)]
   return (
-    <nav aria-label="Breadcrumb" className="text-sm text-sw-steel">
+    <nav aria-label="Breadcrumb" className="text-sm text-sw-steel print:hidden">
       <ol className="flex flex-wrap gap-x-2">
         <li><a href="/" className="hover:text-sw-paper">Slackwater</a></li>
         {trail.map((c) => (
@@ -200,23 +231,53 @@ const hoursBetween = (a: Date, b: Date) => (b.getTime() - a.getTime()) / 3600_00
  * for a current, its slacks and maxima.
  */
 function turns(station: BundledStation, from: Date, to: Date) {
+  return rowsOf(station, station.kind === 'tide'
+    ? { kind: 'tide', turns: tideExtremes(station, from, hoursBetween(from, to)) }
+    : { kind: 'current', events: findEvents(station, from, hoursBetween(from, to)) })
+}
+
+/** Table rows from a tide's turns or a current's events, whichever source they came from. */
+function rowsOf(
+  station: BundledStation,
+  from: { kind: 'tide'; turns: TideExtreme[] } | { kind: 'current'; events: StationEvent[] },
+) {
   const tz = station.timezone
-  return (station.kind === 'tide'
-    ? tideExtremes(station, from, hoursBetween(from, to)).map((e) => ({
+  return (from.kind === 'tide'
+    ? from.turns.map((e) => ({
         time: e.time,
         what: e.high ? 'High' : 'Low',
-        value: `${height(e.level)} ft`,
+        value: `${height(e.level)} ft` as string | undefined,
       }))
-    : findEvents(station, from, hoursBetween(from, to)).map((e) => ({
+    : from.events.map((e) => ({
         time: e.time,
         what: e.kind === 'slack' ? 'Slack' : `Max ${e.kind}`,
         value: e.kind === 'slack' ? undefined : `${Math.abs(e.level).toFixed(1)} kn`,
       }))
-  ).map((t) => ({ ...t, hhmm: hhmm(t.time, tz) }))
+  ).map((t) => ({ ...t, hhmm: hhmm(t.time, tz), chs: false }))
+}
+
+/**
+ * The week's rows with CHS's day in place of the computed rows it covers.
+ *
+ * The same day the chart swaps, from the same fetch, so the chart and today's
+ * rows never disagree. Every row outside that window is untouched, and every
+ * row inside it is CHS's: mixing the two inside one day would interleave two
+ * models' turns minutes apart.
+ */
+function refineRows(station: BundledStation, rows: ReturnType<typeof turns>, refined?: Refined) {
+  if (!refined) return rows
+  const from = refined.start.getTime()
+  const to = from + refined.hours * 3600_000
+  const inside = (t: Date) => t.getTime() >= from && t.getTime() < to
+  const chs = rowsOf(station, refined)
+    .filter((r) => inside(r.time))
+    .map((r) => ({ ...r, chs: true }))
+  if (!chs.length) return rows
+  return [...rows.filter((r) => !inside(r.time)), ...chs].sort((a, b) => a.time.getTime() - b.time.getTime())
 }
 
 function StationDayPager({
-  station, selectedAt, actualNow, live, trackingNow, showSelection, onSelect, onCommit, onNow,
+  station, selectedAt, actualNow, live, trackingNow, showSelection, refined, onSelect, onCommit, onNow,
 }: {
   station: BundledStation
   selectedAt: Date
@@ -224,6 +285,8 @@ function StationDayPager({
   live: boolean
   trackingNow: boolean
   showSelection: boolean
+  /** CHS's day, drawn by the strip only when it is the day on screen. */
+  refined?: Refined
   onSelect: (at: Date) => void
   onCommit: (at: Date) => void
   onNow: () => void
@@ -272,6 +335,7 @@ function StationDayPager({
           live={live}
           selectedAt={showSelection ? selectedAt : undefined}
           trackingNow={trackingNow}
+          refined={refined}
           onSelect={onSelect}
           onCommit={onCommit}
         />
@@ -284,33 +348,36 @@ function StationDayPager({
  * Seven days of turns, visible rather than tabbed: this is the page's
  * long-tail content, and text a crawler has to toggle for carries less weight.
  */
-function WeekTable({ station, at }: { station: BundledStation; at: Date }) {
+function WeekTable({ station, at, refined }: { station: BundledStation; at: Date; refined?: Refined }) {
   const tz = station.timezone
   const week = days(at, tz, 7)
-  const rows = useMemo(() => turns(station, week[0], week[7]), [station, week[0].getTime()])
+  const computed = useMemo(() => turns(station, week[0], week[7]), [station, week[0].getTime()])
+  const rows = useMemo(() => refineRows(station, computed, refined), [station, computed, refined])
+  const marked = rows.some((r) => r.chs)
   const tide = station.kind === 'tide'
   let lastDay = ''
   return (
-    <section className="mt-14">
-      <h2 className="text-xl font-semibold text-sw-paper">
+    <section className="mt-14 print:mt-4">
+      <h2 className="text-xl font-semibold text-sw-paper print:text-base">
         {tide ? 'Tide times for the next 7 days' : 'Slack water and maximums for the next 7 days'}
       </h2>
-      <table className="mt-4 w-full text-sm">
-        <caption className="pb-3 text-left leading-relaxed text-sw-steel">
+      <table className="mt-4 w-full text-sm print:mt-1 print:block">
+        <caption className="pb-3 text-left leading-relaxed text-sw-steel print:block print:pb-2 print:text-xs">
           {dayLabel(week[0], tz)} through {dayLabel(week[6], tz)}.
           {' '}All times are local to {station.name} ({tz}).
           {tide && station.chartDatum && <> Heights are in feet above {station.chartDatum}.</>}
+          {marked && <> {refinedRowsNote(station)}</>}
           {!tide && (
             <>
               {' '}
-              <a href={SLACK_GUIDE} className="underline underline-offset-4 hover:text-sw-foam">
+              <a href={SLACK_GUIDE} className="underline underline-offset-4 hover:text-sw-foam print:no-underline">
                 What slack water is, and why it isn&rsquo;t high or low tide
               </a>
               .
             </>
           )}
         </caption>
-        <thead className="text-left text-xs uppercase tracking-wider text-sw-leaf">
+        <thead className="text-left text-xs uppercase tracking-wider text-sw-leaf print:hidden">
           <tr>
             <th className="py-2 pr-3 font-medium">Day</th>
             <th className="py-2 pr-3 font-medium">{tide ? 'Tide' : 'Current'}</th>
@@ -318,17 +385,25 @@ function WeekTable({ station, at }: { station: BundledStation; at: Date }) {
             <th className="py-2 font-medium">{tide ? 'Height' : 'Speed'}</th>
           </tr>
         </thead>
-        <tbody className="tabular-nums">
+        <tbody className="tabular-nums print:block print:columns-2 print:gap-10">
           {rows.map((t) => {
             const day = dayLabel(t.time, tz)
             const first = day !== lastDay
             lastDay = day
             return (
-              <tr key={t.time.getTime()} className={first ? 'border-t border-sw-steel/20' : ''}>
-                <td className="py-1.5 pr-3 text-sw-steel">{day}</td>
-                <td className="py-1.5 pr-3">{t.what}</td>
-                <td className="py-1.5 pr-3"><time dateTime={t.time.toISOString()}>{t.hhmm}</time></td>
-                <td className="py-1.5">{t.value ?? ''}</td>
+              <tr
+                key={`${t.chs ? 'chs' : 'computed'}-${t.time.getTime()}`}
+                className={`print:grid print:break-inside-avoid print:grid-cols-[8rem_5rem_3.5rem_1fr] ${first ? 'border-t border-sw-steel/20' : ''}`}
+                data-source={t.chs ? 'chs' : undefined}
+              >
+                <td className="py-1.5 pr-3 text-sw-steel print:py-px">{day}</td>
+                <td className="py-1.5 pr-3 print:py-px">{t.what}</td>
+                <td className="py-1.5 pr-3 print:py-px"><time dateTime={t.time.toISOString()}>{t.hhmm}</time></td>
+                <td className="py-1.5 print:py-px">
+                  {t.value ?? ''}
+                  {/* The row-level mark the caption explains. */}
+                  {t.chs && <span className="ml-2 rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-sw-steel">CHS</span>}
+                </td>
               </tr>
             )
           })}
@@ -373,9 +448,9 @@ function Facts({ station }: { station: Station }) {
       : 'https://tidesandcurrents.noaa.gov/noaacurrents/'
     : 'https://tides.gc.ca/en/tides-currents-and-water-levels'
   return (
-    <section className="mt-14">
-      <h2 className="text-xl font-semibold text-sw-paper">Station facts</h2>
-      <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
+    <section className="mt-14 print:mt-4">
+      <h2 className="text-xl font-semibold text-sw-paper print:text-base">Station facts</h2>
+      <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm print:mt-1 print:gap-y-0 print:text-xs">
         {rows.map(([k, v]) => v && (
           <div key={k} className="contents">
             <dt className="text-sw-steel">{k}</dt>
@@ -388,7 +463,7 @@ function Facts({ station }: { station: Station }) {
       {datum && <p className="mt-3 text-sm text-sw-steel/70">{DATUM_NOTE}</p>}
       {aside && <p className="mt-3 text-sm text-sw-steel/70">{aside.text}</p>}
       {bundled && station.attribution && <p className="mt-3 break-words text-sm text-sw-steel/70">{station.attribution}</p>}
-      <p className="mt-3 text-sm text-sw-steel">
+      <p className="mt-3 text-sm text-sw-steel print:hidden">
         <a href="/accuracy/" className="underline underline-offset-4 hover:text-sw-paper">How we check predictions</a>
         {' '}— dated samples and their limits.
       </p>
@@ -411,14 +486,7 @@ function Facts({ station }: { station: Station }) {
  * carries it. The request is still the visitor's, still straight to
  * `api-iwls.dfo-mpo.gc.ca`, and still never touches us.
  *
- * The panel's own wording deliberately says nothing about HOW THE APP answers
- * here. Fourteen of these gates are predicted on device from a fitted model;
- * nine are never fitted and are fetched from CHS on demand. Nothing in the
- * published registry says which is which, so any sentence naming a mechanism
- * is false for one group or the other (#44). That constraint is about the app
- * and does not reach the curve, which is CHS's own published prediction for
- * every gate without exception — so the stronger claim lives in the curve's
- * caption, and must not drift up into this panel.
+ * The panel describes coverage without naming the app's per-gate mechanism (#44); the curve caption credits the official predictions fetched by the browser.
  */
 function ChsGate({
   station,
@@ -491,10 +559,13 @@ function ChsGate({
     <section className="mt-10 rounded-lg border border-sw-steel/20 p-6">
       <p className="text-sw-foam">
         Predictions for {station.name} are based on Canadian Hydrographic Service data,
-        fetched under DFO&rsquo;s own terms. Slackwater covers this water in the app.
+        fetched under DFO&rsquo;s own terms.{' '}
+        {requiresBeta(station.id)
+          ? `${station.name} is available in the Slackwater beta on TestFlight.`
+          : 'Slackwater covers this water in the app.'}
       </p>
       {(inFlight || stopped) && (
-        <div className="mt-5">
+        <div className="mt-5 print:hidden">
           <button
             type="button"
             onClick={() => {
@@ -522,6 +593,54 @@ function ChsGate({
       )}
     </section>
   )
+}
+
+/**
+ * CHS's day for a computed station that carries a CHS identity, fetched by
+ * the reader's browser once its clock is its own.
+ *
+ * The same posture as `ChsGate`: a plain browser `fetch()` straight to IWLS,
+ * never proxied, prerendered or stored, and stoppable while in flight. What
+ * differs is what the page has meanwhile. A CHS-only page has nothing to show
+ * until DFO answers; this one already shows a computed curve, so a slow or
+ * failed request leaves it exactly as served rather than raising an error.
+ *
+ * One request per page view, for the reader's own day. Paging to another day
+ * shows the computed curve there instead of asking DFO again: IWLS documents
+ * caps of 3 requests a second and 30 a minute, and each fetch starts with an
+ * 82 KB station list.
+ */
+function useRefinement(station: Station, now: Date, settled: boolean, initial?: Refined) {
+  const [refined, setRefined] = useState(initial)
+  const [inFlight, setInFlight] = useState(false)
+  const [stopped, setStopped] = useState(false)
+  // Read at fetch time, deliberately NOT a dependency — see `ChsGate`.
+  const at = useRef(now)
+  at.current = now
+  const target = station.source === 'bundled' && station.chs ? station : undefined
+  const have = refined !== undefined
+
+  useEffect(() => {
+    // Not until the clock is the reader's own: fetching against the build-time
+    // placeholder would draw the day the site was built.
+    if (!target || !settled || stopped || have) return
+    const stop = new AbortController()
+    setInFlight(true)
+    fetchRefinement(target, at.current, (url) => fetch(url, { signal: stop.signal }))
+      .then(setRefined)
+      // The computed curve is already on screen and still true. A failure, a
+      // cancel, or a port DFO no longer resolves leaves it there.
+      .catch(() => undefined)
+      .finally(() => {
+        if (!stop.signal.aborted) setInFlight(false)
+      })
+    return () => {
+      stop.abort()
+      setInFlight(false)
+    }
+  }, [target, settled, stopped, have])
+
+  return { refined, inFlight, cancel: () => setStopped(true) }
 }
 
 /** The prose a guide renders, styled once for its sections, questions and sources. */
@@ -568,7 +687,7 @@ function Nearby({ station, rows }: { station: Station; rows: NearbyRow[] }) {
   if (!rows.length) return null
   const all = kindIndex(station).href
   return (
-    <section className="mt-14">
+    <section className="mt-14 print:hidden">
       <h2 className="text-xl font-semibold text-sw-paper">Nearby</h2>
       <ul className="mt-4 grid gap-x-6 gap-y-2 sm:grid-cols-2">
         {rows.map((r) => (
@@ -607,19 +726,24 @@ function Nearby({ station, rows }: { station: Station; rows: NearbyRow[] }) {
  * orphans with no internal link back into the site.
  */
 function Cta({ station }: { station: Station }) {
-  const pitch =
-    station.source === 'chs'
+  const beta = requiresBeta(station.id)
+  // A computed page that carries a CHS identity pitches as a CHS page does:
+  // nothing published says how the app answers for a Canadian station (#44),
+  // so neither page says "offline".
+  const pitch = beta
+    ? `Try ${station.name} in the Slackwater beta on TestFlight.`
+    : station.source === 'chs' || station.chs
       ? 'Slackwater shows tides and tidal currents on your phone — tides worldwide, currents across the US and Canada.'
       : 'Slackwater predicts tides and currents offline, on your phone — tides worldwide, currents across the US and Canada.'
   return (
-    <section className="mt-14 border-t border-sw-steel/15 pt-8">
+    <section className="mt-14 border-t border-sw-steel/15 pt-8 print:hidden">
       <p className="text-sw-steel">{pitch}</p>
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
         <a
-          href={APP_STORE}
+          href={beta ? TESTFLIGHT_BETA : APP_STORE}
           className="rounded-md bg-sw-leaf px-5 py-3 font-medium text-sw-navy-deep transition hover:bg-sw-leaf/90"
         >
-          Download on the App Store
+          {beta ? 'Join the TestFlight beta' : 'Download on the App Store'}
         </a>
         <a
           href="/"

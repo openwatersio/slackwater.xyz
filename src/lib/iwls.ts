@@ -21,7 +21,7 @@
  */
 import { FEET_PER_METRE } from './format'
 import { distanceNm } from './nearby'
-import type { EventKind, Sample, StationEvent } from './predict'
+import type { EventKind, Sample, StationEvent, TideExtreme } from './predict'
 
 const RAD = Math.PI / 180
 
@@ -260,7 +260,7 @@ export async function fetchPortTides(
   start: Date,
   hours: number,
   fetcher: typeof fetch = fetch,
-): Promise<{ samples: Sample[]; high: Sample; low: Sample }> {
+): Promise<{ samples: Sample[]; high: Sample; low: Sample; turns: TideExtreme[] }> {
   const get = async (url: string) => {
     const res = await fetcher(url)
     if (!res.ok) throw new Error(`The Canadian Hydrographic Service returned ${res.status}.`)
@@ -295,13 +295,32 @@ export async function fetchPortTides(
   if (!samples.length || !turns.length) {
     throw new Error('The Canadian Hydrographic Service returned no predictions for this day.')
   }
-  // The highest and the lowest of the day, because those are the two the chart
-  // labels. `wlp-hilo` says only that each point is a turn — unlike
-  // `wcp1-events`, it carries no qualifier naming which — but it does not need
-  // to: which is the high is the one that is highest.
+  // The highest and the lowest of the day, because those are the two a CHS
+  // port's chart labels. `wlp-hilo` says only that each point is a turn —
+  // unlike `wcp1-events`, it carries no qualifier naming which — but it does
+  // not need to: which is the high is the one that is highest.
+  //
+  // Every turn as well, for a page drawing this day over a computed curve
+  // that labelled all of them. Highs and lows alternate, so a turn is a high
+  // when it stands above the turn beside it.
+  //
+  // A day can hold a single turn — Victoria's long mixed-tide stand does, on
+  // some days — and then the highest and the lowest turn are the same point.
+  // The side with no published turn falls back to the grid's own extreme, so
+  // the spoken caption never reads one moment as both high and low water.
+  const labelled = turns.map((t, i) => {
+    const beside = turns[i + 1] ?? turns[i - 1]
+    const mid = (Math.max(...samples.map((s) => s.level)) + Math.min(...samples.map((s) => s.level))) / 2
+    return { ...t, high: beside ? t.level > beside.level : t.level >= mid }
+  })
+  const highs = labelled.filter((t) => t.high)
+  const lows = labelled.filter((t) => !t.high)
+  const pick = (from: Sample[], higher: boolean) =>
+    from.reduce((a, b) => ((higher ? b.level > a.level : b.level < a.level) ? b : a))
   return {
     samples,
-    high: turns.reduce((a, b) => (b.level > a.level ? b : a)),
-    low: turns.reduce((a, b) => (b.level < a.level ? b : a)),
+    high: pick(highs.length ? highs : samples, true),
+    low: pick(lows.length ? lows : samples, false),
+    turns: labelled,
   }
 }

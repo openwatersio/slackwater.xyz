@@ -1,3 +1,5 @@
+import { TidesFigure } from './LearnFigures'
+
 export function TidesExplainerCard() {
   return (
     <aside>
@@ -21,52 +23,7 @@ export function TidesExplainerCard() {
           </span>
         </div>
 
-        <svg viewBox="0 0 180 120" aria-hidden className="mx-auto w-full max-w-[180px]">
-          <line
-            x1="18"
-            x2="164"
-            y1="60"
-            y2="60"
-            stroke="currentColor"
-            strokeDasharray="3 7"
-            className="text-sw-foam/20"
-          />
-          <ellipse
-            cx="58"
-            cy="60"
-            rx="47"
-            ry="34"
-            fill="currentColor"
-            className="text-sw-canvas-glow"
-          />
-          <circle
-            cx="58"
-            cy="60"
-            r="31"
-            fill="var(--color-sw-navy-deep)"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="text-sw-foam/60"
-          />
-          <ellipse
-            cx="58"
-            cy="60"
-            rx="47"
-            ry="34"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className="text-sw-foam/70"
-          />
-          <circle cx="72" cy="60" r="3" fill="currentColor" className="text-sw-foam" />
-          <circle
-            cx="156"
-            cy="60"
-            r="13"
-            fill="currentColor"
-            className="text-sw-sunrise"
-          />
-        </svg>
+        <TidesFigure className="mx-auto w-full max-w-[180px]" />
       </a>
     </aside>
   )

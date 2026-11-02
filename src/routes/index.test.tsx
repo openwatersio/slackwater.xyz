@@ -44,17 +44,12 @@ describe('landing page', () => {
     expect(html).not.toMatch(/<link[^>]+rel="preload"[^>]+href="\/shots\/tides-night.webp"/)
   })
 
-  it('links the hero to the tides explainer', () => {
-    const hero = html.match(/<header[\s\S]*?<\/header>/)?.[0]
+  it('links the tides explainer and slack water guide just above the accuracy section', () => {
+    const beforeAccuracy = html.match(/Where are you headed\?([\s\S]*?)Checked against the agencies/)?.[1]
 
-    expect(hero).toContain('href="/learn/tides/"')
-    expect(hero).toContain('Learn how tides work')
-  })
-
-  it('links the hero to the slack water guide', () => {
-    const hero = html.match(/<header[\s\S]*?<\/header>/)?.[0]
-
-    expect(hero).toContain('href="/learn/slack-water/"')
+    expect(beforeAccuracy).toContain('href="/learn/tides/"')
+    expect(beforeAccuracy).toContain('Learn how tides work')
+    expect(beforeAccuracy).toContain('href="/learn/slack-water/"')
   })
 
   it('computes nothing in the page', () => {
@@ -100,6 +95,21 @@ describe('landing page structured data', () => {
       expect(byType(nodes, type).publisher).toEqual({ '@id': org['@id'] })
     }
   })
+  it('publishes the mailing address from the Open Waters publisher site', async () => {
+    expect(byType(await graph(), 'Organization').address).toEqual({
+      '@type': 'PostalAddress', streetAddress: '411 Walnut St #15547',
+      addressLocality: 'Green Cove Springs', addressRegion: 'FL', postalCode: '32043', addressCountry: 'US',
+    })
+  })
+
+  it('publishes the verified support contact on the organization', async () => {
+    const org = byType(await graph(), 'Organization')
+    expect(org.contactPoint).toEqual({
+      '@type': 'ContactPoint', email: 'slackwater@openwaters.io',
+      contactType: 'customer support', url: 'https://slackwater.xyz/contact/',
+    })
+  })
+
 })
 
 describe('landing page social card', () => {

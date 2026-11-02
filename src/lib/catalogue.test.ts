@@ -11,29 +11,29 @@ describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
   it('yields every predictable station the database routes and the quality pass accepts, plus the CHS gates and ports', () => {
-    expect(all.length).toBe(8450)
-    expect(all.filter((s) => s.kind === 'tide').length).toBe(5893)
-    expect(all.filter((s) => s.kind === 'current').length).toBe(2557)
+    expect(all.length).toBe(9537)
+    expect(all.filter((s) => s.kind === 'tide').length).toBe(6957)
+    expect(all.filter((s) => s.kind === 'current').length).toBe(2580)
   })
 
 
   it('carries the seasonal ratio for the stations the database labels, and nothing else', () => {
     // The verdict is the database's (`quality.seasonal_dominant`) and the number
-    // is the site's, used only to pick how loudly a page speaks. 538 of the
-    // 5,893 tide pages carry it and no current page does — currents are
+    // is the site's, used only to pick how loudly a page speaks. 413 of the
+    // 6,957 tide pages carry it and no current page does — currents are
     // measured in knots against no datum, so the question does not arise.
     const seasonal = all.filter((s) => s.source === 'bundled' && s.seasonal !== undefined)
-    expect(seasonal).toHaveLength(538)
+    expect(seasonal).toHaveLength(413)
     expect(seasonal.every((s) => s.kind === 'tide')).toBe(true)
 
     // Cobourg on Lake Ontario, the extreme: SA 0.289 m against 0.002 m of M2.
     const cobourg = all.find((s) => s.id === 'ticon/cobourg_ontario-13590-can-meds')
     expect(cobourg?.source === 'bundled' && cobourg.seasonal).toBeCloseTo(161.6, 1)
 
-    // Annapolis carries the label at barely over 1, which is why the page copy
-    // has two bands rather than one sentence.
-    const annapolis = all.find((s) => s.id === 'noaa/8575512')
-    expect(annapolis?.source === 'bundled' && annapolis.seasonal).toBeCloseTo(1.008, 2)
+    // Palatka on the St Johns carries the label under 1, which is why the page
+    // copy has two bands rather than one sentence.
+    const palatka = all.find((s) => s.id === 'noaa/8720774')
+    expect(palatka?.source === 'bundled' && palatka.seasonal).toBeCloseTo(0.922, 2)
 
     // Seattle has a real tide and no label.
     const seattle = all.find((s) => s.id === 'noaa/9447130')
@@ -109,13 +109,13 @@ describe('loadCatalogue', () => {
   })
 
   it('withholds every route the quality pass rejects, and keeps its address answerable', () => {
-    // 1,796 commercially licensed routes fail `qualityFilter`, some of them
+    // 830 commercially licensed routes fail `qualityFilter`, some of them
     // pages the site published before it read the whole corpus. A withheld
     // station must not be in the catalogue and must not 404 either: both its
     // canonical path and the flat `/tides/<slug>/` the share sheet mints are
     // keys here, so `resolvePath` can answer with a 301.
     const withheld = loadWithheld()
-    expect(withheld.size).toBe(1796 * 2)
+    expect(withheld.size).toBe(830 * 2)
     const published = new Set(all.map((s) => s.path))
     for (const [address, canonical] of withheld) {
       expect(published.has(address), address).toBe(false)
@@ -123,17 +123,34 @@ describe('loadCatalogue', () => {
     }
   })
 
-  it('builds the ten CHS tide ports whose identity IS published, and no more', () => {
-    // The site publishes ten Canadian tide ports, named in CHS_TIDE_PORTS. The
-    // database has identity for the other 1,047 too; publishing them is a
-    // decision (#207), so a count creeping above ten here means one happened
-    // as a side effect of a database release.
+  it('publishes a CHS port on its provider twin\'s computed page wherever the database merges them', () => {
+    // A merged pair is a curated CHS record and a provider row with harmonic
+    // constituents on one route (slackwater-database#294). A computed curve is
+    // better than no curve, so the page is the provider's, and CHS's own
+    // prediction is the refined layer the reader's browser fetches on top.
+    const ports = all.filter((s) => s.kind === 'tide' && s.source === 'bundled' && s.chs)
+    expect(ports).toHaveLength(198)
+    const slugs = new Set(ports.map((s) => s.slug))
+    for (const slug of [
+      'campbell-river', 'fulford-harbour', 'owen-bay', 'point-atkinson', 'port-alberni',
+      'port-renfrew', 'sooke', 'tofino', 'vancouver', 'victoria', 'comox', 'nanaimo-harbour',
+    ]) expect(slugs.has(slug), slug).toBe(true)
+    for (const s of ports) {
+      if (s.source !== 'bundled') continue
+      expect(s.chs?.id, s.slug).toMatch(/^chs-/)
+      // Kumeon Bay's twin is a NOAA subordinate, predicted through its reference.
+      expect(s.constituents.length || s.tideReduction?.referenceConstituents.length, s.slug).toBeGreaterThan(0)
+    }
+  })
+
+  it('publishes every other CHS tide port the database routes, identity only', () => {
+    // Every live Canadian tide station is a curated record with a route
+    // (slackwater-database#210), and the site publishes each one. A port with
+    // no publishable provider row on its route gets a page that names it and
+    // fetches CHS's day in the reader's browser. 198 + 859 is all 1,057.
     const ports = all.filter((s) => s.kind === 'tide' && s.source === 'chs')
-    expect(ports).toHaveLength(10)
-    expect(ports.map((s) => s.slug).sort()).toEqual([
-      'campbell-river', 'fulford-harbour', 'owen-bay', 'point-atkinson',
-      'port-alberni', 'port-renfrew', 'sooke', 'tofino', 'vancouver', 'victoria',
-    ])
+    expect(ports).toHaveLength(859)
+    expect(ports.some((s) => s.slug === 'prince-rupert-grain')).toBe(true)
     // Buildability is decided by id shape (`id.includes('/')`), not a `chs-`/`noaa-`
     // prefix: `noaa-boundary-pass` is registry-owned despite its name, and a prefix
     // test would let it through to a throw.
@@ -145,12 +162,58 @@ describe('loadCatalogue', () => {
     expect(all.every((s) => s.source === 'chs' || s.id.includes('/'))).toBe(true)
   })
 
-  it('gives a CHS port no constituents to be predicted from', () => {
+  it('publishes no CHS port apart from a predictable provider row on its route', () => {
+    // An identity-only port whose route also carries a publishable provider
+    // row would be a second page for one gauge, or a lost computed curve.
+    const computed = new Set(all.filter((s) => s.source === 'bundled').map((s) => `${s.kind}/${s.slug}`))
+    expect(all.filter((s) => s.source === 'chs' && computed.has(`${s.kind}/${s.slug}`))).toEqual([])
+  })
+
+  it('names, places and positions a merged port by its curated record', () => {
+    // The provider row calls the water whatever its provider does and sits a
+    // few hundred metres off; the curated record is what the app shows and the
+    // position the browser resolves the CHS station from.
+    const victoria = all.find((s) => s.kind === 'tide' && s.slug === 'victoria')
+    expect(victoria?.source).toBe('bundled')
+    expect(victoria?.id).toBe('ticon/victoria_bc-543a-can-uhslc_rq')
+    expect(victoria?.name).toBe('Victoria')
+    const curated = (stationsById as unknown as Map<string, { latitude: number; longitude: number }>).get('chs-victoria')!
+    expect(victoria?.latitude).toBe(curated.latitude)
+    expect(victoria?.longitude).toBe(curated.longitude)
+  })
+
+  it('gives a CHS-only station no constituents to be predicted from', () => {
     // The licensing rule as a property of the catalogue, not of a component:
     // if one of these ever arrived with constituents, every guard downstream
     // would let it through and the site would prerender a CHS curve.
     for (const s of all.filter((x) => x.source === 'chs')) {
       expect(s, s.id).not.toHaveProperty('constituents')
+    }
+  })
+
+  it('publishes Arran Rapids once as a CHS identity (slackwater-ios#752)', () => {
+    expect(all.filter((s) => s.id === 'chs-arran-rapids').map((s) => s.source)).toEqual(['chs'])
+    expect(all.some((s) => s.source === 'bundled' && s.chs?.id === 'chs-arran-rapids')).toBe(false)
+  })
+
+  it.each([
+    ['dk/gedser', 'ticon/gedser-837a-dnk-uhslc_rq', 'dk/gedser-dmi-31616'],
+    ['dk/hornbaek', 'ticon/hornbaek-838a-dnk-uhslc_rq', 'dk/hornbaek-dmi-30017'],
+    ['dk/esbjerg', 'ticon/esbjerg-esb-dnk-dmi', 'dk/esbjerg-havn'],
+    ['gl/ittoqqortoormiit', 'ticon/ittoqqortoormiit-809-dnk-uhslc_fd', 'dk/ittoqqortoormiit'],
+    ['gl/maniitsoq', 'ticon/maniitsoq-man-grl-gloss', 'gl/maniitsoq-dmi-2991380'],
+    ['gl/qaqortoq', 'ticon/qaqortoq-299-dnk-uhslc_fd', 'gl/qaqortoq-julianehabsfjord'],
+  ])('publishes %s once with its preferred record and redirects its absorbed path', (route, id, former) => {
+    const path = `/tides/${route}/`
+    expect(all.filter((s) => s.path === path).map((s) => s.id)).toEqual([id])
+    expect(loadMoved().get(`/tides/${former}/`)).toBe(path)
+    expect(all.some((s) => s.path === `/tides/${former}/`)).toBe(false)
+  })
+
+  it('never carries a CHS prediction on a merged page, only the identity to fetch one', () => {
+    for (const s of all) {
+      if (s.source !== 'bundled' || !s.chs) continue
+      expect(Object.keys(s.chs), s.id).toEqual(['id'])
     }
   })
 
@@ -231,8 +294,9 @@ describe('loadCatalogue', () => {
     const moved = loadMoved()
     expect(moved.get('/tides/us/sc/abercorn-creek-at-mouth-near-savannah-ga/'))
       .toBe('/tides/us/ga/abercorn-creek-at-mouth-near-savannah-ga/')
-    expect(moved.get('/tides/us/nc/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck-pier/')
-    expect(moved.get('/tides/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck-pier/')
+    expect(moved.get('/tides/us/nc/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck/')
+    expect(moved.get('/tides/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck/')
+    expect(moved.get('/tides/us/nc/duck-pier/')).toBe('/tides/us/nc/duck/')
     const published = new Set(all.map((s) => s.path))
     expect([...moved.keys()].filter((address) => published.has(address))).toEqual([])
   })
@@ -284,7 +348,7 @@ describe('loadCatalogue', () => {
     // A curated CHS record is in the database too, so its province is read
     // rather than inferred from which side of the Rockies it falls on — which
     // is how the one in Nova Scotia used to get no province at all.
-    const victoria = all.find((s) => s.id === 'chs-victoria')
+    const victoria = all.find((s) => s.kind === 'tide' && s.slug === 'victoria')
     expect(victoria?.state).toBe('BC')
     const brasdor = all.find((s) => s.id === 'chs-great-bras-dor')
     expect(brasdor?.state).toBe('NS')
@@ -300,6 +364,14 @@ describe('loadCatalogue', () => {
     // is here as the tripwire for the CHS gates, where both halves build.
     const rows = all.filter((s) => s.kind === 'current' && s.slug === 'boundary-pass')
     expect(rows.length).toBe(1)
+  })
+
+  it('collapses a merged CHS port to its computed row', () => {
+    // Both halves build here: the curated record through `chsStations` and the
+    // provider row through the route index. The computed one wins, carrying
+    // the curated identity, because a curve beats no curve.
+    const rows = all.filter((s) => s.kind === 'tide' && s.slug === 'vancouver')
+    expect(rows.map((s) => s.source)).toEqual(['bundled'])
   })
 
   it('gives a CHS gate neighbours to link to', () => {
@@ -341,20 +413,20 @@ describe('chart datum', () => {
   })
 
   it('uses each station its own datum, not MLLW everywhere', () => {
-    // The corpus spans 9 chart datums and MLLW covers 4,313 of 5,833 bundled tide
+    // The corpus spans 9 chart datums and MLLW covers 4,337 of 6,102 bundled tide
     // stations. Shifting a Greenland or Canadian station by an MLLW offset —
     // or labelling it MLLW — is wrong for more than half the world.
     const aasiaat = bundled('ticon/aasiaat-aas-grl-gloss')
     expect(aasiaat.chartDatum).toBe('LAT')
-    expect(aasiaat.offset).toBeCloseTo(1.572 * FEET_PER_METRE, 2)
+    expect(aasiaat.offset).toBeCloseTo(1.581 * FEET_PER_METRE, 2)
 
     const albert = bundled('ticon/albert_harbour-5803-can-meds')
     expect(albert.chartDatum).toBe('LLWLT')
-    expect(albert.offset).toBeCloseTo(1.023 * FEET_PER_METRE, 2)
+    expect(albert.offset).toBeCloseTo(1.086 * FEET_PER_METRE, 2)
   })
 
   it('leaves a station already quoted on MSL exactly where it was', () => {
-    // 112 published stations chart to MSL, so MSL - MSL = 0 and the curve must
+    // 194 published stations chart to MSL, so MSL - MSL = 0 and the curve must
     // not move.
     const arko = bundled('ticon/arko-2545-swe-smhi')
     expect(arko.chartDatum).toBe('MSL')

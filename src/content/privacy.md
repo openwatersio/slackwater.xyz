@@ -1,6 +1,6 @@
 # Privacy policy
 
-Effective September 1, 2026
+Effective October 19, 2026
 
 This policy covers the Slackwater iOS app and slackwater.xyz. Slackwater is operated by Open Water Software, LLC, doing business as Open Waters (“Open Waters,” “we,” or “us”).
 
@@ -29,6 +29,10 @@ When iCloud is available, Slackwater stores the identifiers and save times of yo
 
 Apple processes TestFlight participation and App Store purchases under Apple’s privacy policy. Slackwater asks StoreKit only whether Apple has verified a qualifying purchase and keeps that entitlement status on your device. Open Waters does not receive your payment-card details.
 
+## Android testing
+
+The Slackwater Android testers group is a Google Group. Google processes joining it and installing test builds through Google Play under Google's privacy policy. As the group's owner, Open Waters can see the email addresses of its members and uses them only to give those members access to Android test builds. Other members cannot see them. Leave the group at any time to remove your address.
+
 ## Online requests from the app
 
 Most predictions and map data are bundled with Slackwater. When online data is needed, the app may request Canadian tide or current predictions from the Canadian Hydrographic Service and map resources from Open Waters. Those services receive the information normally sent with an internet request, such as an IP address and technical request details. A request may identify the station or map area you selected, but Slackwater does not send your device’s GPS coordinates with it.
@@ -47,12 +51,12 @@ When the map of nearby stations at the foot of a station page scrolls into view,
 
 ### Canadian predictions on station pages
 
-The page we serve for a Canadian tidal current gate or tide port carries no predictions at all. When you open one, your browser requests them directly from the Canadian Hydrographic Service at `api-iwls.dfo-mpo.gc.ca` and draws the chart from what comes back.
+The page we serve for a Canadian tidal current gate carries no predictions at all. The page we serve for a Canadian tide port carries only predictions computed from harmonic constituents, none from the Canadian Hydrographic Service. When you open either, your browser requests the Canadian Hydrographic Service's predictions directly from `api-iwls.dfo-mpo.gc.ca` and draws the chart from what comes back; on a tide port page they replace today's computed chart and today's rows in the tide table.
 
 - **The request starts when the page loads**, without waiting for you to ask. While it is in flight the page shows a Cancel button that stops it, and stopping it sends nothing further.
 - **The request does not pass through us.** It goes from your browser to the Canadian Hydrographic Service. Open Waters does not proxy it, does not receive the predictions, and does not store them.
 - **What DFO receives**: the information normally sent with an internet request, such as an IP address and technical request details, together with the station and the dates the page is showing. The Canadian Hydrographic Service handles that under its own terms and privacy policy.
-- **If you would rather it never happened**, blocking `api-iwls.dfo-mpo.gc.ca` in your browser or content blocker stops it. The page still names the station and still works; it simply draws no chart.
+- **If you would rather it never happened**, blocking `api-iwls.dfo-mpo.gc.ca` in your browser or content blocker stops it. The page still names the station and still works; a gate page simply draws no chart, and a tide port page keeps its computed one.
 
 Cloudflare hosts the site and processes technical request information such as IP address, request URL, browser information, timestamps, and errors to deliver, secure, and diagnose the site. Worker logs are retained for no more than seven days. We do not use them to build profiles or track people across services.
 

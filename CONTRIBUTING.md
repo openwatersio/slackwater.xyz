@@ -2,7 +2,7 @@
 
 How this site gets built and shipped. It is the source of truth for people and coding agents working in this repository. The repo is public because a marketing site has nothing to hide, but outside contributions are not being sought. Bug reports about the live site are welcome.
 
-Everything written here, including code, comments, documentation, commits, and pull requests, is public. Keep roadmaps, pricing, unreleased plans, and paths into private repositories out of it.
+Everything written here, including code, comments, documentation, commits, and pull requests, is public. Keep roadmaps, unpublished pricing, unreleased plans, and paths into private repositories out of it.
 
 Short, because it is meant to be followed rather than consulted. What the site is and why it
 looks the way it does is in [README.md](README.md).
@@ -26,7 +26,7 @@ npm run deploy  # build, then wrangler deploy with nitro's generated config
 | `src/routes/` | File-based routes. `__root.tsx` is the document shell and `<head>`. |
 | `src/lib/` | Prediction maths — `currents.ts` (harmonic synthesis) and `ramp.ts` (speed → colour). Both tested. |
 | `src/components/` | Presentational React. No data fetching. |
-| `src/content/` | Markdown rendered as pages: support, privacy, accuracy, the comparisons and OpenCPN. Support, privacy and accuracy are also served raw from their `.md` URLs. `passes/` holds the CHS pass guides, one per station id. |
+| `src/content/` | Markdown rendered as pages: support, privacy, accuracy, the comparisons and OpenCPN. `passes/` holds the CHS pass guides, one per station id. |
 | `src/styles.css` | Colour tokens. Components reference these, never a literal hex. |
 | `src/data/` | Bundled harmonic constituents for Deception Pass, the fixture `currents.test.ts` checks `predict.ts` against. |
 | `wrangler.jsonc` | Worker *source* config. Not the deployable one — see the gotchas. |
@@ -40,13 +40,15 @@ npm ci
 npm run build
 npm run typecheck
 npm test
+npm run test:agents
 ```
 
 The build comes before typechecking and tests because it generates `src/routeTree.gen.ts` and the prerendered artifacts that five integration suites inspect. Prediction changes arrive with a focused test; errors there can look plausible and matter on the water.
 
-Presentation is checked by looking at it. There is no snapshot suite: 8,450 pages come from
+Presentation is checked by looking at it. There is no snapshot suite: 9,537 pages come from
 three templates, so a representative tide page, a representative current page, and a
-representative CHS identity-only page (`/currents/dodd-narrows`) is the check, and a diff
+representative CHS identity-only page (`/currents/dodd-narrows`) is the check, plus a merged
+Canadian port (`/tides/ca/bc/victoria/`) with the CHS layer loaded in a browser, and a diff
 across thousands of near-identical generated pages would be noise, not signal.
 
 Anything touching a Worker route, including the analytics proxy, `/privacy.md`, or `/support.md`, must be checked against a real Worker because those routes do not resolve under `npm run dev`:
@@ -55,23 +57,27 @@ Anything touching a Worker route, including the analytics proxy, `/privacy.md`, 
 npm run build && npm run preview
 ```
 
+Every page except station and browse pages has a Markdown twin at its path plus `.md` (`/learn/tides/` is `/learn/tides.md`), and answers `Accept: text/markdown` at its own URL. `MARKDOWN_TWINS` in `src/lib/agent-mode.ts` lists them, and `/?mode=agent` serves the same list as JSON with the site's endpoints and limits. A page written in JSX repeats its prose in its twin (`src/lib/markdown-twins.ts`, `src/content/learn-tides.md`); `markdown-twins.test.ts` fails when their sections drift apart. A new page with a twin also needs its path in `run_worker_first` in `wrangler.jsonc` and in the prerendered `pages` in `vite.config.ts`.
+
+`npm run test:agents` starts the built Worker with file watching disabled, checks document negotiation, Markdown alternates, missing-page recovery, discovery files and links, then stops it. Pass a base URL to check a running preview: `npm run test:agents -- https://preview.example.com`.
+
 Look at any visible change before reporting it complete.
 
 ## Project rules
 
-- Keep dependencies, abstractions, and build steps to the minimum. Their cost is multiplied across 8,450 station pages.
+- Keep dependencies, abstractions, and build steps to the minimum. Their cost is multiplied across 9,537 station pages.
 - Every rendered curve comes from `src/lib/predict.ts` and bundled constituents. The landing page only shows the app's screenshots. Changes to `predict.ts`, `src/lib/ramp.ts`, or `src/lib/iwls.ts` require a test.
 - NOAA subordinate current stations reduce an exact reference station and bin through their published time offsets and speed ratios. A row with its own constituents remains harmonic regardless of NOAA's type label.
-- The 33 CHS pages ship identity without a prerendered prediction. The visitor's browser fetches 32 station predictions directly from DFO; `chs-malibu-rapids` is derived and has no station to fetch. Never proxy or re-serve IWLS predictions, and never prerender them. `src/lib/iwls.ts` converts DFO metres on chart datum to feet; CHS pages name chart datum without borrowing another datum code. The site covers 10 of 1,058 Canadian tide ports and must not imply complete coverage. Issue #207 tracks publishing the other 1,047, whose identity the database already publishes. `chs-arran-rapids` is excluded by `EXCLUDED` in `src/lib/registry.ts`.
+- The 24 CHS gate pages and the 859 Canadian tide ports with no predictable provider row ship identity without a prerendered prediction. The visitor's browser fetches each one's day directly from DFO, except `chs-malibu-rapids`, which is derived and has no station to fetch. A route the database merges with a provider row that has constituents, which today is 198 of the 1,057 Canadian tide ports, prerenders that row's computed curve under the CHS record's name and position, and the browser then draws CHS's published day in place of today's chart and today's 7-day table rows as the refined data (`src/lib/refine.ts`), marking those rows CHS. A failed or slow fetch leaves the computed curve and rows. Copy on those pages names no app mechanism either (#44). Never proxy or re-serve IWLS predictions, and never prerender them. `src/lib/iwls.ts` converts DFO metres on chart datum to feet; CHS pages name chart datum without borrowing another datum code. The site publishes every Canadian tide port the database gives a record and a route.
 - A pass guide in `src/content/passes/` cites a published source for every claim, such as the CHS Sailing Directions. It never quotes a DFO prediction and never says how the app predicts the gate (#44). `src/lib/passes.test.ts` checks the shape of both rules, not the facts, so review the sources.
-- Never claim a feature the app does not ship. The app's App Store URL lives in `src/lib/links.ts`, and the six pages under `src/content/compare` repeat it in prose.
+- Never claim a feature the app does not ship. The app's App Store URL lives in `src/lib/links.ts`, and the eight pages under `src/content/compare` repeat it in prose.
 - `src/content/privacy.md` names what the site collects. Any analytics, embed, font CDN, third-party script, or change to the IWLS request timing updates that policy in the same commit.
 - Components use colour tokens from `src/styles.css`. Green means slack, and colour expresses state rather than kind. Keep the Slackwater wordmark on one line with `whitespace-nowrap`.
 - The Worker custom domain owns apex and `www` DNS. Do not add those records by hand.
 - Do not add `devtools()` from `@tanstack/devtools-vite`; it breaks `vite dev` with an unavailable SSR environment and a transport timeout.
 - `slackwater-ios` is the source of truth for ported visuals. Match the Swift palette, geometry, and crop after reading the complete draw function and its `Theme.swift` constants. Resolve genuine inconsistencies in the app first.
 - The app's sky projection depends on both crops: fit each body's rise-to-set span to the width and fit the app's 0–62° altitude range to the band height at the call site. Keep `skyPoint` aligned with `Slackwater/Theme.swift`; the 300° projection in `openwaters.io` has a different purpose.
-- `@slackwater/database` moves with slackwater-ios: bump both to the same release in the same pass, so the site and the app name, place, and credit every station alike. slackwater-database's [CONTRIBUTING](https://github.com/openwatersio/slackwater-database/blob/main/CONTRIBUTING.md#releases) owns the rule.
+- `@slackwater/database` moves with slackwater-ios: bump both to the same release in the same pass, so the site and the app name, place, and credit every station alike. slackwater-database's [CONTRIBUTING](https://github.com/openwatersio/slackwater-database/blob/main/CONTRIBUTING.md#releases) owns the rule. After a bump, `node tools/count-opencpn.mjs` recounts the figures `/opencpn/` quotes into `src/content/opencpn-counts.json`; update `src/content/opencpn.md` to match, which `content-routes.test.ts` checks.
 - `.npmrc` sets `min-release-age=1`, so npm won't resolve a release less than a day old. To take a fresh `@openwaters/*` or `@slackwater/*` release the day it ships, pass `--min-release-age=0` to that one `npm install`; the lockfile keeps the version afterwards. Dependabot uses a three-day cooldown for the same reason.
 - Install scripts run only for packages listed in `allowScripts` in `package.json`, and `strict-allow-scripts` in `.npmrc` fails the install on any other package that has one. Read what a new script does before approving it with `npm approve-scripts --no-allow-scripts-pin <pkg>`, or skip it with `npm deny-scripts <pkg>`.
 
@@ -119,6 +125,10 @@ environment is the per-PR preview above, which never serves the apex.
 That workflow exists because the manual step got skipped. `/privacy` and the Plausible script
 were both merged and neither reached the apex, which went on serving an older build; nothing
 failed and nothing said so.
+
+The workflow also reports changed URLs to [IndexNow](https://www.indexnow.org/documentation), which shares them with Bing and the other participating engines. Before `wrangler deploy`, `node tools/indexnow.mjs plan` compares the live sitemaps with the build's. It lists URLs that were added or removed, and pages outside the station sitemaps whose `<lastmod>` changed. After the deploy, `submit` sends that list. A station's `<lastmod>` is always the build date, so a station is only submitted when it arrives or leaves. A nightly rebuild therefore normally submits nothing. Neither step can fail the deploy, so a failed submission shows only in the job log. The key in `src/lib/indexnow.ts` is public by design: engines verify it by fetching `public/<key>.txt`, and `npm run test:agents` checks that the file is served. Bing Webmaster Tools' IndexNow report shows what was received. `npm run deploy` does not submit.
+
+Because the deploy only sends changes, a page that was already live when IndexNow was wired up is never sent. To send every page once, run `node tools/indexnow.mjs all urls.txt`, then `node tools/indexnow.mjs submit urls.txt`. Do this once, for example after a new engine joins IndexNow or after a move to new URLs, not on a schedule: about 9,500 URLs a day is what IndexNow answers with a 429.
 
 `npm run deploy` still publishes from a laptop, for a rollback or when the token is being
 rotated. `workflow_dispatch` on the Deploy workflow does the same thing from Actions.
@@ -195,6 +205,12 @@ that changes what the site measures changes that file in the same commit.
 - **`unstorage@2` alpha (via nitro) imports `destr` without declaring it**, so the vite config
   fails to load wherever `destr` isn't hoisted. `destr` is a direct dependency so the import
   resolves however npm lays out `node_modules`.
+
+## Agent-readable pages
+
+The homepage, About, Contact, Pricing, Support, Privacy and Accuracy support `Accept: text/markdown`, advertise their `.md` alternate, and vary both representations on `Accept`. Other pages retain HTML. `src/content/pricing.md` cites the US App Store listing and its verification date; check that live listing when changing prices. `src/content/home.md` describes the same product as the homepage; update both when features, compatibility or offline limits change. `/llms.txt` provides use cases and points to the relevant product and policy pages.
+
+`src/worker.ts` wraps Nitro's Cloudflare preset before its asset shortcut. The negotiated document paths in `wrangler.jsonc` must run the Worker first; otherwise Cloudflare serves HTML assets without negotiation. Keep the preset alias in `vite.config.ts` compatible when upgrading Nitro. Missing HTML pages retain their 404 status and offer recovery links; clients requesting Markdown receive the recovery text as Markdown.
 
 ## Agents
 

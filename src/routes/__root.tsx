@@ -1,5 +1,6 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { APP_STORE_ID } from '#/lib/links'
+import { SiteFooter } from '#/components/SiteFooter'
 import appCss from '../styles.css?url'
 
 // Brand first: other iOS tide apps share the name, and the bare query must
@@ -40,6 +41,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
+      { rel: 'describedby', href: '/llms.txt' },
       // Cut from the app's icon-1024.png (slackwater-ios AppIcon.appiconset) with
       // sips. Regenerate from that file if the app icon ever changes.
       { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32.png' },
@@ -51,12 +53,7 @@ export const Route = createRootRoute({
     ],
   }),
   shellComponent: RootDocument,
-  // 1,048 known station URLs still 404 by design: 1,047 Canadian (CHS) tide
-  // ports the site has not chosen to publish (#207), and
-  // `chs-arran-rapids`, a gate excluded by name to match the app (#45).
-  // `dodd-narrows`, the former flagship share case, resolves.
-  // The router's default is a bare title, so the receiver of that link got a
-  // blank page. Say what happened and give them a way onward.
+  // Give an unpublished station link a way onward through the directory.
   notFoundComponent: NotFound,
 })
 
@@ -68,18 +65,24 @@ function NotFound() {
       </h1>
       <p className="mt-4 max-w-xl text-lg leading-snug text-sw-foam">
         There is no page here. If you followed a link to a station, that station isn't published
-        yet — the site covers 7,349 US and Canadian stations, with more on the way.
+        yet. Browse the station directory to find the stations this website publishes.
       </p>
       <p className="mt-6">
         <a className="text-sw-leaf underline underline-offset-4" href="/">
           Slackwater — tides and currents
         </a>
       </p>
+      <p className="mt-6 flex flex-wrap gap-4 text-sw-leaf underline underline-offset-4">
+        <a href="/stations/">Station directory</a>
+        <a href="/sitemap.xml">Sitemap</a>
+        <a href="/llms.txt">Agent guidance</a>
+        <a href="/support/">Support</a>
+      </p>
     </main>
   )
 }
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+export function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -87,6 +90,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="bg-sw-page text-sw-foam font-sans antialiased">
         {children}
+        <SiteFooter />
         <Scripts />
       </body>
     </html>

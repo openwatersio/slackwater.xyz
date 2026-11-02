@@ -10,7 +10,7 @@ const CANONICAL = 'https://slackwater.xyz/privacy/'
 
 export const Route = createFileRoute('/privacy')({
   head: () => ({
-    links: [{ rel: 'canonical', href: CANONICAL }],
+    links: [{ rel: 'canonical', href: CANONICAL }, { rel: 'alternate', type: 'text/markdown', href: '/privacy.md' }],
     meta: [
       { title: TITLE },
       { name: 'description', content: DESCRIPTION },

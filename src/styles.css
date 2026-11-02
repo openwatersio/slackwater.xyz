@@ -55,9 +55,42 @@
      don't load a webfont for a page that sells "no waiting". */
   --font-sans: ui-sans-serif, -apple-system, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", monospace;
+
+  /* A slow drift for the situation illustrations, like light moving over
+     water. Slow enough to read as calm; `motion-safe:` keeps it off for
+     anyone who asked for reduced motion. */
+  --animate-drift: drift 28s ease-in-out infinite alternate;
+  @keyframes drift {
+    from {
+      transform: scale(1.03) translate3d(0, 0, 0);
+    }
+    to {
+      transform: scale(1.09) translate3d(-1.5%, -1%, 0);
+    }
+  }
 }
 
 /* Dark-only, matching the app (.preferredColorScheme(.dark)). */
 html {
   color-scheme: dark;
+}
+
+/* Paper is the one light surface. A printer drops the page's background, so
+   the dark theme's pale ink would land on white; the ink tokens turn dark
+   instead, and every class that reads them follows. Hiding what doesn't belong
+   on paper is the components' job, with `print:hidden`. */
+@media print {
+  html {
+    color-scheme: light;
+  }
+  :root {
+    --color-sw-page: #ffffff;
+    --color-sw-paper: #0b1a2b;
+    --color-sw-foam: #0b1a2b;
+    --color-sw-steel: #44617a;
+    --color-sw-leaf: #3f6b2a;
+  }
+  @page {
+    margin: 0.5in;
+  }
 }

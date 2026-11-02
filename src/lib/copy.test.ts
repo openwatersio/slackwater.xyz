@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { loadCatalogue } from './catalogue'
 import {
-  DESCRIPTION_LIMIT, TITLE_LIMIT, datumLine, pageDescription, pageTitle, placeLine, provenance, seasonalNote,
+  DESCRIPTION_LIMIT, TITLE_LIMIT, datumLine, ogImageAlt, pageDescription, pageTitle, placeLine, provenance, refinedCredit,
+  seasonalNote,
 } from './copy'
 import { PASS_GUIDES } from './passes'
 import type { BundledStation, ChsStation } from './station'
@@ -36,12 +37,7 @@ describe('provenance', () => {
   })
 
   it('names CHS as the publisher, which is only true once the curve is drawn', () => {
-    // The identity panel may not say this (#44): nine of the 23 gates are
-    // never fitted on device and nothing published says which nine, so any
-    // sentence naming a mechanism is false for one group or the other. That
-    // constraint does not reach here. What this clause describes is a curve
-    // the reader's browser fetched from DFO, which is CHS's own published
-    // prediction for every gate without exception.
+    // The shared identity panel cannot promise an on-device fit for online gates (#44).
     expect(provenance(chs)).toBe('published by the Canadian Hydrographic Service')
   })
 
@@ -50,6 +46,25 @@ describe('provenance', () => {
     // DFO's own numbers; "offline" is false for the online gates.
     for (const s of [bundled, chs]) {
       expect(provenance(s)).not.toMatch(/slackwater|offline|on-device|app/i)
+    }
+  })
+})
+
+describe('refinedCredit', () => {
+  it('credits CHS for the curve on screen and the computed source for the rest', () => {
+    expect(refinedCredit({ ...bundled, kind: 'tide', chs: { id: 'chs-victoria' } })).toBe(
+      "Today's curve and today's rows in the 7-day table: predictions published by the Canadian Hydrographic " +
+        'Service, on chart datum, fetched from DFO by your browser. Other days are computed from harmonic constituents.',
+    )
+  })
+
+  it('names no datum for a current, which has none', () => {
+    expect(refinedCredit({ ...bundled, chs: { id: 'chs-dodd-narrows' } })).not.toMatch(/datum/)
+  })
+
+  it('claims nothing about how the app predicts this water (#44)', () => {
+    for (const kind of ['tide', 'current'] as const) {
+      expect(refinedCredit({ ...bundled, kind, chs: { id: 'chs-x' } })).not.toMatch(/slackwater|offline|on-device|\bapp\b/i)
     }
   })
 })
@@ -116,6 +131,31 @@ describe('pageDescription', () => {
         'Canadian Hydrographic Service data are in the Slackwater app.',
     )
   })
+
+  it('names Beta availability in Arran search and link descriptions', () => {
+    const arran = loadCatalogue().find((station) => station.path === '/currents/ca/bc/arran-rapids/')!
+    expect(arran).toBeDefined()
+    const description = pageDescription(arran)
+    expect(description).toContain('Slackwater beta on TestFlight')
+    expect(description.length).toBeLessThanOrEqual(DESCRIPTION_LIMIT)
+  })
+})
+
+describe('ogImageAlt', () => {
+  // The site default describes the Friday Harbor app screenshot, so a station
+  // card that fell back to it would describe another place.
+  it('describes the station’s own curve on a bundled card', () => {
+    expect(ogImageAlt({ ...bundled, kind: 'tide', name: 'Trenton' })).toBe(
+      'A 24-hour tide chart for Trenton, with each high and low marked by time and height.',
+    )
+    expect(ogImageAlt(bundled)).toBe(
+      'A 24-hour current chart for Deception Pass, with each slack marked and the peak flood and ebb speeds.',
+    )
+  })
+
+  it('promises no chart on a CHS card', () => {
+    expect(ogImageAlt(chs)).toBe('Dodd Narrows: a Slackwater station card naming the water, with no chart.')
+  })
 })
 
 describe('search snippets', () => {
@@ -168,7 +208,7 @@ describe('seasonalNote', () => {
   })
 
   it('says nothing where the database did not label the station', () => {
-    // 5,355 of the 5,893 tide pages. Absence is the database's verdict, and the
+    // 6,544 of the 6,957 tide pages. Absence is the database's verdict, and the
     // site never decides it — that is why the field is optional rather than 0.
     expect(seasonalNote(tide())).toBeUndefined()
   })
@@ -184,7 +224,7 @@ describe('seasonalNote', () => {
   })
 
   it('stays quiet where the tide is real and the annual cycle merely comparable', () => {
-    // Annapolis (US Naval Academy) carries the label at 1.008. Calling that
+    // A real tide carrying the label at 1.008. Calling that
     // "mostly seasonal" would be false in effect while true in arithmetic, so
     // the note moves to the station facts and drops the ratio.
     const note = seasonalNote(tide(1.008))

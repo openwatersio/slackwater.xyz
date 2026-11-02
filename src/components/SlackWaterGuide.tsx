@@ -1,20 +1,9 @@
 import { SlackTideChart } from './SlackTideChart'
 import { chartTime } from '#/lib/format'
 import { APP_STORE } from '#/lib/links'
-import { GUIDE_DAYS, type SlackGuide } from '#/lib/slack-guide'
+import { GUIDE_DAYS, longDay, span, type SlackGuide } from '#/lib/slack-guide'
 
 export const TITLE = 'What is slack water?'
-
-/** "1 h 10 min", "54 min". */
-function span(minutes: number): string {
-  const m = Math.round(minutes)
-  if (m < 60) return `${m} min`
-  return m % 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m / 60} h`
-}
-
-/** "Thursday, October 15", in the station's zone. */
-const longDay = (t: number, timeZone: string) =>
-  new Date(t).toLocaleDateString('en-US', { timeZone, weekday: 'long', month: 'long', day: 'numeric' })
 
 const EYEBROW = 'text-sm font-medium uppercase tracking-[0.16em] text-sw-steel'
 const H2 = 'mt-3 text-3xl font-semibold tracking-tight text-sw-paper sm:text-4xl'

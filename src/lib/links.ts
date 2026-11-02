@@ -1,13 +1,22 @@
-import { version as DATABASE_VERSION } from '@slackwater/database/package.json'
-
 export const APP_STORE_ID = '6813654837'
+
+/** The site's own origin, for a link that has to stand on its own, like a printed page's. */
+export const ORIGIN = 'https://slackwater.xyz'
 
 /** The listing's minimum OS for iPhone and iPad, which install buttons state. */
 export const MINIMUM_IOS = '26'
 export const REQUIREMENT = `Requires iOS ${MINIMUM_IOS} or later.`
 
+/** Joining this Google Group is how Android testers get Play test builds. */
+export const ANDROID_TESTERS = 'https://groups.google.com/g/slackwater-android-testers'
+
 // The six comparison pages repeat this URL in Markdown; keep them aligned.
 export const APP_STORE = `https://apps.apple.com/app/slackwater-tides-current/id${APP_STORE_ID}`
+
+export const TESTFLIGHT_BETA = 'https://testflight.apple.com/join/5gwh791N'
+
+/** Opens the App Store's rating and review sheet; pricing, support and about repeat it in Markdown. */
+export const APP_STORE_REVIEW = `https://apps.apple.com/app/id${APP_STORE_ID}?action=write-review`
 
 /**
  * The XTide/OpenCPN harmonics file from the database release this site is
@@ -26,4 +35,4 @@ export function tcdLink(version: string): { url: string; date?: string } {
     : { url: 'https://github.com/openwatersio/slackwater-database/releases' }
 }
 
-export const TCD = tcdLink(DATABASE_VERSION)
+export const TCD = tcdLink(__DATABASE_VERSION__)

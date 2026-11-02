@@ -4,7 +4,7 @@ import { notFound, redirect } from '@tanstack/react-router'
 import { StationIndex } from '#/components/StationIndex'
 import { StationPage } from '#/components/StationPage'
 import { resolvePath, type PlaceIndex, type Resolved } from '#/lib/catalogue-server'
-import { ogImageAlt, pageDescription, pageTitle } from '#/lib/copy'
+import { ogImageAlt, pageDescription, pageTitle, requiresBeta } from '#/lib/copy'
 import { faqJsonLd, stationJsonLd } from '#/lib/json-ld'
 import { APP_STORE_ID } from '#/lib/links'
 import { placeHead } from '#/lib/place-head'
@@ -56,7 +56,6 @@ export function directoryHead(kind: Kind, page: Page | undefined) {
   const title = pageTitle(s)
   // A pass guide describes the water; without one a CHS page can promise only its identity.
   const description = page.guide?.description ?? pageDescription(s)
-  const alt = ogImageAlt(s)
   const card = `${ORIGIN}/og/${kind === 'tide' ? 'tides' : 'currents'}/${s.slug}`
   // The flat share form, not the page's own path: shipped app builds parse
   // only `/<kind>/<slug>[/<instant>]` (`stationLink(from:)` in slackwater-ios).
@@ -73,10 +72,10 @@ export function directoryHead(kind: Kind, page: Page | undefined) {
       { property: 'og:description', content: description },
       { property: 'og:url', content: page.instant ? canonical + page.instant.raw : canonical },
       { property: 'og:image', content: page.instant ? `${card}/${page.instant.raw}.png` : `${card}.png` },
-      // Overrides the site default only where it would be false — see `ogImageAlt`.
-      ...(alt ? [{ property: 'og:image:alt', content: alt }] : []),
-      // Replaces the root's banner by name, so Open lands on this station.
-      { name: 'apple-itunes-app', content: `app-id=${APP_STORE_ID}, app-argument=${opens}` },
+      // Replaces the root's alt, which describes the app screenshot, not this card.
+      { property: 'og:image:alt', content: ogImageAlt(s) },
+      // An empty override suppresses the inherited App Store banner on Beta-only pages.
+      { name: 'apple-itunes-app', content: requiresBeta(s.id) ? '' : `app-id=${APP_STORE_ID}, app-argument=${opens}` },
     ],
     // Structured data lives on the canonical page only: an instant page
     // canonicalises there, so a second copy would describe the same place twice.
@@ -116,14 +115,20 @@ export function Directory({ kind, page }: { kind: Kind; page: Page }) {
     )
   }
   const { station, nearby, crumbs, guide, instant } = page
-  if (!instant) return <StationPage station={station} now={now} live={live} nearby={nearby} crumbs={crumbs} guide={guide} />
+  // Keyed by station so its state can never outlive it. Station links are
+  // plain anchors today, so every station is a fresh document; a client-side
+  // `<Link>` would instead reuse this component across splat params, and
+  // Victoria's CHS day, fetched curve and selected moment would draw under
+  // the next port's name.
+  const key = station.id
+  if (!instant) return <StationPage key={key} station={station} now={now} live={live} nearby={nearby} crumbs={crumbs} guide={guide} />
   // Never `live`: this page is one fixed shared moment, so a relative "in 30m"
   // would be measured from a moment that may be long past. But `settled` from
   // the first render — that moment came out of the URL and nothing will
   // replace it, which is the opposite of a live page's build-time placeholder.
   return station.source === 'bundled'
-    ? <StationPage station={station} now={now} selectedAt={instant.at} live={live} nearby={nearby} crumbs={crumbs} />
-    : <StationPage station={station} now={instant.at} settled nearby={nearby} crumbs={crumbs} guide={guide} />
+    ? <StationPage key={key} station={station} now={now} selectedAt={instant.at} live={live} nearby={nearby} crumbs={crumbs} />
+    : <StationPage key={key} station={station} now={instant.at} settled nearby={nearby} crumbs={crumbs} guide={guide} />
 }
 
 /**

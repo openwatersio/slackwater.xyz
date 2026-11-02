@@ -22,9 +22,9 @@ Slackwater features checked October 9, 2026. AyeTides' price, rating and feature
 | Price | $7.99 once, no in-app purchases, no ads | Free core; optional Premium |
 | Shipping since | 2008 | 2026 |
 | Tides | 13,400+ locations worldwide, tides and/or currents | Thousands of stations worldwide |
-| Currents | Harmonic current stations, table of slack and max | Stations with slack time and duration, max flood/ebb speed and set, scrubbable curve |
+| Currents | Harmonic current stations, table of slack and max | Stations with slack time and duration, max flood/ebb speed and set, a curve you slide through |
 | Currents outside US and Canada | Some | None |
-| Canada currents | Sparse; BC stations mostly placed to the nearest arc-minute | 23 CHS gates from Salish Sea to Cape Breton, checked against CHS predictions |
+| Canada currents | Sparse; BC stations mostly placed to the nearest arc-minute | CHS current gates from Salish Sea to Cape Breton, checked against CHS predictions |
 | Offline | Predictions yes; map and sharing online | Bundled predictions offline; Canadian setup, some passes online-only |
 | Data | XTide harmonics plus licensed station database | Bundled harmonics; CHS models fitted after download, some passes fetch online |
 | Widgets | Home and lock screen | Home screen free; lock screen Premium |
@@ -38,8 +38,8 @@ Slackwater features checked October 9, 2026. AyeTides' price, rating and feature
 
 | AyeTides | Slackwater |
 |---|---|
-| ![AyeTides' App Store screenshot: Bergen Point West Reach, Kill Van Kull, New York, rising at 4.47 feet on Sunday June 23 2019, a list of highs, lows, sun and moon times, and a gridded tide graph below](/shots/compare/ayetides-bergen-point-tide.webp) | ![Slackwater: St Martins, Bay of Fundy, rising at 14.3 ft at 6.2 ft per hour, over a scrubbable curve marked 29.3 and 30.4 ft highs and a 25.3 ft range](/shots/compare/slackwater-st-martins-tide.webp) |
-| AyeTides' own App Store screenshot: a day at Bergen Point as a list of events with the graph underneath. | Slackwater at St Martins in the Bay of Fundy: the state and height first, its rate of rise, the curve you scrub, and the range. |
+| ![AyeTides' App Store screenshot: Bergen Point West Reach, Kill Van Kull, New York, rising at 4.47 feet on Sunday June 23 2019, a list of highs, lows, sun and moon times, and a gridded tide graph below](/shots/compare/ayetides-bergen-point-tide.webp) | ![Slackwater: St Martins, Bay of Fundy, rising at 14.3 ft at 6.2 ft per hour, over a curve you slide through marked 29.3 and 30.4 ft highs and a 25.3 ft range](/shots/compare/slackwater-st-martins-tide.webp) |
+| AyeTides' own App Store screenshot: a day at Bergen Point as a list of events with the graph underneath. | Slackwater at St Martins in the Bay of Fundy: the state and height first, its rate of rise, the curve you slide through, and the range. |
 
 AyeTides' listing shows no current station screen, so there is nothing to put beside this one. Here is Slackwater's:
 
@@ -64,11 +64,7 @@ This is where the two part. AyeTides' BC current coverage is thin, and paddlers 
 reported stations placed on land. That is measurable from AyeTides' own public station
 list, measured October 14, 2026: 364 of its 442 BC stations are positioned to the nearest
 arc-minute, and where one of those shares a name with a CHS station it sits a median 700 m
-from CHS's position, against about 130 m for the stations with full-precision coordinates. Slackwater's Canadian gates come from Canadian
-Hydrographic Service predictions, fitted on the device and checked against CHS's
-published numbers before they ship. The list today is 23 gates from Active Pass and
-Seymour Narrows out to Cape Breton. A few sit in water the on-device model cannot fit,
-so those fetch when you have a signal and say so.
+from CHS's position, against about 130 m for the stations with full-precision coordinates. Slackwater's Canadian gates use Canadian Hydrographic Service predictions. Gates whose on-device model passes validation against CHS's published numbers can work offline after setup. The coverage ranges from Active Pass and Seymour Narrows out to Cape Breton. Other gates fetch official predictions when you have a signal and say so.
 
 Canadian tide ports need an initial download of CHS predictions to build their offline model. Check that the download is complete before leaving signal.
 
@@ -88,7 +84,7 @@ station against the agencies' own predictions before it ships.
 ## Interface
 
 AyeTides leads with the day's events as a list, with a graph you drag below it or full
-screen when you rotate the phone. It was updated for Liquid Glass in January. Slackwater is built for iOS 26, with the curve on every card, a scrubber that follows
+screen when you rotate the phone. It was updated for Liquid Glass in January. Slackwater is built for iOS 26, with the curve on every card, a timeline that follows
 your thumb, and a chart that draws offline. Whether that is worth anything to you depends
 on how you read a table.
 
@@ -117,3 +113,4 @@ water. Neither app is for navigation.
 
 See also: [the best tide and current apps for iPhone](/compare/best-tide-and-current-apps-iphone/)
 · [Slackwater vs Actual Currents](/compare/slackwater-vs-actual-currents/)
+· [Slackwater vs Dairiki.org](/compare/slackwater-vs-dairiki/)

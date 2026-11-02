@@ -230,6 +230,32 @@ describe('fetchPortTides', () => {
     expect(low.time.toISOString()).toBe('2026-09-01T07:29:00.000Z')
   })
 
+  it('carries every published turn of the day, each named high or low', async () => {
+    // A semidiurnal day has two of each, and a page that draws CHS's curve over
+    // a computed one labels all four, as the computed curve did. `wlp-hilo`
+    // names no qualifier, so a turn is a high when it stands above its
+    // neighbours.
+    const { fetcher } = replay(VICTORIA)
+    const { turns } = await fetchPortTides(VICTORIA_POSITION, START, 24, fetcher)
+    expect(turns.map((t) => [t.time.toISOString().slice(11, 16), t.high])).toEqual([
+      ['00:49', true], ['07:29', false], ['13:45', true], ['18:53', false],
+    ])
+    expect(turns[2].level).toBeCloseTo(2.021 * 3.28084, 2)
+  })
+
+  it('never reads a one-turn day as both high and low water', async () => {
+    // Victoria publishes a single turn on some days. The highest and lowest
+    // turn are then the same point, and the caption said "high 8.5 feet at
+    // 15:49, low 8.5 feet at 15:49".
+    const oneTurn = { ...VICTORIA, 'wlp-hilo': [VICTORIA['wlp-hilo'][0]] }
+    const { fetcher } = replay(oneTurn)
+    const { high, low, turns } = await fetchPortTides(VICTORIA_POSITION, START, 24, fetcher)
+    expect(turns.map((t) => t.high)).toEqual([true])
+    expect(high.time.toISOString()).toBe('2026-09-01T00:49:00.000Z')
+    expect(low.time.getTime()).not.toBe(high.time.getTime())
+    expect(low.level).toBeLessThan(high.level)
+  })
+
   it("takes DFO's published minute, which the sampled grid does not have", () => {
     // `wlp-hilo` states the minute; the fifteen-minute grid only samples around
     // it. Victoria's high is published at 00:49 and its low at 07:29 — neither

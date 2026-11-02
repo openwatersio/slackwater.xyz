@@ -2,7 +2,8 @@ import { useMemo, type ReactNode } from 'react'
 import { sunEvents } from '@openwaters/almanac'
 import { CurrentCurve } from './CurrentCurve'
 import { TideCurve } from './TideCurve'
-import { datumLine } from '#/lib/copy'
+import { datumLine, refinedCredit } from '#/lib/copy'
+import { levelAt as levelIn, type Refined } from '#/lib/refine'
 import { chartTime, compass16, height } from '#/lib/format'
 import {
   findEvents,
@@ -37,8 +38,13 @@ type Props = {
   onSelect?: (at: Date) => void
   onCommit?: (at: Date) => void
 } & (
-  | { station: BundledStation; fetched?: never }
-  | { station: ChsStation; fetched: Fetched }
+  /**
+   * `refined` is CHS's own day for a computed station, fetched by the
+   * reader's browser. It replaces the computed curve only when it is this
+   * strip's day; on any other day the strip is the computed one.
+   */
+  | { station: BundledStation; fetched?: never; refined?: Refined }
+  | { station: ChsStation; fetched: Fetched; refined?: never }
 )
 
 /** A Canadian day, as DFO published it — see `Curve` in StationPage. */
@@ -54,21 +60,55 @@ export function DayStrip(props: Props) {
   const selected = selectedAt ?? now
   const end = new Date(start.getTime() + hours * 3600_000)
   const today = now >= start && now < end
+  // CHS's day, if it is this day. Compared by instant rather than by label:
+  // the layer was fetched for one station-local day, and drawing it in a
+  // frame that starts anywhere else would shift every turn along the axis.
+  const layer = props.refined && props.refined.start.getTime() === start.getTime() && props.refined.hours === hours
+    ? props.refined
+    : undefined
+  const interactive = { actualNow: now, trackingNow, onSelect, onCommit }
 
   return (
     <div className="relative">
       {station.source === 'bundled' && (selectedAt || (live && today)) && (
         <div className="mb-4 flex justify-center">
           {station.kind === 'tide' ? (
-            <TideLead station={station} now={selected} />
+            <TideLead station={station} now={selected} refined={layer?.kind === 'tide' ? layer : undefined} />
           ) : (
-            <CurrentLead station={station} now={selected} trackingNow={selectedAt ? trackingNow : live} />
+            <CurrentLead station={station} now={selected} trackingNow={selectedAt ? trackingNow : live}
+              refined={layer?.kind === 'current' ? layer : undefined} />
           )}
         </div>
       )}
       {/* `props.fetched`, not the destructured `station`: narrowing one field of
           a discriminated union does not narrow a sibling pulled out of it. */}
-      {props.fetched ? (
+      {layer && props.station.source === 'bundled' ? (
+        layer.kind === 'tide' ? (
+          <>
+            <div className="sm:hidden">
+              <TideCurve station={props.station} start={start} hours={hours} now={selected} {...interactive}
+                samples={layer.samples} high={layer.high} low={layer.low} turns={layer.turns} width={390} />
+            </div>
+            <div className="hidden sm:block">
+              <TideCurve station={props.station} start={start} hours={hours} now={selected} {...interactive}
+                samples={layer.samples} high={layer.high} low={layer.low} turns={layer.turns} />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="sm:hidden">
+              <CurrentCurve station={props.station} start={start} hours={hours} now={selected}
+                {...interactive} actualNow={live ? now : undefined}
+                samples={layer.samples} events={layer.events} width={390} />
+            </div>
+            <div className="hidden sm:block">
+              <CurrentCurve station={props.station} start={start} hours={hours} now={selected}
+                {...interactive} actualNow={live ? now : undefined}
+                samples={layer.samples} events={layer.events} />
+            </div>
+          </>
+        )
+      ) : props.fetched ? (
         props.fetched.kind === 'tide' ? (
           <TideCurve station={props.station} start={start} hours={hours} now={now}
             samples={props.fetched.samples} high={props.fetched.high} low={props.fetched.low} />
@@ -111,6 +151,12 @@ export function DayStrip(props: Props) {
       {station.source === 'chs' && station.kind === 'tide' && (
         <p className="mt-3 text-sm text-sw-steel">{datumLine(station)}</p>
       )}
+      {/* The credit moves with the curve. Until CHS's day arrives the page
+          credits its constants under Station facts, as every computed page
+          does; once it has, this says whose curve is on screen now. */}
+      {layer && station.source === 'bundled' && (
+        <p className="mt-3 text-sm text-sw-steel">{refinedCredit(station)}</p>
+      )}
     </div>
   )
 }
@@ -151,13 +197,26 @@ function levelAt(station: BundledStation, at: Date): number {
 }
 
 /**
+ * The level at one instant from CHS's day where it covers that instant, and
+ * from the computed curve otherwise — so the card above a refined curve
+ * reads the same water the curve draws.
+ */
+function reader(station: BundledStation, refined?: Refined) {
+  return (at: Date) => (refined && levelIn(refined.samples, at)) ?? levelAt(station, at)
+}
+
+/**
  * The app's lead card for a tide: the state, the height as the only large
  * thing, the time under it, and what comes next.
  */
-function TideLead({ station, now }: { station: BundledStation; now: Date }) {
-  const level = levelAt(station, now)
-  const rising = levelAt(station, new Date(now.getTime() + 600_000)) > level
-  const next = tideExtremes(station, now, 24)[0]
+function TideLead({ station, now, refined }: { station: BundledStation; now: Date; refined?: Refined & { kind: 'tide' } }) {
+  const read = reader(station, refined)
+  const level = read(now)
+  const rising = read(new Date(now.getTime() + 600_000)) > level
+  // A refined day names DFO's next turn, and nothing past the end of the day
+  // it sent: borrowing tomorrow's from the computed curve would mix sources in
+  // one sentence.
+  const next = refined ? refined.turns.find((t) => t.time > now) : tideExtremes(station, now, 24)[0]
   return (
     <Lead
       state={rising ? 'Rising' : 'Falling'}
@@ -172,19 +231,27 @@ function TideLead({ station, now }: { station: BundledStation; now: Date }) {
 }
 
 /** The same card for a current: state and set lead, speed is the large thing. */
-function CurrentLead({ station, now, trackingNow }: { station: BundledStation; now: Date; trackingNow: boolean }) {
-  const level = levelAt(station, now)
+function CurrentLead({ station, now, trackingNow, refined }: {
+  station: BundledStation
+  now: Date
+  trackingNow: boolean
+  refined?: Refined & { kind: 'current' }
+}) {
+  const read = reader(station, refined)
+  const level = read(now)
   // Green is slack and only slack, so it follows `slackWindows` rather than the
   // bare threshold: a lull that dips under it and builds back the way it came
   // never reverses.
-  const windows = slackWindows(predictSeries(station, new Date(now.getTime() - 3 * 3600_000), 6))
+  const windows = slackWindows(refined
+    ? refined.samples
+    : predictSeries(station, new Date(now.getTime() - 3 * 3600_000), 6))
   const slack = windows.some((w) => now >= w.start && now <= w.end)
   const set = level > 0 ? station.floodDirection : station.ebbDirection
-  const event = nextEvent(findEvents(station, now, 24), now)
+  const event = nextEvent(refined ? refined.events : findEvents(station, now, 24), now)
   const window = windows.find((w) => w.end > now)
   const boundary = window && (now < window.start
     ? { time: window.start, label: 'Slack' }
-    : { time: window.end, label: levelAt(station, new Date(window.end.getTime() + 1000)) >= 0 ? 'Flood' : 'Ebb' })
+    : { time: window.end, label: read(new Date(window.end.getTime() + 1000)) >= 0 ? 'Flood' : 'Ebb' })
   const next = boundary && (!event || boundary.time < event.time)
     ? boundary
     : event && { time: event.time, label: event.kind === 'slack' ? 'Slack' : `Max ${event.kind}` }

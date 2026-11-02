@@ -10,7 +10,7 @@ const DESCRIPTION =
 export const Route = createFileRoute('/learn/slack-water')({
   loader: () => slackGuideData(),
   head: () => ({
-    links: [{ rel: 'canonical', href: CANONICAL }],
+    links: [{ rel: 'canonical', href: CANONICAL }, { rel: 'alternate', type: 'text/markdown', href: '/learn/slack-water.md' }],
     meta: [
       { title: `${TITLE} · Slackwater` },
       { name: 'description', content: DESCRIPTION },

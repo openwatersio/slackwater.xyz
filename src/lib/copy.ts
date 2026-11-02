@@ -1,4 +1,7 @@
-import type { Station } from './station'
+import type { BundledStation, Station } from './station'
+
+// shortcut: Arran coverage is Beta-only; check App Store availability before removing this gate.
+export const requiresBeta = (stationId: string) => stationId === 'chs-arran-rapids'
 
 /**
  * Where this station's numbers come from, as a clause with no full stop.
@@ -11,7 +14,7 @@ import type { Station } from './station'
  *
  * "Published by", not "based on". Everywhere else on a CHS page the site says
  * "based on Canadian Hydrographic Service data", because the identity panel
- * cannot name a mechanism (#44) and the app fits 14 of the 23 gates itself.
+ * cannot name a mechanism (#44) and the app fits some gates itself and fetches official predictions for others.
  * Here the reader's browser has just fetched DFO's own published prediction
  * and it is on the screen, so the stronger, more specific claim is the true
  * one. Do NOT let this wording drift back into the panel, which describes
@@ -19,12 +22,44 @@ import type { Station } from './station'
  */
 export function provenance(station: Station): string {
   return station.source === 'chs'
-    ? 'published by the Canadian Hydrographic Service'
+    ? CHS_PROVENANCE
     : station.reduction
       ? "reduced from NOAA's current table"
     : station.tideReduction
       ? 'NOAA reference highs and lows, adjusted by published offsets'
     : 'computed from harmonic constituents'
+}
+
+/**
+ * The provenance of a curve the reader's browser fetched from DFO — on a CHS
+ * page, and on a computed page once CHS's day has arrived on top of it.
+ */
+export const CHS_PROVENANCE = 'published by the Canadian Hydrographic Service'
+
+/**
+ * The line under a computed page's chart once CHS's day has replaced the
+ * computed one: whose numbers today's curve and today's table rows are now,
+ * and whose the other days still are.
+ *
+ * Both halves name a source and neither names how the app answers here (#44).
+ * The second half is the same provenance the computed curve carried before
+ * the layer arrived, so the page never credits CHS for a number it computed.
+ */
+export function refinedCredit(station: BundledStation): string {
+  const datum = station.kind === 'tide' ? ', on chart datum' : ''
+  return (
+    `Today's curve and today's rows in the 7-day table: predictions ${CHS_PROVENANCE}${datum}, ` +
+    `fetched from DFO by your browser. Other days are ${provenance(station)}.`
+  )
+}
+
+/**
+ * The caption sentence naming the table rows that are CHS's. Rendered only
+ * once those rows exist, which is only ever in the reader's browser.
+ */
+export function refinedRowsNote(station: BundledStation): string {
+  const datum = station.kind === 'tide' ? ', with heights above chart datum' : ''
+  return `Rows marked CHS are predictions ${CHS_PROVENANCE}${datum}, fetched from DFO by your browser.`
 }
 
 /**
@@ -64,10 +99,10 @@ export const DATUM_NOTE =
  * lagoons and lakes — the Neuse at Oriental, the St Johns at Piney Bluff, Indian
  * River Lagoon at Melbourne Causeway, Lake Ontario at Cobourg — and a tide table
  * is the wrong frame for all of them. Below it are Gulf and Chesapeake ports
- * with a real tide and a comparable annual signal, and Annapolis is the reason
- * the line is not at 1: it carries the database's label at 1.008, and telling a
- * reader the US Naval Academy gauge is "mostly seasonal" would be false in
- * effect while true in arithmetic.
+ * with a real tide and a comparable annual signal, and they are the reason the
+ * line is not at 1: the database labels some of them at a ratio near or below
+ * 1 (Palatka on the St Johns at 0.92), and telling a reader such a gauge is
+ * "mostly seasonal" would be false in effect while true in arithmetic.
  *
  * Of the 491 labelled pages, 159 are above this and 332 below.
  */
@@ -101,7 +136,7 @@ export interface SeasonalNote {
  * Two bands rather than one sentence, because one sentence cannot be honest
  * across a 160x range. At Cobourg the annual cycle IS the signal and a reader
  * planning anything from the high and low needs to know before reading them, so
- * it leads. At Annapolis the tide is real and the annual cycle merely comparable,
+ * it leads. At Palatka the tide is real and the annual cycle merely comparable,
  * so the same prominence would be a false alarm — but saying nothing leaves a
  * reader wondering why the heights drift through the year, which is the thing
  * the database now knows and the page can explain.
@@ -214,8 +249,9 @@ export function placeLine(station: Station): string | undefined {
  */
 export function pageDescription(station: Station): string {
   if (station.source === 'chs') {
+    const app = requiresBeta(station.id) ? 'Slackwater beta on TestFlight' : 'Slackwater app'
     const say = (name: string) =>
-      `Station information for ${name}. Predictions based on Canadian Hydrographic Service data are in the Slackwater app.`
+      `Station information for ${name}. Predictions based on Canadian Hydrographic Service data are in the ${app}.`
     return firstFitting(DESCRIPTION_LIMIT, [
       ...(station.region ? [say(`${station.name}, ${station.region}`)] : []),
       say(station.name),
@@ -232,17 +268,16 @@ export function pageDescription(station: Station): string {
 }
 
 /**
- * `og:image:alt` for one station's card, where it must say something other
- * than the site default.
+ * `og:image:alt` for one station's card. The site default in `__root.tsx`
+ * describes the app screenshot in `og.png`, which no station card shows.
  *
- * `__root.tsx` sets a site-wide default describing "a tide curve crossing
- * the datum line, with the slack marker on the crossing" — true of every
- * bundled card, so those pages keep it and this returns `undefined`. A CHS
- * card has no curve at all (see `identityCard` in `og-image.ts`), so that
- * description is false for it and needs its own, naming only what the card
- * shows: the station, not a chart.
+ * A bundled card draws the station's own 24-hour curve (`curveCard` in
+ * `og-image.ts`). A CHS card has no curve at all (`identityCard`), so its
+ * alt names only what the card shows: the station, not a chart.
  */
-export function ogImageAlt(station: Station): string | undefined {
-  if (station.source !== 'chs') return undefined
-  return `${station.name}: a Slackwater station card naming the water, with no chart.`
+export function ogImageAlt(station: Station): string {
+  if (station.source === 'chs') return `${station.name}: a Slackwater station card naming the water, with no chart.`
+  return station.kind === 'tide'
+    ? `A 24-hour tide chart for ${station.name}, with each high and low marked by time and height.`
+    : `A 24-hour current chart for ${station.name}, with each slack marked and the peak flood and ebb speeds.`
 }

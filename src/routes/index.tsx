@@ -1,7 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { APP_STORE, MINIMUM_IOS, REQUIREMENT } from '#/lib/links'
+import { SceneCurve, SlackFigure, TidesFigure } from '#/components/LearnFigures'
 import { Shot } from '#/components/Shot'
+import { ANDROID_TESTERS, APP_STORE, MINIMUM_IOS, REQUIREMENT } from '#/lib/links'
 import { SITE_DESCRIPTION } from '#/routes/__root'
+import { ORGANIZATION_DESCRIPTION } from '#/lib/json-ld'
 
 const CANONICAL = 'https://slackwater.xyz/'
 const SOURCE = 'https://github.com/openwatersio/slackwater-ios'
@@ -27,7 +29,7 @@ const LANGUAGES = [
 
 export const Route = createFileRoute('/')({
   head: () => ({
-    links: [{ rel: 'canonical', href: CANONICAL }],
+    links: [{ rel: 'canonical', href: CANONICAL }, { rel: 'alternate', type: 'text/markdown', href: '/index.md' }],
     meta: [
       { property: 'og:url', content: CANONICAL },
       {
@@ -44,6 +46,21 @@ export const Route = createFileRoute('/')({
               '@id': ORGANIZATION,
               name: 'Open Waters',
               legalName: 'Open Water Software LLC',
+              description: ORGANIZATION_DESCRIPTION,
+              address: {
+                '@type': 'PostalAddress',
+                streetAddress: '411 Walnut St #15547',
+                addressLocality: 'Green Cove Springs',
+                addressRegion: 'FL',
+                postalCode: '32043',
+                addressCountry: 'US',
+              },
+              contactPoint: {
+                '@type': 'ContactPoint',
+                email: 'slackwater@openwaters.io',
+                contactType: 'customer support',
+                url: 'https://slackwater.xyz/contact/',
+              },
               url: 'https://openwaters.io/',
               sameAs: ['https://github.com/openwatersio'],
             },
@@ -128,6 +145,103 @@ function Prose({ children }: { children: React.ReactNode }) {
     </div>
   )
 }
+/** The moments people open a tide app in, each answered with what Slackwater
+ *  does there. A card links only once its page exists; `href` is absent until
+ *  then. */
+const SITUATIONS: {
+  title: string
+  who: string
+  body: string
+  /** The scene, an illustration; decorative, so its alt is empty. */
+  art: string
+  /** The app's curve drawn into the scene's water. */
+  curve: { kind: 'current' | 'tide'; phase: number }
+  href?: string
+}[] = [
+  {
+    title: 'Anchored, no bars',
+    curve: { kind: 'current', phase: 0.6 } as const,
+    art: '/shots/situations/boat.webp',
+    who: 'Sailing and cruising',
+    body: 'Your phone roamed and every tide app is spinning. Slackwater predicts on your phone, so the week of turns at the next pass is already there.',
+    href: '/boating/',
+  },
+  {
+    title: 'When’s the lowest daylight low?',
+    curve: { kind: 'tide', phase: 2.2 } as const,
+    art: '/shots/situations/tidepools.webp',
+    who: 'Tide pools and beaches',
+    body: 'Slackwater marks the fortnight’s lowest low and puts sunrise and sunset on the same timeline, so you can see whether it falls in daylight. Spring tides are labelled.',
+    href: '/tide-pools/',
+  },
+  {
+    title: 'Is the pass slow enough for me?',
+    curve: { kind: 'current', phase: -0.3 } as const,
+    art: '/shots/situations/kayak.webp',
+    who: 'Sea kayaking',
+    body: 'Set the fastest current you’ll paddle in, and every curve shows your slack windows in green.',
+    href: '/kayak/',
+  },
+]
+
+/** One situation: the scene with the app's curve cut into its water, who it's
+ *  for, the reader's question and two sentences. The screenshots that prove
+ *  it are on the situation's own page. */
+function SituationCard({ title, who, body, art, curve, href }: (typeof SITUATIONS)[number]) {
+  const card = (
+    <article className="flex h-full flex-col overflow-hidden rounded-3xl bg-sw-canvas ring-1 ring-white/10 transition">
+      <div className="relative aspect-[4/3] overflow-hidden">
+        <img
+          src={art}
+          alt=""
+          loading="lazy"
+          width={960}
+          height={720}
+          className="h-full w-full object-cover motion-safe:animate-drift"
+        />
+        <SceneCurve {...curve} className="absolute inset-x-0 bottom-0 h-[35%] w-full" />
+      </div>
+      <div className="flex flex-1 flex-col p-6">
+        <p className="font-mono text-xs uppercase tracking-[0.14em] text-sw-leaf">{who}</p>
+        <h3 className="mt-2 text-xl font-semibold leading-snug text-sw-paper">{title}</h3>
+        <p className="mt-3 leading-relaxed text-sw-foam">{body}</p>
+        {href && (
+          <p className="mt-auto pt-4 font-medium text-sw-foam">
+            Read more <span aria-hidden>→</span>
+          </p>
+        )}
+      </div>
+    </article>
+  )
+  return href ? (
+    <a href={href} className="block rounded-3xl hover:[&>article]:ring-white/30">
+      {card}
+    </a>
+  ) : (
+    card
+  )
+}
+
+/** A link into a visual guide: a small figure and one line, about half a
+ *  situation card's height, so the guides read as further reading rather
+ *  than another situation. */
+function LearnCard({ href, title, body, figure }: { href: string; title: string; body: string; figure: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      className="group flex h-full flex-col overflow-hidden rounded-2xl bg-sw-canvas ring-1 ring-white/10 transition hover:ring-white/30"
+    >
+      <div className="flex aspect-[8/3] items-center justify-center overflow-hidden bg-sw-navy-deep/40 px-6 py-3 [&>svg]:h-full [&>svg]:w-auto">{figure}</div>
+      <div className="p-4">
+        <p className="font-mono text-xs uppercase tracking-[0.14em] text-sw-leaf">Visual guide</p>
+        <h3 className="mt-1 font-semibold leading-snug text-sw-paper">
+          {title} <span aria-hidden>→</span>
+        </h3>
+        <p className="mt-1 text-sm leading-relaxed text-sw-steel">{body}</p>
+      </div>
+    </a>
+  )
+}
 
 /** A feature: a heading and its prose beside one shot. `flip` puts the shot
  *  on the left so consecutive features alternate down the page. */
@@ -176,28 +290,10 @@ function Home() {
             Tides worldwide, currents across the US and Canada. Bundled stations are ready
             offline for any date.
           </p>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-sw-steel">
-            Canadian stations need an initial download. Some passes require a connection;
-            the app tells you which.
-          </p>
           <div className="mt-8">
             <Cta />
           </div>
-          <p className="mt-4 text-sm text-sw-steel">Free. Open source. No account, no ads. {REQUIREMENT}</p>
-          <p className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
-            <a
-              href="/learn/tides/"
-              className="font-medium text-sw-foam underline underline-offset-4 transition hover:text-sw-paper"
-            >
-              Learn how tides work <span aria-hidden>→</span>
-            </a>
-            <a
-              href="/learn/slack-water/"
-              className="font-medium text-sw-foam underline underline-offset-4 transition hover:text-sw-paper"
-            >
-              What is slack water? <span aria-hidden>→</span>
-            </a>
-          </p>
+          <p className="mt-4 text-sm text-sw-steel">Free. Open source. No account, no ads.</p>
         </div>
 
         {/* The recording runs taller than the hero, so it is clipped and faded
@@ -213,7 +309,7 @@ function Home() {
               poster="/shots/tides-day.webp"
               width={780}
               height={1694}
-              aria-label="Friday Harbor in Slackwater scrubbing from afternoon into a full-moon night."
+              aria-label="Friday Harbor in Slackwater sliding from afternoon into a full-moon night."
               className="w-full rounded-[min(3rem,13cqw)] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
             >
               <source
@@ -233,6 +329,22 @@ function Home() {
         </div>
       </header>
 
+      {/* Kept below the recording so a phone's first screen holds only the
+          promise, the download button and the app itself. */}
+      <div className="mx-auto mt-8 max-w-2xl text-center">
+        <p className="text-sm leading-relaxed text-sw-steel">
+          Canadian stations need an initial download. Some passes require a connection;
+          the app tells you which.
+        </p>
+        <p className="mt-2 text-sm text-sw-steel">
+          {REQUIREMENT} On Android?{' '}
+          <a href={ANDROID_TESTERS} className="underline underline-offset-4 hover:text-sw-foam">
+            Join the testers
+          </a>{' '}
+          to get early builds.
+        </p>
+      </div>
+
       <div className="mx-auto mt-8 max-w-2xl text-center text-sm">
         <p className="text-sw-steel">Available in {LANGUAGES.length} languages</p>
         <ul
@@ -249,10 +361,230 @@ function Home() {
         </ul>
       </div>
 
+      <section className="mt-24 sm:mt-28">
+        <Heading>Where are you headed?</Heading>
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
+          {SITUATIONS.map((s) => (
+            <SituationCard key={s.title} {...s} />
+          ))}
+        </div>
+      </section>
+
+      <div className="mt-16 grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+        <LearnCard
+          href="/learn/tides/"
+          title="Learn how tides work"
+          body="Why the Moon makes two high tides a day, one step at a time."
+          figure={<TidesFigure />}
+        />
+        <LearnCard
+          href="/learn/slack-water/"
+          title="What is slack water?"
+          body="The window around the turn of a current, and why it isn't high or low tide."
+          figure={<SlackFigure />}
+        />
+      </div>
+
+
+      {/* What the app does, in the order the launch feedback asked about it:
+          planning repo, slackwater-ios/gtm.md, Launch feedback. Reorder there
+          first, then here. */}
+      <Feature
+        title="A curve, not a table of numbers."
+        shot={
+          <Shot
+            src="/shots/tides-day.webp"
+            alt="Friday Harbor in the app at 1:00pm under a daytime sky: rising through 3.1 feet, high 4 hours 31 minutes later, a 4.7 foot range, sunrise at 7:04am and sunset at 7:01pm marked on the axis."
+            caption="Friday Harbor at 1:00pm, rising through 3.1 feet toward a 6.9 foot high. Sunrise and sunset sit on the axis, and the moon shows its phase."
+            crop
+          />
+        }
+      >
+        <p>
+          Slide the timeline and the whole screen follows: the height at that minute, whether
+          it is rising or falling, the range for the day, and the sun and moon moving across
+          the sky above it.
+        </p>
+        <p>
+          A week of highs and lows sits underneath, so working out tomorrow&rsquo;s departure
+          does not mean doing arithmetic on a printed table.
+        </p>
+      </Feature>
+
+      <section className="mt-24">
+        <div className="max-w-xl">
+          <Heading>Check it without opening the app.</Heading>
+          <Prose>
+            <p>
+              Free home screen widgets show the next high, low or slack and today&rsquo;s
+              curve, for where you are or a station you pick. Long-press your home screen, tap
+              +, and search for Slackwater.
+            </p>
+            <p>
+              <a href="/pricing/" className="underline underline-offset-4 hover:text-sw-foam">
+                Premium
+              </a>{' '}
+              puts the next turn on your lock screen and in Apple Watch complications, where a
+              glance at your phone or wrist answers it.
+            </p>
+          </Prose>
+        </div>
+        {/* The home screen is a device capture, cropped to the widgets; the
+            lock-screen image is the app's own Premium preview. */}
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+          <figure className="m-0 w-full max-w-[390px]">
+            <img
+              src="/shots/widgets/home-screen.webp"
+              alt="An iPhone home screen with two Slackwater widgets: Oak Bay's tide at 7.9 feet and falling, and Nakwakto Rapids flooding north at 4.3 knots with the day's maximums and slacks on its curve."
+              loading="lazy"
+              width={780}
+              height={801}
+              className="w-full rounded-[2rem] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
+            />
+            <figcaption className="mt-4 text-sm leading-relaxed text-sw-steel">
+              Free: Oak Bay&rsquo;s tide and Nakwakto Rapids, on the home screen.
+            </figcaption>
+          </figure>
+          <figure className="m-0 w-full max-w-[390px]">
+            <img
+              src="/shots/premium/lock-screen.webp"
+              alt="Slackwater's lock-screen widget examples showing Port Townsend's tide curve, a 3.1-foot height and an 8:15 AM low tide."
+              loading="lazy"
+              width={1080}
+              height={492}
+              className="w-full rounded-[2rem] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
+            />
+            <figcaption className="mt-4 text-sm leading-relaxed text-sw-steel">
+              Premium: the next low on the lock screen.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <Feature
+        title="Just ask Siri."
+        shot={
+          <figure className="m-0">
+            <img
+              src="/shots/siri/low-tide.webp"
+              alt="Siri answering that the next low tide at Oak Bay is in about 10 hours, with the 9:23 PM local time, 3.3-foot height and tide curve below."
+              loading="lazy"
+              width={780}
+              height={1010}
+              className="w-full rounded-[2rem] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
+            />
+            <figcaption className="mt-4 text-sm leading-relaxed text-sw-steel">
+              A real Siri answer for Oak Bay, captured on iPhone.
+            </figcaption>
+          </figure>
+        }
+      >
+        <p>
+          “When is the next low tide in Slackwater?” Siri tells you how long until the
+          next turn at a nearby place, with the local time and curve on screen.
+        </p>
+        <p>
+          Try “When is the next high tide in Slackwater?” or “When is the next slack
+          window in Slackwater?” too. The three actions are free and also appear in
+          the Shortcuts app, with no separate download.
+        </p>
+        <p>
+          Open Slackwater and allow location first. For Canadian places that need a
+          prediction download, save it in the app before asking Siri.
+        </p>
+      </Feature>
+
+      <Feature
+        title="On your wrist, without your phone."
+        flip
+        shot={
+          <figure className="@container m-0 mx-auto max-w-[240px]">
+            <img
+              src="/shots/watch/watch-tide.webp"
+              alt="Friday Harbor on Apple Watch, turned with the Digital Crown to 3:49pm: 6.1 feet and rising toward a 6.9 foot high at 5:31pm."
+              loading="lazy"
+              width={422}
+              height={514}
+              className="w-full rounded-[28%/23%] shadow-2xl shadow-sw-navy-deep/60 ring-1 ring-white/10"
+            />
+            <figcaption className="mt-4 text-sm leading-relaxed text-sw-steel">
+              Friday Harbor, turned with the Digital Crown to 3:49pm.
+            </figcaption>
+          </figure>
+        }
+      >
+        <p>
+          The Apple Watch app is free and predicts on the watch itself. Turn the Digital Crown to
+          move through the day, and the reading follows: the height or the current, which way it
+          is going, and the next turn.
+        </p>
+        <p>Your favourites and the place you are come first in its list.</p>
+      </Feature>
+
+      <section className="mt-24">
+        <div className="max-w-xl">
+          <Heading>Currents and slack at the passes.</Heading>
+          <Prose>
+            <p>
+              Heights are the easy half. The harder question at a pass is the current: when it
+              goes slack, how long it stays that way, and how hard it runs at max. Slackwater
+              gives the speed and set right now, the time to the next slack, and a week of maxes
+              underneath.
+            </p>
+            <p>
+              Set a comfort current in Settings and every curve marks the slack windows you can
+              use in green. The BC passes have guides of their own:{' '}
+              <a href="/currents/active-pass/" className="underline underline-offset-4 hover:text-sw-foam">Active Pass</a>,{' '}
+              <a href="/currents/dodd-narrows/" className="underline underline-offset-4 hover:text-sw-foam">Dodd Narrows</a>,{' '}
+              <a href="/currents/seymour-narrows/" className="underline underline-offset-4 hover:text-sw-foam">Seymour Narrows</a>{' '}
+              and more.
+            </p>
+          </Prose>
+        </div>
+        <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-4 sm:gap-8">
+          <Shot
+            src="/shots/currents-day.webp"
+            alt="Deception Pass (Narrows) in the app at 1:00pm: flooding at 5.2 knots to the east-south-east, slack 2 hours 37 minutes later, a next max of 7.2 knots ebbing at 6:30pm, and the week's floods, slacks and ebbs listed underneath."
+            caption="Deception Pass at 1:00pm, flooding at 5.2 knots. The ebb behind it peaks at 7.2."
+            crop
+          />
+          <Shot
+            src="/shots/currents-victoria.webp"
+            alt="The current 4.5 nautical miles south-south-west of Trial Island, off Victoria, in the app at 3:30pm: flooding north-east at 1.2 knots, two minutes before maximum flood, with sunrise and sunset on the axis and a link to the tide at Victoria."
+            caption="Off Trial Island at 3:30pm, flooding at 1.2 knots. Max flood is 2 minutes away."
+            crop
+          />
+        </div>
+      </section>
+
+      <Feature
+        title="Works with no signal."
+        flip
+        shot={
+          <Shot
+            src="/shots/map.webp"
+            alt="The app's map of the Salish Sea, with circular tide markers and direction arrows for currents."
+            caption="The Salish Sea. Circles mark tide locations; arrows show current direction."
+            crop
+          />
+        }
+      >
+        <p>
+          Bundled stations predict on your phone for any date, without a download or an expiring
+          cache. If your phone roams or loses data, Slackwater does not notice.
+        </p>
+        <p>
+          Canadian stations need one download to build their offline model. Online-only passes
+          need a connection and are labelled in the app.
+        </p>
+      </Feature>
+
       <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
         <Heading>Checked against the agencies&rsquo; own predictions.</Heading>
         <p className="mt-4 max-w-2xl text-lg leading-relaxed text-sw-foam">
-          NOAA predictions use published harmonic constituents. Most Canadian stations build a
+          Tides and currents come from public agency data: NOAA in the United States, the
+          Canadian Hydrographic Service in Canada, Norway&rsquo;s Kartverket, and the TICON
+          global tide-gauge catalogue. NOAA predictions use published harmonic constituents. Most Canadian stations build a
           model on your phone from Canadian Hydrographic Service predictions after a download;
           some passes fetch predictions when online. The engine is checked against the agencies&rsquo;
           published predictions.
@@ -286,95 +618,26 @@ function Home() {
       </section>
 
       <Feature
-        title="Scrub to the hour you care about."
+        title="The sky over the water."
         shot={
           <Shot
-            src="/shots/tides-day.webp"
-            alt="Friday Harbor in the app at 1:00pm under a daytime sky: rising through 3.1 feet, high 4 hours 31 minutes later, a 4.7 foot range, sunrise at 7:04am and sunset at 7:01pm marked on the axis."
-            caption="Friday Harbor at 1:00pm, rising through 3.1 feet toward a 6.9 foot high. Sunrise and sunset sit on the axis, and the moon shows its phase."
+            src="/shots/tides-night.webp"
+            alt="Friday Harbor in Slackwater at 11:30pm under a starry sky with a full moon."
+            caption="Friday Harbor at 11:30pm under the full moon, with the stars where they stand that night."
             crop
           />
         }
       >
         <p>
-          Drag the timeline and the whole screen follows it: the height at that minute, whether
-          it is rising or falling, the range for the day, and the sky overhead.
+          Every station carries its sky: sunrise, sunset and twilight on the timeline, the
+          moon&rsquo;s phase, and the stars as they stand that night.
         </p>
         <p>
-          A week of highs and lows sits underneath, so working out tomorrow&rsquo;s departure
-          does not mean doing arithmetic on a printed table.
+          The moon card names spring and neap tides and explains them, and Slackwater shows
+          solar and lunar eclipses when one is coming.
         </p>
       </Feature>
 
-      <section className="mt-24">
-        <div className="max-w-xl">
-          <Heading>Currents too, with direction and slack.</Heading>
-          <Prose>
-            <p>
-              Heights are the easy half. The harder question at a pass is the current: when it
-              goes slack, how long it stays that way, and how hard it runs at max. Slackwater
-              gives the speed and set right now, the time to the next slack, and a week of maxes
-              underneath.
-            </p>
-            <p>
-              Deception Pass on one day: ebbing west-north-west at sunrise, flooding
-              east-south-east by noon.
-            </p>
-          </Prose>
-        </div>
-        <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-4 sm:gap-8">
-          <Shot
-            src="/shots/currents-sunrise.webp"
-            alt="Deception Pass (Narrows) in the app at 7:10am: ebbing at 5.8 knots, slack 2 hours 50 minutes later, sunrise at 7:03am and a 5.3 knot flood coming at 12:40pm."
-            caption="7:10am, ebbing at 5.8 knots. Slack is 2 hours 50 minutes away."
-            crop
-          />
-          <Shot
-            src="/shots/currents-day.webp"
-            alt="Deception Pass (Narrows) in the app at 1:00pm: flooding at 5.2 knots to the east-south-east, slack 2 hours 37 minutes later, a next max of 7.2 knots ebbing at 6:30pm, and the week's floods, slacks and ebbs listed underneath."
-            caption="1:00pm, flooding at 5.2 knots. The ebb behind it peaks at 7.2."
-            crop
-          />
-        </div>
-      </section>
-
-      <Feature
-        title="Tides and currents, nearest first."
-        flip
-        shot={
-          <Shot
-            src="/shots/list.webp"
-            alt="The app's list located at Friday Harbor: the harbour's tide on top at 2.7 feet and falling, Point George's current under it at 1.1 knots and ebbing, then favourite Port Townsend and nearby Wasp Passage, each with its curve for the day."
-            caption="Located at Friday Harbor: the harbour's tide and nearest current on top, Port Townsend saved as a favourite, and nearby places below."
-            crop
-          />
-        }
-      >
-        <p>
-          One list holds both kinds: a harbour&rsquo;s height and a pass&rsquo;s speed and set,
-          each with the next thing it does and how far away it is. No mode to switch.
-        </p>
-        <p>Where you are sits on top, favourites under it, the rest by distance.</p>
-      </Feature>
-
-      <Feature
-        title={<>Bundled predictions, without a connection.</>}
-        shot={
-          <Shot
-            src="/shots/map.webp"
-            alt="The app's map of the Salish Sea, with circular tide markers and direction arrows for currents."
-            caption="The Salish Sea. Circles mark tide locations; arrows show current direction."
-            crop
-          />
-        }
-      >
-        <p>
-          Bundled stations predict on your phone for any date, without a download or an expiring
-          cache. Canadian stations need an initial download to build their offline model.
-          Online-only passes need a connection and are labeled in the app.
-        </p>
-        <p>Thousands of stations ship inside the app.</p>
-      </Feature>
 
       <section className="mt-24 border-t border-white/10 pt-10 sm:mt-28">
         <Heading>Free, open source, no account, no ads.</Heading>
@@ -424,13 +687,22 @@ function Home() {
             </p>
           </div>
           <div>
+            <h3>Is there an Android version?</h3>
+            <p>
+              An Android version is in development. Join the{' '}
+              <a href={ANDROID_TESTERS}>Slackwater Android testers group</a> with the Google
+              account you use on your phone, and you will get test builds through Google Play
+              as they become available.
+            </p>
+          </div>
+          <div>
             <h3>What is free?</h3>
             <p>
               Tide charts, current predictions, station search, favorites and home screen
               widgets are free, with no account or ads. You can choose any prediction date
               without a subscription. The Apple Watch app is free too. Optional Premium adds
               alerts, station calendars, lock-screen widgets and Watch complications, with
-              annual and lifetime purchase options.
+              annual and lifetime purchase options. <a href="/pricing/">See pricing and purchase terms</a>.
             </p>
           </div>
           <div>
@@ -472,67 +744,20 @@ function Home() {
         </div>
       </section>
 
-      <footer className="mt-20 border-t border-white/10 pt-6 text-sm text-sw-steel">
+      <section className="mt-20 border-t border-white/10 pt-6 text-sm text-sw-steel">
         <p>
           Every station has its own page, so a link you send works for someone who hasn&rsquo;t
           installed anything:{' '}
           <a href="/tides/" className="underline underline-offset-4">
-            5,893 tide stations
+            6,957 tide stations
           </a>{' '}
           and{' '}
           <a href="/currents/" className="underline underline-offset-4">
-            2,557 current stations
+            2,580 current stations
           </a>
           .
         </p>
-        <p className="mt-3">
-          Predictions are not observations — conditions vary with weather and river flow.{' '}
-          <strong className="font-semibold text-sw-foam">Not for navigation.</strong>
-        </p>
-        <p className="mt-3">
-          Built by{' '}
-          <a href="https://openwaters.io" className="underline underline-offset-4">
-            Open Waters
-          </a>
-          .{' '}
-          <a href="/stations/" className="underline underline-offset-4">
-            Stations
-          </a>
-          .{' '}
-          <a href="/learn/tides/" className="underline underline-offset-4">
-            How tides work
-          </a>
-          .{' '}
-          <a href="/learn/slack-water/" className="underline underline-offset-4">
-            Slack water
-          </a>
-          .{' '}
-          <a href="/compare/best-tide-and-current-apps-iphone/" className="underline underline-offset-4">
-            Compare
-          </a>
-          .{' '}
-          <a href="/opencpn/" className="underline underline-offset-4">
-            OpenCPN
-          </a>
-          .{' '}
-          <a href="/privacy/" className="underline underline-offset-4">
-            Privacy
-          </a>
-          .{' '}
-          <a href="/support/" className="underline underline-offset-4">
-            Support
-          </a>
-          .{' '}
-          <a href={SOURCE} className="underline underline-offset-4">
-            Source
-          </a>
-          .{' '}
-          <a href="https://openwaters.io/tides/slackwater/" className="underline underline-offset-4">
-            Developers
-          </a>
-          .
-        </p>
-      </footer>
+      </section>
     </main>
   )
 }

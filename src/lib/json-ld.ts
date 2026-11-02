@@ -17,12 +17,22 @@ export type JsonLd = { [key: string]: Json | undefined }
  * Spelled out rather than referenced by `@id` alone: Google reads `author` and
  * `publisher` per page, and the full node only lives in the home page's graph.
  */
+/** openwaters.io's own description of itself, so the two sites agree. */
+export const ORGANIZATION_DESCRIPTION = 'Open source tools and data for understanding and navigating the sea.'
+
 export const ORGANIZATION = {
   '@type': 'Organization',
   '@id': 'https://openwaters.io/#organization',
   name: 'Open Waters',
+  description: ORGANIZATION_DESCRIPTION,
   url: 'https://openwaters.io/',
 }
+
+/**
+ * A day as the datetime Google asks for: noon UTC, which is the same calendar
+ * day from UTC-12 to UTC+11, so the date still reads as the one the page shows.
+ */
+const noonUtc = (day?: string) => day && `${day}T12:00:00Z`
 
 /**
  * A page of prose: the learn pages, the comparisons and the accuracy receipt.
@@ -53,8 +63,8 @@ export function articleJsonLd(a: {
     url: a.url,
     mainEntityOfPage: a.url,
     image: a.image ?? `${ORIGIN}/og.png`,
-    datePublished: a.datePublished,
-    dateModified: a.dateModified,
+    datePublished: noonUtc(a.datePublished),
+    dateModified: noonUtc(a.dateModified),
     inLanguage: 'en',
     author: ORGANIZATION,
     publisher: ORGANIZATION,
@@ -178,12 +188,13 @@ export function datasetJsonLd(d: {
     name: d.name,
     description: d.description,
     url: d.url,
-    dateModified: d.dateModified,
+    dateModified: noonUtc(d.dateModified),
     license: 'https://github.com/openwatersio/slackwater-database#license',
     isAccessibleForFree: true,
     creator: ORGANIZATION,
     publisher: ORGANIZATION,
-    distribution: { '@type': 'DataDownload', contentUrl: d.download },
+    // TCD has no registered media type, so this names the format instead.
+    distribution: { '@type': 'DataDownload', encodingFormat: 'XTide TCD', contentUrl: d.download },
   }
 }
 

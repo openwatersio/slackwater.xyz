@@ -1,5 +1,6 @@
 import { configDefaults, defineConfig } from 'vitest/config'
 import { existsSync } from 'node:fs'
+import { createRequire } from 'node:module'
 
 // Deliberately not vite.config.ts: loading the TanStack Start and nitro plugins
 // for a unit test spins up a Worker preview server that then won't shut down.
@@ -43,7 +44,11 @@ export default defineConfig({
   // it here every module reading the build clock throws under test.
   // `__LASTMOD__` is empty here; the built pages' dates are checked against the
   // sitemap in content-routes.test.ts.
-  define: { __BUILD_NOW__: JSON.stringify(new Date().toISOString()), __LASTMOD__: '{}' },
+  define: {
+    __BUILD_NOW__: JSON.stringify(new Date().toISOString()),
+    __LASTMOD__: '{}',
+    __DATABASE_VERSION__: JSON.stringify(createRequire(import.meta.url)('@slackwater/database/package.json').version),
+  },
   test: {
     environment: 'node',
     include: ['src/**/*.test.{ts,tsx}'],

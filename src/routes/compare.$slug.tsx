@@ -16,7 +16,7 @@ export const Route = createFileRoute('/compare/$slug')({
     if (!p) return {}
     const canonical = `https://slackwater.xyz${p.path}`
     return {
-      links: [{ rel: 'canonical', href: canonical }],
+      links: [{ rel: 'canonical', href: canonical }, { rel: 'alternate', type: 'text/markdown', href: `${p.path.slice(0, -1)}.md` }],
       meta: [
         { title: p.title },
         { name: 'description', content: p.description },

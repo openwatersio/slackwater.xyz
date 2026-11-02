@@ -1,6 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { StationPage } from './StationPage'
+import { loadCatalogue } from '#/lib/catalogue'
+import portFixture from '#/lib/__fixtures__/iwls-ports.json' with { type: 'json' }
+import { fetchRefinement } from '#/lib/refine'
 import type { BundledStation, ChsStation } from '#/lib/station'
 
 const dodd = {
@@ -32,15 +35,24 @@ describe('StationPage for a CHS station', () => {
   })
 
   it('does not claim the app works offline here', () => {
-    // Nine of the 23 gates are never fitted on device, and nothing in the
-    // published registry says which nine. Any offline claim is false for some
-    // of them, so the page makes none.
+    // Shared coverage copy cannot promise offline predictions for online gates (#44).
     expect(html).not.toMatch(/offline/i)
   })
 
   it('still offers the app, which is why these pages exist', () => {
     expect(html).toContain('https://apps.apple.com/app/slackwater-tides-current/id6813654837')
     expect(html).toContain('Requires iOS 26 or later.')
+  })
+
+  it('offers Arran coverage through the beta rather than the App Store', () => {
+    const arran = loadCatalogue().find((station) => station.path === '/currents/ca/bc/arran-rapids/')!
+    expect(arran).toBeDefined()
+    const page = renderToStaticMarkup(<StationPage station={arran} now={new Date('2026-09-01T12:00:00Z')} />)
+    expect(page).toContain('href="https://testflight.apple.com/join/5gwh791N"')
+    expect(page).toContain('Join the TestFlight beta')
+    expect(page).toContain('available in the Slackwater beta')
+    expect(page).not.toContain('Slackwater covers this water in the app.')
+    expect(page).not.toContain('https://apps.apple.com/app/slackwater-tides-current/id6813654837')
   })
 })
 
@@ -144,6 +156,132 @@ describe('StationPage for a CHS tide port', () => {
   it('claims no computation and no offline capability', () => {
     expect(html).not.toMatch(/comput/i)
     expect(html).not.toMatch(/offline/i)
+  })
+})
+
+describe('StationPage for a computed port with a CHS layer', () => {
+  // Victoria as the catalogue builds it: the provider row's constituents and
+  // credit, the curated record's name and position, and the CHS identity the
+  // browser resolves DFO's station from.
+  const victoria: BundledStation = {
+    id: 'ticon/victoria_bc-543a-can-uhslc_rq', kind: 'tide', slug: 'victoria', name: 'Victoria',
+    path: '/tides/ca/bc/victoria/',
+    latitude: 48.424, longitude: -123.371, timezone: 'America/Vancouver',
+    source: 'bundled', chartDatum: 'LAT', state: 'BC', country: 'Canada', region: 'Inner Harbour',
+    publisher: 'TICON-4',
+    attribution: 'Slackwater database. Source: TICON-4. Licensed CC BY 4.0.',
+    constituents: [{ name: 'M2', amplitude: 3, phase: 0 }, { name: 'K1', amplitude: 2, phase: 200 }],
+    chs: { id: 'chs-victoria' },
+  }
+  const now = new Date('2026-09-01T12:00:00Z')
+  const served = renderToStaticMarkup(<StationPage station={victoria} now={now} />)
+
+  it('prerenders the computed curve and the week table a bundled page gets', () => {
+    expect(served).toContain('<svg')
+    expect(served).toContain('Tide times for the next 7 days')
+    expect(served).toContain('Harmonic constituents from TICON-4')
+    expect(served).toContain('Source: TICON-4. Licensed CC BY 4.0.')
+  })
+
+  it('serves no CHS prediction, and no control for a request that has not started', () => {
+    expect(served).not.toMatch(/published by the Canadian Hydrographic Service|fetched from DFO/)
+    expect(served).not.toMatch(/cancel|your browser/i)
+  })
+
+  it('makes no claim about how the app predicts this water (#44)', () => {
+    expect(served).not.toMatch(/offline|on-device/i)
+  })
+
+  it("draws DFO's day over the computed one once the browser has it, and keeps the week computed", async () => {
+    const port = portFixture.ports['Victoria Harbour']
+    const fetcher: typeof fetch = async (input) => {
+      const url = String(input)
+      const body = url.includes('/stations?')
+        ? portFixture.stations
+        : url.includes('wlp-hilo')
+          ? port['wlp-hilo']
+          : port.wlp
+      return { ok: true, json: async () => body } as Response
+    }
+    const refined = await fetchRefinement(victoria, now, fetcher)
+    const layered = renderToStaticMarkup(
+      <StationPage station={victoria} now={now} live refined={refined} />,
+    )
+    // 13:45 and 18:53 UTC fall inside Victoria's local day; 2.021 and 1.688 m.
+    expect(layered).toContain('6.6 ft')
+    expect(layered).toContain('5.5 ft')
+    expect(layered).toContain('published by the Canadian Hydrographic Service, on chart datum, fetched from DFO by your browser')
+    expect(layered).toContain('Tide times for the next 7 days')
+    expect(layered).toContain('Harmonic constituents from TICON-4')
+  })
+
+  describe("the week table's today rows", () => {
+    const port = portFixture.ports['Victoria Harbour']
+    const fetcher: typeof fetch = async (input) => {
+      const url = String(input)
+      const body = url.includes('/stations?')
+        ? portFixture.stations
+        : url.includes('wlp-hilo')
+          ? port['wlp-hilo']
+          : port.wlp
+      return { ok: true, json: async () => body } as Response
+    }
+    /** Each table row as [day, what, time, value, marked]. */
+    const rows = (html: string) => {
+      const table = html.match(/<table[\s\S]*?<\/table>/)![0]
+      return [...table.matchAll(/<tr([^>]*)>([\s\S]*?)<\/tr>/g)].slice(1).map(([, attrs, row]) => {
+        const cells = [...row.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map(([, c]) => c)
+        const marked = /data-source="chs"/.test(attrs) && />CHS<\/span>/.test(row)
+        const text = cells.map((c) => c.replace(/<[^>]+>/g, '').replace(/CHS$/, '').trim())
+        return [...text, marked] as [string, string, string, string, boolean]
+      })
+    }
+    const today = 'Tue 1 Sep 2026'
+    let layered = ''
+    beforeAll(async () => {
+      const refined = await fetchRefinement(victoria, now, fetcher)
+      layered = renderToStaticMarkup(<StationPage station={victoria} now={now} live refined={refined} />)
+    })
+
+    it('are computed, and unmarked, in the page we serve', () => {
+      const served = rows(renderToStaticMarkup(<StationPage station={victoria} now={now} />))
+      expect(served.filter((r) => r[0] === today).length).toBeGreaterThan(0)
+      expect(served.every((r) => !r[4])).toBe(true)
+      expect(served.map((r) => r[3])).not.toContain('6.6 ft')
+    })
+
+    it("become DFO's published turns once the layer arrives, each marked", () => {
+      // 07:29, 13:45 and 18:53 UTC: 00:29, 06:45 and 11:53 in Victoria.
+      // 1.065, 2.021 and 1.688 m. 00:49 UTC is the evening before, local.
+      const ours = rows(layered).filter((r) => r[0] === today)
+      expect(ours).toEqual([
+        [today, 'Low', '00:29', '3.5 ft', true],
+        [today, 'High', '06:45', '6.6 ft', true],
+        [today, 'Low', '11:53', '5.5 ft', true],
+      ])
+    })
+
+    it('leave every other day exactly as computed', () => {
+      const served = rows(renderToStaticMarkup(<StationPage station={victoria} now={now} />))
+      const notToday = (r: (string | boolean)[]) => r[0] !== today
+      expect(rows(layered).filter(notToday)).toEqual(served.filter(notToday))
+    })
+
+    it('say which numbers are whose, in the table and under the chart', () => {
+      const caption = layered.match(/<caption[^>]*>([\s\S]*?)<\/caption>/)![1]
+      expect(caption).toContain('Rows marked CHS are predictions published by the Canadian Hydrographic Service')
+      expect(caption).toContain('above chart datum')
+      expect(layered.replaceAll('&#x27;', "'")).toContain(
+        "Today's curve and today's rows in the 7-day table: predictions published by the Canadian Hydrographic Service",
+      )
+      expect(layered).toContain('Other days are computed from harmonic constituents.')
+      expect(layered).not.toMatch(/offline|on-device/i)
+    })
+
+    it('keep the served caption free of any CHS claim', () => {
+      const served = renderToStaticMarkup(<StationPage station={victoria} now={now} />)
+      expect(served.match(/<caption[^>]*>([\s\S]*?)<\/caption>/)![1]).not.toMatch(/CHS|Canadian Hydrographic/)
+    })
   })
 })
 

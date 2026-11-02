@@ -1,4 +1,6 @@
 import { execFileSync } from 'node:child_process'
+import { createRequire } from 'node:module'
+import { fileURLToPath } from 'node:url'
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
@@ -47,10 +49,16 @@ const BUILD_DATE = BUILD_NOW.slice(0, 10)
 const PLACE_SOURCES = ['./src/routes/-directory.tsx', './package.json']
 const PAGE_SOURCES: Record<string, string[]> = {
   '/': ['./src/routes/index.tsx'],
+  '/pricing/': ['./src/routes/pricing.tsx', './src/content/pricing.md'],
+  '/about/': ['./src/routes/about.tsx', './src/content/about.md'],
+  '/contact/': ['./src/routes/contact.tsx', './src/content/contact.md'],
   '/support/': ['./src/routes/support.tsx', './src/content/support.md'],
   '/privacy/': ['./src/routes/privacy.tsx', './src/content/privacy.md'],
   '/accuracy/': ['./src/routes/accuracy.tsx', './src/content/accuracy.md'],
   '/opencpn/': ['./src/routes/opencpn.tsx', './src/content/opencpn.md'],
+  '/boating/': ['./src/routes/boating.tsx', './src/content/boating.md'],
+  '/kayak/': ['./src/routes/kayak.tsx', './src/content/kayak.md'],
+  '/tide-pools/': ['./src/routes/tide-pools.tsx', './src/content/tide-pools.md'],
   '/learn/tides/': ['./src/routes/learn.tides.tsx'],
   '/learn/slack-water/': ['./src/routes/learn.slack-water.tsx', './src/lib/slack-guide.ts', './src/components/SlackTideChart.tsx'],
   '/stations/': ['./src/routes/stations.index.tsx'],
@@ -98,9 +106,13 @@ export default defineConfig({
   // from the nightly rebuild in .github/workflows/deploy.yml.
   // The static pages' sitemap dates, for the structured data of the pages that
   // print no date of their own: one function, so the two cannot disagree.
+  // The database's version is read here rather than imported by the page code:
+  // the bundler ships the package's package.json in the same chunk as its
+  // decoder, so importing it decoded every station at Worker startup (#242).
   define: {
     __BUILD_NOW__: JSON.stringify(BUILD_NOW),
     __LASTMOD__: JSON.stringify(Object.fromEntries(STATIC_PATHS.map((p) => [p, lastmod(p)]))),
+    __DATABASE_VERSION__: JSON.stringify(createRequire(import.meta.url)('@slackwater/database/package.json').version),
   },
   plugins: [
     tailwindcss(),
@@ -110,7 +122,15 @@ export default defineConfig({
       // in @tanstack/start-plugin-core) validates `prerender` against a schema
       // with no `pages` field, so nesting it there is silently dropped and the
       // build still reports success while emitting zero station pages.
-      pages: [...stationPages, ...comparePages, ...placePages],
+      pages: [
+        ...stationPages,
+        ...comparePages,
+        ...placePages,
+        // Markdown twins: prerendered so the Worker serves files rather than
+        // recomputing the slack-water guide and station hub on request.
+        ...['/index.md', '/opencpn.md', '/stations.md', '/learn/tides.md', '/learn/slack-water.md'].map((path) => ({ path })),
+        ...COMPARE_PATHS.map((path) => ({ path: `${path.slice(0, -1)}.md` })),
+      ],
       prerender: {
         enabled: true,
         autoSubfolderIndex: true,
@@ -132,6 +152,11 @@ export default defineConfig({
     // X-Forwarded-For that Plausible reads for unique-visitor counting — passes through.
     // Only resolves in a real Worker: vite dev claims `.js` URLs before these rules run.
     nitro({
+      entry: fileURLToPath(new URL('./src/worker.ts', import.meta.url)),
+      alias: {
+        // Wrap the preset so negotiation runs before Nitro's own static-asset shortcut.
+        '#cloudflare-handler': fileURLToPath(new URL('./dist/presets/cloudflare/runtime/cloudflare-module.mjs', import.meta.resolve('nitro/package.json'))),
+      },
       commands: { preview: `npx wrangler --cwd ./ dev --assets ${PRERENDER_ASSETS}` },
       routeRules: {
         '/js/script.js': { proxy: 'https://plausible.io/js/script.outbound-links.js' },

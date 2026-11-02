@@ -35,9 +35,6 @@ const CHS_SOURCE = 'Canadian Hydrographic Service'
  */
 const curatedRecords = (allStations as unknown as Record[]).filter((s) => !s.id.includes('/'))
 
-/** Every id the database curates — the curated half of a merged pair. */
-export const REGISTRY_IDS: ReadonlySet<string> = new Set(curatedRecords.map((s) => s.id))
-
 export interface Curated {
   name: string
   region?: string
@@ -63,82 +60,71 @@ export function curatedBySlug(kind: Kind): Map<string, Curated> {
 }
 
 /**
- * Excluded by owner decision (#45), and by name because the database
- * publishes it like any other gate — without this rule it would become a page
- * as a side effect of a data source. slackwater-ios excludes it fully as a
- * hazard call: violent rapids, "wrong water under a trusted name". The site
- * matches the app, because two surfaces disagreeing about whether a hazard is
- * nameable is worse than one missing page. Publishing it means the app and the
- * site change together; it is not settled by deleting this line.
- */
-const EXCLUDED = new Set(['chs-arran-rapids'])
-
-/**
- * The Canadian tide ports this site publishes.
- *
- * slackwater-database#210 gives every live Canadian tide station a record, which
- * is more than this site has decided to publish: whether the other 1,047 get
- * pages is #207.
- *
- * The list exists to keep that a decision rather than a side effect of a
- * database release, and it is meant to be deleted. When #207 answers, this goes
- * and the corpus is the data again.
- */
-const CHS_TIDE_PORTS = new Set([
-  'chs-campbell-river',
-  'chs-fulford-harbour',
-  'chs-owen-bay',
-  'chs-point-atkinson',
-  'chs-port-alberni',
-  'chs-port-renfrew',
-  'chs-sooke',
-  'chs-tofino',
-  'chs-vancouver',
-  'chs-victoria',
-])
-
-/**
  * The Canadian stations of one kind, from identity the database already
  * publishes.
  *
- * All 24 gates and the ten named tide ports are curated records with a name,
- * region, corrected position, timezone and province. Since
- * slackwater-database#210 so are the other 1,047 tide ports, which this site
- * does not publish yet (#207).
+ * Every gate and every live Canadian tide port is a curated record with a
+ * name, region, corrected position, timezone and province
+ * (slackwater-database#210), and the site publishes all of them. A station here that shares its route with a publishable
+ * provider row is folded into that row's page by the catalogue.
  */
 export function chsStations(kind: Kind): ChsStation[] {
   const out: ChsStation[] = []
-  for (const s of curatedRecords) {
-    if (s.source?.name !== CHS_SOURCE || s.kind !== kind) continue
-    if (EXCLUDED.has(s.id)) continue
-    // Every gate is published; the tide ports are the named ten — see CHS_TIDE_PORTS.
-    if (kind === 'tide' && !CHS_TIDE_PORTS.has(s.id)) continue
-    const route = stationRoute(kind, s.id)
+  for (const s of chsRecords(kind)) {
+    const station = chsStation(s)
     // A station with no published route is a broken corpus, not one to skip: it
     // means the database's records and its route index disagree about what exists.
-    if (!route) throw new Error(`registry: no published route for CHS ${kind} station ${s.id}`)
-    const { slug, path } = route
-    const region = s.context_derived ? undefined : s.context
-    // The province a page competes for ("tides victoria bc") is read rather
-    // than guessed from the position; a record with no Canadian code gets
-    // none, because an invented one puts a station under the wrong heading.
-    const code = String(s.region_code ?? '')
-    const state = code.startsWith('CA-') ? code.slice(3) : undefined
-    out.push({
-      id: s.id, kind, slug, path, source: 'chs',
-      name: s.name,
-      ...(region ? { region } : {}),
-      // Every CHS station is Canadian by definition of the provider.
-      country: 'Canada',
-      continent: 'Americas',
-      ...(state ? { state } : {}),
-      // Carried through so the page knows not to offer a curve it cannot
-      // fetch: a derived gate has no CHS current station, and resolving its
-      // position would land on real water 47 km away down another inlet.
-      ...(s.current?.derived ? { derived: true as const } : {}),
-      latitude: s.latitude, longitude: s.longitude,
-      timezone: s.timezone,
-    })
+    if (!station) throw new Error(`registry: no published route for CHS ${kind} station ${s.id}`)
+    out.push(station)
   }
   return out
+}
+
+/**
+ * Every curated CHS record of one kind, keyed by the slug of the route it
+ * shares, whether or not this site publishes it on its own.
+ *
+ * A record here is the CHS half of a merged pair whenever a provider row with
+ * constituents sits on the same route. That page is the provider's, with the
+ * curated identity and the browser's CHS layer on top, and it is a page
+ * because the provider row is publishable — not because of this map.
+ */
+export function chsTwins(kind: Kind): Map<string, ChsStation> {
+  const out = new Map<string, ChsStation>()
+  for (const s of chsRecords(kind)) {
+    const station = chsStation(s)
+    if (station) out.set(station.slug, station)
+  }
+  return out
+}
+
+const chsRecords = (kind: Kind) =>
+  curatedRecords.filter((s) => s.source?.name === CHS_SOURCE && s.kind === kind)
+
+function chsStation(s: Record): ChsStation | undefined {
+  const kind = s.kind
+  const route = stationRoute(kind, s.id)
+  if (!route) return undefined
+  const { slug, path } = route
+  const region = s.context_derived ? undefined : s.context
+  // The province a page competes for ("tides victoria bc") is read rather
+  // than guessed from the position; a record with no Canadian code gets
+  // none, because an invented one puts a station under the wrong heading.
+  const code = String(s.region_code ?? '')
+  const state = code.startsWith('CA-') ? code.slice(3) : undefined
+  return {
+    id: s.id, kind, slug, path, source: 'chs',
+    name: s.name,
+    ...(region ? { region } : {}),
+    // Every CHS station is Canadian by definition of the provider.
+    country: 'Canada',
+    continent: 'Americas',
+    ...(state ? { state } : {}),
+    // Carried through so the page knows not to offer a curve it cannot
+    // fetch: a derived gate has no CHS current station, and resolving its
+    // position would land on real water 47 km away down another inlet.
+    ...(s.current?.derived ? { derived: true as const } : {}),
+    latitude: s.latitude, longitude: s.longitude,
+    timezone: s.timezone,
+  }
 }
