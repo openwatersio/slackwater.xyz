@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { Route as RootRoute, SITE_DESCRIPTION, SITE_TITLE } from './__root'
 import { Route } from './index'
@@ -12,6 +12,17 @@ import { loadCatalogue } from '#/lib/catalogue'
 describe('landing page', () => {
   const Home = Route.options.component!
   const html = renderToStaticMarkup(<Home />)
+
+  it('marks Gaelic languages as upcoming without counting them as available', () => {
+    expect(html).toContain('Available in 14 languages')
+    for (const locale of ['ga', 'gd']) {
+      expect(html).toMatch(new RegExp(`<span lang="${locale}">[^<]+</span><span[^>]*>\\(Coming soon\\)</span>`))
+    }
+    expect(html.match(/\(Coming soon\)/g)).toHaveLength(2)
+    expect(readFileSync('src/content/home.md', 'utf8')).toContain(
+      'Available in 14 languages. Irish (Gaeilge) and Scottish Gaelic (Gàidhlig) are coming soon.',
+    )
+  })
 
   it('links every shot to a file that ships', () => {
     const srcs = [...html.matchAll(/src="(\/shots\/[^"]+)"/g)].map((m) => m[1])
