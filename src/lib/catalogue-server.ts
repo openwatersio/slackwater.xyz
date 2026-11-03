@@ -339,7 +339,7 @@ export const reactStation = createServerFn({ method: 'GET' })
   })
 
 export const reactStations = createServerFn({ method: 'GET' })
-  .validator((data: { kind: Kind; params: StationsSearchParams }) => data)
+  .validator((data: { kind: Kind; params: StationsSearchParams; predictionsOnly?: boolean }) => data)
   .handler(async ({ data }) => {
     if (!import.meta.env.DEV) throw new Error('Station preview is only available in development.')
     return (await import('./react-catalogue')).listReactStations(data)

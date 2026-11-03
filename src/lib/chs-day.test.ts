@@ -77,3 +77,13 @@ it('keeps a merged Canadian port’s CHS heights in feet on chart datum', async 
   expect(day.high.level).toBeCloseTo(8.34646, 4)
   expect(day.turns.length).toBeGreaterThan(0)
 })
+
+it('reports an unavailable CHS current day when DFO returns empty series', async () => {
+  vi.stubGlobal('window', {})
+  const { station } = await getReactStation({ kind: 'current', id: 'chs-dodd-narrows' })
+  const fetcher: typeof fetch = async (input) => Response.json(
+    String(input).includes('/stations?') ? fixture.stations :
+    String(input).endsWith('/metadata') ? { floodDirection: fixture.gates['Dodd Narrows'].floodDirection } : [])
+  await expect(fetchBrowserChsDay(station, new Date('2026-09-01T12:00:00Z'), fetcher))
+    .rejects.toThrow(/unavailable/i)
+})

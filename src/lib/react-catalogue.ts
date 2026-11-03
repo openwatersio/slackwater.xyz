@@ -87,6 +87,28 @@ function metadata(station: Station): SourceStation {
   return item
 }
 
+function currentBin(id: string): Station | undefined {
+  if (!/^[^@]+@\d+$/.test(id)) return
+  const parent = byId.get(`current:${id.split('@')[0]}`)
+  const record = db.byId(id)
+  if (
+    parent?.kind !== 'current' || parent.source !== 'bundled' ||
+    record?.id !== id || record.kind !== 'current' || record.license?.commercial_use !== true ||
+    !record.harmonic_constituents?.length || !db.accepted.some((s) => s.id === id)
+  ) return
+  // Keep the published water's identity, but predict with the exact bin's inputs.
+  return {
+    ...parent,
+    id,
+    constituents: record.harmonic_constituents,
+    offset: record.current?.mean_flow ?? 0,
+    floodDirection: record.current?.flood_direction,
+    ebbDirection: record.current?.ebb_direction,
+    reduction: undefined,
+    chs: undefined,
+  }
+}
+
 function validKind(kind: Kind) {
   if (kind !== 'tide' && kind !== 'current') throw new Error('Invalid station kind.')
 }
@@ -94,7 +116,7 @@ function validKind(kind: Kind) {
 export async function getReactStation({ kind, id }: { kind: Kind; id: string }): Promise<SourceStation> {
   validKind(kind)
   if (typeof id !== 'string' || id.length > 200) throw new Error('Invalid station ID.')
-  const station = byId.get(`${kind}:${id}`)
+  const station = byId.get(`${kind}:${id}`) ?? (kind === 'current' ? currentBin(id) : undefined)
   if (!station) throw new Error('Station is not available in the commercial catalogue.')
   return metadata(station)
 }
@@ -102,11 +124,14 @@ export async function getReactStation({ kind, id }: { kind: Kind; id: string }):
 export async function listReactStations({
   kind,
   params,
+  predictionsOnly = false,
 }: {
   kind: Kind
   params: StationsSearchParams
+  predictionsOnly?: boolean
 }): Promise<StationSummary[]> {
   validKind(kind)
+  if (typeof predictionsOnly !== 'boolean') throw new Error('Invalid prediction filter.')
   const { latitude, longitude, maxDistance, bbox } = params
   const positioned = latitude !== undefined || longitude !== undefined
   if (
@@ -140,6 +165,7 @@ export async function listReactStations({
     throw new Error('Invalid bounding box.')
   const rows = stations
     .filter((s) => {
+      if (predictionsOnly && s.source !== 'bundled') return false
       if (s.kind !== kind || (query && !`${s.name} ${s.region ?? ''}`.toLocaleLowerCase().includes(query))) return false
       if (!box) return true
       const [west, south, east, north] = box

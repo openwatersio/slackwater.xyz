@@ -18,7 +18,7 @@ export type SourceStation =
 
 export interface SourceCatalogue {
   station(request: { kind: Kind; id: string }): Promise<SourceStation>
-  list(request: { kind: Kind; params: StationsSearchParams }): Promise<StationSummary[]>
+  list(request: { kind: Kind; params: StationsSearchParams; predictionsOnly?: boolean }): Promise<StationSummary[]>
 }
 
 function windowFor(params: { start?: string; end?: string }) {
@@ -65,6 +65,7 @@ export function createLocalDataSource(
     if (!id && 'latitude' in params) {
       const rows = await catalogue.list({
         kind: 'tide',
+        predictionsOnly: true,
         params: { latitude: params.latitude, longitude: params.longitude, maxResults: 1 },
       })
       id = rows[0]?.id

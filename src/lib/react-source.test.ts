@@ -3,6 +3,7 @@ import { createQueryClient, prefetchTideStation } from '@slackwater/react'
 import { createLocalDataSource } from './react-source'
 import { getReactStation, listReactStations } from './react-catalogue'
 import { loadCatalogue } from './catalogue'
+import { distanceNm } from './nearby'
 import { FEET_PER_METRE } from './format'
 
 const catalogue = { station: getReactStation, list: listReactStations }
@@ -100,4 +101,32 @@ it('rejects noncommercial metadata even when a catalogue returns it', async () =
   const local = createLocalDataSource({ station: async () => denied, list: async () => [denied.metadata] }, 'test:denied')
   await expect(local.getTimeline({ id: item.station.id, ...range })).rejects.toThrow(/commercial/i)
   expect(await local.getStations({})).toEqual([])
+})
+
+it('uses the nearest computable tide for coordinates beside an identity-only CHS port', async () => {
+  const stations = loadCatalogue()
+  const port = stations.find((s) => s.kind === 'tide' && s.source === 'chs')!
+  const expected = stations.filter((s) => s.kind === 'tide' && s.source === 'bundled')
+    .sort((a, b) => distanceNm(a, port) - distanceNm(b, port) || a.id.localeCompare(b.id))[0]
+  const fetch = vi.spyOn(globalThis, 'fetch')
+  const local = source()
+  const params = { latitude: port.latitude, longitude: port.longitude, ...range }
+  const timeline = await local.getTimeline(params)
+  const extremes = await local.getExtremes(params)
+  expect(timeline.station.id).toBe(expected.id)
+  expect(extremes.station.id).toBe(expected.id)
+  expect(timeline.distance).toBeCloseTo(distanceNm(expected, port) * 1.852, 8)
+  expect(timeline.timeline.length).toBeGreaterThan(0)
+  await expect(local.getTimeline({ id: port.id, ...range })).rejects.toThrow(/browser/i)
+  expect(fetch).not.toHaveBeenCalled()
+})
+
+it('predicts an exact current reference bin using its own constituents', async () => {
+  const local = source()
+  const parent = await local.getCurrentStation('noaa/ACT0091')
+  const id = parent.current?.offsets?.reference!
+  const reference = await local.getCurrentTimeline({ id, ...range })
+  const canonical = await local.getCurrentTimeline({ id: 'noaa/EPT0003', ...range })
+  expect(reference.station.id).toBe('noaa/EPT0003@11')
+  expect(reference.timeline.map((p) => p.speed)).not.toEqual(canonical.timeline.map((p) => p.speed))
 })
