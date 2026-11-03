@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { requiresBeta } from '#/lib/copy'
+import { requiresBeta, WEB_ONLY_TIDE_SLUGS } from '#/lib/copy'
 
 /**
  * The apps allowed to open a station link, as `<Apple Team ID>.<bundle id>`.
@@ -76,6 +76,10 @@ const association = {
             { '/': '/currents/arran-rapids', exclude: true, comment: 'Beta-only coverage stays in the browser' },
             { '/': '/currents/arran-rapids/*', exclude: true, comment: 'Beta-only coverage stays in the browser' },
           ] : []),
+          ...WEB_ONLY_TIDE_SLUGS.flatMap((slug) => [
+            { '/': `/tides/${slug}`, exclude: true, comment: 'Not available in every installed app build' },
+            { '/': `/tides/${slug}/*`, exclude: true, comment: 'Not available in every installed app build' },
+          ]),
           { '/': '/tides/*', comment: 'A tide station, with or without an instant' },
           { '/': '/currents/*', comment: 'A current station, with or without an instant' },
         ],

@@ -1,23 +1,23 @@
 {
-  "database": "1.0.0-beta.20261102",
-  "tcd": "slackwater-20261102.tcd",
+  "database": "1.0.1-beta.20261103",
+  "tcd": "slackwater-20261103.tcd",
   "opencpn": "Release_5.14.2",
-  "counted": "2026-11-02",
+  "counted": "2026-11-03",
   "sources": {
-    "slackwater-20261102.tcd": {
-      "url": "https://github.com/openwatersio/slackwater-database/releases/download/v1.0.0-beta.20261102/slackwater-20261102.tcd",
-      "fetched": "2026-11-02"
+    "slackwater-20261103.tcd": {
+      "url": "https://github.com/openwatersio/slackwater-database/releases/download/v1.0.1-beta.20261103/slackwater-20261103.tcd",
+      "fetched": "2026-11-03"
     },
-    "Release_5.14.2-ticon-europe-global.tcd": {
-      "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/ticon-europe-global.tcd",
+    "Release_5.14.2-harmonics-dwf-20210110-free.tcd": {
+      "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/harmonics-dwf-20210110-free.tcd",
       "fetched": "2026-11-02"
     },
     "Release_5.14.2-HARMONICS_NO_US.IDX": {
       "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/HARMONICS_NO_US.IDX",
       "fetched": "2026-11-02"
     },
-    "Release_5.14.2-harmonics-dwf-20210110-free.tcd": {
-      "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/harmonics-dwf-20210110-free.tcd",
+    "Release_5.14.2-ticon-europe-global.tcd": {
+      "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/ticon-europe-global.tcd",
       "fetched": "2026-11-02"
     },
     "noaa-tidepredictions.json": {
@@ -30,11 +30,11 @@
     }
   },
   "quality": {
-    "evaluated": 8658,
-    "rejected": 2277,
+    "evaluated": 8728,
+    "rejected": 2358,
     "reasons": {
-      "duplicate": 1100,
-      "superseded": 772,
+      "duplicate": 1080,
+      "superseded": 873,
       "datum": 267,
       "range": 103,
       "timing": 17,
@@ -43,7 +43,7 @@
     }
   },
   "slackwater": {
-    "tide": 6235,
+    "tide": 6224,
     "current": 2465
   },
   "opencpn514": {
@@ -119,13 +119,13 @@
     "bayOfFundy": 18
   },
   "extraTides": {
-    "total": 2369,
+    "total": 2371,
     "usFile": 75,
-    "worldFile": 2110,
+    "worldFile": 2112,
     "ticonFile": 184,
     "worldByCountry": {
       "Can": 995,
-      "Jpn": 604,
+      "Jpn": 606,
       "Aus": 281,
       "PNGu": 34,
       "": 32,

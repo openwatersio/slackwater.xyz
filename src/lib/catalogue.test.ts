@@ -13,19 +13,19 @@ describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
   it('yields every predictable station the database routes and the quality pass accepts, plus the CHS gates and ports', () => {
-    expect(all.length).toBe(9539)
-    expect(all.filter((s) => s.kind === 'tide').length).toBe(6959)
+    expect(all.length).toBe(9528)
+    expect(all.filter((s) => s.kind === 'tide').length).toBe(6948)
     expect(all.filter((s) => s.kind === 'current').length).toBe(2580)
   })
 
 
   it('carries the seasonal ratio for the stations the database labels, and nothing else', () => {
     // The verdict is the database's (`quality.seasonal_dominant`) and the number
-    // is the site's, used only to pick how loudly a page speaks. 414 of the
-    // 6,959 tide pages carry it and no current page does — currents are
+    // is the site's, used only to pick how loudly a page speaks. 415 of the
+    // 6,948 tide pages carry it and no current page does — currents are
     // measured in knots against no datum, so the question does not arise.
     const seasonal = all.filter((s) => s.source === 'bundled' && s.seasonal !== undefined)
-    expect(seasonal).toHaveLength(414)
+    expect(seasonal).toHaveLength(415)
     expect(seasonal.every((s) => s.kind === 'tide')).toBe(true)
     expect(seasonal.every((s) => s.source === 'bundled' && s.seasonal! > 1)).toBe(true)
 
@@ -90,7 +90,7 @@ describe('loadCatalogue', () => {
   })
 
   it('publishes nothing a provider forbids commercial use of', () => {
-    // 674 routed tide stations are TICON-4 rows whose GESLA provider restricts
+    // Some routed tide stations are TICON-4 rows whose GESLA provider restricts
     // commercial use. Slackwater has a paid tier and this site promotes the
     // app, so one of those on a page is a licence breach rather than a
     // rendering bug — and the filter reads `commercial_use` as truthiness, so
@@ -109,16 +109,25 @@ describe('loadCatalogue', () => {
     }
     const andenes = tides.find((s) => s.id === 'kartverket/ANX')
     expect(andenes?.source === 'bundled' && andenes.attribution).toContain('Kartverket')
+    const jma = tides.filter((s) => s.id.startsWith('jma/'))
+    expect(jma.length).toBe(db.accepted.filter((s) => s.kind === 'tide' && s.id.startsWith('jma/')).length)
+    expect(jma.length).toBeGreaterThan(0)
+    for (const station of jma) {
+      if (station.source !== 'bundled') continue
+      expect(station.attribution, station.id).toContain('Japan Meteorological Agency')
+      expect(station.attribution, station.id).toContain('Edited by Open Waters')
+      expect(station.attribution, station.id).toContain('public_data_license_v1.0')
+    }
   })
 
   it('withholds every route the quality pass rejects, and keeps its address answerable', () => {
-    // 830 commercially licensed routes fail `qualityFilter`, some of them
+    // 822 commercially licensed routes fail `qualityFilter`, some of them
     // pages the site published before it read the whole corpus. A withheld
     // station must not be in the catalogue and must not 404 either: both its
     // canonical path and the flat `/tides/<slug>/` the share sheet mints are
     // keys here, so `resolvePath` can answer with a 301.
     const withheld = loadWithheld()
-    expect(withheld.size).toBe(830 * 2)
+    expect(withheld.size).toBe(822 * 2)
     const published = new Set(all.map((s) => s.path))
     for (const [address, canonical] of withheld) {
       expect(published.has(address), address).toBe(false)

@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict'
+import { createRequire } from 'node:module'
 import { INDEXNOW_KEY } from '../src/lib/indexnow.ts'
+
+const { version } = createRequire(import.meta.url)('@slackwater/database/package.json')
 
 let worker
 let base = process.argv[2]
@@ -106,6 +109,28 @@ try {
   assert.equal(graph.find((node) => node['@type'] === 'Organization').address.streetAddress, '411 Walnut St #15547')
   assert.ok(graph.find((node) => node['@type'] === 'Organization').description, 'Organization description')
 
+  for (const slug of ['ogasawara', 'miyakeshima']) {
+    for (const instant of ['', '/2026-11-03T09:00+09:00']) {
+      const response = await get(`/og/tides/${slug}${instant}.png`)
+      assert.equal(response.status, 200, `former share image ${slug}${instant}`)
+      assert.ok(response.headers.get('content-type')?.includes('image/png'))
+      assert.ok(!response.headers.get('cache-control')?.includes('immutable'))
+    }
+  }
+  for (const path of ['/tides/jp/sumoto/', '/tides/jp/sumoto/2026-11-03T14:00+09:00']) {
+    const response = await get(path, 'text/html')
+    const html = await response.text()
+    const image = html.match(/<meta property="og:image" content="([^"]*)"/)[1]
+    assert.equal(new URL(image).searchParams.get('v'), version, `image data version on ${path}`)
+    assert.ok(html.includes('Slackwater predicts tides and currents offline, on your phone'), `supported app pitch on ${path}`)
+  }
+  for (const path of ['/tides/jp/miyakejima-tsubota/', '/tides/jp/maizuru-kyoto/', '/tides/jp/maizuru/']) {
+    const response = await get(path, 'text/html')
+    const html = await response.text()
+    assert.equal(html.match(/<meta name="apple-itunes-app" content="([^"]*)"/)[1], '', `unsupported app link on ${path}`)
+    assert.ok(!html.includes('Slackwater predicts tides and currents offline, on your phone'), `unsupported app pitch on ${path}`)
+  }
+
   for (const method of ['GET', 'HEAD']) {
     const agent = await get('/?mode=agent', undefined, method)
     assert.equal(agent.status, 200, `mode=agent ${method}`)
@@ -181,6 +206,14 @@ try {
   for (const path of ['/currents/arran-rapids', '/currents/arran-rapids/*']) {
     const excluded = components.findIndex((rule) => rule['/'] === path && rule.exclude)
     assert.ok(excluded >= 0 && excluded < currentRule, `${path}: both app channels must land on the Beta web page`)
+  }
+  const tideRule = components.findIndex((rule) => rule['/'] === '/tides/*' && !rule.exclude)
+  assert.ok(tideRule >= 0, 'ordinary tide shares still open the app')
+  for (const slug of ['miyakejima-tsubota', 'maizuru-kyoto', 'maizuru']) {
+    for (const path of [`/tides/${slug}`, `/tides/${slug}/*`]) {
+      const excluded = components.findIndex((rule) => rule['/'] === path && rule.exclude)
+      assert.ok(excluded >= 0 && excluded < tideRule, `${path}: unsupported app shares stay on the web`)
+    }
   }
   console.log(`Passed ${checks} Worker endpoint checks at ${base}`)
 

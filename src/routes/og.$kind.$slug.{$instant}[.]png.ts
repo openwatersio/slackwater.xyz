@@ -29,9 +29,8 @@ export const Route = createFileRoute('/og/$kind/$slug/{$instant}.png')({
         return new Response(png, {
           headers: {
             'content-type': 'image/png',
-            // A station at a given instant can never change - immutable is
-            // correct here and would be wrong on the bare route above.
-            'cache-control': 'public, max-age=31536000, immutable',
+            // Revised constants or prediction code can change the same instant.
+            'cache-control': 'public, max-age=3600',
           },
         })
       },

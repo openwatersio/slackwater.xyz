@@ -65,7 +65,7 @@ const toRow = (s: Pick<Station, 'slug' | 'path' | 'name' | 'region'>): StationRo
 /**
  * The same row, headed by jurisdiction where the water does not name itself.
  *
- * A page that spans jurisdictions wants them as headings: Japan's 198 stations
+ * A page that spans jurisdictions wants them as headings: Japan's stations
  * have no other structure, and a US state code still tells a reader something
  * on a country page. A page already titled for one jurisdiction does not —
  * see the subdivision branch below.
@@ -295,9 +295,8 @@ export const resolvePath = createServerFn({ method: 'GET' })
     if (flat) return { page: 'redirect', path: flat.path }
     const now = moved().get(path)
     if (now) return { page: 'redirect', path: now }
-    // A route the quality pass rejects has no page, and 357 of them had one
-    // here, so the address answers with the nearest page above it rather than
-    // a 404.
+    // Previously published routes can fail quality checks in a later release.
+    // Keep their addresses answerable through the nearest place page.
     const gone = withheld().get(path)
     return gone ? { page: 'redirect', path: nearestPlace(trees(kind), kind, gone) } : undefined
   })
@@ -329,7 +328,12 @@ export const stationsHub = createServerFn({ method: 'GET' }).handler(() => {
 
 export const stationBySlug = createServerFn({ method: 'GET' })
   .validator((data: { kind: Kind; slug: string }) => data)
-  .handler(({ data }) => index().bySlug.get(`${data.kind}/${data.slug}`))
+  .handler(({ data }) => {
+    const station = index().bySlug.get(`${data.kind}/${data.slug}`)
+    if (station) return station
+    const destination = moved().get(`${kindRoot(data.kind)}${data.slug}/`)
+    return destination ? index().byPath.get(destination) : undefined
+  })
 
 export const reactStation = createServerFn({ method: 'GET' })
   .validator((data: { kind: Kind; id: string }) => data)

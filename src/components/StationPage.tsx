@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DayStrip, type Fetched } from './DayStrip'
 import { NearbyMap } from './NearbyMap'
-import { DATUM_NOTE, datumLine, refinedRowsNote, requiresBeta, seasonalNote, stationHeading } from '#/lib/copy'
+import { DATUM_NOTE, datumLine, refinedRowsNote, requiresBeta, seasonalNote, stationHeading, WEB_ONLY_TIDE_SLUGS } from '#/lib/copy'
 import { compass16, dayLabel, dayStart, height, hhmm, shiftLocalDay } from '#/lib/format'
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
 import { APP_STORE, ORIGIN, REQUIREMENT, TESTFLIGHT_BETA } from '#/lib/links'
@@ -717,15 +717,9 @@ function Nearby({ station, rows }: { station: Station; rows: NearbyRow[] }) {
   )
 }
 
-/**
- * The reason these pages exist: a shared link reaches someone without the app,
- * so every station page has to offer the app. Kept honest against what ships —
- * tides are worldwide, currents are not (see the corpus split in the catalogue).
- *
- * The home link is not decoration: without it all 5,624 station pages are
- * orphans with no internal link back into the site.
- */
+/** Every station share needs a link home, including web-only gauges. */
 function Cta({ station }: { station: Station }) {
+  const webOnly = station.kind === 'tide' && WEB_ONLY_TIDE_SLUGS.includes(station.slug)
   const beta = requiresBeta(station.id)
   // A computed page that carries a CHS identity pitches as a CHS page does:
   // nothing published says how the app answers for a Canadian station (#44),
@@ -737,14 +731,14 @@ function Cta({ station }: { station: Station }) {
       : 'Slackwater predicts tides and currents offline, on your phone — tides worldwide, currents across the US and Canada.'
   return (
     <section className="mt-14 border-t border-sw-steel/15 pt-8 print:hidden">
-      <p className="text-sw-steel">{pitch}</p>
+      {!webOnly && <p className="text-sw-steel">{pitch}</p>}
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
-        <a
+        {!webOnly && <a
           href={beta ? TESTFLIGHT_BETA : APP_STORE}
           className="rounded-md bg-sw-leaf px-5 py-3 font-medium text-sw-navy-deep transition hover:bg-sw-leaf/90"
         >
           {beta ? 'Join the TestFlight beta' : 'Download on the App Store'}
-        </a>
+        </a>}
         <a
           href="/"
           className="whitespace-nowrap text-sw-steel underline underline-offset-4 transition hover:text-sw-paper"
@@ -752,7 +746,7 @@ function Cta({ station }: { station: Station }) {
           Slackwater
         </a>
       </div>
-      <p className="mt-3 text-sm text-sw-steel">{REQUIREMENT}</p>
+      {!webOnly && <p className="mt-3 text-sm text-sw-steel">{REQUIREMENT}</p>}
     </section>
   )
 }
