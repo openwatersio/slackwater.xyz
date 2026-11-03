@@ -101,6 +101,8 @@ mkdirSync(PRERENDER_ASSETS, { recursive: true })
 // build script rather than inline config, so it stays put across nitro betas.
 export default defineConfig({
   resolve: { tsconfigPaths: true },
+  // The React package imports CSS, which native Node cannot load during SSR.
+  ssr: { noExternal: ['@slackwater/react'] },
   // One clock for the whole build, so the server and client bundles agree on it
   // and every prerendered page is dated the day it was built. Freshness comes
   // from the nightly rebuild in .github/workflows/deploy.yml.
@@ -141,6 +143,7 @@ export default defineConfig({
         // stays: discovery through one chain of pages is a single point of
         // failure for the whole corpus.
         autoStaticPathsDiscovery: true,
+        filter: ({ path }) => !path.startsWith('/preview/react'),
         crawlLinks: true,
         concurrency: 14,
       },

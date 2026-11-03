@@ -1,0 +1,4 @@
+@import "tailwindcss/utilities" source(none);
+@import "@slackwater/react/styles.css";
+@reference "../styles.css";
+@source "../../node_modules/@slackwater/react/dist";

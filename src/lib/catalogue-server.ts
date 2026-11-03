@@ -6,6 +6,7 @@ import { kindRoot, nearestPlace, parentPath, placeTree, type Place } from './pla
 import type { Kind, Station } from './station'
 import { slackGuide, type SlackGuide } from './slack-guide'
 import { SERVER_NOW } from './use-live-now'
+import type { StationsSearchParams } from '@slackwater/react'
 
 /**
  * The only way a route may reach the catalogue.
@@ -329,6 +330,20 @@ export const stationsHub = createServerFn({ method: 'GET' }).handler(() => {
 export const stationBySlug = createServerFn({ method: 'GET' })
   .validator((data: { kind: Kind; slug: string }) => data)
   .handler(({ data }) => index().bySlug.get(`${data.kind}/${data.slug}`))
+
+export const reactStation = createServerFn({ method: 'GET' })
+  .validator((data: { kind: Kind; id: string }) => data)
+  .handler(async ({ data }) => {
+    if (!import.meta.env.DEV) throw new Error('Station preview is only available in development.')
+    return (await import('./react-catalogue')).getReactStation(data)
+  })
+
+export const reactStations = createServerFn({ method: 'GET' })
+  .validator((data: { kind: Kind; params: StationsSearchParams }) => data)
+  .handler(async ({ data }) => {
+    if (!import.meta.env.DEV) throw new Error('Station preview is only available in development.')
+    return (await import('./react-catalogue')).listReactStations(data)
+  })
 
 /**
  * The stations `/learn/slack-water/` reads. Deception Pass is the pass the

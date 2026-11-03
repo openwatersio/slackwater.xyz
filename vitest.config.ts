@@ -50,6 +50,8 @@ export default defineConfig({
     __DATABASE_VERSION__: JSON.stringify(createRequire(import.meta.url)('@slackwater/database/package.json').version),
   },
   test: {
+    // Match Vite SSR's handling of the React package's MapLibre stylesheet.
+    server: { deps: { inline: ['@slackwater/react'] } },
     environment: 'node',
     include: ['src/**/*.test.{ts,tsx}'],
     exclude: [...configDefaults.exclude, ...(BUILT ? [] : NEEDS_BUILD)],

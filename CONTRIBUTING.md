@@ -31,6 +31,12 @@ npm run deploy  # build, then wrangler deploy with nitro's generated config
 | `src/data/` | Bundled harmonic constituents for Deception Pass, the fixture `currents.test.ts` checks `predict.ts` against. |
 | `wrangler.jsonc` | Worker *source* config. Not the deployable one — see the gotchas. |
 
+## Shared station preview
+
+`/preview/react?kind=current&id=noaa%2FPUG1629` is a development-only comparison route. It uses the exact CI preview build of `@slackwater/react` pinned in `package.json`. `react-source.ts` supplies the shared pages, cards, and map queries with predictions from `predict.ts`; it needs no local API server. `reactStation` and `reactStations` in `catalogue-server.ts` load their implementation dynamically, keeping catalogue scans and database decoding out of client bundles and Worker startup. Lookups and listings use the site's commercially licensed, quality-filtered catalogue and retain source credits.
+
+CHS predictions stay in a separate browser-only day panel with cancellation. `chs-day.ts` delegates to the existing IWLS fetchers, and the panel uses the site's day charts. The local data source refuses CHS prediction requests, including during server prefetch. A single published day cannot supply a multi-week summary, and the shared scrolling scrubber requires a multi-day window. Production station routes use their existing components; the development preview, package stylesheet, and MapLibre code are excluded from production client bundles. The preview route is excluded from prerender discovery and returns 404 in production; its server functions reject production requests.
+
 ## Testing
 
 CI runs these commands in order:
