@@ -4,7 +4,7 @@ import { notFound, redirect } from '@tanstack/react-router'
 import { StationIndex } from '#/components/StationIndex'
 import { StationPage } from '#/components/StationPage'
 import { resolvePath, type PlaceIndex, type Resolved } from '#/lib/catalogue-server'
-import { ogImageAlt, pageDescription, pageTitle, requiresBeta } from '#/lib/copy'
+import { ogImageAlt, pageDescription, pageTitle, requiresBeta, WEB_ONLY_TIDE_SLUGS } from '#/lib/copy'
 import { faqJsonLd, stationJsonLd } from '#/lib/json-ld'
 import { APP_STORE_ID } from '#/lib/links'
 import { placeHead } from '#/lib/place-head'
@@ -71,11 +71,11 @@ export function directoryHead(kind: Kind, page: Page | undefined) {
       { property: 'og:title', content: title },
       { property: 'og:description', content: description },
       { property: 'og:url', content: page.instant ? canonical + page.instant.raw : canonical },
-      { property: 'og:image', content: page.instant ? `${card}/${page.instant.raw}.png` : `${card}.png` },
+      { property: 'og:image', content: `${page.instant ? `${card}/${page.instant.raw}.png` : `${card}.png`}?v=${__DATABASE_VERSION__}` },
       // Replaces the root's alt, which describes the app screenshot, not this card.
       { property: 'og:image:alt', content: ogImageAlt(s) },
       // An empty override suppresses the inherited App Store banner on Beta-only pages.
-      { name: 'apple-itunes-app', content: requiresBeta(s.id) ? '' : `app-id=${APP_STORE_ID}, app-argument=${opens}` },
+      { name: 'apple-itunes-app', content: requiresBeta(s.id) || (s.kind === 'tide' && WEB_ONLY_TIDE_SLUGS.includes(s.slug)) ? '' : `app-id=${APP_STORE_ID}, app-argument=${opens}` },
     ],
     // Structured data lives on the canonical page only: an instant page
     // canonicalises there, so a second copy would describe the same place twice.

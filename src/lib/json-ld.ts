@@ -172,8 +172,8 @@ export function collectionJsonLd(name: string, url: string, links: { href: strin
 /**
  * The OpenCPN download: the station database as a TCD file. `dateModified` is
  * the release date the page prints as "Updated". The license points at the
- * database's own section because one URL cannot say it: most stations are
- * CC BY 4.0 and a few are CC BY-NC 4.0.
+ * database's own section because the sources carry different licenses and
+ * attribution requirements.
  */
 export function datasetJsonLd(d: {
   name: string

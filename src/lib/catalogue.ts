@@ -31,13 +31,10 @@ export function isBuildable(id: string): boolean {
  * `db.accepted` is the database's own accepted list — `db.all.filter(qualityFilter)` —
  * so the rule this site publishes by is the database's rule rather than a copy
  * of it that drifts. A station carrying no verdict counts as accepted, which is
- * what the database itself does, and 2,561 provider rows are in that state.
+ * what the database itself does.
  *
- * The rule is what makes the whole corpus publishable: it rejects 1,851 of the
- * 7,694 commercially licensed routes, and 973 of those are a second provider's
- * row for a gauge the site already publishes (slackwater-database#191). Without
- * it, adopting the corpus would double the duplicate pages rather than remove
- * them.
+ * The rule excludes weaker provider records for gauges the site already
+ * publishes, so adopting the corpus does not double its station pages.
  */
 const ACCEPTED = new Set(db.accepted.map((s) => s.id))
 
@@ -50,7 +47,7 @@ if (!ACCEPTED.size) throw new Error('catalogue: the station database ships no qu
  * A provider row this site can publish.
  *
  * Commercially licensed, because Slackwater has a paid tier and the site
- * promotes the app: the 674 TICON-4 rows whose GESLA provider forbids
+ * promotes the app: TICON-4 rows whose GESLA provider forbids
  * commercial use would be a licence breach on a page, not a rendering bug.
  * Read as truthiness rather than `!== false`, so a release that drops the field
  * withholds the corpus instead of quietly publishing them.
@@ -133,7 +130,7 @@ function waterContext(r: Record<string, unknown>): string | undefined {
  * Columbia", "ME".
  *
  * Kept apart from the water because the two make good headings on different
- * pages. Grouping Japan's 198 stations by prefecture is the only structure
+ * pages. Grouping Japan's stations by prefecture is the only structure
  * that page has; grouping British Columbia's by "British Columbia" says
  * nothing, and the provider rows near the border say "Alaska" on stations the
  * gazetteer places in BC — a heading that reads as a contradiction on a page
@@ -381,11 +378,8 @@ export function loadCatalogue(): Station[] {
  * Every address a route the quality pass rejects can be asked for, mapped to
  * that route's canonical path.
  *
- * 1,851 commercially licensed routes fail the quality rule, and 357 of them
- * were pages here before the site read the whole corpus, so their addresses
- * have to answer rather than 404. Keeping the set derived from the database
- * instead of a list of the 357 is what makes it cover the other 1,494 too, and
- * every station a later release rejects.
+ * A later quality verdict can reject a previously published station. Derive
+ * its addresses from the database so existing links keep answering.
  *
  * Both addresses a reader can arrive on are keys: the canonical path under its
  * country and subdivision, and the flat `/tides/<slug>/` the app's share sheet

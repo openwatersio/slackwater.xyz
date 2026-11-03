@@ -12,7 +12,7 @@ NOAA's tide and current stations are refreshed every month. As of November 2, 20
 
 ### Quality Controlled
 
-For this release, Slackwater evaluated 8,658 candidate tide stations and left out 2,277. 1,100 duplicated a better station nearby, and 772 relayed a gauge whose operator publishes its own record. The rest failed a check: 267 had tidal levels in the wrong order, 103 had a tidal range under 2 cm, 17 ran on a clock offset from their neighbors, 12 had constituents that aren't physically plausible, and 6 had a yearly term out of line with nearby gauges. [How stations are evaluated](https://github.com/openwatersio/slackwater-database/blob/v1.0.0-beta.20261102/docs/quality-evaluation.md) explains each check, and every station's file in [`stations/`](https://github.com/openwatersio/slackwater-database/tree/v1.0.0-beta.20261102/stations) records its result.
+For this release, Slackwater evaluated 8,728 candidate tide stations and left out 2,358. 1,080 duplicated a better station nearby, and 873 relayed a gauge whose operator publishes its own record. The rest failed a check: 267 had tidal levels in the wrong order, 103 had a tidal range under 2 cm, 17 ran on a clock offset from their neighbors, 12 had constituents that aren't physically plausible, and 6 had a yearly term out of line with nearby gauges. [How stations are evaluated](https://github.com/openwatersio/slackwater-database/blob/v1.0.1-beta.20261103/docs/quality-evaluation.md) explains each check, and every station's file in [`stations/`](https://github.com/openwatersio/slackwater-database/tree/v1.0.1-beta.20261103/stations) records its result.
 
 ### Chart datum
 
@@ -24,15 +24,15 @@ Counts are unique station locations to the nearest 0.01°, so a NOAA current sta
 
 |                  | Slackwater                               | OpenCPN 5.14                                         | OpenCPN 5.12 and earlier                      |
 | ---------------- | ---------------------------------------- | ---------------------------------------------------- | --------------------------------------------- |
-| Tide stations    | 6,235                                    | 7,160                                                | 5,771                                         |
+| Tide stations    | 6,224                                    | 7,160                                                | 5,771                                         |
 | Current stations | 2,465                                    | 2,526                                                | 2,526                                         |
 | US data          | NOAA<br><small>refreshed monthly</small> | NOAA via XTide<br><small>January 2021</small>        | NOAA via XTide<br><small>January 2021</small> |
 | Rest of world    | TICON-4 and national agencies            | TICON-4 (March 2026) and harmonics from 1995 to 2003 | Harmonics compiled 1995 to 2003               |
 | Chart datum      | Each country's own                       | MLLW in the US, LAT for TICON stations               | MLLW in the US, varies elsewhere              |
 
-<small>Counted November 2, 2026, from `slackwater-20261102.tcd`, the files in OpenCPN 5.14.2's `tcdata` folder, and NOAA's lists of the stations it publishes predictions for.</small>
+<small>Counted November 3, 2026, from `slackwater-20261103.tcd`, the files in OpenCPN 5.14.2's `tcdata` folder, and NOAA's lists of the stations it publishes predictions for.</small>
 
-OpenCPN 5.14 has 2,369 tide locations with no Slackwater tide station within 1 km, and 2,110 of them come from its 1995 to 2003 world file: 995 in Canada, 604 in Japan and 331 around Australia and Papua New Guinea. They carry no license information, and the newest of their sources is decades old. On currents the two are close: Slackwater carries 2,468 of the 2,528 NOAA current stations in OpenCPN's US file, and NOAA no longer publishes 52 of the other 60.
+OpenCPN 5.14 has 2,371 tide locations with no Slackwater tide station within 1 km, and 2,112 of them come from its 1995 to 2003 world file: 995 in Canada, 606 in Japan and 331 around Australia and Papua New Guinea. They carry no license information, and the newest of their sources is decades old. On currents the two are close: Slackwater carries 2,468 of the 2,528 NOAA current stations in OpenCPN's US file, and NOAA no longer publishes 52 of the other 60.
 
 ### What Slackwater lacks
 
@@ -42,11 +42,11 @@ The real gap is Canadian currents. OpenCPN's `HARMONICS_NO_US.IDX` includes 72 c
 
 ### Is it free?
 
-Yes. Source licenses vary. Most station data uses [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); Japan Coast Guard data uses [Government Standard Terms of Use 2.0](https://www1.kaiho.mlit.go.jp/copyright.html). Credit each source and identify modifications. Edited Japan Coast Guard data must not be presented as government-produced. Some source records use CC BY-NC 4.0 and do not permit commercial use. Follow each source's attribution and conditions in the [database's license section](https://github.com/openwatersio/slackwater-database#license).
+Yes. Source licenses vary. Most station data uses [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); Japan Meteorological Agency data uses the CC BY 4.0 option permitted by [Public Data License 1.0](https://www.digital.go.jp/resources/open_data/public_data_license_v1.0), and Japan Coast Guard data uses [Government Standard Terms of Use 2.0](https://www1.kaiho.mlit.go.jp/copyright.html). Credit each source and identify modifications. Edited Japanese data must not be presented as government-produced. Some source records use CC BY-NC 4.0 and do not permit commercial use. Follow each source's attribution and conditions in the [database's license section](https://github.com/openwatersio/slackwater-database#license).
 
 ### Where does the data come from?
 
-US tides and currents come from [NOAA](https://tidesandcurrents.noaa.gov). Tides elsewhere come from TICON-4, built from the GESLA-4 archive of tide gauge records, and from LINZ in New Zealand, Kartverket in Norway, DMI in Denmark, Greenland and the Faroes, and the Japan Coast Guard. The [database's sources](https://github.com/openwatersio/slackwater-database#sources) list them in full.
+US tides and currents come from [NOAA](https://tidesandcurrents.noaa.gov). Tides elsewhere come from TICON-4, built from the GESLA-4 archive of tide gauge records, and from LINZ in New Zealand, Kartverket in Norway, DMI in Denmark, Greenland and the Faroes, the Japan Coast Guard, and the Japan Meteorological Agency. The [database's sources](https://github.com/openwatersio/slackwater-database#sources) list them in full.
 
 ### Why remove OpenCPN's other `.tcd` files?
 

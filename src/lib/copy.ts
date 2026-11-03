@@ -3,6 +3,10 @@ import type { BundledStation, Station } from './station'
 // shortcut: Arran coverage is Beta-only; check App Store availability before removing this gate.
 export const requiresBeta = (stationId: string) => stationId === 'chs-arran-rapids'
 
+// shortcut: The JMA renames need an App Store build with November 3 data.
+// Maizuru's Coast Guard gauge stays on the web while the app retires it.
+export const WEB_ONLY_TIDE_SLUGS = ['miyakejima-tsubota', 'maizuru-kyoto', 'maizuru']
+
 /**
  * Where this station's numbers come from, as a clause with no full stop.
  *
