@@ -222,10 +222,9 @@ export async function fetchGateCurrent(
   const directions: IwlsPoint[] = await get(series('wcdp1', true))
   const raw: IwlsEvent[] = await get(series('wcp1-events', false))
 
-  return {
-    samples: signedSamples(speeds, directions, floodDirection),
-    events: gateEvents(raw),
-  }
+  const samples = signedSamples(speeds, directions, floodDirection)
+  if (!samples.length) throw new Error('CHS predictions are unavailable for this day.')
+  return { samples, events: gateEvents(raw) }
 }
 
 /**

@@ -326,3 +326,18 @@ describe('fetchPortTides', () => {
     ).rejects.toThrow(/no Canadian Hydrographic Service tide station/i)
   })
 })
+
+it.each(['empty', 'unmatched'])('rejects a CHS current day with %s samples before any chart renders', async (scenario) => {
+  const fetcher: typeof fetch = async (input) => {
+    const url = String(input)
+    const body = url.includes('/stations?') ? fixture.stations
+      : url.endsWith('/metadata') ? { floodDirection: DODD.floodDirection }
+      : url.includes('wcp1-events') ? DODD['wcp1-events']
+      : url.includes('wcdp1') ? DODD.wcdp1.map((p) => scenario === 'unmatched'
+        ? { ...p, eventDate: new Date(+new Date(p.eventDate) + 60_000).toISOString() } : p)
+      : scenario === 'empty' ? [] : DODD.wcsp1
+    return Response.json(body)
+  }
+  await expect(fetchGateCurrent({ latitude: 49.13546639419797, longitude: -123.81735084108287 },
+    new Date('2026-09-01T00:00:00Z'), 24, fetcher)).rejects.toThrow(/unavailable/i)
+})
