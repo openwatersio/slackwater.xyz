@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { SiteFooter } from './SiteFooter'
 import { APP_STORE_REVIEW } from '../lib/links'
+import { COMPARE_PAGES } from '../lib/compare'
 
 describe('shared site footer', () => {
   const html = renderToStaticMarkup(<SiteFooter />)
@@ -11,7 +12,8 @@ describe('shared site footer', () => {
     const APP_SOURCE = 'https://github.com/openwatersio/slackwater-ios'
     const groups = {
       Explore: ['/stations/', '/learn/tides/', '/learn/slack-water/'],
-      'The app': ['/pricing/', '/compare/best-tide-and-current-apps-iphone/', '/about/'],
+      'The app': ['/pricing/', '/about/'],
+      Compare: ['/compare/slackwater-vs-tide-alert/', '/compare/best-tide-and-current-apps-iphone/'],
       Help: ['/support/', '/contact/', '/privacy/'],
       'Tools &amp; code': ['/opencpn/', APP_SOURCE, 'https://openwaters.io/tides/slackwater/'],
     }
@@ -23,6 +25,13 @@ describe('shared site footer', () => {
     expect(footer).toContain('aria-label="Footer"')
     expect(footer).toContain('Not for navigation.')
     expect(footer).toContain('href="https://openwaters.io"')
+  })
+
+  it('links only to comparison pages that exist', () => {
+    const compare = [...html.matchAll(/<section[ >][\s\S]*?<\/section>/g)].find(([m]) => m.includes('>Compare</h2>'))![0]
+    const hrefs = [...compare.matchAll(/href="([^"]+)"/g)].map(([, href]) => href)
+    expect(hrefs.length).toBeGreaterThan(1)
+    for (const href of hrefs) expect(COMPARE_PAGES, href).toHaveProperty([href])
   })
 
   it('asks for a rating and points to the other ways to help', () => {

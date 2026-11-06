@@ -1,6 +1,7 @@
 import { APP_STORE_REVIEW } from '../lib/links'
 
 const SOURCE = 'https://github.com/openwatersio/slackwater-ios'
+const COMPARE_ALL = '/compare/best-tide-and-current-apps-iphone/'
 
 export function SiteFooter() {
   return (
@@ -10,7 +11,7 @@ export function SiteFooter() {
           Predictions are not observations — conditions vary with weather and river flow.{' '}
           <strong className="font-semibold text-sw-foam">Not for navigation.</strong>
         </p>
-        <nav aria-label="Footer" className="mt-8 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4 sm:gap-x-8 [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center [&_a]:py-2 [&_a]:text-sw-foam [&_a]:underline [&_a]:decoration-sw-steel/50 [&_a]:underline-offset-4 [&_a:hover]:text-sw-paper [&_a:focus-visible]:outline-2 [&_a:focus-visible]:outline-offset-4 [&_a:focus-visible]:outline-sw-leaf">
+        <nav aria-label="Footer" className="mt-8 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 sm:gap-x-8 lg:grid-cols-5 [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center [&_a]:py-2 [&_a]:text-sw-foam [&_a]:underline [&_a]:decoration-sw-steel/50 [&_a]:underline-offset-4 [&_a:hover]:text-sw-paper [&_a:focus-visible]:outline-2 [&_a:focus-visible]:outline-offset-4 [&_a:focus-visible]:outline-sw-leaf">
           {[
             {
               title: 'Explore',
@@ -24,11 +25,22 @@ export function SiteFooter() {
               title: 'The app',
               links: [
                 ['Pricing', '/pricing/'],
-                ['Compare apps', '/compare/best-tide-and-current-apps-iphone/'],
                 ['For boaters', '/boating/'],
                 ['For tide pools', '/tide-pools/'],
                 ['For sea kayakers', '/kayak/'],
                 ['About Slackwater', '/about/'],
+              ],
+            },
+            {
+              // The apps people search for by name; the roundup links every comparison.
+              title: 'Compare',
+              links: [
+                ['vs Tide Alert (NOAA)', '/compare/slackwater-vs-tide-alert/'],
+                ['vs AyeTides', '/compare/slackwater-vs-ayetides/'],
+                ['vs Tides Near Me', '/alternatives/tides-near-me/'],
+                ['vs Tide Guide', '/alternatives/tide-guide/'],
+                ['vs Actual Currents', '/compare/slackwater-vs-actual-currents/'],
+                ['View all comparisons →', COMPARE_ALL],
               ],
             },
             {
