@@ -172,16 +172,29 @@ try {
     assert.equal(response.status, 200, url)
     await response.body?.cancel()
   }
+  const stationLocs = new Set()
   for (const name of ['sitemap.xml', 'sitemap-static.xml', 'sitemap-tides.xml', 'sitemap-currents.xml']) {
     const response = await get(`/${name}`)
     assert.equal(response.status, 200, name)
     assert.ok(response.headers.get('content-type')?.includes('xml'), name)
     const xml = await response.text()
+    if (name === 'sitemap-tides.xml' || name === 'sitemap-currents.xml') {
+      for (const [, path] of xml.matchAll(/<loc>https:\/\/slackwater\.xyz([^<]+)<\/loc>/g)) stationLocs.add(path)
+    }
     assert.match(xml, /^<\?xml version="1.0" encoding="UTF-8"\?>/)
     assert.ok(xml.includes('xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'))
     assert.equal([...xml.matchAll(/<loc>/g)].length, [...xml.matchAll(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/g)].length)
     assert.ok(Buffer.byteLength(xml) < 50 * 1024 * 1024)
   }
+  const index = await get('/stations.json')
+  assert.equal(index.status, 200, 'stations.json')
+  assert.ok(index.headers.get('content-type')?.includes('json'), 'stations.json')
+  const { origin, license, attributions, stations } = await index.json()
+  assert.equal(origin, 'https://slackwater.xyz')
+  assert.ok(license, 'stations.json names its licence')
+  // The served index and the served sitemaps list the same pages, so a stale file cannot pass.
+  assert.deepEqual(new Set(stations.map((s) => s.path)), stationLocs, 'stations.json lists the sitemaps\' station pages')
+  for (const s of stations) assert.ok(attributions[s.attribution]?.trim(), `stations.json: ${s.path} carries its attribution`)
   const key = await get(`/${INDEXNOW_KEY}.txt`)
   assert.equal(key.status, 200, 'IndexNow key file')
   assert.equal((await key.text()).trim(), INDEXNOW_KEY, 'IndexNow key file')

@@ -206,6 +206,15 @@ function record(id: string): Record<string, unknown> | undefined {
   return db.byId(id) as Record<string, unknown> | undefined
 }
 
+/**
+ * The notice a station's licence asks anyone redistributing it to display,
+ * verbatim from the database, for any station kind. `Station.attribution`
+ * carries it for tides only, because only a tide page prints it.
+ */
+export function stationAttribution(id: string): string {
+  return String(record(id)?.attribution ?? '')
+}
+
 function currentReduction(r: Record<string, unknown>): CurrentReduction | undefined {
   if (((r.harmonic_constituents ?? []) as unknown[]).length) return undefined
   const offsets = (r.current as { offsets?: Record<string, unknown> } | undefined)?.offsets

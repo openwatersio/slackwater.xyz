@@ -70,7 +70,7 @@ export function stationsMarkdown({ tide, current }: { tide: HubKind; current: Hu
     ].join('\n')
   return `# Stations
 
-Every station Slackwater predicts, worldwide for tides and across the US and Canada for currents. Each country page lists its states, provinces and stations. Station pages are HTML; follow these links rather than guessing a station's URL.
+Every station Slackwater predicts, worldwide for tides and across the US and Canada for currents. Each country page lists its states, provinces and stations. Station pages are HTML; follow these links, or find the pages nearest a position in [the station index](https://slackwater.xyz/stations.json), rather than guessing a station's URL.
 
 ${kind('Tide stations', `${tide.count.toLocaleString()} worldwide.`, tide, 'All countries')}
 

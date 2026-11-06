@@ -51,13 +51,14 @@ export const AGENT_VIEW = {
   limitations: [
     'Predictions are computed from harmonic constituents and are not observations; weather and river flow change real conditions. Not for navigation.',
     'Canadian Hydrographic Service predictions load in the browser from DFO and are absent from raw HTML and Markdown.',
-    'Station pages are HTML only. Find a station through /stations/ rather than guessing its URL.',
+    'Station pages are HTML only. Find a station through /stations/ or /stations.json rather than guessing its URL.',
     'There is no search, booking or account API.',
   ],
   endpoints: [
     { method: 'GET', path: '/llms.txt', type: 'text/plain', description: 'Guidance for agents: when to use Slackwater and which page answers what.' },
     { method: 'GET', path: '/sitemap.xml', type: 'application/xml', description: 'Sitemap index of every indexable page.' },
     { method: 'GET', path: '/stations/', type: 'text/html', description: 'Station directory by country.' },
+    { method: 'GET', path: '/stations.json', type: 'application/json', description: "Every station page's kind, path, name, latitude and longitude, with the data's licence and each station's attribution, for finding the stations near a place." },
     { method: 'GET', path: '/tides/{country}/{subdivision}/', type: 'text/html', description: 'Tide stations in a state or province, for example /tides/us/wa/. Some countries have no subdivision level.' },
     { method: 'GET', path: '/tides/{country}/{subdivision}/{station}/', type: 'text/html', description: "A tide station's chart and 7-day table of highs and lows, for example /tides/us/wa/seattle/." },
     { method: 'GET', path: '/currents/{country}/{subdivision}/{station}/', type: 'text/html', description: "A current station's slack and maximum flood and ebb times, for example /currents/us/wa/deception-pass-narrows/." },

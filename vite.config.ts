@@ -7,10 +7,11 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
-import { loadCatalogue } from './src/lib/catalogue'
+import { loadCatalogue, stationAttribution } from './src/lib/catalogue'
 import { kindRoot, placeTree } from './src/lib/places'
 import { buildSitemaps, STATIC_PATHS } from './src/lib/sitemap'
 import { buildRedirects } from './src/lib/redirects'
+import { buildStationIndex } from './src/lib/station-index'
 import type { Kind } from './src/lib/station'
 
 const BUILD_NOW = new Date().toISOString()
@@ -81,6 +82,10 @@ const lastmod = (path: string) => {
 for (const [name, xml] of Object.entries(buildSitemaps(catalogue, [...COMPARE_PATHS, ...PLACE_PATHS], lastmod))) {
   writeFileSync(`./public/${name}`, xml)
 }
+// The same station pages with their positions, so another site (Open Waters
+// AIS's vessel pages) can link a place to the stations near it. Gitignored
+// for the same reason the sitemaps are: every build regenerates it.
+writeFileSync('./public/stations.json', buildStationIndex(catalogue, stationAttribution))
 writeFileSync('./public/_redirects', buildRedirects(catalogue.map((s) => s.path), [...STATIC_PATHS, ...COMPARE_PATHS, ...PLACE_PATHS]))
 
 // The prerender crawl runs against `wrangler dev`, and wrangler dev watches its
