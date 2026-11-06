@@ -362,6 +362,36 @@ function Home() {
         </ul>
       </div>
 
+      <section className="mt-16 border-t border-white/10 pt-8">
+        <Heading>What people are saying</Heading>
+        <div className="mt-6 grid gap-8 md:grid-cols-3">
+          {[
+            {
+              quote: 'Helped me amazingly with my regatta',
+              source: 'Sailingluvr12 · 5-star App Store review',
+              href: 'https://apps.apple.com/ca/app/id6813654837?see-all=reviews',
+            },
+            {
+              quote: 'Kayak in the area frequently and this will definitely replace my current tide and current tools.',
+              source: 'hititwiththerock · r/VictoriaBC',
+              href: 'https://www.reddit.com/r/VictoriaBC/comments/1x98q6r/local_developer_making_a_tide_current_app/',
+            },
+            {
+              quote: 'The movement of the sun and moon as you scroll was simple and elegant.',
+              source: 'GreenPeak · r/VancouverIsland',
+              href: 'https://www.reddit.com/r/VancouverIsland/comments/1xbtghm/local_islander_making_a_tide_current_app/',
+            },
+          ].map(({ quote, source, href }) => (
+            <figure key={href}>
+              <blockquote className="text-lg leading-relaxed text-sw-paper">“{quote}”</blockquote>
+              <figcaption className="mt-3 text-sm text-sw-steel">
+                <a className="underline underline-offset-4 hover:text-sw-paper" href={href}>{source}</a>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
       <section className="mt-24 sm:mt-28">
         <Heading>Where are you headed?</Heading>
         <div className="mt-8 grid gap-6 md:grid-cols-3">
