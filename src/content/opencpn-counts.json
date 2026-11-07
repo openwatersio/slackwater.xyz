@@ -1,12 +1,12 @@
 {
-  "database": "1.0.1-beta.20261103",
-  "tcd": "slackwater-20261103.tcd",
+  "database": "1.0.1-beta.20261107",
+  "tcd": "slackwater-20261107.tcd",
   "opencpn": "Release_5.14.2",
-  "counted": "2026-11-03",
+  "counted": "2026-11-07",
   "sources": {
-    "slackwater-20261103.tcd": {
-      "url": "https://github.com/openwatersio/slackwater-database/releases/download/v1.0.1-beta.20261103/slackwater-20261103.tcd",
-      "fetched": "2026-11-03"
+    "slackwater-20261107.tcd": {
+      "url": "https://github.com/openwatersio/slackwater-database/releases/download/v1.0.1-beta.20261107/slackwater-20261107.tcd",
+      "fetched": "2026-11-07"
     },
     "Release_5.14.2-harmonics-dwf-20210110-free.tcd": {
       "url": "https://raw.githubusercontent.com/OpenCPN/OpenCPN/Release_5.14.2/data/tcdata/harmonics-dwf-20210110-free.tcd",
