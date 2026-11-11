@@ -13,14 +13,14 @@ describe('landing page', () => {
   const Home = Route.options.component!
   const html = renderToStaticMarkup(<Home />)
 
-  it('marks Gaelic languages as upcoming without counting them as available', () => {
-    expect(html).toContain('Available in 14 languages')
-    for (const locale of ['ga', 'gd']) {
-      expect(html).toMatch(new RegExp(`<span lang="${locale}">[^<]+</span><span[^>]*>\\(Coming soon\\)</span>`))
+  it('includes Gaelic languages in the available count and Markdown twin', () => {
+    expect(html).toContain('Available in 16 languages')
+    for (const [locale, name] of [['ga', 'Gaeilge'], ['gd', 'Gàidhlig']]) {
+      expect(html).toContain(`<span lang="${locale}">${name}</span>`)
     }
-    expect(html.match(/\(Coming soon\)/g)).toHaveLength(2)
+    expect(html).not.toContain('Coming soon')
     expect(readFileSync('src/content/home.md', 'utf8')).toContain(
-      'Available in 14 languages. Irish (Gaeilge) and Scottish Gaelic (Gàidhlig) are coming soon.',
+      'Available in 16 languages, including Irish (Gaeilge) and Scottish Gaelic (Gàidhlig).',
     )
   })
 

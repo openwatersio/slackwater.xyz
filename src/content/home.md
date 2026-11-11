@@ -4,7 +4,7 @@ Slackwater is a free, open-source tide and tidal currents app from [Open Waters]
 
 [Download on the App Store](https://apps.apple.com/app/slackwater-tides-current/id6813654837).
 
-Available in 14 languages. Irish (Gaeilge) and Scottish Gaelic (Gàidhlig) are coming soon.
+Available in 16 languages, including Irish (Gaeilge) and Scottish Gaelic (Gàidhlig).
 
 An Android version is in development. Join the [Slackwater Android testers group](https://groups.google.com/g/slackwater-android-testers) with the Google account you use on your phone to get test builds through Google Play as they become available.
 
