@@ -8,7 +8,7 @@ import { ORGANIZATION_DESCRIPTION } from '#/lib/json-ld'
 const CANONICAL = 'https://slackwater.xyz/'
 const SOURCE = 'https://github.com/openwatersio/slackwater-ios'
 const ORGANIZATION = 'https://openwaters.io/#organization'
-const LANGUAGES: readonly [locale: string, flag: string, name: string, comingSoon?: boolean][] = [
+const LANGUAGES = [
   ['en', '🇺🇸🇬🇧', 'English'],
   ['fr-CA', '🇫🇷🇨🇦', 'Français'],
   ['es-ES', '🇪🇸', 'Español'],
@@ -23,8 +23,8 @@ const LANGUAGES: readonly [locale: string, flag: string, name: string, comingSoo
   ['da', '🇩🇰', 'Dansk'],
   ['pt-PT', '🇵🇹', 'Português (Portugal)'],
   ['fi', '🇫🇮', 'Suomi'],
-  ['ga', '🇮🇪', 'Gaeilge', true],
-  ['gd', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Gàidhlig', true],
+  ['ga', '🇮🇪', 'Gaeilge'],
+  ['gd', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Gàidhlig'],
 ] as const
 
 export const Route = createFileRoute('/')({
@@ -346,17 +346,16 @@ function Home() {
       </div>
 
       <div className="mx-auto mt-8 max-w-2xl text-center text-sm">
-        <p className="text-sw-steel">Available in {LANGUAGES.filter(([, , , comingSoon]) => !comingSoon).length} languages</p>
+        <p className="text-sw-steel">Available in {LANGUAGES.length} languages</p>
         <ul
-          aria-label="Available and upcoming iOS app languages"
+          aria-label="Supported iOS app languages"
           role="list"
           className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sw-foam"
         >
-          {LANGUAGES.map(([locale, flag, name, comingSoon]) => (
+          {LANGUAGES.map(([locale, flag, name]) => (
             <li key={locale} className="inline-flex items-center gap-1.5">
               <span aria-hidden="true">{flag}</span>
               <span lang={locale}>{name}</span>
-              {comingSoon && <span className="text-xs text-sw-steel">(Coming soon)</span>}
             </li>
           ))}
         </ul>
