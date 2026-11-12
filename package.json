@@ -18,7 +18,7 @@
     "@cf-wasm/resvg": "0.4.0",
     "@openwaters/almanac": "0.13.0",
     "@slackwater/database": "1.0.1-beta.20261107",
-    "@slackwater/engine": "^1.0.0-beta.7",
+    "@slackwater/engine": "^1.0.0-beta.10",
     "@slackwater/react": "1.0.0-beta.3",
     "@tailwindcss/vite": "^4.3.5",
     "@tanstack/react-router": "^1.170.46",
