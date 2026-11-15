@@ -33,7 +33,9 @@ export function placeHead(kind: Kind, page: PlaceIndex, path: string) {
     : ''
   const description = page.name
     ? `${page.title}: ${kind === 'tide' ? 'tide times and charts' : 'tidal current predictions and slack water times'} for ${stations(page.count)}.${other}`
-    : `Every ${kind === 'tide' ? 'tide' : 'tidal current'} station Slackwater predicts, by country.`
+    : kind === 'tide'
+      ? 'Browse tide tables and tide charts worldwide. Find a station by country to see high and low tide times, tide heights, and 7-day predictions with Slackwater.'
+      : 'Every tidal current station Slackwater predicts, by country.'
   const canonical = ORIGIN + path
   const links = [
     ...page.places.map((p) => ({ href: p.href, name: p.name })),
