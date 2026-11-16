@@ -1,7 +1,8 @@
 import './react-preview.css'
 import { useMemo } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { CurrentStation, SlackwaterProvider, TideStation } from '@slackwater/react'
+import { CurrentStation, SlackwaterProvider, TideStation, type CardStation } from '@slackwater/react'
+import { SLACK_KNOTS } from '#/lib/predict'
 import { setWorkerUrl } from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import { reactStation, reactStations } from '#/lib/catalogue-server'
@@ -35,7 +36,8 @@ export function ReactPreview({ item }: { item: SourceStation }) {
       ),
     [item],
   )
-  const Station = item.kind === 'tide' ? TideStation : CurrentStation
+  const onStationSelect = (station: CardStation) =>
+    void navigate({ to: '/preview/react', search: { kind: station.kind, id: station.id } })
   return (
     <main className="mx-auto max-w-3xl px-4 pb-20 pt-8">
       <nav aria-label="Preview stations" className="mb-6 flex flex-wrap gap-2">
@@ -51,21 +53,24 @@ export function ReactPreview({ item }: { item: SourceStation }) {
           </Link>
         ))}
       </nav>
-      <ChsDay key={item.station.id} station={item.station} />
-      {item.station.source === 'bundled' && (
-        <>
-          {item.station.chs && <h2 className="mb-4 text-lg text-sw-steel">Computed predictions</h2>}
-          <SlackwaterProvider dataSource={source} units="feet">
-            <Station
-              key={`${item.kind}:${item.station.id}`}
-              id={item.station.id}
-              onStationSelect={(station) =>
-                void navigate({ to: '/preview/react', search: { kind: station.kind, id: station.id } })
-              }
-            />
-          </SlackwaterProvider>
-        </>
-      )}
+      <SlackwaterProvider dataSource={source} units="feet">
+        <ChsDay key={item.station.id} station={item.station} />
+        {item.station.source === 'bundled' && (
+          <>
+            {item.station.chs && <h2 className="mb-4 text-lg text-sw-steel">Computed predictions</h2>}
+            {item.kind === 'tide' ? (
+              <TideStation key={`tide:${item.station.id}`} id={item.station.id} onStationSelect={onStationSelect} />
+            ) : (
+              <CurrentStation
+                key={`current:${item.station.id}`}
+                id={item.station.id}
+                threshold={SLACK_KNOTS}
+                onStationSelect={onStationSelect}
+              />
+            )}
+          </>
+        )}
+      </SlackwaterProvider>
     </main>
   )
 }

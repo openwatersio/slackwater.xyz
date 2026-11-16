@@ -9,7 +9,7 @@ import type {
   Units,
 } from '@slackwater/react'
 import { FEET_PER_METRE } from './format'
-import { findEvents, predictSeries, tideExtremes } from './predict'
+import { findEvents, findLulls, predictSeries, tideExtremes } from './predict'
 import type { Kind, Station } from './station'
 
 export type SourceStation =
@@ -143,7 +143,7 @@ export function createLocalDataSource(
       return {
         units: 'knots',
         station: item.metadata,
-        timeline: predictSeries(predictable(item), start, hours)
+        timeline: predictSeries(predictable(item), start, hours, 600, { lulls: true })
           .filter((p) => inWindow(p.time, start, end))
           .map((p) => ({ time: p.time, speed: p.level })),
       }
@@ -155,9 +155,8 @@ export function createLocalDataSource(
       return {
         units: 'knots',
         station: item.metadata,
-        events: findEvents(station, start, hours)
-          .filter((p) => inWindow(p.time, start, end))
-          .map((e) => ({
+        events: [
+          ...findEvents(station, start, hours).map((e) => ({
             time: e.time,
             speed: e.level,
             kind:
@@ -170,6 +169,15 @@ export function createLocalDataSource(
               ? {}
               : { direction: e.kind === 'flood' ? station.floodDirection : station.ebbDirection }),
           })),
+          ...findLulls(station, start, hours).map((e) => ({
+            time: e.time,
+            speed: e.level,
+            kind: e.kind,
+            direction: e.kind === 'minFlood' ? station.floodDirection : station.ebbDirection,
+          })),
+        ]
+          .filter((p) => inWindow(p.time, start, end))
+          .sort((a, b) => a.time.getTime() - b.time.getTime()),
       }
     },
   }

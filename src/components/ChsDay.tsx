@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
-import { CurrentCurve } from './CurrentCurve'
-import { TideCurve } from './TideCurve'
+import { useEffect, useMemo, useState } from 'react'
+import { CurrentScrubber, TideScrubber } from '@slackwater/react'
+import { SLACK_KNOTS } from '#/lib/predict'
 import { useLiveNow } from '#/lib/use-live-now'
 import { fetchBrowserChsDay, hasChsDay } from '#/lib/chs-day'
 import { hhmm, dayLabel } from '#/lib/format'
@@ -13,14 +13,38 @@ export function ChsDay({ station }: { station: Station }) {
   const [error, setError] = useState<string>()
   const [pending, setPending] = useState(false)
   const [cancel, setCancel] = useState<() => void>(() => () => {})
-  const [selected, setSelected] = useState<Date>()
+  const [moveTo, setMoveTo] = useState<{ time: number }>()
   const { now, live } = useLiveNow()
+  const readings = useMemo(() => {
+    if (!day) return
+    if (day.kind === 'tide') {
+      return {
+        kind: day.kind,
+        timeline: day.samples,
+        extremes: day.turns.map((e) => ({ ...e, low: !e.high, label: e.high ? 'High' : 'Low' })),
+      }
+    }
+    return {
+      kind: day.kind,
+      timeline: day.samples.map((p) => ({
+        time: p.time,
+        speed: p.level,
+        magnitude: p.magnitude,
+        direction: p.direction,
+      })),
+      events: day.events.map((e) => ({
+        time: e.time,
+        speed: e.level,
+        kind: e.kind === 'slack' ? 'slack' as const : e.kind === 'flood' ? 'maxFlood' as const : 'maxEbb' as const,
+      })),
+    }
+  }, [day])
 
   useEffect(() => {
     if (!live || !hasDay) return
     const stop = new AbortController()
     setDay(undefined)
-    setSelected(undefined)
+    setMoveTo(undefined)
     setError(undefined)
     setPending(true)
     setCancel(() => () => {
@@ -49,15 +73,13 @@ export function ChsDay({ station }: { station: Station }) {
         <p className="mt-3 text-sw-steel">This derived gate has no CHS station to fetch.</p>
       </section>
     ) : null
-  const curve = day && {
-    station,
-    start: day.start,
-    hours: day.hours,
-    now: selected ?? now,
-    actualNow: now,
-    trackingNow: !selected,
-    onSelect: setSelected,
-    onCommit: setSelected,
+  const scrubber = {
+    bounded: true,
+    timezone: station.timezone,
+    latitude: station.latitude,
+    longitude: station.longitude,
+    now: now.getTime(),
+    moveTo,
   }
   const rows =
     day?.kind === 'tide'
@@ -91,24 +113,11 @@ export function ChsDay({ station }: { station: Station }) {
           </p>
         )}
       </div>
-      {day && curve && (
-        <>
-          {/* The shared scrolling strip needs a multi-day window; the CHS contract supplies one day. */}
-          <div className="sm:hidden">
-            {day.kind === 'tide' ? (
-              <TideCurve {...curve} width={390} samples={day.samples} high={day.high} low={day.low} turns={day.turns} />
-            ) : (
-              <CurrentCurve {...curve} width={390} samples={day.samples} events={day.events} />
-            )}
-          </div>
-          <div className="hidden sm:block">
-            {day.kind === 'tide' ? (
-              <TideCurve {...curve} width={736} samples={day.samples} high={day.high} low={day.low} turns={day.turns} />
-            ) : (
-              <CurrentCurve {...curve} width={736} samples={day.samples} events={day.events} />
-            )}
-          </div>
-        </>
+      {readings?.kind === 'tide' && (
+        <TideScrubber {...scrubber} timeline={readings.timeline} extremes={readings.extremes} units="feet" />
+      )}
+      {readings?.kind === 'current' && (
+        <CurrentScrubber {...scrubber} timeline={readings.timeline} events={readings.events} threshold={SLACK_KNOTS} />
       )}
       {rows && (
         <ol className="mx-5 mt-4 divide-y divide-sw-steel/20">
@@ -116,7 +125,7 @@ export function ChsDay({ station }: { station: Station }) {
             <li key={+e.time}>
               <button
                 className="flex w-full justify-between gap-4 py-3 text-left text-sm text-sw-foam"
-                onClick={() => setSelected(e.time)}
+                onClick={() => setMoveTo({ time: e.time.getTime() })}
               >
                 <span>{hhmm(e.time, station.timezone)}</span>
                 <span>{e.label}</span>

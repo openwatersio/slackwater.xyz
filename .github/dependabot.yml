@@ -10,6 +10,13 @@ updates:
     # site would rather miss it than install it.
     cooldown:
       default-days: 3
+    # The engine and the station database move together by hand: a database
+    # built for another engine predicts some constituents at the wrong phase,
+    # and the database also moves with slackwater-ios. Security alerts for
+    # either still need a manual bump. See CONTRIBUTING's dependency notes.
+    ignore:
+      - dependency-name: '@slackwater/engine'
+      - dependency-name: '@slackwater/database'
     # One PR a week for the routine bumps, not one per package. Nine open PRs is
     # nine lockfiles that each conflict with the last one merged; a single branch
     # resolves once and gets one `npm run build` to prove it.

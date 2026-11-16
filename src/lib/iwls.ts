@@ -129,7 +129,10 @@ export function signedSamples(
     if (d === undefined) continue
     out.push({
       time: new Date(s.eventDate),
-      level: s.value * Math.sign(Math.cos((d - floodDirection) * RAD)),
+      // `+ 0` turns a zero reading's -0 into 0, which number formatting prints as "-0".
+      level: s.value * Math.sign(Math.cos((d - floodDirection) * RAD)) + 0,
+      magnitude: s.value,
+      ...(s.value > 0 ? { direction: ((d % 360) + 360) % 360 } : {}),
     })
   }
   return out
