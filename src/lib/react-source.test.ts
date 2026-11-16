@@ -45,6 +45,20 @@ describe('local React source', () => {
     expect(events.events.find((e) => e.kind === 'maxEbb')?.speed).toBeLessThan(0)
   })
 
+  it('reports lulls as minimum flood or ebb, with their direction, in time order', async () => {
+    const local = source()
+    const { station, events } = await local.getCurrentEvents({
+      id: 'noaa/ACT7291', start: '2026-09-01T00:00:00Z', end: '2026-09-04T00:00:00Z',
+    })
+    const lulls = events.filter((e) => e.kind === 'minFlood' || e.kind === 'minEbb')
+    expect(lulls.length).toBeGreaterThan(0)
+    for (const lull of lulls) {
+      expect(lull.direction).toBe(lull.kind === 'minFlood' ? station.current?.flood_direction : station.current?.ebb_direction)
+      expect(lull.kind === 'minFlood').toBe(lull.speed > 0)
+    }
+    expect(events.map((e) => +e.time)).toEqual(events.map((e) => +e.time).sort((a, b) => a - b))
+  })
+
   it('refuses CHS prediction requests without making a network request', async () => {
     const fetch = vi.spyOn(globalThis, 'fetch')
     const local = source()

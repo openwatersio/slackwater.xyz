@@ -28,6 +28,30 @@ describe('signedSamples', () => {
     expect(ebb).toBeCloseTo(-7.037, 2)
   })
 
+  it('retains published speed and Set while signing the curve, without a Set at zero speed', () => {
+    const speeds = [
+      { eventDate: '2026-09-01T00:00:00Z', value: 7 },
+      { eventDate: '2026-09-01T00:15:00Z', value: 0 },
+    ]
+    const directions = [
+      { eventDate: '2026-09-01T00:00:00Z', value: 155 },
+      { eventDate: '2026-09-01T00:15:00Z', value: 355 },
+    ]
+    expect(signedSamples(speeds, directions, 355)).toEqual([
+      { time: new Date('2026-09-01T00:00:00Z'), level: -7, magnitude: 7, direction: 155 },
+      { time: new Date('2026-09-01T00:15:00Z'), level: 0, magnitude: 0 },
+    ])
+  })
+
+  it('signs a zero reading on the ebb heading as 0, not -0', () => {
+    const [sample] = signedSamples(
+      [{ eventDate: '2026-09-01T00:00:00Z', value: 0 }],
+      [{ eventDate: '2026-09-01T00:00:00Z', value: 155 }],
+      355,
+    )
+    expect(Object.is(sample.level, 0)).toBe(true)
+  })
+
   it('reproduces them at Dent Rapids too, where the axis runs the other way', () => {
     // Dodd floods north (355) and ebbs south (155); Dent floods south-east
     // (140) and ebbs north-north-west (340). A sign rule that happened to work

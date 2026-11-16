@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { predictSeries, findEvents, reduceCurrentEvents, slackWindows, tideExtremes, SLACK_KNOTS } from './predict'
+import { predictSeries, findEvents, findLulls, reduceCurrentEvents, slackWindows, tideExtremes, SLACK_KNOTS } from './predict'
 import type { BundledStation, TideReduction } from './station'
 import { loadCatalogue } from './catalogue'
 
@@ -118,6 +118,89 @@ describe('findEvents', () => {
         expect(Math.abs(nearest.time.getTime() - time.getTime()) / 60_000, id).toBeLessThan(30)
         expect(Math.abs(nearest.level - level), id).toBeLessThan(0.4)
       }
+    }
+  })
+})
+
+describe('findLulls', () => {
+  const start = new Date('2026-09-01T00:00:00Z')
+  const bundled = (id: string) => {
+    const station = loadCatalogue().find((candidate) => candidate.id === id)
+    if (station?.source !== 'bundled') throw new Error(`missing ${id}`)
+    return station
+  }
+
+  it('finds where the ebb weakens without reversing, which findEvents leaves out', () => {
+    const station = bundled('noaa/PUG1502')
+    const lulls = findLulls(station, start, 72)
+    expect(lulls.length).toBeGreaterThan(0)
+    const events = findEvents(station, start, 72)
+    const curve = predictSeries(station, start, 72)
+    for (const lull of lulls) {
+      expect(lull.kind === 'minEbb').toBe(lull.level < 0)
+      expect(events.some((e) => +e.time === +lull.time)).toBe(false)
+      // No slack within an hour: the water keeps running the same way.
+      const near = curve.filter((p) => Math.abs(+p.time - +lull.time) <= 3600_000)
+      expect(near.every((p) => Math.sign(p.level) === Math.sign(lull.level))).toBe(true)
+    }
+  })
+
+  it('moves and scales a subordinate current’s lulls with its flood or ebb offset and ratio', () => {
+    const station = bundled('noaa/ACT7291')
+    const reduction = station.reduction!
+    const own = findLulls(station, start, 72)
+    expect(own.length).toBeGreaterThan(0)
+    const reference = findLulls({ ...station, id: reduction.referenceId, constituents: reduction.referenceConstituents,
+      offset: reduction.referenceOffset, reduction: undefined }, new Date(+start - 86_400_000), 120)
+    for (const lull of own) {
+      const flood = lull.kind === 'minFlood'
+      const offset = (flood ? reduction.floodTimeOffset : reduction.ebbTimeOffset) * 1000
+      const source = reference.find((r) => r.kind === lull.kind && +r.time + offset === +lull.time)
+      expect(source).toBeDefined()
+      expect(lull.level).toBeCloseTo(source!.level * (flood ? reduction.floodSpeedRatio : reduction.ebbSpeedRatio), 10)
+    }
+  })
+
+  it('keeps every lull between knots running the same way, at every bundled current', () => {
+    // A subordinate's lulls move by its flood or ebb offset and its slacks by
+    // its own, so a lull could in principle cross a slack and draw a false
+    // reversal. This checks a month of the whole catalogue for one.
+    const out: string[] = []
+    for (const station of loadCatalogue()) {
+      if (station.kind !== 'current' || station.source !== 'bundled') continue
+      const lulls = findLulls(station, start, 30 * 24)
+      if (!lulls.length) continue
+      const knots: { time: Date; level: number; kind: string }[] = [...findEvents(station, start, 30 * 24), ...lulls]
+        .sort((a, b) => +a.time - +b.time)
+      knots.forEach((knot, i) => {
+        if (knot.kind !== 'minFlood' && knot.kind !== 'minEbb') return
+        const sign = knot.kind === 'minFlood' ? 1 : -1
+        for (const near of [knots[i - 1], knots[i + 1]]) {
+          if (near && (Math.sign(near.level) === -sign || +near.time === +knot.time)) {
+            out.push(`${station.id} ${knot.time.toISOString()} ${knot.kind} beside ${near.kind}`)
+          }
+        }
+      })
+    }
+    expect(out).toEqual([])
+  }, 120_000)
+
+  it('draws a subordinate current down to each lull when asked to, and leaves the station pages’ curve alone', () => {
+    const station = bundled('noaa/ACT7291')
+    const lulls = findLulls(station, start, 72)
+    const curve = predictSeries(station, start, 72, 60, { lulls: true })
+    const plain = predictSeries(station, start, 72, 60)
+    const at = (series: typeof curve, time: number) =>
+      series.reduce((a, b) => (Math.abs(+b.time - time) < Math.abs(+a.time - time) ? b : a)).level
+    for (const lull of lulls) {
+      const t = +lull.time
+      expect(at(curve, t)).toBeCloseTo(lull.level, 2)
+      // Weaker at the lull than half an hour either side, still the same way.
+      for (const side of [t - 1800_000, t + 1800_000]) {
+        expect(Math.abs(at(curve, side))).toBeGreaterThan(Math.abs(lull.level))
+        expect(Math.sign(at(curve, side))).toBe(Math.sign(lull.level))
+      }
+      expect(Math.abs(at(plain, t) - lull.level)).toBeGreaterThan(0.01)
     }
   })
 })

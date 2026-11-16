@@ -5,6 +5,9 @@ export interface Sample {
   time: Date
   /** Signed knots for a current, height for a tide. */
   level: number
+  /** Published current speed and Set, when supplied by CHS. */
+  magnitude?: number
+  direction?: number
 }
 
 export type EventKind = 'slack' | 'flood' | 'ebb'
@@ -71,6 +74,8 @@ export function predictSeries(
   start: Date,
   hours: number,
   fidelitySeconds = 600,
+  /** Draw a subordinate current through its lulls too, for views that list them. */
+  { lulls = false }: { lulls?: boolean } = {},
 ): Sample[] {
   const end = new Date(start.getTime() + hours * 3600_000)
   if (station.tideReduction) {
@@ -96,11 +101,13 @@ export function predictSeries(
   }
   if (station.reduction) {
     const pad = 8 * 3600_000
-    const events = findEvents(
-      station,
-      new Date(start.getTime() - pad),
-      hours + 2 * pad / 3600_000,
-    )
+    const from = new Date(start.getTime() - pad)
+    const span = hours + 2 * pad / 3600_000
+    const events: { time: Date; level: number }[] = findEvents(station, from, span)
+    if (lulls) {
+      events.push(...findLulls(station, from, span))
+      events.sort((x, y) => x.time.getTime() - y.time.getTime())
+    }
     const samples: Sample[] = []
     let event = 0
     for (let time = start.getTime(); time <= end.getTime(); time += fidelitySeconds * 1000) {
@@ -111,7 +118,9 @@ export function predictSeries(
         samples.push({ time: new Date(time), level: 0 })
         continue
       }
-      const fraction = (time - a.time.getTime()) / (b.time.getTime() - a.time.getTime())
+      // Two knots shifted onto one instant would divide by zero.
+      const gap = b.time.getTime() - a.time.getTime()
+      const fraction = gap > 0 ? (time - a.time.getTime()) / gap : 1
       const eased = (1 - Math.cos(Math.PI * fraction)) / 2
       samples.push({ time: new Date(time), level: a.level + (b.level - a.level) * eased })
     }
@@ -144,15 +153,8 @@ export function findEvents(station: BundledStation, start: Date, hours: number):
       Math.abs(reduction.floodTimeOffset), Math.abs(reduction.ebbTimeOffset),
     ) + 3600
     const from = new Date(start.getTime() - pad * 1000)
-    const reference = {
-      ...station,
-      id: reduction.referenceId,
-      constituents: reduction.referenceConstituents,
-      offset: reduction.referenceOffset,
-      reduction: undefined,
-    }
     const end = new Date(start.getTime() + hours * 3600_000)
-    return reduceCurrentEvents(findEvents(reference, from, hours + 2 * pad / 3600), reduction)
+    return reduceCurrentEvents(findEvents(referenceOf(station, reduction), from, hours + 2 * pad / 3600), reduction)
       .filter((event) => event.time >= start && event.time <= end)
   }
   const end = new Date(start.getTime() + hours * 3600_000)
@@ -183,6 +185,63 @@ export function findEvents(station: BundledStation, start: Date, hours: number):
   }
 
   return [...extremes, ...slacks].sort((x, y) => x.time.getTime() - y.time.getTime())
+}
+
+/** A subordinate current's reference station, predicted on its own constituents. */
+function referenceOf(station: BundledStation, reduction: CurrentReduction): BundledStation {
+  return {
+    ...station,
+    id: reduction.referenceId,
+    constituents: reduction.referenceConstituents,
+    offset: reduction.referenceOffset,
+    reduction: undefined,
+  }
+}
+
+export interface Lull {
+  kind: 'minFlood' | 'minEbb'
+  time: Date
+  /** Signed knots: positive while still flooding, negative while still ebbing. */
+  level: number
+}
+
+/**
+ * Where the current weakens and builds again without reversing.
+ *
+ * These are the extremes on the wrong side of zero, which `findEvents` drops.
+ * A low at exactly zero counts as a flood lull, as `@slackwater/engine`
+ * 1.0.0-beta.12 counts it; the station pages' beta.10 has no lulls. The station pages leave them out; the
+ * shared components chart them and list them in the schedule. A subordinate
+ * station moves and scales them with its flood or ebb offset and ratio, as the
+ * engine does, and its curve must pass through them: see `predictSeries`.
+ */
+export function findLulls(station: BundledStation, start: Date, hours: number): Lull[] {
+  const end = new Date(start.getTime() + hours * 3600_000)
+  if (station.reduction) {
+    const reduction = station.reduction
+    const pad = Math.max(Math.abs(reduction.floodTimeOffset), Math.abs(reduction.ebbTimeOffset)) + 3600
+    const from = new Date(start.getTime() - pad * 1000)
+    return findLulls(referenceOf(station, reduction), from, hours + 2 * pad / 3600)
+      .map((lull) => {
+        const flood = lull.kind === 'minFlood'
+        const offset = flood ? reduction.floodTimeOffset : reduction.ebbTimeOffset
+        return {
+          ...lull,
+          time: new Date(lull.time.getTime() + offset * 1000),
+          level: lull.level * (flood ? reduction.floodSpeedRatio : reduction.ebbSpeedRatio),
+        }
+      })
+      .filter((lull) => lull.time >= start && lull.time <= end)
+      .sort((x, y) => x.time.getTime() - y.time.getTime())
+  }
+  return predictorFor(station)
+    .getExtremesPrediction({ start, end })
+    .filter((e: { high: boolean; level: number }) => (e.high ? e.level < 0 : e.level >= 0))
+    .map((e: { high: boolean; level: number; time: number | Date }) => ({
+      kind: e.high ? ('minEbb' as const) : ('minFlood' as const),
+      time: new Date(e.time),
+      level: e.level,
+    }))
 }
 
 /** The next event at or after `now`, or undefined past the window. */
