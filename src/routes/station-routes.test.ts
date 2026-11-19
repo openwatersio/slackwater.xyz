@@ -215,7 +215,13 @@ describe('prerendered station pages', () => {
     const html = readFileSync(page('tide', 'seattle'), 'utf8')
     const m = html.match(/High (-?[\d.]+) feet[\s\S]*?low (-?[\d.]+) feet/)
     expect(m, 'no high/low in the accessibility text').not.toBeNull()
-    expect(Number(m![1]) - Number(m![2])).toBeGreaterThan(8)
+    // The page is the Pacific calendar day holding the build clock, so the
+    // range follows the moon: over a full nodal cycle the real one bottoms out
+    // at 6.9 ft and peaks at 16.9. Metres mislabelled read at most 5.2, feet
+    // converted twice at least 22, and the bounds sit in those two gaps.
+    const range = Number(m![1]) - Number(m![2])
+    expect(range).toBeGreaterThan(6)
+    expect(range).toBeLessThan(20)
   })
 
   it('does not announce the wrong station to screen readers', () => {
