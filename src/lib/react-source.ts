@@ -11,7 +11,7 @@ import type {
 import { FEET_PER_METRE } from './format'
 import { predictSeries, tideExtremes } from './predict'
 import { currentEvents, currentTimeline, extreme } from './readings'
-import type { Kind, Station } from './station'
+import { hasPredictions, type Kind, type Station } from './station'
 
 export type SourceStation =
   | { kind: 'tide'; station: Station; metadata: TideStation }
@@ -32,7 +32,7 @@ function windowFor(params: { start?: string; end?: string }) {
 }
 
 function predictable(item: SourceStation) {
-  if (item.station.source !== 'bundled')
+  if (!hasPredictions(item.station))
     throw new Error('CHS predictions must be fetched directly by the browser in the day panel.')
   return item.station
 }

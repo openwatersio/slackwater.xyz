@@ -29,6 +29,23 @@ describe('buildStationIndex', () => {
     }
   })
 
+  // aiscast hands a station's ID to `@slackwater/react`, which asks the tides API for it.
+  it("gives each station its database ID, once, and says whether the API predicts it", () => {
+    const seattle = index.stations.find((s) => s.path === '/tides/us/wa/seattle/')
+    expect(seattle).toMatchObject({ id: 'noaa/9447130', predictions: true })
+    const adams = index.stations.find((s) => s.path === '/tides/ca/bc/adams-harbour/')
+    expect(adams).toMatchObject({ id: 'chs-adams-harbour', predictions: false })
+    // A route the database merged with a CHS record keeps its provider's ID and predictions.
+    expect(index.stations.find((s) => s.path === '/tides/ca/bc/mill-bay/')).toMatchObject({ id: 'noaa/8218617', predictions: true })
+    expect(new Set(index.stations.map((s) => `${s.kind}:${s.id}`)).size).toBe(index.stations.length)
+    const byPath = new Map(catalogue.map((s) => [s.path, s]))
+    for (const s of index.stations) {
+      const station = byPath.get(s.path)!
+      expect(s.id, s.path).toBe(station.id)
+      expect(s.predictions, s.path).toBe(station.source === 'bundled')
+    }
+  })
+
   it('names its origin, so a consumer can build absolute links', () => {
     expect(index.origin).toBe('https://slackwater.xyz')
   })
@@ -43,6 +60,11 @@ describe('buildStationIndex', () => {
     for (const s of index.stations) expect(index.attributions[s.attribution], s.path).toMatch(/\S/)
     const andenes = index.stations.find((s) => s.path === '/tides/no/andenes/')!
     expect(index.attributions[andenes.attribution]).toMatch(/Kartverket/)
+  })
+
+  it('fails the build rather than publish one station on two routes', () => {
+    const twice = [catalogue[0], { ...catalogue[0], path: '/tides/xx/elsewhere/' }]
+    expect(() => buildStationIndex(twice, stationAttribution)).toThrow(/more than one route/)
   })
 
   it('fails the build rather than publish a station without its notice', () => {

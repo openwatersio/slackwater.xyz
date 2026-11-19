@@ -82,8 +82,9 @@ const lastmod = (path: string) => {
 for (const [name, xml] of Object.entries(buildSitemaps(catalogue, [...COMPARE_PATHS, ...PLACE_PATHS], lastmod))) {
   writeFileSync(`./public/${name}`, xml)
 }
-// The same station pages with their positions, so another site (Open Waters
-// AIS's vessel pages) can link a place to the stations near it. Gitignored
+// The same station pages with their IDs, positions and whether Slackwater
+// predicts them, so another site (Open Waters AIS's vessel pages) can link a
+// place to the stations near it and draw the nearest tide. Gitignored
 // for the same reason the sitemaps are: every build regenerates it.
 writeFileSync('./public/stations.json', buildStationIndex(catalogue, stationAttribution))
 writeFileSync('./public/_redirects', buildRedirects(catalogue.map((s) => s.path), [...STATIC_PATHS, ...COMPARE_PATHS, ...PLACE_PATHS]))
