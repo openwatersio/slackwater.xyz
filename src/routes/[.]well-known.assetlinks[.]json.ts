@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { requiresBeta, WEB_ONLY_TIDE_SLUGS } from '#/lib/copy'
 
 const relation = 'delegate_permission/common.handle_all_urls'
 
@@ -19,14 +18,8 @@ const association = [{
           { '/': `/${kind}/??`, exclude: true },
           { '/': `/${kind}/??/*`, exclude: true },
         ]),
-        ...(requiresBeta('chs-arran-rapids') ? [
-          { '/': '/currents/arran-rapids', exclude: true },
-          { '/': '/currents/arran-rapids/*', exclude: true },
-        ] : []),
-        ...WEB_ONLY_TIDE_SLUGS.flatMap((slug) => [
-          { '/': `/tides/${slug}`, exclude: true },
-          { '/': `/tides/${slug}/*`, exclude: true },
-        ]),
+        { '/': '/tides/maizuru', exclude: true },
+        { '/': '/tides/maizuru/*', exclude: true },
         { '/': '/tides/*' },
         { '/': '/currents/*' },
       ],

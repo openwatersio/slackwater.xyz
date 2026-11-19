@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { Route } from '../routes/[.]well-known.assetlinks[.]json'
-import { requiresBeta, WEB_ONLY_TIDE_SLUGS } from './copy'
 
 describe('Android app links', () => {
   it('serves the Play signing certificate and station link rules', async () => {
@@ -22,14 +21,8 @@ describe('Android app links', () => {
       { '/': '/currents/', exclude: true },
       { '/': '/currents/??', exclude: true },
       { '/': '/currents/??/*', exclude: true },
-      ...(requiresBeta('chs-arran-rapids') ? [
-        { '/': '/currents/arran-rapids', exclude: true },
-        { '/': '/currents/arran-rapids/*', exclude: true },
-      ] : []),
-      ...WEB_ONLY_TIDE_SLUGS.flatMap((slug) => [
-        { '/': `/tides/${slug}`, exclude: true },
-        { '/': `/tides/${slug}/*`, exclude: true },
-      ]),
+      { '/': '/tides/maizuru', exclude: true },
+      { '/': '/tides/maizuru/*', exclude: true },
       { '/': '/tides/*' },
       { '/': '/currents/*' },
     ])
