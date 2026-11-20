@@ -151,14 +151,14 @@ describe('fetchGateCurrent', () => {
   const DODD_POSITION = { latitude: 49.13546639419797, longitude: -123.81735084108287 }
   const START = new Date('2026-09-01T00:00:00Z')
 
-  /** Replays the recorded fixture, and records every URL asked for. */
-  function replay() {
+  /** Replays the recorded fixture, or a variant of its series, and records every URL asked for. */
+  function replay(series: Partial<Record<'wcsp1' | 'wcdp1' | 'wcp1-events', unknown[]>> = {}) {
     const urls: string[] = []
     const body = (url: string) => {
       if (url.includes('/stations?')) return fixture.stations
       if (url.includes('/metadata')) return { floodDirection: DODD.floodDirection }
-      for (const ts of ['wcp1-events', 'wcsp1', 'wcdp1']) {
-        if (url.includes(`time-series-code=${ts}`)) return DODD[ts as 'wcsp1']
+      for (const ts of ['wcp1-events', 'wcsp1', 'wcdp1'] as const) {
+        if (url.includes(`time-series-code=${ts}`)) return series[ts] ?? DODD[ts]
       }
       throw new Error(`unexpected url ${url}`)
     }
@@ -169,6 +169,29 @@ describe('fetchGateCurrent', () => {
     }
     return { urls, fetcher }
   }
+
+  it('reads the day in time order, and leaves out a point it cannot read', async () => {
+    // The page reads the first and last samples as the ends of DFO's day.
+    const clean = await fetchGateCurrent(DODD_POSITION, START, 24, replay().fetcher)
+    const bad = { eventDate: 'not a date', value: 1 }
+    const scrambled = replay({
+      wcsp1: [...DODD.wcsp1].reverse().concat([{ ...DODD.wcsp1[0], value: Number.NaN }, { ...DODD.wcsp1[0], ...bad }]),
+      wcdp1: [...DODD.wcdp1].reverse().concat([{ ...DODD.wcdp1[0], ...bad }]),
+      'wcp1-events': [...DODD['wcp1-events']].reverse().concat([{ ...DODD['wcp1-events'][0], ...bad }]),
+    })
+    expect(await fetchGateCurrent(DODD_POSITION, START, 24, scrambled.fetcher)).toEqual(clean)
+  })
+
+  it('reads a null value as missing, never as a slack at 0 kn', async () => {
+    // JSON carries a missing number as `null`, which arithmetic reads as 0.
+    const clean = await fetchGateCurrent(DODD_POSITION, START, 24, replay().fetcher)
+    const gap = DODD.wcsp1[10]
+    const read = await fetchGateCurrent(DODD_POSITION, START, 24, replay({
+      wcsp1: DODD.wcsp1.map((p, i) => (i === 10 ? { ...p, value: null as unknown as number } : p)),
+    }).fetcher)
+    expect(read.samples.map((s) => s.time.toISOString())).not.toContain(new Date(gap.eventDate).toISOString())
+    expect(read.samples).toHaveLength(clean.samples.length - 1)
+  })
 
   it('asks DFO directly, never a same-origin path that would mean we re-served it', async () => {
     const { urls, fetcher } = replay()
@@ -265,6 +288,33 @@ describe('fetchPortTides', () => {
       ['00:49', true], ['07:29', false], ['13:45', true], ['18:53', false],
     ])
     expect(turns[2].level).toBeCloseTo(2.021 * 3.28084, 2)
+  })
+
+  it('reads the day in time order, and leaves out a point it cannot read', async () => {
+    // Out of order, a turn would be labelled against the wrong neighbour; a
+    // NaN at either end would carry into every height eased onto DFO's day.
+    const scrambled = {
+      ...VICTORIA,
+      wlp: [...VICTORIA.wlp].reverse().concat([{ ...VICTORIA.wlp[0], value: Number.NaN }, { ...VICTORIA.wlp[0], eventDate: 'not a date' }]),
+      'wlp-hilo': [...VICTORIA['wlp-hilo']].reverse(),
+    }
+    const tidy = await fetchPortTides(VICTORIA_POSITION, START, 24, replay(VICTORIA).fetcher)
+    const read = await fetchPortTides(VICTORIA_POSITION, START, 24, replay(scrambled).fetcher)
+    expect(read).toEqual(tidy)
+  })
+
+  it('reads a null height as missing, never as water at chart datum', async () => {
+    const tidy = await fetchPortTides(VICTORIA_POSITION, START, 24, replay(VICTORIA).fetcher)
+    const nulled = {
+      ...VICTORIA,
+      wlp: VICTORIA.wlp.map((p, i) => (i === 10 ? { ...p, value: null as unknown as number } : p)),
+      'wlp-hilo': VICTORIA['wlp-hilo'].map((p, i) => (i === 0 ? { ...p, value: null as unknown as number } : p)),
+    }
+    const read = await fetchPortTides(VICTORIA_POSITION, START, 24, replay(nulled).fetcher)
+    expect(read.samples).toHaveLength(tidy.samples.length - 1)
+    expect(read.samples.some((s) => s.level === 0)).toBe(false)
+    expect(read.turns).toHaveLength(tidy.turns.length - 1)
+    expect(read.turns.some((t) => t.level === 0)).toBe(false)
   })
 
   it('never reads a one-turn day as both high and low water', async () => {

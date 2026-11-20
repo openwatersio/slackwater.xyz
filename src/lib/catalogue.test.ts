@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
+import { createHash } from 'node:crypto'
 import { loadStations } from '@slackwater/database'
 import { loadCatalogue, loadMoved, loadWithheld, seasonalRatio } from './catalogue'
 import { predictSeries, tideExtremes } from './predict'
 import { nearby } from './nearby'
+import type { BundledStation } from './station'
 
 const db = await loadStations()
 
@@ -459,6 +461,50 @@ describe('chart datum', () => {
       if (s.kind !== 'tide' || s.source !== 'bundled') continue
       expect(typeof s.chartDatum === 'string' && s.chartDatum.length > 0, s.id).toBe(true)
     }
+  })
+
+  it('shifts every merged Canadian tide port onto a chart datum, as DFO quotes its heights', () => {
+    // The browser splices DFO's chart-datum day into these ports' computed
+    // curves (`seamFor` in `readings.ts`). A provider row left about mean sea
+    // level would step by the port's whole MSL height at the seam, which the
+    // strip then draws rather than eases (`SEAM_STEP_LIMIT_FT`). Fail here
+    // first, if the database ever ships one.
+    const merged = all.filter((s): s is BundledStation => s.kind === 'tide' && s.source === 'bundled' && !!s.chs)
+    expect(merged.length).toBeGreaterThan(0)
+    for (const s of merged) {
+      const shift = s.tideReduction ? s.tideReduction.referenceOffset : s.offset
+      expect(s.chartDatum, s.id).toBeTruthy()
+      expect(s.chartDatum, s.id).not.toBe('MSL')
+      expect(shift ?? 0, s.id).not.toBe(0)
+    }
+  })
+
+  it('merges no current station with a CHS gate, whose seam rule is unmeasured', () => {
+    // `seamFor` matches a computed slack to DFO's within `SEAM_TWIN_MS`, a window
+    // measured on tide ports only. A weak reversal can put two real slacks
+    // closer than that, so a merged gate needs its own measurement first.
+    const merged = all.filter((s) => s.kind === 'current' && s.source === 'bundled' && s.chs)
+    expect(merged.map((s) => s.id)).toEqual([])
+  })
+
+  it('merges the same Canadian tide ports the seam bounds were measured on', () => {
+    // `SEAM_TWIN_MS`, `SEAM_RAMP_MS` and `SEAM_STEP_LIMIT_FT` in `readings.ts`
+    // were measured on exactly these ports, with exactly these predictions.
+    // The fingerprint covers each merged port's id, constituents and datum
+    // offset (its reference's, for a subordinate), so a release that merges
+    // ports in or out, or corrects one's curve as slackwater-database#427
+    // asks for Mill Bay, fails here.
+    const fields = all
+      .filter((s): s is BundledStation => s.kind === 'tide' && s.source === 'bundled' && !!s.chs)
+      .map((s) => JSON.stringify([s.id, s.offset ?? 0, s.constituents, s.tideReduction ?? null]))
+      .sort()
+    expect(
+      createHash('sha256').update(fields.join('\n')).digest('hex').slice(0, 16),
+      'The merged Canadian tide ports changed: re-run `node tools/measure-chs-seam.mjs`. If the numbers moved, ' +
+        'update the SEAM_* constants and their comments in src/lib/readings.ts, the ease wording in ' +
+        "src/lib/copy.ts's refinedCredit, the seam sentence in src/content/privacy.md, and the Station strips " +
+        'section of CONTRIBUTING.md. Then update this fingerprint.',
+    ).toBe('e46157f632ba7cc6')
   })
 
   it('puts Seattle low water above the datum a chart would quote', () => {

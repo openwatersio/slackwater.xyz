@@ -55,8 +55,7 @@ describe('CurrentCurve times', () => {
 
   it('makes no claim about the present', () => {
     // "Next slack, in 30m" is a claim about now, and this curve is prerendered
-    // against a build clock. The claim belongs to DayStrip's lead, which is
-    // gated on a live clock; the curve itself never makes it.
+    // against a build clock, for the OG card. The curve never makes it.
     const at = { station: DECEPTION, start: new Date('2026-08-30T00:00:00-07:00'), hours: 24 }
     const now = new Date('2026-08-30T14:30:00-07:00')
     const server = renderToStaticMarkup(<CurrentCurve {...at} now={now} />)

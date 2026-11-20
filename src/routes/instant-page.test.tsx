@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { renderToString } from 'react-dom/server'
 import { RouterProvider, createMemoryHistory, createRouter } from '@tanstack/react-router'
-import { dayLabel, hhmm } from '#/lib/format'
+import { dayLabel, dayStart, hhmm } from '#/lib/format'
 import { findEvents } from '#/lib/predict'
 import { SERVER_NOW } from '#/lib/use-live-now'
 import type { BundledStation, ChsStation } from '#/lib/station'
@@ -72,21 +72,18 @@ async function body(url: string) {
 }
 
 /**
- * A slack the chart actually labels, as it labels it.
- *
- * The chart drops labels in the outer 7% of the window, where the fill has
- * faded out — so "the first slack" is not necessarily one that appears.
+ * A slack on the shared moment's own day, as the 7-day table times it. The
+ * table starts on that day, so a page computed from any other moment has a
+ * different first day and, almost always, different slack times.
  */
-function labelledSlack(station: BundledStation, instant: Date) {
-  const start = new Date(instant.getTime() - 6 * 3600_000)
-  const span = 24 * 3600_000
-  const slack = findEvents(station, start, 24).find((e) => {
-    const at = (e.time.getTime() - start.getTime()) / span
-    return e.kind === 'slack' && at > 0.08 && at < 0.92
-  })
-  if (!slack) throw new Error('fixture has no labelled slack in frame')
-  return hhmm(slack.time, station.timezone)
+function tabledSlack(station: BundledStation, instant: Date) {
+  const slack = findEvents(station, dayStart(instant, station.timezone), 24).find((e) => e.kind === 'slack')
+  if (!slack) throw new Error('fixture has no slack on the shared day')
+  return `>${hhmm(slack.time, station.timezone)}</time>`
 }
+
+/** The moment the strip opens on, in ms. */
+const stripMoment = (html: string) => Number(html.match(/<div role="slider"[^>]*aria-valuenow="(\d+)"/)?.[1])
 
 describe('the instant URL renders its own moment', () => {
   const CHRISTMAS = '2026-12-25T03:15-08:00'
@@ -98,9 +95,12 @@ describe('the instant URL renders its own moment', () => {
     expect(a).not.toBe(b)
     expect(a).toContain(dayLabel(new Date(CHRISTMAS), DECEPTION.timezone))
     expect(b).toContain(dayLabel(new Date(MAYDAY), DECEPTION.timezone))
-    // Not merely different: each page's chart is computed from its own instant.
-    expect(a).toContain(labelledSlack(DECEPTION, new Date(CHRISTMAS)))
-    expect(b).toContain(labelledSlack(DECEPTION, new Date(MAYDAY)))
+    // Not merely different: each page's table is computed from its own
+    // instant, and its strip opens on it.
+    expect(a).toContain(tabledSlack(DECEPTION, new Date(CHRISTMAS)))
+    expect(b).toContain(tabledSlack(DECEPTION, new Date(MAYDAY)))
+    expect(stripMoment(a)).toBe(new Date(CHRISTMAS).getTime())
+    expect(stripMoment(b)).toBe(new Date(MAYDAY).getTime())
   })
 
   it('renders two different tide instants as two different pages', async () => {
@@ -109,6 +109,8 @@ describe('the instant URL renders its own moment', () => {
     expect(a).not.toBe(b)
     expect(a).toContain(dayLabel(new Date(CHRISTMAS), SEATTLE.timezone))
     expect(b).toContain(dayLabel(new Date(MAYDAY), SEATTLE.timezone))
+    expect(stripMoment(a)).toBe(new Date(CHRISTMAS).getTime())
+    expect(stripMoment(b)).toBe(new Date(MAYDAY).getTime())
   })
 
   it('does not render the canonical page instead', async () => {
@@ -118,6 +120,10 @@ describe('the instant URL renders its own moment', () => {
     const canonical = await body('/currents/us/wa/deception-pass-narrows')
     expect(a).not.toBe(canonical)
     expect(canonical).toContain(dayLabel(SERVER_NOW, DECEPTION.timezone))
+    // The canonical strip opens on no shared moment: the server draws the
+    // middle of its window and makes no reading.
+    expect(stripMoment(canonical)).not.toBe(new Date(CHRISTMAS).getTime())
+    expect(canonical).not.toMatch(/aria-valuetext="(Flooding|Ebbing|Slack)/)
   })
 
   it('sends the app\'s short share link to the same moment at the station\'s own path', async () => {
@@ -176,6 +182,15 @@ describe('the server render claims nothing about now', () => {
     for (const url of ['/currents/us/wa/deception-pass-narrows', '/currents/us/wa/deception-pass-narrows/2026-12-25T03:15-08:00']) {
       expect(await body(url), url).not.toMatch(/in \d+[hm]/)
     }
+  })
+
+  it('draws no now on the strip: no Today, no Now pill, no reading of the build clock', async () => {
+    for (const url of ['/tides/us/wa/seattle', '/tides/us/wa/seattle/2026-12-25T03:15-08:00', '/currents/us/wa/deception-pass-narrows']) {
+      const html = await body(url)
+      expect(html, url).toContain('role="slider"')
+      expect(html, url).not.toMatch(/>Today<|>Tomorrow<|>Yesterday<|Return to now/)
+    }
+    expect(await body('/tides/us/wa/seattle')).not.toMatch(/aria-valuetext="(Rising|Falling)/)
   })
 
   it('says nothing about the device that computed it', async () => {

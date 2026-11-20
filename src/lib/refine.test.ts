@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fetchRefinement, levelAt, refinementDay } from './refine'
+import { fetchRefinement, refinementDay } from './refine'
 import portFixture from './__fixtures__/iwls-ports.json' with { type: 'json' }
 import type { BundledStation } from './station'
 
@@ -13,7 +13,7 @@ const VICTORIA: BundledStation = {
 }
 
 describe('refinementDay', () => {
-  it("is the station-local day the reader is in, so it lands on the day pager's today", () => {
+  it("is the station-local day the reader is in, so it replaces the strip's whole Today", () => {
     const { start, hours } = refinementDay(VICTORIA, new Date('2026-09-01T12:00:00Z'))
     expect(start.toISOString()).toBe('2026-09-01T07:00:00.000Z')
     expect(hours).toBe(24)
@@ -56,21 +56,5 @@ describe('fetchRefinement', () => {
   it('refuses a station with no CHS identity, rather than resolving one by position', async () => {
     const { chs: _, ...plain } = VICTORIA
     await expect(fetchRefinement(plain, new Date('2026-09-01T12:00:00Z'), fetcher)).rejects.toThrow(/CHS/)
-  })
-})
-
-describe('levelAt', () => {
-  const samples = [
-    { time: new Date('2026-09-01T00:00:00Z'), level: 2 },
-    { time: new Date('2026-09-01T00:15:00Z'), level: 4 },
-  ]
-
-  it('interpolates between the samples DFO sent', () => {
-    expect(levelAt(samples, new Date('2026-09-01T00:05:00Z'))).toBeCloseTo(2 + 2 / 3, 6)
-  })
-
-  it('says nothing outside them, rather than extrapolating', () => {
-    expect(levelAt(samples, new Date('2026-08-31T23:59:00Z'))).toBeUndefined()
-    expect(levelAt(samples, new Date('2026-09-01T00:16:00Z'))).toBeUndefined()
   })
 })

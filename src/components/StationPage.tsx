@@ -1,54 +1,62 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { DayStrip, type Fetched } from './DayStrip'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useDebouncedCallback } from '@slackwater/react'
 import { NearbyMap } from './NearbyMap'
-import { DATUM_NOTE, datumLine, refinedRowsNote, requiresBeta, seasonalNote, stationHeading, WEB_ONLY_TIDE_SLUGS } from '#/lib/copy'
-import { compass16, dayLabel, dayStart, height, hhmm, shiftLocalDay } from '#/lib/format'
+import { STRIP_AFTER_HOURS, STRIP_BEFORE_HOURS, StationStrip } from './StationStrip'
+import { DATUM_NOTE, datumLine, provenance, refinedCredit, refinedRowsNote, requiresBeta, seasonalNote, stationHeading, WEB_ONLY_TIDE_SLUGS } from '#/lib/copy'
+import { compass16, dayLabel, dayStart, height, hhmm } from '#/lib/format'
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
 import { APP_STORE, ORIGIN, REQUIREMENT, TESTFLIGHT_BETA } from '#/lib/links'
 import type { Crumb, NearbyRow } from '#/lib/catalogue-server'
 import type { PassGuide } from '#/lib/passes'
 import { findEvents, tideExtremes, type StationEvent, type TideExtreme } from '#/lib/predict'
+import {
+  computedReadings, joinInView, publishedReadings, seamFor, spliceReadings, tidyLayer, turnKind, type Published, type TurnKind,
+} from '#/lib/readings'
 import { fetchRefinement, type Refined } from '#/lib/refine'
 import type { BundledStation, ChsStation, Station } from '#/lib/station'
 import { instantPath } from '#/routes/instant-url'
 
 /**
- * One Canadian station's day, once DFO has sent it back.
- *
- * A gate carries the published slacks and maxima; a port carries the published
- * high and low. Neither is derived from the samples, because DFO states both
- * outright and a fifteen-minute grid only samples them.
- *
- * `at` is the moment it was fetched for. Carried, rather than the page reading
- * its own live clock, because it answers two questions that must not diverge:
- * which 24 hours the frame covers, and which date the page prints. DFO sent a
- * fixed day; a clock that keeps moving would slide the frame off the end of it
- * and, worse, date the page differently from the water it drew.
+ * One CHS-only station's day, once DFO has sent it back. The strip draws
+ * exactly that day, bounded: DFO sent a fixed window and nothing past either
+ * end of it is drawn or extrapolated.
  */
-type Curve = { at: Date } & Fetched
+export type Curve = Published
 
 /**
- * How far before `now` a chart begins — six hours behind, eighteen ahead.
- *
- * One definition, because `ChsGate` has to ask DFO for exactly the window the
- * page will draw. Two copies of `- 6 * 3600_000` is how the fetched day and
- * the drawn frame drift apart by a constant nobody notices.
+ * How far before the page's moment a CHS-only day begins — six hours behind,
+ * eighteen ahead. The bounded strip draws whatever window this asked for.
  */
 const startOf = (at: Date) => new Date(at.getTime() - 6 * 3600_000)
+
+/**
+ * How close to the reader's clock a selection may rest and still count as
+ * now, in ms — the distance at which the strip itself stops offering its Now
+ * pill. A page resting there keeps its canonical URL.
+ */
+const NEAR_NOW_MS = 200_000
+
+/**
+ * How long the strip must rest before the URL follows it. Dragging reports
+ * every frame, and Safari throttles `history.replaceState` past a hundred
+ * calls in thirty seconds.
+ */
+const URL_DEBOUNCE_MS = 500
 
 /** Where a current page sends a reader who doesn't know what its slack times mean. */
 const SLACK_GUIDE = '/learn/slack-water/'
 
 interface Props {
   station: Station
-  /** The reader's clock. */
+  /** The reader's clock, or `useLiveNow`'s build-time placeholder until `live`. */
   now: Date
-  /** A fixed moment from a shared URL. Omit to follow `now`. */
+  /** A fixed moment from a shared URL: the strip opens on it. Omit to open on now. */
   selectedAt?: Date
   /** True only on a hydrated client — see `useLiveNow`. */
   live?: boolean
   /**
-   * True when `now` is the moment this page will keep.
+   * True when the moment a CHS day is fetched for is the one this page will
+   * keep.
    *
    * False for a server render and for the first client render of a live page,
    * where `now` is `useLiveNow`'s build-time placeholder and is about to be
@@ -56,8 +64,8 @@ interface Props {
    * harmless — it is replaced a tick later. GOING AND FETCHING a day for it is
    * not: the request is made once, so it asks DFO for the day the site was
    * built and the page then draws eleven-day-old water under today's date.
-   * An instant route sets this from the first render: its moment came from the
-   * URL and nothing will replace it.
+   * A CHS instant route sets this from the first render: its moment came from
+   * the URL and nothing will replace it.
    */
   settled?: boolean
   /** Nearest stations of the same kind. Empty is fine — the section hides. */
@@ -72,6 +80,12 @@ interface Props {
    * how a test renders what the reader's browser shows once the fetch lands.
    */
   refined?: Refined
+  /**
+   * A CHS-only station's day, already in hand — like `refined`, never from a
+   * loader, so in practice a test rendering what the browser shows once
+   * `ChsGate`'s fetch lands.
+   */
+  fetched?: Curve
 }
 
 /**
@@ -81,41 +95,35 @@ interface Props {
  * card, not in what they draw, so the page itself lives here rather than in
  * four near-identical copies that can drift apart.
  *
- * Order is the argument: the selected day first, the app, then everything a
+ * Order is the argument: the strip first, the app, then everything a
  * reader or a crawler goes on to want.
  */
-export function StationPage({ station, now, selectedAt: initialSelection, live = false, settled = live, nearby = [], crumbs = [], guide, refined: initialRefined }: Props) {
-  const [selectedAt, setSelectedAt] = useState(initialSelection ?? now)
-  const [trackingNow, setTrackingNow] = useState(initialSelection === undefined)
-  useEffect(() => {
-    if (trackingNow) setSelectedAt(now)
-  }, [trackingNow, now])
-  // Held here rather than in `ChsGate` because the subtitle is here: a page
-  // that has just gained a chart also gains the date that chart needs.
-  const [curve, setCurve] = useState<Curve | undefined>()
+export function StationPage({ station, now, selectedAt, live = false, settled = live, nearby = [], crumbs = [], guide, refined: initialRefined, fetched }: Props) {
+  const [curve, setCurve] = useState<Curve | undefined>(fetched)
   const layer = useRefinement(station, now, settled, initialRefined)
-  // The moment the page is ABOUT, which stops being the live clock the instant
-  // a Canadian curve arrives: DFO sent one fixed day, and the frame, the date
-  // and the numbers all have to be that same day or the page contradicts
-  // itself. `now` keeps ticking underneath, which is what the NOW marker and
-  // the countdown want.
-  const at = station.source === 'bundled' ? selectedAt : curve?.at ?? now
-  const select = (next: Date) => {
-    setTrackingNow(false)
-    setSelectedAt(next)
-  }
-  const commit = (next: Date) => {
-    select(next)
-    if (typeof window !== 'undefined') {
-      window.history.replaceState(window.history.state, '', instantPath(station.path, next, station.timezone))
-    }
-  }
-  const returnToNow = () => {
-    setTrackingNow(true)
-    setSelectedAt(now)
-    if (typeof window !== 'undefined') {
-      window.history.replaceState(window.history.state, '', station.path)
-    }
+  // The moment the page is about: the shared one, then wherever the reader
+  // rests the strip, or undefined while it follows the reader's clock. The
+  // 7-day table starts on its day, as the URL does.
+  const [about, setAbout] = useState(selectedAt)
+  const at = about ?? now
+  const follow = useUrlSync(station, setAbout, live ? now.getTime() : undefined)
+  const curveReadings = useMemo(() => curve && publishedReadings(curve), [curve])
+  // The strip's props, identical in the server render and the first client
+  // render — no `now` until the clock is the reader's own, so the HTML claims
+  // no present — and the moment a shared link fixed, which both open on. A
+  // strip that remounts later opens on whatever the page is about by then.
+  const moment = {
+    now: live ? now.getTime() : undefined,
+    selected: about?.getTime(),
+    onMove: follow.onMove,
+    onNow: (time: number) => {
+      // DFO's day can't reach now from a shared moment on another day. Now
+      // is then the station's own page, loaded afresh: its request for
+      // today's day starts when that page loads, as the privacy policy says,
+      // and the day on screen stays until it does.
+      if (curve && !covers(curve.samples, time)) return window.location.assign(station.path)
+      follow.onNow(time)
+    },
   }
   const note = seasonalNote(station)
   const lead = note?.place === 'lead' ? note : undefined
@@ -135,27 +143,30 @@ export function StationPage({ station, now, selectedAt: initialSelection, live =
           low, not after. The quieter band renders in `Facts` instead. */}
       {lead && <p className="mt-3 text-sw-foam">{lead.text}</p>}
       {station.source === 'chs' ? (
-        !curve ? (
-          <ChsGate station={station} now={now} settled={settled} hours={24} onCurve={setCurve} />
+        !curveReadings ? (
+          <ChsGate station={station} at={at} settled={settled} hours={24} onCurve={setCurve} />
         ) : (
-          <div className="mt-8">
-            <DayStrip station={station} fetched={curve} start={startOf(at)} hours={24} now={now} live={live} />
+          // Printed, as the fetched day always was: a CHS-only page has no
+          // 7-day table to carry the numbers onto paper instead. Exact colour,
+          // because the strip's ink is white on its own dark ground, and a
+          // printer that drops backgrounds would leave white on white.
+          <div className="mt-8 [-webkit-print-color-adjust:exact] [print-color-adjust:exact]">
+            <StationStrip station={station} readings={curveReadings} bounded {...moment} />
+            {/* Visible, not only in the strip's spoken reading: these are
+                DFO's own published numbers, and once the identity panel has
+                given way to the strip it offered, this is the one place on the
+                page that says so. A port's line names its datum too, which a
+                Canadian page may only do once the curve is on screen. */}
+            <p className="mt-3 text-sm text-sw-steel">
+              {station.kind === 'tide'
+                ? datumLine(station)
+                : `Predictions ${provenance(station)}, fetched from DFO by your browser.`}
+            </p>
           </div>
         )
       ) : (
-        <div className="print:hidden">
-          <StationDayPager
-            station={station}
-            selectedAt={selectedAt}
-            actualNow={now}
-            live={live}
-            trackingNow={trackingNow}
-            showSelection={live || initialSelection !== undefined}
-            refined={layer.refined}
-            onSelect={select}
-            onCommit={commit}
-            onNow={returnToNow}
-          />
+        <div className="mt-8 print:hidden">
+          <ComputedStrip station={station} now={now} live={live} about={about} refined={layer.refined} moment={moment} />
           {/* Only while the request is actually in flight, so the page we
               serve says nothing about a fetch that has not started. The words
               are the privacy policy's. A failure says nothing at all: the
@@ -230,17 +241,16 @@ const hoursBetween = (a: Date, b: Date) => (b.getTime() - a.getTime()) / 3600_00
  * The day's turns, in order, as one sentence — for a tide, its highs and lows;
  * for a current, its slacks and maxima.
  */
-function turns(station: BundledStation, from: Date, to: Date) {
-  return rowsOf(station, station.kind === 'tide'
+type Turns = { kind: 'tide'; turns: TideExtreme[] } | { kind: 'current'; events: StationEvent[] }
+
+function turns(station: BundledStation, from: Date, to: Date): Turns {
+  return station.kind === 'tide'
     ? { kind: 'tide', turns: tideExtremes(station, from, hoursBetween(from, to)) }
-    : { kind: 'current', events: findEvents(station, from, hoursBetween(from, to)) })
+    : { kind: 'current', events: findEvents(station, from, hoursBetween(from, to)) }
 }
 
 /** Table rows from a tide's turns or a current's events, whichever source they came from. */
-function rowsOf(
-  station: BundledStation,
-  from: { kind: 'tide'; turns: TideExtreme[] } | { kind: 'current'; events: StationEvent[] },
-) {
+function rowsOf(station: BundledStation, from: Turns) {
   const tz = station.timezone
   return (from.kind === 'tide'
     ? from.turns.map((e) => ({
@@ -259,89 +269,156 @@ function rowsOf(
 /**
  * The week's rows with CHS's day in place of the computed rows it covers.
  *
- * The same day the chart swaps, from the same fetch, so the chart and today's
- * rows never disagree. Every row outside that window is untouched, and every
- * row inside it is CHS's: mixing the two inside one day would interleave two
- * models' turns minutes apart.
+ * The same day the strip swaps, from the same fetch, joined by the same rule
+ * (`seamFor`), so the strip and the table list the same turns: every row
+ * inside the hours DFO sent is CHS's, and a computed row stays or goes by
+ * `keeps`. A computed row prints its own computed height, unmarked, so the
+ * caption's credit stays true; the strip may draw it on the eased curve.
+ *
+ * The seam comes from DFO's hours alone. The week only chooses which rows to
+ * show: a shared moment's week can lie days from the reader's own day, and
+ * must not gain rows from outside it.
  */
-function refineRows(station: BundledStation, rows: ReturnType<typeof turns>, refined?: Refined) {
-  if (!refined) return rows
-  const from = refined.start.getTime()
-  const to = from + refined.hours * 3600_000
-  const inside = (t: Date) => t.getTime() >= from && t.getTime() < to
-  const chs = rowsOf(station, refined)
-    .filter((r) => inside(r.time))
+function refineRows(station: BundledStation, week: Date[], computed: Turns, refined?: Refined) {
+  const seam = refined && seamFor(station, refined)
+  if (!refined || !seam) return rowsOf(station, computed)
+  const shown = (time: Date) => time >= week[0] && time < week[7]
+  const ours: Turns = computed.kind === 'tide'
+    ? { kind: 'tide', turns: computed.turns.filter((t) => seam.keeps(turnKind(t), t.time)) }
+    : { kind: 'current', events: computed.events.filter((e) => seam.keeps(turnKind(e), e.time)) }
+  const chs = rowsOf(station, tidyLayer(refined))
+    .filter((r) => seam.inside(r.time) && shown(r.time))
     .map((r) => ({ ...r, chs: true }))
-  if (!chs.length) return rows
-  return [...rows.filter((r) => !inside(r.time)), ...chs].sort((a, b) => a.time.getTime() - b.time.getTime())
+  return [...rowsOf(station, ours), ...chs].sort((a, b) => a.time.getTime() - b.time.getTime())
 }
 
-function StationDayPager({
-  station, selectedAt, actualNow, live, trackingNow, showSelection, refined, onSelect, onCommit, onNow,
-}: {
+/** What `StationPage` hands every strip about the moment: see `moment` there. */
+type Moment = {
+  now?: number
+  selected?: number
+  onMove: (time: number) => void
+  onNow: (time: number) => void
+}
+
+/**
+ * A bundled station's strip: 96 hours behind the station-local start of the
+ * day it opens on and 180 ahead, the window the package's own station page
+ * loads, computed by `predict.ts`.
+ *
+ * Where the reader's browser has CHS's day for the station, that day is
+ * spliced in over the window it covers, as `refineRows` splices the table,
+ * and the line under the strip says whose numbers are whose.
+ */
+function ComputedStrip({ station, now, live, about, refined, moment }: {
   station: BundledStation
-  selectedAt: Date
-  actualNow: Date
+  now: Date
   live: boolean
-  trackingNow: boolean
-  showSelection: boolean
-  /** CHS's day, drawn by the strip only when it is the day on screen. */
+  /** What the page is about — see `StationPage` — or undefined while it follows now. */
+  about?: Date
   refined?: Refined
-  onSelect: (at: Date) => void
-  onCommit: (at: Date) => void
-  onNow: () => void
+  moment: Moment
 }) {
   const tz = station.timezone
-  const day = dayStart(selectedAt, tz)
-  const next = dayStart(selectedAt, tz, 1)
-  const sameDay = day.getTime() === dayStart(actualNow, tz).getTime()
-  const label = (offset: number) => {
-    if (live && sameDay) return ['Yesterday', 'Today', 'Tomorrow'][offset + 1]
-    return dayLabel(dayStart(selectedAt, tz, offset), tz)
-  }
-  const button = 'min-w-0 rounded-full px-2 py-2 text-sm hover:text-sw-foam focus-visible:ring-2 focus-visible:ring-sw-foam'
-  return (
-    <div className="mt-8">
-      <nav aria-label={`Choose ${station.kind} day`} className="grid grid-cols-3 items-center gap-x-1">
-        {[-1, 0, 1].map((offset) => (
-          <button
-            key={offset}
-            type="button"
-            aria-current={offset === 0 ? 'date' : undefined}
-            onClick={() => offset && onCommit(shiftLocalDay(selectedAt, tz, offset))}
-            className={`${button} row-start-1 ${offset === 0 ? 'bg-white/10 text-sw-paper' : 'text-sw-steel'}`}
-          >
-            {offset < 0 && <span aria-hidden="true">‹ </span>}
-            {label(offset)}
-            {offset > 0 && <span aria-hidden="true"> ›</span>}
-          </button>
-        ))}
-        {live && !trackingNow && (
-          <button
-            type="button"
-            onClick={onNow}
-            className={`row-start-2 mt-1 rounded-full px-3 py-1 text-sm text-sw-steel hover:text-sw-foam ${actualNow < selectedAt ? 'col-start-1 justify-self-end' : 'col-start-3 justify-self-start'}`}
-          >
-            Now
-          </button>
-        )}
-      </nav>
-      <section className="mt-4" aria-label={dayLabel(day, tz)}>
-        <DayStrip
-          station={station}
-          start={day}
-          hours={hoursBetween(day, next)}
-          now={actualNow}
-          live={live}
-          selectedAt={showSelection ? selectedAt : undefined}
-          trackingNow={trackingNow}
-          refined={refined}
-          onSelect={onSelect}
-          onCommit={onCommit}
-        />
-      </section>
-    </div>
+  const [anchor, setAnchor] = useState(() => dayStart(about ?? now, tz).getTime())
+  const next = stripAnchor(anchor, now.getTime(), dayStart(now, tz).getTime(), about === undefined && live)
+  if (next !== anchor) setAnchor(next)
+  const computed = useMemo(
+    () => computedReadings(station, new Date(anchor - STRIP_BEFORE_HOURS * 3600_000), STRIP_BEFORE_HOURS + STRIP_AFTER_HOURS),
+    [station, anchor],
   )
+  const readings = useMemo(() => (refined ? spliceReadings(station, computed, refined) : computed), [station, computed, refined])
+  const seam = useMemo(() => refined && seamFor(station, refined), [station, refined])
+  // The table's week, which the page's moment starts: see `WeekTable`.
+  const week = days(about ?? now, tz, 7)
+  // One rule: the credit speaks only of what the strip's window shows.
+  const view = refined && seam && readings !== computed ? joinInView(seam, computed, readings) : undefined
+  const credit = refined && seam && view
+    ? refinedCredit(station, {
+        ...view,
+        today: live && !!view.dfo && dayStart(view.dfo.from, tz).getTime() === dayStart(now, tz).getTime(),
+        rows: (refined.kind === 'tide' ? refined.turns : refined.events)
+          .some((t) => seam.inside(t.time) && t.time >= week[0] && t.time < week[7]),
+        kept: view.kept.map((t) => ({ time: t.time, what: keptName(t.kind) })),
+      })
+    : undefined
+  return (
+    <>
+      <StationStrip key={anchor} station={station} readings={readings} {...moment} />
+      {/* The credit moves with the curve. Until CHS's day arrives the page
+          credits its constants under Station facts, as every computed page
+          does; once it is on the strip, this says whose numbers are whose,
+          for the hours and the day DFO actually covered. */}
+      {credit && <p className="mt-3 text-sm text-sw-steel">{credit}</p>}
+    </>
+  )
+}
+
+/** A computed turn kept inside DFO's hours, named for the credit as the table names it. */
+const keptName = (kind: TurnKind) =>
+  kind === 'flood' ? 'maximum flood' : kind === 'ebb' ? 'maximum ebb' : kind
+
+/**
+ * The station-local midnight a bundled strip's window hangs from.
+ *
+ * Fixed at the first render, which the server and the hydrating browser
+ * share, and kept while the strip can centre the reader's clock. A page
+ * following now moves it to the reader's own day once it can't — a page left
+ * open, a copy cached long past the build, or Now pressed on a shared moment
+ * the window can't reach — and the strip remounts there rather than having
+ * its data shifted under it mid-glide.
+ *
+ * The strip centres nothing closer to an end than half its width, and the
+ * widest strip, the page's 720 px column at 18 px an hour, is 40 hours wide.
+ */
+export function stripAnchor(anchor: number, now: number, today: number, following: boolean): number {
+  const reach = (hours: number) => (hours - STRIP_HALF_HOURS) * 3600_000
+  const outside = now - anchor > reach(STRIP_AFTER_HOURS) || anchor - now > reach(STRIP_BEFORE_HOURS)
+  return following && outside ? today : anchor
+}
+
+/** Half the widest strip, in hours: see `stripAnchor`. */
+const STRIP_HALF_HOURS = 20
+
+/**
+ * Where the strip resting at `time` puts the page: the instant path away from
+ * now, the station's own path at it, and the moment the page is then about.
+ */
+export function restingPlace(station: Station, time: number, clock: number): { path: string; about?: Date } {
+  return Math.abs(time - clock) <= NEAR_NOW_MS
+    ? { path: station.path }
+    : { path: instantPath(station.path, new Date(time), station.timezone), about: new Date(time) }
+}
+
+/** Whether DFO's samples reach `time`; Now on a CHS-only page loads the station's own page when they don't. */
+export const covers = (samples: { time: Date }[], time: number) =>
+  samples.length > 0 && time >= samples[0].time.getTime() && time <= samples[samples.length - 1].time.getTime()
+
+/**
+ * Keeps the address bar, and the moment the page is about, on where the strip
+ * rests, so a copied URL shares what the reader is looking at and the 7-day
+ * table starts on the day the URL names.
+ *
+ * Every move is debounced until the strip rests, and judged against the clock
+ * the strip itself calls now — the page's, once live — so a rest the strip
+ * offers no Now pill for keeps the canonical path, and a glide back to now
+ * lands there however it got there. A page left resting at now keeps
+ * following now as the clock runs on, so its URL goes on meaning now. Now
+ * follows the clock at once, so a window that can't reach now moves before
+ * the strip tries to.
+ */
+function useUrlSync(station: Station, setAbout: (about: Date | undefined) => void, now?: number) {
+  const clock = useRef(now)
+  clock.current = now
+  const write = useDebouncedCallback((time: number) => {
+    const { path, about } = restingPlace(station, time, clock.current ?? Date.now())
+    setAbout(about)
+    if (decodeURI(window.location.pathname) !== path) window.history.replaceState(window.history.state, '', path)
+  }, URL_DEBOUNCE_MS)
+  const onNow = useCallback((time: number) => {
+    setAbout(undefined)
+    write(time)
+  }, [write, setAbout])
+  return { onMove: write, onNow }
 }
 
 /**
@@ -352,7 +429,7 @@ function WeekTable({ station, at, refined }: { station: BundledStation; at: Date
   const tz = station.timezone
   const week = days(at, tz, 7)
   const computed = useMemo(() => turns(station, week[0], week[7]), [station, week[0].getTime()])
-  const rows = useMemo(() => refineRows(station, computed, refined), [station, computed, refined])
+  const rows = useMemo(() => refineRows(station, week, computed, refined), [station, computed, refined])
   const marked = rows.some((r) => r.chs)
   const tide = station.kind === 'tide'
   let lastDay = ''
@@ -490,13 +567,14 @@ function Facts({ station }: { station: Station }) {
  */
 function ChsGate({
   station,
-  now,
+  at: page,
   settled,
   hours,
   onCurve,
 }: {
   station: ChsStation
-  now: Date
+  /** The page's moment: the shared one, or the reader's clock. */
+  at: Date
   settled: boolean
   hours: number
   onCurve: (curve: Curve) => void
@@ -510,10 +588,10 @@ function ChsGate({
   const [stopped, setStopped] = useState(false)
   const [inFlight, setInFlight] = useState(false)
   const [error, setError] = useState<string>()
-  // Read at fetch time, deliberately NOT a dependency. `now` is a new moment
-  // every tick, and a tick is not a reason to ask DFO for another day.
-  const at = useRef(now)
-  at.current = now
+  // Read at fetch time, deliberately NOT a dependency. The clock is a new
+  // moment every tick, and a tick is not a reason to ask DFO for another day.
+  const at = useRef(page)
+  at.current = page
 
   useEffect(() => {
     // Not until the clock is the reader's own. Fetching against the build-time
@@ -538,7 +616,7 @@ function ChsGate({
             (c) => ({ kind: 'current', ...c }) as const,
           )
     day
-      .then((curve) => onCurve({ ...curve, at: moment }))
+      .then(onCurve)
       .catch((e) => {
         // A cancel rejects too. The reader asked for that and does not need to
         // be told it worked.
@@ -605,8 +683,8 @@ function ChsGate({
  * until DFO answers; this one already shows a computed curve, so a slow or
  * failed request leaves it exactly as served rather than raising an error.
  *
- * One request per page view, for the reader's own day. Paging to another day
- * shows the computed curve there instead of asking DFO again: IWLS documents
+ * One request per page view, for the reader's own day. Every other day on the
+ * strip stays computed rather than asking DFO again: IWLS documents
  * caps of 3 requests a second and 30 a minute, and each fetch starts with an
  * 82 KB station list.
  */

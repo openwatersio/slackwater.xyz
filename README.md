@@ -31,8 +31,8 @@ reader's own browser fetches DFO's published numbers and draws them. Where the d
 merges a CHS record with a provider row that has harmonic constituents, as it does for 198
 of the 1,057 Canadian tide ports (Victoria, Vancouver, Comox and Nanaimo among them), the
 page ships that row's computed curve under the CHS record's name and position, and the
-browser then swaps today's chart and today's table rows for CHS's published day as the
-refined data. Every Canadian tide port the database routes gets a page. Arran Rapids is published as a CHS identity, with official predictions fetched in the reader’s browser.
+browser then puts CHS's published day in place of the computed chart and table rows for
+the hours DFO sent, joined to the computed days either side, as the refined data. Every Canadian tide port the database routes gets a page. Arran Rapids is published as a CHS identity, with official predictions fetched in the reader’s browser.
 
 ## The two surfaces
 

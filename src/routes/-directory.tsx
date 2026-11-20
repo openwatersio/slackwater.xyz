@@ -11,6 +11,7 @@ import { placeHead } from '#/lib/place-head'
 import { kindRoot } from '#/lib/places'
 import type { Kind } from '#/lib/station'
 import { useLiveNow } from '#/lib/use-live-now'
+import stripCss from '#/components/station-strip.css?url'
 import { parseInstant } from './instant-url'
 
 const ORIGIN = 'https://slackwater.xyz'
@@ -61,10 +62,15 @@ export function directoryHead(kind: Kind, page: Page | undefined) {
   // only `/<kind>/<slug>[/<instant>]` (`stationLink(from:)` in slackwater-ios).
   const opens = `${ORIGIN}${kindRoot(kind)}${s.slug}/${page.instant?.raw ?? ''}`
   return {
-    // An instant URL points at the bare station URL, not itself: the instant
-    // space is unbounded, so treating each shared moment as its own canonical
-    // page would turn every link into an indexable near-duplicate.
-    links: [{ rel: 'canonical', href: canonical }],
+    links: [
+      // An instant URL points at the bare station URL, not itself: the instant
+      // space is unbounded, so treating each shared moment as its own canonical
+      // page would turn every link into an indexable near-duplicate.
+      { rel: 'canonical', href: canonical },
+      // The strip's styles, on station pages only: the place and index pages
+      // under the same route draw no strip and never load them.
+      { rel: 'stylesheet', href: stripCss },
+    ],
     meta: [
       { title },
       { name: 'description', content: description },
@@ -122,13 +128,14 @@ export function Directory({ kind, page }: { kind: Kind; page: Page }) {
   // the next port's name.
   const key = station.id
   if (!instant) return <StationPage key={key} station={station} now={now} live={live} nearby={nearby} crumbs={crumbs} guide={guide} />
-  // Never `live`: this page is one fixed shared moment, so a relative "in 30m"
-  // would be measured from a moment that may be long past. But `settled` from
-  // the first render — that moment came out of the URL and nothing will
-  // replace it, which is the opposite of a live page's build-time placeholder.
+  // The strip opens on the shared moment, and the reader's clock stays their
+  // own, so Now still means now. A CHS page is `settled` from the first
+  // render: the day it asks DFO for is the shared moment's, which came out of
+  // the URL and nothing will replace — the opposite of a live page's
+  // build-time placeholder.
   return station.source === 'bundled'
     ? <StationPage key={key} station={station} now={now} selectedAt={instant.at} live={live} nearby={nearby} crumbs={crumbs} />
-    : <StationPage key={key} station={station} now={instant.at} settled nearby={nearby} crumbs={crumbs} guide={guide} />
+    : <StationPage key={key} station={station} now={now} selectedAt={instant.at} live={live} settled nearby={nearby} crumbs={crumbs} guide={guide} />
 }
 
 /**

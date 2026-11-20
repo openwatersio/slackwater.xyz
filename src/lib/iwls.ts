@@ -225,10 +225,22 @@ export async function fetchGateCurrent(
   const directions: IwlsPoint[] = await get(series('wcdp1', true))
   const raw: IwlsEvent[] = await get(series('wcp1-events', false))
 
-  const samples = signedSamples(speeds, directions, floodDirection)
+  // In time order, and only points with a real time and value, as
+  // `fetchPortTides` reads its own: the page reads the first and last as the
+  // ends of DFO's day.
+  const samples = signedSamples(speeds.filter(readable), directions.filter(readable), floodDirection)
+    .sort((a, b) => a.time.getTime() - b.time.getTime())
   if (!samples.length) throw new Error('CHS predictions are unavailable for this day.')
-  return { samples, events: gateEvents(raw) }
+  return { samples, events: gateEvents(raw.filter(readable)) }
 }
+
+/**
+ * Whether DFO's point has a real time and a real number. JSON has no NaN, so
+ * a missing value arrives as `null`, which arithmetic reads as 0: a height at
+ * datum or a slack that never was. Read before any arithmetic touches it.
+ */
+const readable = (p: IwlsPoint) =>
+  typeof p.value === 'number' && Number.isFinite(p.value) && Number.isFinite(Date.parse(p.eventDate))
 
 /**
  * One port's day of tide heights, fetched from DFO by the reader's own browser.
@@ -290,8 +302,14 @@ export async function fetchPortTides(
   const heights: IwlsPoint[] = await get(series('wlp', true))
   const hilo: IwlsPoint[] = await get(series('wlp-hilo', false))
 
+  // In time order, and only points with a real time and height: the page
+  // reads the first and last as the ends of DFO's day, and labels each turn
+  // against its neighbour, so one out of place or unreadable would mislabel
+  // the rest.
   const feet = (p: IwlsPoint[]): Sample[] =>
-    p.map((h) => ({ time: new Date(h.eventDate), level: h.value * FEET_PER_METRE }))
+    p.filter(readable)
+      .map((h) => ({ time: new Date(h.eventDate), level: h.value * FEET_PER_METRE }))
+      .sort((a, b) => a.time.getTime() - b.time.getTime())
   const samples = feet(heights)
   const turns = feet(hilo)
   if (!samples.length || !turns.length) {
