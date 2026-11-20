@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
 import { loadCatalogue } from './catalogue'
+import { SEAM_RAMP_MS, SEAM_STEP_LIMIT_FT, SEAM_TWIN_MS } from './readings'
 import {
   DESCRIPTION_LIMIT, TITLE_LIMIT, datumLine, ogImageAlt, pageDescription, pageTitle, placeLine, provenance, refinedCredit,
   seasonalNote,
@@ -51,20 +53,86 @@ describe('provenance', () => {
 })
 
 describe('refinedCredit', () => {
+  // `bundled` keeps UTC, so the clock times read as written.
+  const port = { ...bundled, kind: 'tide' as const, chs: { id: 'chs-victoria' } }
+  const both = { before: true, after: true }
+  const neither = { before: false, after: false }
+  const wholeDay = { from: new Date('2026-09-01T00:00:00Z'), to: new Date('2026-09-01T23:45:00Z'), whole: true }
+  const day = { dfo: wholeDay, day: wholeDay.from, today: true, rows: true, kept: [], eased: both }
+
   it('credits CHS for the curve on screen and the computed source for the rest', () => {
-    expect(refinedCredit({ ...bundled, kind: 'tide', chs: { id: 'chs-victoria' } })).toBe(
-      "Today's curve and today's rows in the 7-day table: predictions published by the Canadian Hydrographic " +
-        'Service, on chart datum, fetched from DFO by your browser. Other days are computed from harmonic constituents.',
+    expect(refinedCredit(port, day)).toBe(
+      "Today's curve and the rows marked CHS in the 7-day table: predictions published by the Canadian Hydrographic " +
+        "Service, on chart datum, fetched from DFO by your browser. The computed curve is eased onto CHS's for twelve hours " +
+        'either side of its day. Everything else is computed from harmonic constituents.',
+    )
+  })
+
+  it('names the day DFO covered, not today, once the reader’s day has moved on', () => {
+    // A page left open past midnight: the table follows the reader onto the
+    // new day and shows no CHS rows, so the credit claims none either.
+    const credit = refinedCredit(port, { ...day, today: false, rows: false })
+    expect(credit).toMatch(/^The curve for Tue 1 Sep 2026: predictions published by the Canadian Hydrographic Service/)
+    expect(credit).not.toMatch(/Today|rows marked CHS/)
+  })
+
+  it('names the hours when DFO sent only part of the day', () => {
+    const part = { from: wholeDay.from, to: new Date('2026-09-01T12:00:00Z'), whole: false }
+    expect(refinedCredit(port, { ...day, dfo: part })).toMatch(/^Today's curve from 00:00 to 12:00 and the rows marked CHS/)
+    expect(refinedCredit(port, { ...day, dfo: part, today: false })).toMatch(/^The curve from 00:00 to 12:00 on Tue 1 Sep 2026 and/)
+  })
+
+  it('gives no CHS credit with no DFO point in view, and a line of its own to an eased stretch that is', () => {
+    expect(refinedCredit(port, { ...day, dfo: undefined, eased: { before: false, after: true } })).toBe(
+      "Beside Tue 1 Sep 2026, the computed curve is eased onto the Canadian Hydrographic Service's predictions for that day.",
+    )
+    expect(refinedCredit(port, { ...day, dfo: undefined, eased: neither })).toBeUndefined()
+  })
+
+  it('names a computed turn kept beside midnight as computed', () => {
+    const kept = [{ time: new Date('2026-09-01T00:03:00Z'), what: 'high' }]
+    expect(refinedCredit(port, { ...day, kept })).toContain('fetched from DFO by your browser. The high at 00:03 is computed.')
+    const two = [...kept, { time: new Date('2026-09-01T23:20:00Z'), what: 'low' }]
+    expect(refinedCredit(port, { ...day, kept: two })).toContain('The high at 00:03 and low at 23:20 are computed.')
+  })
+
+  it('names the one side eased when only one was', () => {
+    expect(refinedCredit(port, { ...day, eased: { before: true, after: false } })).toContain("eased onto CHS's for twelve hours before its day.")
+    expect(refinedCredit(port, { ...day, eased: { before: false, after: true } })).toContain("eased onto CHS's for twelve hours after its day.")
+    expect(refinedCredit(port, { ...day, eased: { before: true, after: false } })).not.toContain('either side')
+  })
+
+  it('claims no ease where none was applied', () => {
+    expect(refinedCredit(port, { ...day, eased: neither })).toBe(
+      "Today's curve and the rows marked CHS in the 7-day table: predictions published by the Canadian Hydrographic " +
+        'Service, on chart datum, fetched from DFO by your browser. Everything else is computed from harmonic constituents.',
     )
   })
 
   it('names no datum for a current, which has none', () => {
-    expect(refinedCredit({ ...bundled, chs: { id: 'chs-dodd-narrows' } })).not.toMatch(/datum/)
+    expect(refinedCredit({ ...bundled, chs: { id: 'chs-dodd-narrows' } }, { ...day, eased: neither })).not.toMatch(/datum/)
+  })
+
+  it('names the seam numbers readings.ts sets, in the credit and in the privacy policy', () => {
+    // The words are written out, so this is what keeps them true: change a
+    // constant and this fails until the copy says the new number.
+    const words: Record<number, string> = { 3: 'three', 3.5: 'three and a half', 4: 'four', 6: 'six', 9: 'nine', 12: 'twelve' }
+    const hours = words[SEAM_RAMP_MS / 3600_000]
+    const feet = words[SEAM_STEP_LIMIT_FT]
+    expect(hours, 'name SEAM_RAMP_MS in words here and in the copy').toBeDefined()
+    expect(feet, 'name SEAM_STEP_LIMIT_FT in words here and in the copy').toBeDefined()
+    expect(refinedCredit(port, day)).toContain(`eased onto CHS's for ${hours} hours either side of its day.`)
+    const privacy = readFileSync('src/content/privacy.md', 'utf8')
+    expect(privacy).toContain(`eased onto them over ${hours} hours`)
+    expect(privacy).toContain(`within ${SEAM_TWIN_MS / 60_000} minutes of either end`)
+    expect(privacy).toContain(`more than ${feet} feet`)
   })
 
   it('claims nothing about how the app predicts this water (#44)', () => {
     for (const kind of ['tide', 'current'] as const) {
-      expect(refinedCredit({ ...bundled, kind, chs: { id: 'chs-x' } })).not.toMatch(/slackwater|offline|on-device|\bapp\b/i)
+      for (const eased of [both, neither]) {
+        expect(refinedCredit({ ...bundled, kind, chs: { id: 'chs-x' } }, { ...day, eased })).not.toMatch(/slackwater|offline|on-device|\bapp\b/i)
+      }
     }
   })
 })

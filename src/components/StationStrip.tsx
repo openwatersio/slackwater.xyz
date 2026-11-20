@@ -65,8 +65,9 @@ export function StationStrip({ station, readings, bounded, now, selected, onMove
   }
   if (readings.kind === 'tide') {
     // Feet above chart datum: the site's corpus converts at build time and
-    // `iwls.ts` converts DFO's metres on arrival. A bundled station with no
-    // datum reads about mean sea level, so 0 is left unmarked.
+    // `iwls.ts` converts DFO's metres on arrival. Every bundled tide station
+    // names a chart datum (`catalogue.test.ts` checks), so this marks 0 for
+    // all of them; the check only keeps a nameless one from claiming a datum.
     const chartDatum = station.source === 'chs' || Boolean(station.chartDatum)
     return <TideScrubber {...common} timeline={readings.timeline} extremes={readings.extremes} units="feet" chartDatum={chartDatum} />
   }

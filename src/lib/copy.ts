@@ -1,3 +1,4 @@
+import { dayLabel, hhmm } from './format'
 import type { BundledStation, Station } from './station'
 
 // shortcut: Arran coverage is Beta-only; check App Store availability before removing this gate.
@@ -40,20 +41,60 @@ export function provenance(station: Station): string {
  */
 export const CHS_PROVENANCE = 'published by the Canadian Hydrographic Service'
 
+/** What the strip shows of CHS's joined day: `JoinInView` (`readings.ts`), plus what the page knows. */
+export interface JoinedInView {
+  /** DFO's first and last points on the strip, and whether they are its whole day; undefined when none is in view. */
+  dfo?: { from: Date; to: Date; whole: boolean }
+  /** The day DFO covered. */
+  day: Date
+  /** Whether DFO's points in view fall on the reader's own station-local day. */
+  today: boolean
+  /** Whether the 7-day table on screen shows rows marked CHS. */
+  rows: boolean
+  /** Computed turns kept inside DFO's hours that are in view, named as the table names them, in lower case. */
+  kept: { time: Date; what: string }[]
+  /** Which eased stretches beside DFO's day are in view. */
+  eased: { before: boolean; after: boolean }
+}
+
 /**
- * The line under a computed page's chart once CHS's day has replaced the
- * computed one: whose numbers today's curve and today's table rows are now,
- * and whose the other days still are.
+ * The line under a computed page's strip once CHS's day is joined to it,
+ * worded only from what the strip's window shows (`joinInView`): whose
+ * numbers the DFO points in view are, for their date and hours, and whose
+ * everything else still is.
  *
  * Both halves name a source and neither names how the app answers here (#44).
  * The second half is the same provenance the computed curve carried before
  * the layer arrived, so the page never credits CHS for a number it computed.
+ * With no DFO point in view there is no CHS credit at all; an eased stretch
+ * in view gets a line of its own saying so. Undefined when there is nothing
+ * to say.
  */
-export function refinedCredit(station: BundledStation): string {
+export function refinedCredit(station: BundledStation, view: JoinedInView): string | undefined {
+  const tz = station.timezone
+  const date = (d: Date) => dayLabel(d, tz)
+  const { before, after } = view.eased
+  if (!view.dfo) {
+    return before || after
+      ? `Beside ${date(view.day)}, the computed curve is eased onto the Canadian Hydrographic Service's predictions for that day.`
+      : undefined
+  }
+  const { dfo } = view
   const datum = station.kind === 'tide' ? ', on chart datum' : ''
+  const hours = `from ${hhmm(dfo.from, tz)} to ${hhmm(dfo.to, tz)}`
+  const curve = dfo.whole
+    ? view.today ? "Today's curve" : `The curve for ${date(dfo.from)}`
+    : view.today ? `Today's curve ${hours}` : `The curve ${hours} on ${date(dfo.from)}`
+  const what = view.rows ? `${curve} and the rows marked CHS in the 7-day table` : curve
+  const kept = view.kept.map((t) => `${t.what} at ${hhmm(t.time, tz)}`)
+  const keptLine = kept.length
+    ? ` The ${kept.length > 1 ? `${kept.slice(0, -1).join(', ')} and ${kept.at(-1)} are` : `${kept[0]} is`} computed.`
+    : ''
+  const side = before && after ? 'either side of' : before ? 'before' : after ? 'after' : undefined
+  const ease = side ? ` The computed curve is eased onto CHS's for twelve hours ${side} its day.` : ''
   return (
-    `Today's curve and today's rows in the 7-day table: predictions ${CHS_PROVENANCE}${datum}, ` +
-    `fetched from DFO by your browser. Other days are ${provenance(station)}.`
+    `${what}: predictions ${CHS_PROVENANCE}${datum}, fetched from DFO by your browser.` +
+    `${keptLine}${ease} Everything else is ${provenance(station)}.`
   )
 }
 

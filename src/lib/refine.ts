@@ -7,10 +7,12 @@
  * A route the database merged — a curated CHS record and a provider row with
  * harmonic constituents — prerenders as a computed page, because a curve on
  * arrival is better than none. CHS's prediction is the refined data: once the
- * page is in the reader's browser, the browser asks DFO for today, and the
- * chart and today's rows in the week table switch to it. The same posture as a CHS-only page: the request goes
- * straight from the browser to IWLS, nothing is proxied, prerendered or
- * stored by us.
+ * page is in the reader's browser, the browser asks DFO for the station's
+ * day, and `seamFor` (`readings.ts`) joins it to the strip and the 7-day
+ * table for the hours DFO sent, or leaves the day computed where the two
+ * curves are too far apart to join. The same posture as a CHS-only page: the
+ * request goes straight from the browser to IWLS, nothing is proxied,
+ * prerendered or stored by us.
  */
 import { dayStart } from './format'
 import { fetchGateCurrent, fetchPortTides } from './iwls'
@@ -25,8 +27,9 @@ export type Refined = { start: Date; hours: number } & (
 
 /**
  * The station-local day `now` falls in — the day the strip labels Today, and
- * the day the 7-day table's first rows belong to — so the layer replaces one
- * whole day rather than a 24-hour window that straddles two of them.
+ * the day a canonical page's 7-day table starts on — so the layer covers one
+ * whole day, midnight to midnight, rather than a 24-hour window that
+ * straddles two of them.
  */
 export function refinementDay(station: BundledStation, now: Date): { start: Date; hours: number } {
   const start = dayStart(now, station.timezone)

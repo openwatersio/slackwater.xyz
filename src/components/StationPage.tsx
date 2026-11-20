@@ -9,7 +9,9 @@ import { APP_STORE, ORIGIN, REQUIREMENT, TESTFLIGHT_BETA } from '#/lib/links'
 import type { Crumb, NearbyRow } from '#/lib/catalogue-server'
 import type { PassGuide } from '#/lib/passes'
 import { findEvents, tideExtremes, type StationEvent, type TideExtreme } from '#/lib/predict'
-import { computedReadings, layerSpan, publishedReadings, spliceReadings, type Published } from '#/lib/readings'
+import {
+  computedReadings, joinInView, publishedReadings, seamFor, spliceReadings, tidyLayer, turnKind, type Published, type TurnKind,
+} from '#/lib/readings'
 import { fetchRefinement, type Refined } from '#/lib/refine'
 import type { BundledStation, ChsStation, Station } from '#/lib/station'
 import { instantPath } from '#/routes/instant-url'
@@ -239,17 +241,16 @@ const hoursBetween = (a: Date, b: Date) => (b.getTime() - a.getTime()) / 3600_00
  * The day's turns, in order, as one sentence — for a tide, its highs and lows;
  * for a current, its slacks and maxima.
  */
-function turns(station: BundledStation, from: Date, to: Date) {
-  return rowsOf(station, station.kind === 'tide'
+type Turns = { kind: 'tide'; turns: TideExtreme[] } | { kind: 'current'; events: StationEvent[] }
+
+function turns(station: BundledStation, from: Date, to: Date): Turns {
+  return station.kind === 'tide'
     ? { kind: 'tide', turns: tideExtremes(station, from, hoursBetween(from, to)) }
-    : { kind: 'current', events: findEvents(station, from, hoursBetween(from, to)) })
+    : { kind: 'current', events: findEvents(station, from, hoursBetween(from, to)) }
 }
 
 /** Table rows from a tide's turns or a current's events, whichever source they came from. */
-function rowsOf(
-  station: BundledStation,
-  from: { kind: 'tide'; turns: TideExtreme[] } | { kind: 'current'; events: StationEvent[] },
-) {
+function rowsOf(station: BundledStation, from: Turns) {
   const tz = station.timezone
   return (from.kind === 'tide'
     ? from.turns.map((e) => ({
@@ -268,25 +269,27 @@ function rowsOf(
 /**
  * The week's rows with CHS's day in place of the computed rows it covers.
  *
- * The same day the chart swaps, from the same fetch, so the chart and today's
- * rows never disagree. Every row outside that window is untouched, and every
- * row inside it is CHS's: mixing the two inside one day would interleave two
- * models' turns minutes apart.
+ * The same day the strip swaps, from the same fetch, joined by the same rule
+ * (`seamFor`), so the strip and the table list the same turns: every row
+ * inside the hours DFO sent is CHS's, and a computed row stays or goes by
+ * `keeps`. A computed row prints its own computed height, unmarked, so the
+ * caption's credit stays true; the strip may draw it on the eased curve.
+ *
+ * The seam comes from DFO's hours alone. The week only chooses which rows to
+ * show: a shared moment's week can lie days from the reader's own day, and
+ * must not gain rows from outside it.
  */
-function refineRows(station: BundledStation, week: Date[], rows: ReturnType<typeof turns>, refined?: Refined) {
-  if (!refined) return rows
-  // Clipped to the table's week as well: a shared moment's week can lie days
-  // from the reader's own day, and must not gain rows from outside it. And to
-  // what DFO actually sent, exactly as the strip is — see `layerSpan`.
-  const span = layerSpan(refined)
-  const from = Math.max(span.from, week[0].getTime())
-  const to = Math.min(span.to, week[7].getTime())
-  const inside = (t: Date) => t.getTime() >= from && t.getTime() < to
-  const chs = rowsOf(station, refined)
-    .filter((r) => inside(r.time))
+function refineRows(station: BundledStation, week: Date[], computed: Turns, refined?: Refined) {
+  const seam = refined && seamFor(station, refined)
+  if (!refined || !seam) return rowsOf(station, computed)
+  const shown = (time: Date) => time >= week[0] && time < week[7]
+  const ours: Turns = computed.kind === 'tide'
+    ? { kind: 'tide', turns: computed.turns.filter((t) => seam.keeps(turnKind(t), t.time)) }
+    : { kind: 'current', events: computed.events.filter((e) => seam.keeps(turnKind(e), e.time)) }
+  const chs = rowsOf(station, tidyLayer(refined))
+    .filter((r) => seam.inside(r.time) && shown(r.time))
     .map((r) => ({ ...r, chs: true }))
-  if (!chs.length) return rows
-  return [...rows.filter((r) => !inside(r.time)), ...chs].sort((a, b) => a.time.getTime() - b.time.getTime())
+  return [...rowsOf(station, ours), ...chs].sort((a, b) => a.time.getTime() - b.time.getTime())
 }
 
 /** What `StationPage` hands every strip about the moment: see `moment` there. */
@@ -323,17 +326,36 @@ function ComputedStrip({ station, now, live, about, refined, moment }: {
     () => computedReadings(station, new Date(anchor - STRIP_BEFORE_HOURS * 3600_000), STRIP_BEFORE_HOURS + STRIP_AFTER_HOURS),
     [station, anchor],
   )
-  const readings = useMemo(() => (refined ? spliceReadings(computed, refined) : computed), [computed, refined])
+  const readings = useMemo(() => (refined ? spliceReadings(station, computed, refined) : computed), [station, computed, refined])
+  const seam = useMemo(() => refined && seamFor(station, refined), [station, refined])
+  // The table's week, which the page's moment starts: see `WeekTable`.
+  const week = days(about ?? now, tz, 7)
+  // One rule: the credit speaks only of what the strip's window shows.
+  const view = refined && seam && readings !== computed ? joinInView(seam, computed, readings) : undefined
+  const credit = refined && seam && view
+    ? refinedCredit(station, {
+        ...view,
+        today: live && !!view.dfo && dayStart(view.dfo.from, tz).getTime() === dayStart(now, tz).getTime(),
+        rows: (refined.kind === 'tide' ? refined.turns : refined.events)
+          .some((t) => seam.inside(t.time) && t.time >= week[0] && t.time < week[7]),
+        kept: view.kept.map((t) => ({ time: t.time, what: keptName(t.kind) })),
+      })
+    : undefined
   return (
     <>
       <StationStrip key={anchor} station={station} readings={readings} {...moment} />
       {/* The credit moves with the curve. Until CHS's day arrives the page
           credits its constants under Station facts, as every computed page
-          does; once it is on the strip, this says whose numbers are whose. */}
-      {readings !== computed && <p className="mt-3 text-sm text-sw-steel">{refinedCredit(station)}</p>}
+          does; once it is on the strip, this says whose numbers are whose,
+          for the hours and the day DFO actually covered. */}
+      {credit && <p className="mt-3 text-sm text-sw-steel">{credit}</p>}
     </>
   )
 }
+
+/** A computed turn kept inside DFO's hours, named for the credit as the table names it. */
+const keptName = (kind: TurnKind) =>
+  kind === 'flood' ? 'maximum flood' : kind === 'ebb' ? 'maximum ebb' : kind
 
 /**
  * The station-local midnight a bundled strip's window hangs from.

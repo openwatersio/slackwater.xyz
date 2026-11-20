@@ -7,6 +7,11 @@ import { fetchPortTides, gateEvents, signedSamples } from '#/lib/iwls'
 import gateFixture from '#/lib/__fixtures__/iwls.json' with { type: 'json' }
 import portFixture from '#/lib/__fixtures__/iwls-ports.json' with { type: 'json' }
 import { fetchRefinement } from '#/lib/refine'
+import { DAY_BEFORE, DAY_OF, dfoDay, MIDNIGHT_HIGH, MIDNIGHT_PORT, SEAM_DAY, SEAM_END, SEAM_HIGH, SEAM_PORT } from '#/lib/__fixtures__/seam'
+import { height, hhmm } from '#/lib/format'
+import { SEAM_TWIN_MS } from '#/lib/readings'
+import { tideExtremes } from '#/lib/predict'
+import type { Refined } from '#/lib/refine'
 import type { BundledStation, ChsStation } from '#/lib/station'
 
 /** The strip's own markup: from its slider to the line under the page's charts. */
@@ -259,7 +264,10 @@ describe('StationPage for a CHS tide port', () => {
 describe('StationPage for a computed port with a CHS layer', () => {
   // Victoria as the catalogue builds it: the provider row's constituents and
   // credit, the curated record's name and position, and the CHS identity the
-  // browser resolves DFO's station from.
+  // browser resolves DFO's station from. The constituents are made up, so
+  // every label that matches DFO's numbers can only have come from DFO; the
+  // offset keeps them within `SEAM_STEP_LIMIT_FT` of DFO's day at its edges,
+  // as a real merged port is, so the day is joined.
   const victoria: BundledStation = {
     id: 'ticon/victoria_bc-543a-can-uhslc_rq', kind: 'tide', slug: 'victoria', name: 'Victoria',
     path: '/tides/ca/bc/victoria/',
@@ -268,6 +276,7 @@ describe('StationPage for a computed port with a CHS layer', () => {
     publisher: 'TICON-4',
     attribution: 'Slackwater database. Source: TICON-4. Licensed CC BY 4.0.',
     constituents: [{ name: 'M2', amplitude: 3, phase: 0 }, { name: 'K1', amplitude: 2, phase: 200 }],
+    offset: 6,
     chs: { id: 'chs-victoria' },
   }
   const now = new Date('2026-09-01T12:00:00Z')
@@ -392,10 +401,15 @@ describe('StationPage for a computed port with a CHS layer', () => {
       const caption = layered.match(/<caption[^>]*>([\s\S]*?)<\/caption>/)![1]
       expect(caption).toContain('Rows marked CHS are predictions published by the Canadian Hydrographic Service')
       expect(caption).toContain('above chart datum')
+      // The recorded day is a UTC day, so DFO's samples end at 17:00 local
+      // and the credit names exactly those hours.
       expect(layered.replaceAll('&#x27;', "'")).toContain(
-        "Today's curve and today's rows in the 7-day table: predictions published by the Canadian Hydrographic Service",
+        "Today's curve from 00:00 to 17:00 and the rows marked CHS in the 7-day table: predictions published by the Canadian Hydrographic Service",
       )
-      expect(layered).toContain('Other days are computed from harmonic constituents.')
+      expect(layered.replaceAll('&#x27;', "'")).toContain(
+        "fetched from DFO by your browser. The computed curve is eased onto CHS's for twelve hours either side of its day. " +
+          'Everything else is computed from harmonic constituents.',
+      )
       expect(layered).not.toMatch(/offline|on-device/i)
     })
 
@@ -411,6 +425,27 @@ describe('StationPage for a computed port with a CHS layer', () => {
       expect(ours.filter((r) => r[4])).toEqual([[today, 'Low', '00:29', '3.5 ft', true]])
       const later = (r: (string | boolean)[]) => r[0] === today && String(r[2]) > '06:00'
       expect(page.filter(later)).toEqual(served.filter(later))
+    })
+
+    it('credit only the hours DFO sent under the strip', async () => {
+      const refined = await fetchRefinement(victoria, now, fetcher)
+      const cut = new Date('2026-09-01T13:00:00Z').getTime()
+      const short = { ...refined, samples: refined.samples.filter((s) => s.time.getTime() <= cut) }
+      const page = renderToStaticMarkup(<StationPage station={victoria} now={now} live refined={short} />).replaceAll('&#x27;', "'")
+      expect(page).toContain("Today's curve from 00:00 to 06:00 and the rows marked CHS")
+    })
+
+    it('stop calling DFO’s day today once the reader’s day has moved on', async () => {
+      // A page left open past midnight keeps the day it fetched. The table
+      // follows the reader onto the new day and marks no rows CHS; the credit
+      // names the day DFO covered and mentions no rows.
+      const refined = await fetchRefinement(victoria, now, fetcher)
+      const tomorrow = new Date('2026-09-02T17:00:00Z')
+      const page = renderToStaticMarkup(<StationPage station={victoria} now={tomorrow} live refined={refined} />).replaceAll('&#x27;', "'")
+      expect(page).toContain('The curve from 00:00 to 17:00 on Tue 1 Sep 2026: predictions published by the Canadian Hydrographic Service')
+      expect(page).not.toContain("Today's curve")
+      expect(page).not.toContain('data-source="chs"')
+      expect(page).not.toContain('Rows marked CHS')
     })
 
     it("stay off a shared moment's week, and its strip, when CHS's day lies outside both", async () => {
@@ -619,6 +654,138 @@ describe('StationPage for a bundled current station', () => {
     }
     const html = renderToStaticMarkup(<StationPage station={subordinate} now={actualNow} />)
     expect(html).toContain('NOAA current table reduction from EPT0003, bin 11')
+  })
+})
+
+describe("the 7-day table at the seam where CHS's day meets the computed rows", () => {
+  // See `__fixtures__/seam.ts`: DFO lists a high six minutes before the end of
+  // its hours, and the computed one falls two minutes after it.
+  const page = renderToStaticMarkup(
+    <StationPage station={SEAM_PORT} now={SEAM_DAY.start} selectedAt={SEAM_DAY.start} live refined={SEAM_DAY} />,
+  )
+  const table = page.match(/<table[\s\S]*?<\/table>/)![0]
+  const rows = [...table.matchAll(/<tr([^>]*)>([\s\S]*?)<\/tr>/g)].slice(1).map(([, attrs, row]) => ({
+    time: Date.parse(row.match(/<time dateTime="([^"]+)"/)![1]),
+    what: row.match(/<td[^>]*>[^<]*<\/td><td[^>]*>([^<]*)<\/td>/)![1],
+    value: row.match(/(-?[\d.]+) ft/)?.[1],
+    chs: /data-source="chs"/.test(attrs),
+  }))
+
+  it('lists each turn once: no computed High minutes from DFO’s own', () => {
+    for (const what of ['High', 'Low']) {
+      const times = rows.filter((r) => r.what === what).map((r) => r.time)
+      for (let i = 1; i < times.length; i++) expect(times[i] - times[i - 1]).toBeGreaterThan(SEAM_TWIN_MS)
+    }
+    expect(rows.map((r) => r.time)).not.toContain(SEAM_HIGH.time.getTime())
+  })
+
+  it('prints DFO’s heights exactly as published', () => {
+    const inside = SEAM_DAY.turns.filter((t) => t.time.getTime() < SEAM_END)
+    expect(rows.filter((r) => r.chs).map((r) => [r.time, r.value])).toEqual(
+      inside.map((t) => [t.time.getTime(), t.level.toFixed(1).replace(/^-0\.0$/, '0.0')]),
+    )
+  })
+
+  const pageWith = (refined?: Refined) =>
+    renderToStaticMarkup(<StationPage station={SEAM_PORT} now={SEAM_DAY.start} selectedAt={SEAM_DAY.start} live refined={refined} />)
+      .replaceAll('&#x27;', "'")
+
+  it('says the curve was eased where it was joined', () => {
+    expect(pageWith(SEAM_DAY)).toContain("The computed curve is eased onto CHS's for twelve hours either side of its day.")
+  })
+
+  it('shows a day stepping past the cap exactly as computed: no CHS rows, no CHS credit', () => {
+    // Five feet at the edges, past every merged port's measured step but
+    // Mill Bay's: the page draws and tables the computed day as if DFO's had
+    // not arrived.
+    const capped = pageWith(dfoDay(SEAM_PORT, SEAM_DAY.start, 21, -5))
+    expect(capped).toBe(pageWith())
+    expect(capped).not.toContain('data-source="chs"')
+    expect(capped).not.toContain('fetched from DFO by your browser')
+  })
+
+  it('agrees with the strip on every turn it shows', () => {
+    const strip = page.slice(page.indexOf('role="slider"'), page.indexOf('Predictions are not observations'))
+    for (const r of rows.filter((row) => row.chs)) {
+      expect(strip).toContain(`>${r.value}<`)
+    }
+  })
+})
+
+describe('the 7-day table at a midnight seam', () => {
+  // See `__fixtures__/seam.ts`: a computed high three minutes past midnight on
+  // 3 September, whose DFO twin falls at 23:57 on the 2nd.
+  const tableOf = (selectedAt: Date, refined: Refined) => {
+    const page = renderToStaticMarkup(
+      <StationPage station={MIDNIGHT_PORT} now={selectedAt} selectedAt={selectedAt} live refined={refined} />,
+    )
+    const table = page.match(/<table[\s\S]*?<\/table>/)![0]
+    return [...table.matchAll(/<tr([^>]*)>([\s\S]*?)<\/tr>/g)].slice(1).map(([, attrs, row]) => ({
+      time: Date.parse(row.match(/<time dateTime="([^"]+)"/)![1]),
+      value: row.match(/(-?[\d.]+) ft/)?.[1],
+      chs: /data-source="chs"/.test(attrs),
+    }))
+  }
+
+  it('gives no CHS credit when the strip’s window holds only the ease beside DFO’s day', () => {
+    // Shared five days after DFO's 2 September: the window opens at midnight
+    // on the 3rd, as DFO's day ends, so no DFO point is on the strip, only
+    // the computed curve eased onto it.
+    const page = renderToStaticMarkup(
+      <StationPage station={MIDNIGHT_PORT} now={DAY_BEFORE.start} selectedAt={new Date('2026-09-07T12:00:00Z')} live refined={DAY_BEFORE} />,
+    ).replaceAll('&#x27;', "'")
+    expect(page).toContain(
+      "Beside Wed 2 Sep 2026, the computed curve is eased onto the Canadian Hydrographic Service's predictions for that day.",
+    )
+    expect(page).not.toContain('predictions published by the Canadian Hydrographic Service')
+  })
+
+  it('credits only the slice of DFO’s day a daylight-saving shift brings into the window, and the one eased side in view', () => {
+    // Shared for 12 March in Los Angeles: 96 hours back crosses the spring
+    // change, so the window opens at 23:00 on the 7th, inside DFO's day.
+    const port = { ...SEAM_PORT, id: 'ticon/dst-slice', timezone: 'America/Los_Angeles' }
+    const day = dfoDay(port, new Date('2026-03-07T08:00:00Z'), 24)
+    const page = renderToStaticMarkup(
+      <StationPage station={port} now={new Date('2026-03-07T20:00:00Z')} selectedAt={new Date('2026-03-12T19:00:00Z')} live refined={day} />,
+    ).replaceAll('&#x27;', "'")
+    expect(page).toContain("Today's curve from 23:00 to 23:45: predictions published by the Canadian Hydrographic Service")
+    expect(page).toContain("The computed curve is eased onto CHS's for twelve hours after its day.")
+    expect(page).not.toContain('either side')
+  })
+
+  it('says under the strip that a computed high kept inside DFO’s day is computed', () => {
+    const page = renderToStaticMarkup(
+      <StationPage station={MIDNIGHT_PORT} now={DAY_OF.start} selectedAt={new Date('2026-09-03T12:00:00Z')} live refined={DAY_OF} />,
+    )
+    expect(page).toContain(`The high at ${hhmm(MIDNIGHT_HIGH.time, 'UTC')} is computed.`)
+  })
+
+  it('keeps the computed high just inside DFO’s day when DFO listed no twin for it', () => {
+    const rows = tableOf(new Date('2026-09-03T12:00:00Z'), DAY_OF)
+    expect(rows.find((r) => r.time === +MIDNIGHT_HIGH.time)).toEqual({
+      time: +MIDNIGHT_HIGH.time,
+      value: height(MIDNIGHT_HIGH.level),
+      chs: false,
+    })
+  })
+
+  it('drops the same duplicate the strip drops when the page rests on the day after DFO’s', () => {
+    // The week starts at midnight on the 3rd, where DFO's 2nd has just ended.
+    const rows = tableOf(new Date('2026-09-03T12:00:00Z'), DAY_BEFORE)
+    expect(rows.map((r) => r.time)).not.toContain(+MIDNIGHT_HIGH.time)
+    expect(rows.some((r) => r.chs)).toBe(false)
+  })
+
+  it('prints a computed turn beside the seam at its own computed height, which its credit names', () => {
+    // A computed high 47 minutes before DFO's 2 September begins, inside the
+    // strip's ease, with no DFO twin.
+    const computed = tideExtremes(MIDNIGHT_PORT, new Date('2026-09-01T21:00:00Z'), 3).find((e) => e.high)!
+    const rows = tableOf(new Date('2026-09-01T12:00:00Z'), DAY_BEFORE)
+    expect(rows.find((r) => r.time === +computed.time)).toEqual({
+      time: +computed.time,
+      value: height(computed.level),
+      chs: false,
+    })
   })
 })
 
