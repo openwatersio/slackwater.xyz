@@ -1,10 +1,32 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { StationPage } from './StationPage'
+import { covers, restingPlace, StationPage, stripAnchor } from './StationPage'
 import { loadCatalogue } from '#/lib/catalogue'
+import { dayStart } from '#/lib/format'
+import { fetchPortTides, gateEvents, signedSamples } from '#/lib/iwls'
+import gateFixture from '#/lib/__fixtures__/iwls.json' with { type: 'json' }
 import portFixture from '#/lib/__fixtures__/iwls-ports.json' with { type: 'json' }
 import { fetchRefinement } from '#/lib/refine'
 import type { BundledStation, ChsStation } from '#/lib/station'
+
+/** The strip's own markup: from its slider to the line under the page's charts. */
+const strip = (html: string) => {
+  const from = html.indexOf('role="slider"')
+  expect(from, 'the page draws a strip').toBeGreaterThan(-1)
+  return html.slice(from, html.indexOf('Predictions are not observations'))
+}
+
+/** The strip's slider: its window, the moment it is on, and that moment spoken. */
+const slider = (html: string) => {
+  const tag = html.match(/<div role="slider"[^>]*>/)![0]
+  const attr = (name: string) => tag.match(new RegExp(`${name}="([^"]*)"`))?.[1]
+  return {
+    min: Number(attr('aria-valuemin')),
+    max: Number(attr('aria-valuemax')),
+    now: Number(attr('aria-valuenow')),
+    text: attr('aria-valuetext') ?? '',
+  }
+}
 
 const dodd = {
   id: 'chs-dodd-narrows', kind: 'current', slug: 'dodd-narrows', name: 'Dodd Narrows',
@@ -93,6 +115,81 @@ describe('StationPage offers the CHS curve without fetching anything itself', ()
     // request, not who serves the numbers.
     expect(html).not.toContain('<svg')
     expect(html).not.toContain('published by the Canadian Hydrographic Service')
+  })
+})
+
+describe('StationPage once a CHS-only day has arrived', () => {
+  // What the reader's browser shows after `ChsGate`'s fetch lands: one
+  // bounded strip of DFO's day, credited under it.
+  const at = new Date('2026-09-01T06:00:00Z')
+
+  describe('for a port', () => {
+    const victoria = {
+      id: 'chs-victoria', kind: 'tide', slug: 'victoria', name: 'Victoria',
+      path: '/tides/ca/bc/victoria/',
+      source: 'chs', region: 'Inner Harbour',
+      latitude: 48.424, longitude: -123.371, timezone: 'America/Vancouver',
+    } satisfies ChsStation
+    const port = portFixture.ports['Victoria Harbour']
+    const fetcher: typeof fetch = async (input) => {
+      const url = String(input)
+      const body = url.includes('/stations?') ? portFixture.stations : url.includes('wlp-hilo') ? port['wlp-hilo'] : port.wlp
+      return { ok: true, json: async () => body } as Response
+    }
+    let html = ''
+    beforeAll(async () => {
+      const day = await fetchPortTides(victoria, new Date('2026-09-01T00:00:00Z'), 24, fetcher)
+      html = renderToStaticMarkup(
+        <StationPage station={victoria} now={at} live settled fetched={{ kind: 'tide', ...day }} />,
+      )
+    })
+
+    it("draws DFO's day on one strip in place of the identity panel", () => {
+      expect(html.match(/role="slider"/g)).toHaveLength(1)
+      expect(strip(html)).toContain('>6:45 AM<')
+      expect(html).not.toContain('are based on Canadian Hydrographic Service data')
+    })
+
+    it('names chart datum, and no code it would be wrong about', () => {
+      // Victoria's own LLWLT is -0.09 m, nine centimetres below the zero these
+      // heights are quoted from, so borrowing the corpus's datum vocabulary
+      // would be a precise claim and a false one.
+      expect(html).toContain('Chart datum · published by the Canadian Hydrographic Service')
+      expect(html).not.toMatch(/LLWLT|MLLW|LAT datum/)
+    })
+
+    it('claims no computation', () => {
+      expect(html).not.toMatch(/comput/i)
+    })
+
+    it('prints the day, which a CHS-only page has no 7-day table to carry onto paper', () => {
+      const wrapper = html.match(/<div class="([^"]*)"><div class="relative select-none/)![1]
+      expect(wrapper).not.toContain('print:hidden')
+      // White ink on the strip's own ground: a printer must not drop it.
+      expect(wrapper).toContain('[print-color-adjust:exact]')
+    })
+  })
+
+  describe('for a gate', () => {
+    const gate = gateFixture.gates['Dodd Narrows']
+    const html = renderToStaticMarkup(
+      <StationPage station={dodd} now={at} live settled fetched={{
+        kind: 'current',
+        samples: signedSamples(gate.wcsp1, gate.wcdp1, gate.floodDirection),
+        events: gateEvents(gate['wcp1-events']),
+      }} />,
+    )
+
+    it("prints DFO's published peaks on the strip", () => {
+      expect(strip(html)).toContain('7.1')
+      expect(strip(html)).toContain('7.0')
+    })
+
+    it('credits CHS once, under the strip', () => {
+      expect(html.match(/fetched from DFO by your browser/g)).toHaveLength(1)
+      expect(html).toContain('Predictions published by the Canadian Hydrographic Service, fetched from DFO by your browser.')
+      expect(html).not.toMatch(/comput/i)
+    })
   })
 })
 
@@ -215,6 +312,27 @@ describe('StationPage for a computed port with a CHS layer', () => {
     expect(layered).toContain('Harmonic constituents from TICON-4')
   })
 
+  it("draws DFO's published turns on the strip once the browser has them, and the computed ones until then", async () => {
+    const port = portFixture.ports['Victoria Harbour']
+    const fetcher: typeof fetch = async (input) => {
+      const url = String(input)
+      const body = url.includes('/stations?') ? portFixture.stations : url.includes('wlp-hilo') ? port['wlp-hilo'] : port.wlp
+      return { ok: true, json: async () => body } as Response
+    }
+    const refined = await fetchRefinement(victoria, now, fetcher)
+    const layered = renderToStaticMarkup(<StationPage station={victoria} now={now} live refined={refined} />)
+    const computed = renderToStaticMarkup(<StationPage station={victoria} now={now} live />)
+    // 13:45 and 18:53 UTC are 6:45 AM and 11:53 AM in Victoria: 2.021 and
+    // 1.688 m. The fixture's constituents are unlike Victoria's real tide, so
+    // these labels can only have come from DFO.
+    for (const label of ['>6:45 AM<', '>6.6<', '>11:53 AM<', '>5.5<']) {
+      expect(strip(layered)).toContain(label)
+      expect(strip(computed)).not.toContain(label)
+    }
+    // The strip keeps the whole window: CHS's day replaces one day of it.
+    expect(slider(layered)).toMatchObject({ min: slider(computed).min, max: slider(computed).max })
+  })
+
   describe("the week table's today rows", () => {
     const port = portFixture.ports['Victoria Harbour']
     const fetcher: typeof fetch = async (input) => {
@@ -253,12 +371,15 @@ describe('StationPage for a computed port with a CHS layer', () => {
     it("become DFO's published turns once the layer arrives, each marked", () => {
       // 07:29, 13:45 and 18:53 UTC: 00:29, 06:45 and 11:53 in Victoria.
       // 1.065, 2.021 and 1.688 m. 00:49 UTC is the evening before, local.
+      // The recorded day is a UTC day, so DFO's samples stop at 17:00 local
+      // and the computed evening high after them stands, unmarked.
       const ours = rows(layered).filter((r) => r[0] === today)
-      expect(ours).toEqual([
+      expect(ours.filter((r) => r[4])).toEqual([
         [today, 'Low', '00:29', '3.5 ft', true],
         [today, 'High', '06:45', '6.6 ft', true],
         [today, 'Low', '11:53', '5.5 ft', true],
       ])
+      expect(ours.filter((r) => !r[4]).every((r) => String(r[2]) > '17:00')).toBe(true)
     })
 
     it('leave every other day exactly as computed', () => {
@@ -276,6 +397,32 @@ describe('StationPage for a computed port with a CHS layer', () => {
       )
       expect(layered).toContain('Other days are computed from harmonic constituents.')
       expect(layered).not.toMatch(/offline|on-device/i)
+    })
+
+    it('take only the hours DFO actually sent', async () => {
+      // A short answer: DFO's samples stop at local 06:00, so its 06:45 high
+      // and 11:53 low are past what it covered and the computed rows stand.
+      const refined = await fetchRefinement(victoria, now, fetcher)
+      const cut = new Date('2026-09-01T13:00:00Z').getTime()
+      const short = { ...refined, samples: refined.samples.filter((s) => s.time.getTime() <= cut) }
+      const page = rows(renderToStaticMarkup(<StationPage station={victoria} now={now} live refined={short} />))
+      const served = rows(renderToStaticMarkup(<StationPage station={victoria} now={now} />))
+      const ours = page.filter((r) => r[0] === today)
+      expect(ours.filter((r) => r[4])).toEqual([[today, 'Low', '00:29', '3.5 ft', true]])
+      const later = (r: (string | boolean)[]) => r[0] === today && String(r[2]) > '06:00'
+      expect(page.filter(later)).toEqual(served.filter(later))
+    })
+
+    it("stay off a shared moment's week, and its strip, when CHS's day lies outside both", async () => {
+      // The browser fetches the reader's own day whatever the URL shares. A
+      // moment three weeks on has none of that day in its window.
+      const refined = await fetchRefinement(victoria, now, fetcher)
+      const later = new Date('2026-09-22T12:00:00Z')
+      const shared = renderToStaticMarkup(<StationPage station={victoria} now={now} selectedAt={later} live refined={refined} />)
+      const plain = renderToStaticMarkup(<StationPage station={victoria} now={now} selectedAt={later} live />)
+      expect(rows(shared)).toEqual(rows(plain))
+      expect(strip(shared)).toBe(strip(plain))
+      expect(shared).not.toContain('fetched from DFO by your browser')
     })
 
     it('keep the served caption free of any CHS claim', () => {
@@ -313,20 +460,41 @@ describe('StationPage for a bundled tide station', () => {
     expect(html).toMatch(/<a href="\/tides\/"/)
   })
 
-  it('reads the water now only once the clock is live', () => {
-    expect(live).toMatch(/Rising|Falling/)
-    expect(live).toMatch(/(High|Low) at \d{1,2}:\d{2}(am|pm)/)
+  it('draws one strip and no day pager', () => {
+    expect(html.match(/role="slider"/g)).toHaveLength(1)
+    expect(html).toContain('aria-label="Tide timeline"')
+    expect(html).not.toMatch(/aria-label="Choose tide day"|>Yesterday<|>Tomorrow</)
   })
 
-  it('pages yesterday, the selected day and tomorrow around one visible curve', () => {
-    const pager = html.match(/<nav aria-label="Choose tide day"[\s\S]*?<\/nav>/)![0]
-    expect(pager.match(/<button/g)).toHaveLength(3)
-    expect(pager).toContain('Thu 10 Sep 2026')
-    expect(pager).toContain('Fri 11 Sep 2026')
-    expect(pager).toContain('Sat 12 Sep 2026')
-    expect(live).toMatch(/>Yesterday</)
-    expect(live).toMatch(/>Today</)
-    expect(live).toMatch(/>Tomorrow</)
+  it("loads 96 hours before to 180 hours after the station-local start of the page's day", () => {
+    const day = dayStart(now, seattle.timezone).getTime()
+    expect(slider(html)).toMatchObject({ min: day - 96 * 3600_000, max: day + 180 * 3600_000 })
+  })
+
+  it('claims nothing about now in the page we serve', () => {
+    // No `now` for the strip until the clock is the reader's: no reading, no
+    // Today, no Now pill, nothing relative to a build clock.
+    const served = strip(html)
+    expect(served).not.toMatch(/Rising|Falling|Today|Return to now/)
+    expect(served).not.toMatch(/\bin \d+[hm]/)
+  })
+
+  it('reads the water now only once the clock is live', () => {
+    const reading = strip(live)
+    expect(reading).toMatch(/Rising|Falling/)
+    expect(reading).toContain('>Today<')
+    expect(slider(live).now).toBe(now.getTime())
+  })
+
+  it('opens a shared moment with its reading, in the HTML we serve as well', () => {
+    const selectedAt = new Date('2026-09-12T22:00:00Z')
+    const shared = renderToStaticMarkup(<StationPage station={seattle} now={now} selectedAt={selectedAt} nearby={nearby} />)
+    expect(slider(shared).now).toBe(selectedAt.getTime())
+    expect(slider(shared).text).toMatch(/^(Rising|Falling) .*Sep 12, 3:00 PM PDT$/)
+    // Still no claim about the reader's present.
+    expect(strip(shared)).not.toMatch(/Today|Return to now/)
+    // The table starts on the shared moment's day.
+    expect(shared).toContain('Sat 12 Sep 2026 through Fri 18 Sep 2026.')
   })
 
   it('keeps a shared selection separate from actual now', () => {
@@ -339,27 +507,9 @@ describe('StationPage for a bundled tide station', () => {
         nearby={nearby}
       />,
     )
-    expect(shared).toMatch(/aria-current="date"[^>]*>Fri 11 Sep 2026<\/button>/)
-    expect(shared).toContain('aria-valuetext="1:00pm"')
-    expect(shared).toMatch(/>Now<\/button>/)
-  })
-
-  it('puts Now below the dates, on the side it lies in', () => {
-    const pager = (selectedAt: Date) => renderToStaticMarkup(
-      <StationPage
-        station={seattle}
-        now={new Date('2026-09-12T22:00:00Z')}
-        selectedAt={selectedAt}
-        live
-      />,
-    ).match(/<nav aria-label="Choose tide day"[\s\S]*?<\/nav>/)![0]
-
-    const past = pager(new Date('2026-09-11T20:00:00Z'))
-    expect(past.match(/<button/g)).toHaveLength(4)
-    expect(past).toMatch(/Sat 12 Sep 2026[\s\S]*col-start-3[^>]*>Now<\/button>/)
-
-    const future = pager(new Date('2026-09-13T20:00:00Z'))
-    expect(future).toMatch(/Mon 14 Sep 2026[\s\S]*col-start-1[^>]*>Now<\/button>/)
+    expect(slider(shared).now).toBe(now.getTime())
+    expect(slider(shared).text).toContain('Sep 11, 1:00 PM PDT')
+    expect(shared).toContain('aria-label="Return to now"')
   })
 
   it('tables a week of highs and lows, grouped by day', () => {
@@ -429,16 +579,22 @@ describe('StationPage for a bundled current station', () => {
   const selected = new Date('2026-09-11T20:00:00Z')
   const actualNow = new Date('2026-09-11T22:00:00Z')
 
-  it('pages around a shared current selection and keeps Now separate', () => {
+  it('opens a shared current selection and keeps Now separate', () => {
     const html = renderToStaticMarkup(
       <StationPage station={station} now={actualNow} selectedAt={selected} live />,
     )
-    expect(html).toContain('aria-label="Choose current day"')
-    expect(html).toContain('aria-label="Selected current time"')
-    expect(html).toContain('aria-valuetext="1:00pm"')
-    expect(html).toMatch(/>Now<\/button>/)
-    expect(html).toContain('data-marker="actual-now"')
+    expect(html).not.toContain('aria-label="Choose current day"')
+    expect(html).toContain('aria-label="Current timeline"')
+    expect(slider(html).now).toBe(selected.getTime())
+    expect(slider(html).text).toContain('Sep 11, 1:00 PM PDT')
+    expect(html).toContain('aria-label="Return to now"')
     expect(html).toContain('Slack water and maximums for the next 7 days')
+  })
+
+  it('claims nothing about now in the page we serve', () => {
+    const served = strip(renderToStaticMarkup(<StationPage station={station} now={actualNow} />))
+    expect(served).not.toMatch(/Flooding|Ebbing|Today|Return to now/)
+    expect(served).not.toMatch(/\bin \d+[hm]/)
   })
 
   it('sends a reader who meets the slack table to the slack water guide', () => {
@@ -463,5 +619,71 @@ describe('StationPage for a bundled current station', () => {
     }
     const html = renderToStaticMarkup(<StationPage station={subordinate} now={actualNow} />)
     expect(html).toContain('NOAA current table reduction from EPT0003, bin 11')
+  })
+})
+
+describe("the strip's window", () => {
+  const H = 3600_000
+  const shared = Date.parse('2026-09-01T07:00:00Z')
+
+  /** The anchor for a reader whose clock reads `hours` after the shared day's start. */
+  const at = (hours: number, following = true) => {
+    const now = shared + hours * H
+    const today = shared + Math.floor(hours / 24) * 24 * H
+    return stripAnchor(shared, now, today, following)
+  }
+
+  it('moves to the reader’s day when Now is pressed on a shared moment the window cannot reach', () => {
+    // Shared for September 1, opened September 22: the window ends September 8.
+    expect(at(21 * 24 + 5)).toBe(shared + 21 * 24 * H)
+  })
+
+  it('stays put while the page is about a moment of its own', () => {
+    expect(at(21 * 24 + 5, false)).toBe(shared)
+  })
+
+  it('stays put while the strip can centre the reader’s clock, so Now glides rather than remounts', () => {
+    expect(at(3 * 24)).toBe(shared)
+    expect(at(-2 * 24)).toBe(shared)
+    // 160 hours on is the last moment a 40-hour-wide strip can centre.
+    expect(at(159)).toBe(shared)
+  })
+
+  it('moves before the reader’s clock passes the last moment the widest strip can centre', () => {
+    // Six days on at 18:00: inside the window, past where a desktop strip can
+    // put it under the reading line.
+    expect(at(6 * 24 + 18)).toBe(shared + 6 * 24 * H)
+    expect(at(-77)).toBe(shared - 4 * 24 * H)
+  })
+})
+
+describe("whether a CHS-only day reaches now", () => {
+  const day = [0, 12, 24].map((h) => ({ time: new Date(Date.parse('2026-09-01T07:00:00Z') + h * 3600_000) }))
+
+  it('does within the samples DFO sent, ends included', () => {
+    expect(covers(day, Date.parse('2026-09-01T07:00:00Z'))).toBe(true)
+    expect(covers(day, Date.parse('2026-09-02T07:00:00Z'))).toBe(true)
+  })
+
+  it('does not a day later, so Now loads the station page rather than resting on the end of the shared day', () => {
+    expect(covers(day, Date.parse('2026-09-02T07:01:00Z'))).toBe(false)
+    expect(covers([], Date.parse('2026-09-01T12:00:00Z'))).toBe(false)
+  })
+})
+
+describe('where a resting strip puts the page', () => {
+  const seattle = { path: '/tides/us/wa/seattle/', timezone: 'America/Los_Angeles' } as BundledStation
+  const clock = Date.parse('2026-09-11T20:00:00Z')
+
+  it('keeps the canonical path, following now, at now', () => {
+    expect(restingPlace(seattle, clock + 60_000, clock)).toEqual({ path: '/tides/us/wa/seattle/' })
+  })
+
+  it('names the instant, and makes it what the 7-day table starts on, away from now', () => {
+    const time = Date.parse('2026-09-13T17:30:00Z')
+    expect(restingPlace(seattle, time, clock)).toEqual({
+      path: '/tides/us/wa/seattle/2026-09-13T10:30-07:00',
+      about: new Date(time),
+    })
   })
 })

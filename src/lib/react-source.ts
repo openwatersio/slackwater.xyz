@@ -9,7 +9,8 @@ import type {
   Units,
 } from '@slackwater/react'
 import { FEET_PER_METRE } from './format'
-import { findEvents, findLulls, predictSeries, tideExtremes } from './predict'
+import { predictSeries, tideExtremes } from './predict'
+import { currentEvents, currentTimeline, extreme } from './readings'
 import type { Kind, Station } from './station'
 
 export type SourceStation =
@@ -125,7 +126,7 @@ export function createLocalDataSource(
         distance: item.distance,
         extremes: tideExtremes(station, start, hours)
           .filter((p) => inWindow(p.time, start, end))
-          .map((p) => ({ ...p, level: convert(p.level, units), low: !p.high, label: p.high ? 'High' : 'Low' })),
+          .map((p) => extreme({ ...p, level: convert(p.level, units) })),
       }
     },
     async getCurrentStation(id) {
@@ -143,41 +144,16 @@ export function createLocalDataSource(
       return {
         units: 'knots',
         station: item.metadata,
-        timeline: predictSeries(predictable(item), start, hours, 600, { lulls: true })
-          .filter((p) => inWindow(p.time, start, end))
-          .map((p) => ({ time: p.time, speed: p.level })),
+        timeline: currentTimeline(predictable(item), start, hours).filter((p) => inWindow(p.time, start, end)),
       }
     },
     async getCurrentEvents(params) {
       const { start, end, hours } = windowFor(params)
       const item = await current(params.id)
-      const station = predictable(item)
       return {
         units: 'knots',
         station: item.metadata,
-        events: [
-          ...findEvents(station, start, hours).map((e) => ({
-            time: e.time,
-            speed: e.level,
-            kind:
-              e.kind === 'slack'
-                ? ('slack' as const)
-                : e.kind === 'flood'
-                  ? ('maxFlood' as const)
-                  : ('maxEbb' as const),
-            ...(e.kind === 'slack'
-              ? {}
-              : { direction: e.kind === 'flood' ? station.floodDirection : station.ebbDirection }),
-          })),
-          ...findLulls(station, start, hours).map((e) => ({
-            time: e.time,
-            speed: e.level,
-            kind: e.kind,
-            direction: e.kind === 'minFlood' ? station.floodDirection : station.ebbDirection,
-          })),
-        ]
-          .filter((p) => inWindow(p.time, start, end))
-          .sort((a, b) => a.time.getTime() - b.time.getTime()),
+        events: currentEvents(predictable(item), start, hours).filter((p) => inWindow(p.time, start, end)),
       }
     },
   }

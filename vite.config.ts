@@ -108,6 +108,14 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
   // The React package imports CSS, which native Node cannot load during SSR.
   ssr: { noExternal: ['@slackwater/react'] },
+  // `@slackwater/react` declares its station page's map as a module-level
+  // `lazy(() => import(...))` without a pure annotation, so a page that
+  // imports only the strip components still keeps that call, and the bundle still
+  // emits MapLibre's megabyte-plus chunk and its stylesheet. `lazy` does
+  // nothing until its component renders, so marking it pure drops both
+  // wherever nothing renders the map; `bundle-size.test.ts` fails without it.
+  // Remove once openwatersio/slackwater#547 ships in a release.
+  build: { rolldownOptions: { treeshake: { manualPureFunctions: ['lazy'] } } },
   // One clock for the whole build, so the server and client bundles agree on it
   // and every prerendered page is dated the day it was built. Freshness comes
   // from the nightly rebuild in .github/workflows/deploy.yml.

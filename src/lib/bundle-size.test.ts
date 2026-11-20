@@ -32,6 +32,16 @@ describe('client bundle', () => {
     expect(total).toBeLessThan(1_500_000)
   })
 
+  it('ships no map renderer for a station page to never draw', () => {
+    // `@slackwater/react` names its station page's MapLibre map in a lazy
+    // import; `vite.config.ts` marks `lazy` pure so nothing renders it here.
+    const assets = readdirSync(ASSETS).filter((f) => f.endsWith('.js') || f.endsWith('.css'))
+    expect(assets.filter((f) => f.startsWith('maplibre') || f.startsWith('NearbyMap'))).toEqual([])
+    for (const f of js()) {
+      expect(readFileSync(`${ASSETS}/${f}`, 'utf8').includes('maplibregl'), f).toBe(false)
+    }
+  })
+
   it('has no client chunk reaching the catalogue module', () => {
     // The import graph, not the rendered strings: this catches a leak whose
     // station names were minified, split or otherwise made unsearchable.

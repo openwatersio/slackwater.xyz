@@ -1,0 +1,14 @@
+/* The strip's theme: `@slackwater/react`'s colour variables and the few plain
+   classes its components use, linked on station pages only. Its Tailwind
+   utilities are NOT built here: `src/styles.css` scans the package, so every
+   utility sorts in one sheet. A second utilities sheet linked after the
+   site's would win over the site's own `sm:` and `print:` rules. */
+@import "@slackwater/react/styles.css";
+
+/* The package's `:root { color-scheme: dark }` outranks the site's
+   `html { color-scheme: light }` for print, so paper is put back here. */
+@media print {
+  :root {
+    color-scheme: light;
+  }
+}

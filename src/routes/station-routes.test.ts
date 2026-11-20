@@ -213,15 +213,38 @@ describe('prerendered station pages', () => {
     // Seattle swings about 10 ft. The database ships metres; a page that
     // labels those metres "ft" reads 3.28x shallow and entirely plausible.
     const html = readFileSync(page('tide', 'seattle'), 'utf8')
-    const m = html.match(/High (-?[\d.]+) feet[\s\S]*?low (-?[\d.]+) feet/)
-    expect(m, 'no high/low in the accessibility text').not.toBeNull()
-    // The page is the Pacific calendar day holding the build clock, so the
-    // range follows the moon: over a full nodal cycle the real one bottoms out
-    // at 6.9 ft and peaks at 16.9. Metres mislabelled read at most 5.2, feet
-    // converted twice at least 22, and the bounds sit in those two gaps.
-    const range = Number(m![1]) - Number(m![2])
+    // The table's first day: the Pacific calendar day holding the build clock.
+    const table = html.match(/<table[\s\S]*?<\/table>/)?.[0] ?? ''
+    const rows = [...table.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)].slice(1)
+      .map(([, row]) => [...row.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map(([, c]) => c.replace(/<[^>]+>/g, '').trim()))
+    const day = rows.filter((r) => r[0] === rows[0]?.[0])
+    const heights = (what: string) => day.filter((r) => r[1] === what).map((r) => Number.parseFloat(r[3]))
+    const [highs, lows] = [heights('High'), heights('Low')]
+    expect(highs.length && lows.length, 'no high and low on the first day of the 7-day table').toBeTruthy()
+    // The range follows the moon: over a full nodal cycle the real one bottoms
+    // out at 6.9 ft and peaks at 16.9. Metres mislabelled read at most 5.2,
+    // feet converted twice at least 22, and the bounds sit in those two gaps.
+    const range = Math.max(...highs) - Math.min(...lows)
     expect(range).toBeGreaterThan(6)
     expect(range).toBeLessThan(20)
+  })
+
+  it("links the strip's theme with no utilities of its own to override the site's", () => {
+    // A utilities sheet linked after the site's puts its plain `px-5` and
+    // `hidden` after the site's `sm:px-6` and `print:block` in the same layer,
+    // so station pages lost their wider gutter and their printed link back.
+    const html = readFileSync(page('tide', 'seattle'), 'utf8')
+    const sheets = [...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map((m) => m[1])
+    const strip = sheets.find((href) => href.includes('station-strip'))
+    expect(strip, 'the station page links the strip stylesheet').toBeDefined()
+    const css = readFileSync(`${OUT}${strip}`, 'utf8')
+    expect(css).toContain('--sw-canvas')
+    expect(css).not.toMatch(/\.(px-5|hidden|block|flex|mt-3|text-sm)\s*\{/)
+    // The package's dark `:root` must not outrank the site's light paper.
+    expect(css).toMatch(/@media print\s*\{\s*:root\s*\{[^}]*color-scheme:\s*light/)
+    // The package's utilities are built into the site's own sheet instead.
+    const site = readFileSync(`${OUT}${sheets.find((href) => href.includes('/styles-'))}`, 'utf8')
+    expect(site).toContain('cursor-grabbing')
   })
 
   it('does not announce the wrong station to screen readers', () => {

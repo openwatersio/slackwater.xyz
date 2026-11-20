@@ -1,4 +1,9 @@
 @import "tailwindcss";
+/* The station strips' utilities, built here so they sort with the site's own;
+   the package's theme variables load on station pages only, from
+   `components/station-strip.css`. Its built code only: the source maps embed
+   the package's TypeScript, whose comments would add stray utilities. */
+@source "../node_modules/@slackwater/react/dist/*.js";
 
 /* ─────────────────────────────────────────────────────────────
    Slackwater brand tokens — lifted from the iOS app's Theme.swift

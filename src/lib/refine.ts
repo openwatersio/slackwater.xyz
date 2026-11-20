@@ -24,9 +24,9 @@ export type Refined = { start: Date; hours: number } & (
 )
 
 /**
- * The station-local day `now` falls in — exactly the day the page's day pager
- * calls Today, so the layer lands on the frame the reader is looking at
- * rather than a 24-hour window that straddles two of them.
+ * The station-local day `now` falls in — the day the strip labels Today, and
+ * the day the 7-day table's first rows belong to — so the layer replaces one
+ * whole day rather than a 24-hour window that straddles two of them.
  */
 export function refinementDay(station: BundledStation, now: Date): { start: Date; hours: number } {
   const start = dayStart(now, station.timezone)
@@ -52,21 +52,4 @@ export async function fetchRefinement(
   return station.kind === 'tide'
     ? { kind: 'tide', start, hours, ...(await fetchPortTides(station, start, hours, fetcher)) }
     : { kind: 'current', start, hours, ...(await fetchGateCurrent(station, start, hours, fetcher)) }
-}
-
-/**
- * The level at one instant, interpolated between DFO's fifteen-minute
- * samples, or undefined outside them: past the end of the day DFO sent there
- * is nothing to read, and extrapolating would invent a number.
- */
-export function levelAt(samples: Sample[], at: Date): number | undefined {
-  const t = at.getTime()
-  for (let i = 1; i < samples.length; i++) {
-    const a = samples[i - 1]
-    const b = samples[i]
-    if (t < a.time.getTime() || t > b.time.getTime()) continue
-    const span = b.time.getTime() - a.time.getTime()
-    return span ? a.level + ((b.level - a.level) * (t - a.time.getTime())) / span : a.level
-  }
-  return undefined
 }

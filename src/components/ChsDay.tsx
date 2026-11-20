@@ -4,6 +4,7 @@ import { SLACK_KNOTS } from '#/lib/predict'
 import { useLiveNow } from '#/lib/use-live-now'
 import { fetchBrowserChsDay, hasChsDay } from '#/lib/chs-day'
 import { hhmm, dayLabel } from '#/lib/format'
+import { publishedReadings } from '#/lib/readings'
 import type { Refined } from '#/lib/refine'
 import type { Station } from '#/lib/station'
 
@@ -15,30 +16,7 @@ export function ChsDay({ station }: { station: Station }) {
   const [cancel, setCancel] = useState<() => void>(() => () => {})
   const [moveTo, setMoveTo] = useState<{ time: number }>()
   const { now, live } = useLiveNow()
-  const readings = useMemo(() => {
-    if (!day) return
-    if (day.kind === 'tide') {
-      return {
-        kind: day.kind,
-        timeline: day.samples,
-        extremes: day.turns.map((e) => ({ ...e, low: !e.high, label: e.high ? 'High' : 'Low' })),
-      }
-    }
-    return {
-      kind: day.kind,
-      timeline: day.samples.map((p) => ({
-        time: p.time,
-        speed: p.level,
-        magnitude: p.magnitude,
-        direction: p.direction,
-      })),
-      events: day.events.map((e) => ({
-        time: e.time,
-        speed: e.level,
-        kind: e.kind === 'slack' ? 'slack' as const : e.kind === 'flood' ? 'maxFlood' as const : 'maxEbb' as const,
-      })),
-    }
-  }, [day])
+  const readings = useMemo(() => day && publishedReadings(day), [day])
 
   useEffect(() => {
     if (!live || !hasDay) return

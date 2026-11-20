@@ -1,4 +1,4 @@
-import './react-preview.css'
+import './station-strip.css'
 import { useMemo } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { CurrentStation, SlackwaterProvider, TideStation, type CardStation } from '@slackwater/react'
