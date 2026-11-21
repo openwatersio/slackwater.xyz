@@ -86,4 +86,8 @@ in [CONTRIBUTING.md](CONTRIBUTING.md). If you are an AI agent working in this re
 Every merge to `main` runs the checks and deploys the site. The same workflow rebuilds nightly so dates in prerendered pages stay current.
 
 This repo is public because a marketing site has nothing to hide, not because it is looking for
-contributors. Read it, borrow from it; there is no licence, so all rights are reserved.
+contributors.
+
+## License
+
+slackwater.xyz is © Open Water Software, LLC. The code is [MIT](LICENSE). The site's written content is [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Tide and current data on the station pages keeps each station's license from [the tide database](https://github.com/openwatersio/slackwater-database). Neither license covers the Slackwater and Open Waters names, logos, or app icons.
