@@ -137,3 +137,10 @@ export interface ChsStation extends StationIdentity {
  * Prediction narrows to `BundledStation`; a stub cannot be passed to it.
  */
 export type Station = BundledStation | ChsStation
+
+/**
+ * Whether Slackwater can predict the station: a bundled station carries its constants in the
+ * Slackwater database, which this site predicts from and the Open Waters tides API serves. A CHS
+ * station, derived gates included, is identity only.
+ */
+export const hasPredictions = (station: Station): station is BundledStation => station.source === 'bundled'

@@ -1,4 +1,4 @@
-import type { Kind, Station } from './station'
+import { hasPredictions, type Kind, type Station } from './station'
 
 const ORIGIN = 'https://slackwater.xyz'
 // The database's own section, as the OpenCPN dataset cites it: the sources carry different
@@ -7,7 +7,19 @@ const LICENSE = 'https://github.com/openwatersio/slackwater-database#license'
 
 /** One station page, as `/stations.json` lists it. */
 export interface IndexedStation {
+  /**
+   * The station's ID in the Slackwater database: `noaa/9447130`, `chs-dodd-narrows`. The Open
+   * Waters tides API and `@slackwater/react` take it with the endpoint or component for its
+   * `kind`, tide or current. Unique only together with `kind`.
+   */
+  id: string
   kind: Kind
+  /**
+   * Whether Slackwater predicts it (`hasPredictions`). False for a CHS station, whose constants
+   * the database may not re-serve, and for a derived gate, which has no station of its own, so a
+   * widget given its ID shows only why it has no curve.
+   */
+  predictions: boolean
   /** The station page's path, the same string the sitemaps list. */
   path: string
   name: string
@@ -39,6 +51,13 @@ const round = (degrees: number) => Math.round(degrees * 1e4) / 1e4
  * attribution, so a station without one fails the build rather than publish without it.
  */
 export function buildStationIndex(stations: Station[], attributionOf: (id: string) => string): string {
+  // A consumer keys a station on its kind and ID, so one on two routes would lose one of them.
+  const seen = new Set<string>()
+  for (const s of stations) {
+    const key = `${s.kind}:${s.id}`
+    if (seen.has(key)) throw new Error(`station-index: ${key} is on more than one route`)
+    seen.add(key)
+  }
   const attributions: string[] = []
   const position = new Map<string, number>()
   const noticeOf = (s: Station) => {
@@ -52,7 +71,9 @@ export function buildStationIndex(stations: Station[], attributionOf: (id: strin
     return at
   }
   const listed = stations.map((s) => ({
+    id: s.id,
     kind: s.kind,
+    predictions: hasPredictions(s),
     path: s.path,
     name: s.name,
     latitude: round(s.latitude),

@@ -194,7 +194,12 @@ try {
   assert.ok(license, 'stations.json names its licence')
   // The served index and the served sitemaps list the same pages, so a stale file cannot pass.
   assert.deepEqual(new Set(stations.map((s) => s.path)), stationLocs, 'stations.json lists the sitemaps\' station pages')
-  for (const s of stations) assert.ok(attributions[s.attribution]?.trim(), `stations.json: ${s.path} carries its attribution`)
+  for (const s of stations) {
+    assert.ok(attributions[s.attribution]?.trim(), `stations.json: ${s.path} carries its attribution`)
+    // aiscast hands the ID to @slackwater/react, so an index served without IDs would draw nothing.
+    assert.ok(typeof s.id === 'string' && s.id.trim(), `stations.json: ${s.path} carries its ID`)
+    assert.equal(typeof s.predictions, 'boolean', `stations.json: ${s.path} says whether it is predicted`)
+  }
   const key = await get(`/${INDEXNOW_KEY}.txt`)
   assert.equal(key.status, 200, 'IndexNow key file')
   assert.equal((await key.text()).trim(), INDEXNOW_KEY, 'IndexNow key file')

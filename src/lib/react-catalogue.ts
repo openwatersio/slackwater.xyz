@@ -8,7 +8,7 @@ import type {
 } from '@slackwater/react'
 import { loadCatalogue } from './catalogue'
 import { distanceNm } from './nearby'
-import type { Kind, Station } from './station'
+import { hasPredictions, type Kind, type Station } from './station'
 import type { SourceStation } from './react-source'
 
 const db = await loadStations()
@@ -22,7 +22,7 @@ function metadata(station: Station): SourceStation {
   if (held) return held
   const r = db.byId(station.id)
   if (!r || r.license?.commercial_use !== true) throw new Error('Station is not available in the commercial catalogue.')
-  const available = station.source === 'bundled'
+  const available = hasPredictions(station)
   const summary = {
     id: station.id,
     kind: station.kind,
@@ -165,7 +165,7 @@ export async function listReactStations({
     throw new Error('Invalid bounding box.')
   const rows = stations
     .filter((s) => {
-      if (predictionsOnly && s.source !== 'bundled') return false
+      if (predictionsOnly && !hasPredictions(s)) return false
       if (s.kind !== kind || (query && !`${s.name} ${s.region ?? ''}`.toLocaleLowerCase().includes(query))) return false
       if (!box) return true
       const [west, south, east, north] = box
