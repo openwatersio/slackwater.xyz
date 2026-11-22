@@ -152,7 +152,7 @@ export function Directory({ kind, page }: { kind: Kind; page: Page }) {
  * Atmospheric Administration" wants an article the data cannot supply.
  */
 function PlaceIntro({ kind, index }: { kind: Kind; index: PlaceIndex }) {
-  const { count, sources, other } = index
+  const { count, sources, other, kingTides } = index
   const what = kind === 'tide' ? 'tide' : 'tidal current'
   return (
     <>
@@ -173,6 +173,13 @@ function PlaceIntro({ kind, index }: { kind: Kind; index: PlaceIndex }) {
           `Slackwater predicts no ${kind === 'tide' ? 'tidal currents' : 'tides'} here.`
         )}
       </p>
+      {kingTides && (
+        <p>
+          <a href={kingTides} className="text-sw-paper/90 underline hover:text-sw-leaf">
+            {`${index.name} king tide dates, times and heights`}
+          </a>
+        </p>
+      )}
     </>
   )
 }

@@ -11,7 +11,7 @@ describe('shared site footer', () => {
     const footer = html.match(/<footer[\s\S]*?<\/footer>/)![0]
     const APP_SOURCE = 'https://github.com/openwatersio/slackwater-ios'
     const groups = {
-      Explore: ['/stations/', '/learn/tides/', '/learn/slack-water/'],
+      Explore: ['/stations/', '/king-tides/', '/learn/tides/', '/learn/slack-water/'],
       'The app': ['/pricing/', '/about/'],
       Compare: ['/compare/slackwater-vs-tide-alert/', '/compare/best-tide-and-current-apps-iphone/'],
       Help: ['/support/', '/contact/', '/privacy/'],

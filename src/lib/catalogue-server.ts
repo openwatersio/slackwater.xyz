@@ -1,5 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { loadCatalogue, loadMoved, loadWithheld } from './catalogue'
+import { KING_TIDE_REGIONS, kingTidePath } from './king-tide-regions'
+import { kingTideHub, kingTideRegionPage, type KingTidePage } from './king-tides'
 import { bearing, distanceNm, neighbourMap } from './nearby'
 import { PASS_GUIDES, type PassGuide } from './passes'
 import { kindRoot, nearestPlace, parentPath, placeTree, type Place } from './places'
@@ -104,6 +106,8 @@ export interface PlaceIndex {
   sources: string[]
   /** The same place's page for the other kind, where it has one. */
   other?: { href: string; count: number }
+  /** The place's king tide page, where it has one. */
+  kingTides?: string
   /** Pages below this one. Empty on a page that holds stations and nothing else. */
   places: PlaceLink[]
   /** The stations that live on this page rather than on a child of it. */
@@ -205,11 +209,13 @@ function placeIndex(kind: Kind, path: string): PlaceIndex | undefined {
   const tally = sources(kind).get(path) ?? new Map<string, number>()
   const there = kindRoot(otherKind(kind)) + path.slice(kindRoot(kind).length)
   const other = root ? undefined : trees(otherKind(kind)).get(there)
+  const king = KING_TIDE_REGIONS.find((r) => r.directory === path)
   return {
     ...(place ? { name: place.name, title: place.title, up: trail.at(-1) } : {}),
     crumbs: trail,
     sources: [...tally].sort(([, a], [, b]) => b - a).map(([name]) => name),
     ...(other ? { other: { href: other.path, count: other.count } } : {}),
+    ...(king ? { kingTides: kingTidePath(king) } : {}),
     places: below.places
       .map((p) => ({ href: p.path, name: p.name, count: p.count, ...(p.continent ? { continent: p.continent } : {}) }))
       .sort(byName),
@@ -385,3 +391,17 @@ export const slackGuideData = createServerFn({ method: 'GET' }).handler((): Slac
     SERVER_NOW,
   )
 })
+
+/** The king tide hub, or one state's page by slug. Neither reads a clock. */
+export const kingTidePage = createServerFn({ method: 'GET' })
+  .validator((data: { slug?: string }) => data)
+  .handler(({ data: { slug } }): KingTidePage | undefined => {
+    const get = (path: string) => {
+      const s = index().byPath.get(path)
+      if (s?.source !== 'bundled') throw new Error(`king tides: no bundled station at ${path}`)
+      return s
+    }
+    if (slug === undefined) return kingTideHub(get)
+    const region = KING_TIDE_REGIONS.find((r) => r.slug === slug)
+    return region && kingTideRegionPage(region, get)
+  })

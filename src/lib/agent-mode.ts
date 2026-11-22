@@ -1,5 +1,6 @@
 import { COMPARE_PATHS } from './compare'
 import { ORGANIZATION_DESCRIPTION } from './json-ld'
+import { KING_TIDE_PATHS } from './king-tide-regions'
 import { APP_STORE, APP_STORE_ID, MINIMUM_IOS, TCD } from './links'
 
 const ORIGIN = 'https://slackwater.xyz'
@@ -7,7 +8,7 @@ const ORIGIN = 'https://slackwater.xyz'
 /** Each page with a Markdown twin, as [HTML path, Markdown path]. */
 export const MARKDOWN_TWINS: [string, string][] = [
   ['/', '/index.md'],
-  ...['/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/boating/', '/kayak/', '/tide-pools/', '/stations/', '/learn/tides/', '/learn/slack-water/', ...COMPARE_PATHS].map(
+  ...['/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/boating/', '/kayak/', '/tide-pools/', '/stations/', '/learn/tides/', '/learn/slack-water/', ...KING_TIDE_PATHS, ...COMPARE_PATHS].map(
     (path): [string, string] => [path, `${path.slice(0, -1)}.md`],
   ),
 ]
@@ -45,11 +46,13 @@ export const AGENT_VIEW = {
     'High and low tide times and heights for tide stations worldwide, with a 7-day table on each station page.',
     'Slack water and maximum flood and ebb times for tidal current stations in the US and Canada.',
     'Station pages by country and state or province, with nearby stations.',
+    'King tide dates, times and heights for Washington, Oregon, California and Florida, at /king-tides/.',
     'Markdown versions of the product, policy, comparison and learning pages.',
     'A free tide and current station file for OpenCPN.',
   ],
   limitations: [
     'Predictions are computed from harmonic constituents and are not observations; weather and river flow change real conditions. Not for navigation.',
+    "The king tide pages print NOAA CO-OPS's published predictions, not Slackwater's, and can differ from the station pages by a few tenths of a foot.",
     'Canadian Hydrographic Service predictions load in the browser from DFO and are absent from raw HTML and Markdown.',
     'Station pages are HTML only. Find a station through /stations/ or /stations.json rather than guessing its URL.',
     'There is no search, booking or account API.',

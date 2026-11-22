@@ -28,7 +28,7 @@ npm run deploy  # build, then wrangler deploy with nitro's generated config
 | `src/components/` | Presentational React. No data fetching. |
 | `src/content/` | Markdown rendered as pages: support, privacy, accuracy, the comparisons and OpenCPN. `passes/` holds the CHS pass guides, one per station id. |
 | `src/styles.css` | Colour tokens. Components reference these, never a literal hex. |
-| `src/data/` | Bundled harmonic constituents for Deception Pass, the fixture `currents.test.ts` checks `predict.ts` against. |
+| `src/data/` | Bundled harmonic constituents for Deception Pass, the fixture `currents.test.ts` checks `predict.ts` against, and NOAA's saved high-tide predictions for the king tide pages. |
 | `wrangler.jsonc` | Worker *source* config. Not the deployable one — see the gotchas. |
 
 ## Shared station preview
@@ -59,6 +59,17 @@ Production station pages draw their day chart with the same `TideScrubber` and `
 - `src/styles.css` scans the package with `@source`, so its utilities sort with the site's own in one sheet; a second utilities sheet linked after it would override the site's `sm:` and `print:` rules. `station-strip.css` carries only the package's theme variables and plain classes, and `directoryHead` links it on station pages only, not on the place pages that share their route.
 - `vite.config.ts` marks `lazy` pure so the package's unused station-page map, and MapLibre with it, drops out of the client bundle (openwatersio/slackwater#547).
 - The strip components import `@slackwater/react`'s own `@slackwater/engine` (see the engine rule below) and `astronomy-engine`. The station page's code is in the entry chunk every page loads, so they ship there.
+
+## King tide pages
+
+`/king-tides/` and a page per state are built from the stations and seasons in `src/lib/king-tide-regions.ts`. No dates are typed by hand. A page lists each of its state's `seasons` by date and reads no clock: no "next", "now" or "passed", which a prerendered page can't keep true.
+
+- The heights and times are NOAA's predictions, saved in `src/data/noaa-king-tides.json`, not this site's. It is the one place the site prints another publisher's predictions. Slackwater's engine disagrees with NOAA by up to 0.4 ft on some West Coast highs ([slackwater-database#428](https://github.com/openwatersio/slackwater-database/issues/428)), which is enough to rank the wrong spring tide highest, and these pages are read against NOAA's. Switch them to `predict.ts` once the engine agrees. NOAA's predictions are public domain; the pages credit NOAA and say the dates are Slackwater's choice, since NOAA's terms forbid presenting modified data as official.
+- A king tide is ranked on high-water level. Range and lunar phase both pick the wrong dates on some coasts (South Florida's highest water is in fall, its widest range in winter), so use neither.
+- Windows count tidal days. Civil days lose a night high as it crosses midnight, which Key West's do.
+- Seasons don't roll over by themselves. Each year, before a state's season, add its starting year to `seasons`, and drop any that is over and no longer wanted, keeping at least one. Then run `node tools/fetch-noaa-king-tides.mjs` and `npm test`. The tool refuses unreadable answers, answers that stop short of the season, and answers where two highs or two lows run together. It cannot see a high and the low beside it both missing. The test checks that each season came from the station its page links to.
+- A new state adds an entry to `KING_TIDE_REGIONS`. Its route, twin, sitemap entry and directory link follow from that. Run the fetch tool, add the state's name to `llms.txt` and the agent view, which the test checks, and commit the rebuilt `public/_redirects`.
+- A `@slackwater/database` bump can move a listed station's path or NOAA row. The test and the build both fail when it does; re-run the fetch tool and fix the paths in `king-tide-regions.ts`.
 
 ## Testing
 

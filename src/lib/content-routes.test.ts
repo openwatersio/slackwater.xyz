@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { COMPARE_PATHS } from './compare'
 import { ORGANIZATION } from './json-ld'
+import { KING_TIDE_PATHS, KING_TIDE_REGIONS, kingTidePath } from './king-tide-regions'
 import { APP_STORE_REVIEW, TCD } from './links'
 import counts from '../content/opencpn-counts.json' with { type: 'json' }
 // @ts-expect-error a plain .mjs tool shared with tools/count-opencpn.mjs
@@ -125,7 +126,7 @@ describe('structured data', () => {
     new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 
   it('dates the pages that print no date by their sitemap lastmod', () => {
-    for (const path of ['/learn/tides/', '/accuracy/']) {
+    for (const path of ['/learn/tides/', '/accuracy/', ...KING_TIDE_PATHS]) {
       const [article] = blocks(path)
       expect(article['@type'], path).toBe('Article')
       expect(article.dateModified, path).toBe(`${lastmod(path)}T12:00:00Z`)
@@ -150,6 +151,12 @@ describe('structured data', () => {
     expect(dataset.distribution.contentUrl).toBe(TCD.url)
     // React separates adjacent text with `<!-- -->`.
     expect(readFileSync('.output/public/opencpn/index.html', 'utf8').replaceAll('<!-- -->', '')).toContain(`Updated ${shown(dataset.dateModified.slice(0, 10))}`)
+  })
+
+  it("links each state's king tide page from that state's tide directory", () => {
+    for (const region of KING_TIDE_REGIONS) {
+      expect(readFileSync(`.output/public${region.directory}index.html`, 'utf8'), region.slug).toContain(`href="${kingTidePath(region)}"`)
+    }
   })
 
   it('lists the stations hub and leaves support and privacy unmarked', () => {
@@ -204,7 +211,7 @@ describe('agent discovery', () => {
 
   it('routes negotiated documents through the Worker before static assets', () => {
     const config = JSON.parse(readFileSync('.output/server/wrangler.json', 'utf8'))
-    for (const path of ['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/']) {
+    for (const path of ['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/king-tides', '/king-tides/*']) {
       expect(config.assets.run_worker_first).toContain(path)
     }
   })

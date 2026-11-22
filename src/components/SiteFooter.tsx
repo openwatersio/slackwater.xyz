@@ -17,6 +17,7 @@ export function SiteFooter() {
               title: 'Explore',
               links: [
                 ['Stations', '/stations/'],
+                ['King tide dates', '/king-tides/'],
                 ['How tides work', '/learn/tides/'],
                 ['What is slack water?', '/learn/slack-water/'],
               ],
