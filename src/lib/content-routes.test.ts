@@ -94,11 +94,12 @@ describe('the OpenCPN comparison', () => {
     const { asOf, tide, current } = counts.retired
     const day = new Date(`${asOf}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
     expect(markdown).toContain(`As of ${day}, OpenCPN's 2021 file still lists ${n(tide.count)} tide stations and ${n(current.count)} current stations that NOAA no longer publishes predictions for.`)
+    expect(markdown).toContain(`Of those current stations, ${n(current.count - counts.usCurrents.missingRetired)} also appear in this Slackwater release.`)
     const states = current.states as Record<string, number>
-    expect(markdown).toContain(`${n(tide.states.Alaska)} tide stations in Alaska and ${n(states['New Jersey'] + states.Delaware)} current stations in New Jersey and Delaware.`)
+    expect(markdown).toContain(`${n(tide.states.Alaska)} tide stations in Alaska and ${n(states.Georgia)} current stations in Georgia.`)
     // The sentence names the largest groups, so they must still be the largest.
     expect(Object.keys(tide.states)[0]).toBe('Alaska')
-    expect(Object.keys(states).slice(0, 2).sort()).toEqual(['Delaware', 'New Jersey'])
+    expect(Object.keys(states)[0]).toBe('Georgia')
   })
 
   it('quotes the world file stations Slackwater has nothing near, and the currents both carry', () => {

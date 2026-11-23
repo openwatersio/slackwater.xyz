@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { loadStations } from '@slackwater/database'
 import { loadCatalogue, loadMoved, loadWithheld, seasonalRatio } from './catalogue'
 import { predictSeries, tideExtremes } from './predict'
@@ -15,8 +16,8 @@ describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
   it('yields every predictable station the database routes and the quality pass accepts, plus the CHS gates and ports', () => {
-    expect(all.length).toBe(9528)
-    expect(all.filter((s) => s.kind === 'tide').length).toBe(6948)
+    expect(all.length).toBe(9526)
+    expect(all.filter((s) => s.kind === 'tide').length).toBe(6946)
     expect(all.filter((s) => s.kind === 'current').length).toBe(2580)
   })
 
@@ -24,7 +25,7 @@ describe('loadCatalogue', () => {
   it('carries the seasonal ratio for the stations the database labels, and nothing else', () => {
     // The verdict is the database's (`quality.seasonal_dominant`) and the number
     // is the site's, used only to pick how loudly a page speaks. 415 of the
-    // 6,948 tide pages carry it and no current page does — currents are
+    // 6,946 tide pages carry it and no current page does — currents are
     // measured in knots against no datum, so the question does not arise.
     const seasonal = all.filter((s) => s.source === 'bundled' && s.seasonal !== undefined)
     expect(seasonal).toHaveLength(415)
@@ -311,6 +312,10 @@ describe('loadCatalogue', () => {
     expect(moved.get('/tides/us/nc/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck/')
     expect(moved.get('/tides/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck/')
     expect(moved.get('/tides/us/nc/duck-pier/')).toBe('/tides/us/nc/duck/')
+    expect(moved.get('/tides/cn/kaohsiung-takao/')).toBe('/tides/tw/kaohsiung/')
+    expect(moved.get('/tides/cn/keelung-taiwan/')).toBe('/tides/tw/keelung/')
+    expect(moved.get('/tides/kaohsiung-takao/')).toBe('/tides/tw/kaohsiung/')
+    expect(moved.get('/tides/keelung-taiwan/')).toBe('/tides/tw/keelung/')
     const published = new Set(all.map((s) => s.path))
     expect([...moved.keys()].filter((address) => published.has(address))).toEqual([])
   })
@@ -490,7 +495,7 @@ describe('chart datum', () => {
   it('merges the same Canadian tide ports the seam bounds were measured on', () => {
     // `SEAM_TWIN_MS`, `SEAM_RAMP_MS` and `SEAM_STEP_LIMIT_FT` in `readings.ts`
     // were measured on exactly these ports, with exactly these predictions.
-    // The fingerprint covers each merged port's id, constituents and datum
+    // The fingerprint covers both engines, the strip version and each merged port's id, constituents and datum
     // offset (its reference's, for a subordinate), so a release that merges
     // ports in or out, or corrects one's curve as slackwater-database#427
     // asks for Mill Bay, fails here.
@@ -498,13 +503,19 @@ describe('chart datum', () => {
       .filter((s): s is BundledStation => s.kind === 'tide' && s.source === 'bundled' && !!s.chs)
       .map((s) => JSON.stringify([s.id, s.offset ?? 0, s.constituents, s.tideReduction ?? null]))
       .sort()
+    const engine = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'))
+      .dependencies['@slackwater/engine'] as string
+    const lock = JSON.parse(readFileSync(new URL('../../package-lock.json', import.meta.url), 'utf8')).packages
+    const strip = lock['node_modules/@slackwater/react'].version as string
+    const stripEngine = (lock['node_modules/@slackwater/react/node_modules/@slackwater/engine']
+      ?? lock['node_modules/@slackwater/engine']).version as string
     expect(
-      createHash('sha256').update(fields.join('\n')).digest('hex').slice(0, 16),
-      'The merged Canadian tide ports changed: re-run `node tools/measure-chs-seam.mjs`. If the numbers moved, ' +
+      createHash('sha256').update([engine, strip, stripEngine, ...fields].join('\n')).digest('hex').slice(0, 16),
+      'The merged Canadian tide ports, prediction engine or strip changed: re-run `node tools/measure-chs-seam.mjs`. If the numbers moved, ' +
         'update the SEAM_* constants and their comments in src/lib/readings.ts, the ease wording in ' +
         "src/lib/copy.ts's refinedCredit, the seam sentence in src/content/privacy.md, and the Station strips " +
         'section of CONTRIBUTING.md. Then update this fingerprint.',
-    ).toBe('e46157f632ba7cc6')
+    ).toBe('87c38cbaaaeec3f9')
   })
 
   it('puts Seattle low water above the datum a chart would quote', () => {
