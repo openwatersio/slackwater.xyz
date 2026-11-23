@@ -13,7 +13,7 @@ if (!base) {
   base = String(await worker.url)
 }
 try {
-  const documents = ['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/stations/', '/learn/tides/', '/learn/slack-water/', '/compare/best-tide-and-current-apps-iphone/', '/alternatives/tide-guide/']
+  const documents = ['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/stations/', '/king-tides/', '/king-tides/washington/', '/learn/tides/', '/learn/slack-water/', '/compare/best-tide-and-current-apps-iphone/', '/alternatives/tide-guide/']
   let checks = 0
   async function get(path, accept, method = 'GET') {
     const response = await fetch(new URL(path, base), { signal: AbortSignal.timeout(15000), method, headers: accept ? { Accept: accept } : {} })
@@ -25,7 +25,7 @@ try {
     const footer = html.match(/<footer[\s\S]*?aria-label="Footer"[\s\S]*?<\/footer>/)?.[0]
     assert.ok(footer, `${path}: shared footer`)
     assert.equal([...html.matchAll(/aria-label="Footer"/g)].length, 1, `${path}: one footer navigation`)
-    for (const href of ['/stations/', '/learn/tides/', '/learn/slack-water/', '/pricing/', '/about/', '/support/', '/contact/', '/privacy/', '/opencpn/']) {
+    for (const href of ['/stations/', '/king-tides/', '/learn/tides/', '/learn/slack-water/', '/pricing/', '/about/', '/support/', '/contact/', '/privacy/', '/opencpn/']) {
       assert.ok(footer.includes(`href="${href}"`), `${path}: footer ${href}`)
     }
     assert.ok(footer.includes('Not for navigation.'), `${path}: safety notice`)

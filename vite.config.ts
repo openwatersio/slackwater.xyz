@@ -8,6 +8,7 @@ import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 import { loadCatalogue, stationAttribution } from './src/lib/catalogue'
+import { KING_TIDE_PATHS, KING_TIDE_REGIONS } from './src/lib/king-tide-regions'
 import { kindRoot, placeTree } from './src/lib/places'
 import { buildSitemaps, STATIC_PATHS } from './src/lib/sitemap'
 import { buildRedirects } from './src/lib/redirects'
@@ -63,6 +64,25 @@ const PAGE_SOURCES: Record<string, string[]> = {
   '/learn/tides/': ['./src/routes/learn.tides.tsx'],
   '/learn/slack-water/': ['./src/routes/learn.slack-water.tsx', './src/lib/slack-guide.ts', './src/components/SlackTideChart.tsx'],
   '/stations/': ['./src/routes/stations.index.tsx'],
+  // The state directories that link to a king tide page, which the regions file decides.
+  ...Object.fromEntries(KING_TIDE_REGIONS.map((r) => [r.directory, [...PLACE_SOURCES, './src/lib/king-tide-regions.ts']])),
+  ...Object.fromEntries(
+    KING_TIDE_PATHS.map((path) => [
+      path,
+      [
+        './src/data/noaa-king-tides.json',
+        './src/lib/king-tides.ts',
+        './src/lib/king-tide-regions.ts',
+        './src/lib/format.ts',
+        './src/lib/catalogue-server.ts',
+        './src/components/SituationPage.tsx',
+        './src/routes/-king-tides.ts',
+        './src/routes/king-tides.index.tsx',
+        './src/routes/king-tides.$region.tsx',
+        './package.json',
+      ],
+    ]),
+  ),
 }
 const STATION_PATHS = new Set(catalogue.map((s) => s.path))
 const commitDate = (files: string[]) =>
@@ -142,6 +162,7 @@ export default defineConfig({
         ...stationPages,
         ...comparePages,
         ...placePages,
+        ...KING_TIDE_PATHS.flatMap((path) => [{ path }, { path: `${path.slice(0, -1)}.md` }]),
         // Markdown twins: prerendered so the Worker serves files rather than
         // recomputing the slack-water guide and station hub on request.
         ...['/index.md', '/opencpn.md', '/stations.md', '/learn/tides.md', '/learn/slack-water.md'].map((path) => ({ path })),
