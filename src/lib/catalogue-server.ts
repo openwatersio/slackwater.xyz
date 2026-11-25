@@ -2,7 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { loadCatalogue, loadMoved, loadWithheld } from './catalogue'
 import { KING_TIDE_REGIONS, kingTidePath } from './king-tide-regions'
 import { kingTideHub, kingTideRegionPage, type KingTidePage } from './king-tides'
-import { bearing, distanceNm, neighbourMap } from './nearby'
+import { bearing, distanceNm, nearby } from './nearby'
 import { PASS_GUIDES, type PassGuide } from './passes'
 import { kindRoot, nearestPlace, parentPath, placeTree, type Place } from './places'
 import type { Kind, Station } from './station'
@@ -120,10 +120,8 @@ export interface PlaceIndex {
  * One kind's stations, and the place tree over them, built once each.
  *
  * Both are the same for every place page the prerender asks for, and
- * rebuilding the tree per page walked the whole catalogue once a page. Same
- * reason `neighbours` below is cached, and the same lesson: a per-request
- * scan of the catalogue is what put the first prerender past three seconds a
- * page.
+ * rebuilding the tree per page walked the whole catalogue once a page, which
+ * put the first prerender past three seconds a page.
  */
 const memoByKind = <T,>(build: (kind: Kind) => T) => {
   const cache = new Map<Kind, T>()
@@ -233,15 +231,17 @@ function placeIndex(kind: Kind, path: string): PlaceIndex | undefined {
  * The nearest stations of the same kind, for the "Nearby" list on a station page.
  *
  * Server-side for the same reason as everything else here: answering it needs
- * the whole catalogue in memory, and the page needs only six names. The
- * neighbour map is built once on first use and reused for every page after.
- * Ranking the catalogue per request instead put every one of the 5,624
- * prerendered renders past three seconds and broke the prerender outright.
+ * the whole catalogue in memory, and the page needs only six names.
+ *
+ * One scan of the station's own kind per request, against the memoised
+ * `stationsOfKind` list, NOT an all-pairs map built on first use. The map put
+ * the whole cost on the first station page each Worker isolate served, and
+ * when the corpus grew that request ran out of CPU and Cloudflare answered
+ * it with error 1102. Nor a per-request copy of the catalogue: spreading it
+ * into a fresh array and ranking it for every page is what once broke the
+ * prerender.
  */
-const neighbours = (() => {
-  let cache: Map<string, Station[]> | undefined
-  return () => (cache ??= neighbourMap([...index().bySlug.values()]))
-})()
+const neighbours = (station: Station) => nearby(station, stationsOfKind(station.kind))
 
 /**
  * A neighbour carries its position and its leg from the page's station.
@@ -259,8 +259,8 @@ export interface NearbyRow extends StationRow {
   bearing: number
 }
 
-function nearby(station: Station): NearbyRow[] {
-  return (neighbours().get(station.id) ?? []).map((s) => ({
+function nearbyRows(station: Station): NearbyRow[] {
+  return neighbours(station).map((s) => ({
     ...toRow(s),
     latitude: s.latitude,
     longitude: s.longitude,
@@ -292,7 +292,7 @@ export const resolvePath = createServerFn({ method: 'GET' })
     const station = index().byPath.get(path)
     if (station?.kind === kind) {
       const guide = PASS_GUIDES.get(station.id)
-      return { page: 'station', station, nearby: nearby(station), crumbs: crumbs(kind, path), ...(guide ? { guide } : {}) }
+      return { page: 'station', station, nearby: nearbyRows(station), crumbs: crumbs(kind, path), ...(guide ? { guide } : {}) }
     }
     const place = placeIndex(kind, path)
     if (place) return { page: 'place', path, index: place }

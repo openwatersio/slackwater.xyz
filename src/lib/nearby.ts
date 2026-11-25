@@ -28,9 +28,9 @@ export function distanceNm(a: Positioned, b: Positioned): number {
  * followed looking for a rate.
  */
 export function nearby(station: Station, all: Station[], k = 6): Station[] {
-  // Top-k by insertion rather than sorting every candidate: this runs once per
-  // station while building the whole neighbour map, so the difference between
-  // O(n) and O(n log n) per station is real at 5,624 stations.
+  // Top-k by insertion rather than sorting every candidate: this runs on every
+  // station page and once per page in the prerender, so the difference between
+  // O(n) and O(n log n) per station adds up across the catalogue.
   const best: { s: Station; d: number }[] = []
   for (const s of all) {
     if (s.kind !== station.kind || s.id === station.id) continue
@@ -42,24 +42,6 @@ export function nearby(station: Station, all: Station[], k = 6): Station[] {
     if (best.length > k) best.pop()
   }
   return best.map((b) => b.s)
-}
-
-/**
- * Every station's neighbours, computed in one pass.
- *
- * Built once and reused, NOT recomputed per page. Doing it per render spread
- * the whole catalogue into a fresh array and ranked it again for each of the
- * 5,624 prerendered pages, which pushed page renders past three seconds and
- * broke the prerender's Worker connections outright on CI.
- *
- * ponytail: still O(n^2) distance calculations, ~13M for the current corpus,
- * which takes about a second once. If the corpus grows an order of magnitude,
- * bucket by whole degrees and compare only neighbouring cells.
- */
-export function neighbourMap(all: Station[], k = 6): Map<string, Station[]> {
-  const map = new Map<string, Station[]>()
-  for (const s of all) map.set(s.id, nearby(s, all, k))
-  return map
 }
 
 /**
