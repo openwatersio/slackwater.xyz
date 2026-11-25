@@ -13,13 +13,12 @@ import {
   computedReadings, joinInView, publishedReadings, seamFor, spliceReadings, tidyLayer, turnKind, type Published, type TurnKind,
 } from '#/lib/readings'
 import { fetchRefinement, type Refined } from '#/lib/refine'
+import { mergeWindows } from '#/lib/chs-window'
 import type { BundledStation, ChsStation, Station } from '#/lib/station'
 import { instantPath } from '#/routes/instant-url'
 
 /**
- * One CHS-only station's day, once DFO has sent it back. The strip draws
- * exactly that day, bounded: DFO sent a fixed window and nothing past either
- * end of it is drawn or extrapolated.
+ * A CHS-only station's published predictions, bounded by the fetched samples.
  */
 export type Curve = Published
 
@@ -100,6 +99,7 @@ interface Props {
  */
 export function StationPage({ station, now, selectedAt, live = false, settled = live, nearby = [], crumbs = [], guide, refined: initialRefined, fetched }: Props) {
   const [curve, setCurve] = useState<Curve | undefined>(fetched)
+  const more = useChsWindows(station, curve, setCurve, Boolean(fetched))
   const layer = useRefinement(station, now, settled, initialRefined)
   // The moment the page is about: the shared one, then wherever the reader
   // rests the strip, or undefined while it follows the reader's clock. The
@@ -115,7 +115,10 @@ export function StationPage({ station, now, selectedAt, live = false, settled = 
   const moment = {
     now: live ? now.getTime() : undefined,
     selected: about?.getTime(),
-    onMove: follow.onMove,
+    onMove: (time: number) => {
+      follow.onMove(time)
+      more.move(time)
+    },
     onNow: (time: number) => {
       // DFO's day can't reach now from a shared moment on another day. Now
       // is then the station's own page, loaded afresh: its request for
@@ -162,6 +165,8 @@ export function StationPage({ station, now, selectedAt, live = false, settled = 
                 ? datumLine(station)
                 : `Predictions ${provenance(station)}, fetched from DFO by your browser.`}
             </p>
+            {more.loading && <p role="status" className="mt-3 text-sm text-sw-steel">Downloading more predictions from the Canadian Hydrographic Service… <button type="button" onClick={more.cancel} className="underline">Cancel</button></p>}
+            {more.error && <p role="status" className="mt-3 text-sm text-sw-steel">{more.error} <button type="button" onClick={more.retry} className="underline">Retry</button></p>}
           </div>
         )
       ) : (
@@ -565,6 +570,82 @@ function Facts({ station }: { station: Station }) {
  *
  * The panel describes coverage without naming the app's per-gate mechanism (#44); the curve caption credits the official predictions fetched by the browser.
  */
+function waitForRequest(signal: AbortSignal, ms: number) {
+  return new Promise<void>((resolve, reject) => {
+    if (signal.aborted) return reject(new DOMException('Aborted', 'AbortError'))
+    const abort = () => { clearTimeout(timer); reject(new DOMException('Aborted', 'AbortError')) }
+    const timer = setTimeout(() => { signal.removeEventListener('abort', abort); resolve() }, ms)
+    signal.addEventListener('abort', abort, { once: true })
+  })
+}
+
+function useChsWindows(station: Station, curve: Curve | undefined, setCurve: (curve: Curve) => void, provided: boolean) {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string>()
+  const actions = useRef({ move: (_time: number) => {}, cancel: () => {}, retry: () => {} })
+  const ready = Boolean(curve)
+  useEffect(() => {
+    if (!curve || station.source !== 'chs' || provided) return
+    const stop = new AbortController()
+    let current = curve
+    let busy = false
+    let active: 'forward' | 'backward' | undefined
+    let cancelled = false
+    let failed: 'forward' | 'backward' | undefined
+    let firstRequest = true
+    const queue: ('forward' | 'backward')[] = ['forward', 'backward', 'forward']
+    const signalled: typeof fetch = async (url, options) => {
+      await waitForRequest(stop.signal, firstRequest ? 10_000 : 2100)
+      firstRequest = false
+      return fetch(url, { ...options, signal: stop.signal })
+    }
+    const run = async () => {
+      if (busy || cancelled || stop.signal.aborted || !queue.length) return
+      busy = true
+      const direction = queue.shift()!
+      active = direction
+      setLoading(true)
+      setError(undefined)
+      const first = current.samples[0].time.getTime()
+      const last = current.samples[current.samples.length - 1].time.getTime()
+      const start = new Date(direction === 'forward' ? last : first - 24 * 3600_000)
+      try {
+        const next: Curve = station.kind === 'tide'
+          ? { kind: 'tide', ...(await fetchPortTides(station, start, 24, signalled)) }
+          : { kind: 'current', ...(await fetchGateCurrent(station, start, 24, signalled)) }
+        if (stop.signal.aborted) return
+        current = mergeWindows(current, next)
+        setCurve(current)
+      } catch (e) {
+        if (stop.signal.aborted) return
+        failed = direction
+        queue.length = 0
+        setError(e instanceof Error ? e.message : 'More predictions could not be loaded.')
+      } finally {
+        busy = false
+        active = undefined
+        if (!stop.signal.aborted) setLoading(false)
+      }
+      if (!failed) void run()
+    }
+    actions.current = {
+      move: (time) => {
+        if (failed || cancelled || !current.samples.length) return
+        const first = current.samples[0].time.getTime()
+        const last = current.samples[current.samples.length - 1].time.getTime()
+        const direction = time - first < 3 * 3600_000 ? 'backward' : last - time < 3 * 3600_000 ? 'forward' : undefined
+        if (direction && direction !== active && !queue.includes(direction)) { queue.unshift(direction); void run() }
+      },
+      cancel: () => { cancelled = true; queue.length = 0; stop.abort(); setLoading(false) },
+      retry: () => { if (failed) { queue.unshift(failed); failed = undefined; void run() } },
+    }
+    // Leave room in the rolling minute for the initial station and series requests.
+    void run()
+    return () => stop.abort()
+  }, [station, ready, setCurve, provided])
+  return { loading, error, move: (time: number) => actions.current.move(time), cancel: () => actions.current.cancel(), retry: () => actions.current.retry() }
+}
+
 function ChsGate({
   station,
   at: page,
@@ -603,7 +684,10 @@ function ChsGate({
     // rather than starting a request that could only fail.
     const moment = at.current
     const stop = new AbortController()
-    const signalled: typeof fetch = (url) => fetch(url, { signal: stop.signal })
+    const signalled: typeof fetch = async (url) => {
+      await waitForRequest(stop.signal, 500)
+      return fetch(url, { signal: stop.signal })
+    }
     setInFlight(true)
     // Same posture, two series: a gate's signed velocity from `wcsp1`/`wcdp1`,
     // a port's heights from `wlp`. Both go straight from this browser to DFO.
