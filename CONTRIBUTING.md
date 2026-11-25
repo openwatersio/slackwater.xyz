@@ -2,6 +2,8 @@
 
 How this site gets built and shipped. It is the source of truth for people and coding agents working in this repository. The repo is public because a marketing site has nothing to hide, but outside contributions are not being sought. Bug reports about the live site are welcome.
 
+Every change follows the org-wide [rigor rules](https://github.com/openwatersio/.github/blob/main/docs/agents/rigor.md). The first of them: when something fails or looks wrong, find the cause and fix it there instead of working around it.
+
 Everything written here, including code, comments, documentation, commits, and pull requests, is public. Keep roadmaps, unpublished pricing, unreleased plans, and paths into private repositories out of it.
 
 Short, because it is meant to be followed rather than consulted. What the site is and why it
