@@ -1,9 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { StationIndex } from './StationIndex'
 import { loadCatalogue } from '#/lib/catalogue'
 import type { StationRow } from '#/lib/catalogue-server'
 import type { Kind } from '#/lib/station'
+
+vi.mock('./UpcomingEvents', () => ({ UpcomingEvents: () => <section>Upcoming Events marker</section> }))
 
 // A country page heads its rows by water where the provider named one and by
 // jurisdiction otherwise, which is what `toAreaRow` builds in `catalogue-server`.
@@ -16,6 +18,14 @@ const toRow = (s: { slug: string; name: string; path: string; region?: string; a
 const rowsFor = (kind: Kind) => loadCatalogue().filter((s) => s.kind === kind).map(toRow)
 
 describe('StationIndex', () => {
+  it('leads both station indexes with upcoming events before the directory', () => {
+    for (const kind of ['tide', 'current'] as const) {
+      const html = renderToStaticMarkup(<StationIndex kind={kind} rows={[{ slug: 'test', name: 'Test station', path: '/test/' }]} />)
+      expect(html).toContain('Upcoming Events marker')
+      expect(html.indexOf('Upcoming Events marker')).toBeLessThan(html.indexOf('Test station'))
+    }
+  })
+
   it('never buries more than half of one kind under a single Elsewhere-shaped heading', () => {
     // The regression this guards: 25 curated Canadian rows (24 CHS gates plus
     // `boundary-pass`) each carrying a region used to be enough to flip the

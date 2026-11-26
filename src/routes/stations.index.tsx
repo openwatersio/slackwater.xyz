@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { DirectoryNav } from '#/components/DirectoryNav'
 import { TidesExplainerCard } from '#/components/TidesExplainerCard'
+import { UpcomingEvents } from '#/components/UpcomingEvents'
 import { stationsHub, type HubKind } from '#/lib/catalogue-server'
 import { collectionJsonLd } from '#/lib/json-ld'
 
@@ -53,6 +54,7 @@ function Stations() {
         Every station Slackwater predicts, worldwide for tides and across the US and Canada for
         currents.
       </p>
+      <UpcomingEvents />
       <Kind heading="Tide stations" blurb={`${tide.count.toLocaleString()} worldwide.`} hub={tide} more="All countries" />
       <Kind
         heading="Current stations"
