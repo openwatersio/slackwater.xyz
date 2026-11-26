@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { SceneCurve, SlackFigure, TidesFigure } from '#/components/LearnFigures'
 import { Shot } from '#/components/Shot'
+import { UpcomingEvents } from '#/components/UpcomingEvents'
 import { ANDROID_TESTERS, APP_STORE, MINIMUM_IOS, REQUIREMENT } from '#/lib/links'
 import { SITE_DESCRIPTION } from '#/routes/__root'
 import { ORGANIZATION_DESCRIPTION } from '#/lib/json-ld'
@@ -328,6 +329,8 @@ function Home() {
           </figure>
         </div>
       </header>
+
+      <UpcomingEvents />
 
       {/* Kept below the recording so a phone's first screen holds only the
           promise, the download button and the app itself. */}

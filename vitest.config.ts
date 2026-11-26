@@ -6,7 +6,7 @@ import { createRequire } from 'node:module'
 // for a unit test spins up a Worker preview server that then won't shut down.
 
 /**
- * Five suites assert against real artifacts rather than mocks: the prerendered
+ * Six suites assert against real artifacts rather than mocks: the prerendered
  * pages under `.output/public`, the client bundle, and `src/routeTree.gen.ts`,
  * which is generated and git-ignored. None of it exists on a fresh clone, so
  * `npm test` failed there with three errors that read like a broken checkout.
@@ -23,6 +23,7 @@ import { createRequire } from 'node:module'
  */
 const NEEDS_BUILD = [
   'src/lib/bundle-size.test.ts',
+  'src/lib/event-pages.test.ts',
   'src/lib/content-routes.test.ts',
   'src/routes/station-routes.test.ts',
   'src/routes/instant-page.test.tsx',

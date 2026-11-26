@@ -1,8 +1,9 @@
 import { KING_TIDE_PATHS } from './king-tide-regions'
+import { EVENTS, eventPath } from './water-events'
 import type { Station } from './station'
 
 const ORIGIN = 'https://slackwater.xyz'
-export const STATIC_PATHS = ['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/boating/', '/kayak/', '/tide-pools/', '/learn/tides/', '/learn/slack-water/', '/stations/', ...KING_TIDE_PATHS]
+export const STATIC_PATHS = ['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/boating/', '/kayak/', '/tide-pools/', '/learn/tides/', '/learn/slack-water/', '/stations/', ...KING_TIDE_PATHS, ...EVENTS.map(eventPath)]
 
 /** A W3C date (YYYY-MM-DD) for a site path such as `/support/`. */
 export type Lastmod = (path: string) => string

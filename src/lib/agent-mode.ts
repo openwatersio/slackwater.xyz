@@ -1,6 +1,7 @@
 import { COMPARE_PATHS } from './compare'
 import { ORGANIZATION_DESCRIPTION } from './json-ld'
 import { KING_TIDE_PATHS } from './king-tide-regions'
+import { EVENTS, eventPath } from './water-events'
 import { APP_STORE, APP_STORE_ID, MINIMUM_IOS, TCD } from './links'
 
 const ORIGIN = 'https://slackwater.xyz'
@@ -8,7 +9,7 @@ const ORIGIN = 'https://slackwater.xyz'
 /** Each page with a Markdown twin, as [HTML path, Markdown path]. */
 export const MARKDOWN_TWINS: [string, string][] = [
   ['/', '/index.md'],
-  ...['/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/boating/', '/kayak/', '/tide-pools/', '/stations/', '/learn/tides/', '/learn/slack-water/', ...KING_TIDE_PATHS, ...COMPARE_PATHS].map(
+  ...['/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/boating/', '/kayak/', '/tide-pools/', '/stations/', '/learn/tides/', '/learn/slack-water/', ...KING_TIDE_PATHS, ...EVENTS.map(eventPath), ...COMPARE_PATHS].map(
     (path): [string, string] => [path, `${path.slice(0, -1)}.md`],
   ),
 ]

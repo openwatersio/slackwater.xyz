@@ -61,6 +61,13 @@ export function seasonOf(region: KingTideRegion, year: number, timeZone: string)
   return { label: yearSpan(year, end), from: boundary(year, from), to: boundary(end, to) }
 }
 
+export function eventSeason(region: KingTideRegion, at: Date, timeZone: string): number | undefined {
+  return region.seasons.find((year) => {
+    const season = seasonOf(region, year, timeZone)
+    return at >= season.from && at < season.to
+  })
+}
+
 export interface SavedSeason {
   /** The NOAA station the highs came from, as the database names it. */
   station: string

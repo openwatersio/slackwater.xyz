@@ -4,6 +4,7 @@ import { UNPLACED } from '#/lib/places'
 import type { Kind } from '#/lib/station'
 import { DirectoryNav } from './DirectoryNav'
 import { TidesExplainerCard } from './TidesExplainerCard'
+import { UpcomingEvents } from './UpcomingEvents'
 
 /**
  * Five regions in the tide database are bare numbers - "02", "08", "10" - NOAA
@@ -101,6 +102,7 @@ export function StationIndex({
       </a>
       <h1 className="text-4xl font-semibold tracking-tight text-sw-paper sm:text-5xl">{label}</h1>
       <div className="mt-3 max-w-3xl space-y-2 text-sw-steel">{blurb}</div>
+      {!up && <div className="max-w-3xl"><UpcomingEvents /></div>}
       {/* The explainer belongs on the one page a reader arrives at cold — the
           worldwide tide index, the only page with nothing above it — and not
           on the 148 country and subdivision pages under it. */}

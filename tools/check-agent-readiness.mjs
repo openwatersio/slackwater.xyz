@@ -13,7 +13,7 @@ if (!base) {
   base = String(await worker.url)
 }
 try {
-  const documents = ['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/stations/', '/king-tides/', '/king-tides/washington/', '/learn/tides/', '/learn/slack-water/', '/compare/best-tide-and-current-apps-iphone/', '/alternatives/tide-guide/']
+  const documents = ['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/opencpn/', '/stations/', '/king-tides/', '/king-tides/washington/', '/water-events/seattle-2026-11-27/', '/learn/tides/', '/learn/slack-water/', '/compare/best-tide-and-current-apps-iphone/', '/alternatives/tide-guide/']
   let checks = 0
   async function get(path, accept, method = 'GET') {
     const response = await fetch(new URL(path, base), { signal: AbortSignal.timeout(15000), method, headers: accept ? { Accept: accept } : {} })
