@@ -16,6 +16,7 @@ interface Record {
   name: string
   context?: string
   context_derived?: boolean
+  continent?: string
   latitude: number
   longitude: number
   timezone: string
@@ -120,7 +121,7 @@ function chsStation(s: Record): ChsStation | undefined {
     ...(region ? { region } : {}),
     // Every CHS station is Canadian by definition of the provider.
     country: 'Canada',
-    continent: 'Americas',
+    ...(s.continent ? { continent: s.continent } : {}),
     ...(state ? { state } : {}),
     // Carried through so the page knows not to offer a curve it cannot
     // fetch: a derived gate has no CHS current station, and resolving its

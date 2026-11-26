@@ -199,7 +199,7 @@ describe('the seam where CHS meets the computed curve', () => {
 
   it('makes no fast water of its own on a large step beside water already running near the line', () => {
     // A port whose computed water peaks at about 0.45 m an hour, DFO's day
-    // starting at a high and stepping 2.7 ft above it, the measured 99th
+    // starting at a high and stepping 2.7 ft above it, past the measured 99th
     // percentile: the ease before the day climbs with the rising water.
     // Spread evenly it pushed that past 0.6 m an hour; spread by the room
     // under the line it never does.

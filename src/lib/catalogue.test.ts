@@ -15,8 +15,8 @@ describe('loadCatalogue', () => {
   const all = loadCatalogue()
 
   it('yields every predictable station the database routes and the quality pass accepts, plus the CHS gates and ports', () => {
-    expect(all.length).toBe(9528)
-    expect(all.filter((s) => s.kind === 'tide').length).toBe(6948)
+    expect(all.length).toBe(9536)
+    expect(all.filter((s) => s.kind === 'tide').length).toBe(6956)
     expect(all.filter((s) => s.kind === 'current').length).toBe(2580)
   })
 
@@ -24,7 +24,7 @@ describe('loadCatalogue', () => {
   it('carries the seasonal ratio for the stations the database labels, and nothing else', () => {
     // The verdict is the database's (`quality.seasonal_dominant`) and the number
     // is the site's, used only to pick how loudly a page speaks. 415 of the
-    // 6,948 tide pages carry it and no current page does — currents are
+    // 6,956 tide pages carry it and no current page does — currents are
     // measured in knots against no datum, so the question does not arise.
     const seasonal = all.filter((s) => s.source === 'bundled' && s.seasonal !== undefined)
     expect(seasonal).toHaveLength(415)
@@ -155,6 +155,15 @@ describe('loadCatalogue', () => {
       // Kumeon Bay's twin is a NOAA subordinate, predicted through its reference.
       expect(s.constituents.length || s.tideReduction?.referenceConstituents.length, s.slug).toBeGreaterThan(0)
     }
+  })
+
+  it('files CHS stations under the continent the database gives Canada', () => {
+    // The registry hand-builds CHS identities, so its continent must follow the
+    // database's names or the browse index grows a second heading for Canada.
+    const canada = new Set(all.filter((s) => s.country === 'Canada' && s.source === 'bundled').map((s) => s.continent))
+    expect(canada.size).toBe(1)
+    const [continent] = canada
+    expect(all.filter((s) => s.source === 'chs' && s.continent !== continent)).toEqual([])
   })
 
   it('publishes every other CHS tide port the database routes, identity only', () => {
@@ -311,6 +320,9 @@ describe('loadCatalogue', () => {
     expect(moved.get('/tides/us/nc/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck/')
     expect(moved.get('/tides/duck-pier-ticon-duck-pier-nc-260-usa-uhslc-fd/')).toBe('/tides/us/nc/duck/')
     expect(moved.get('/tides/us/nc/duck-pier/')).toBe('/tides/us/nc/duck/')
+    // Two Taiwan gauges published under China as well as Taiwan; the database merged each pair.
+    expect(moved.get('/tides/cn/kaohsiung-takao/')).toBe('/tides/tw/kaohsiung/')
+    expect(moved.get('/tides/cn/keelung-taiwan/')).toBe('/tides/tw/keelung/')
     const published = new Set(all.map((s) => s.path))
     expect([...moved.keys()].filter((address) => published.has(address))).toEqual([])
   })
@@ -432,11 +444,11 @@ describe('chart datum', () => {
     // or labelling it MLLW — is wrong for more than half the world.
     const aasiaat = bundled('ticon/aasiaat-aas-grl-gloss')
     expect(aasiaat.chartDatum).toBe('LAT')
-    expect(aasiaat.offset).toBeCloseTo(1.581 * FEET_PER_METRE, 2)
+    expect(aasiaat.offset).toBeCloseTo(1.587 * FEET_PER_METRE, 2)
 
     const albert = bundled('ticon/albert_harbour-5803-can-meds')
     expect(albert.chartDatum).toBe('LLWLT')
-    expect(albert.offset).toBeCloseTo(1.086 * FEET_PER_METRE, 2)
+    expect(albert.offset).toBeCloseTo(1.067 * FEET_PER_METRE, 2)
   })
 
   it('leaves a station already quoted on MSL exactly where it was', () => {
@@ -504,21 +516,22 @@ describe('chart datum', () => {
         'update the SEAM_* constants and their comments in src/lib/readings.ts, the ease wording in ' +
         "src/lib/copy.ts's refinedCredit, the seam sentence in src/content/privacy.md, and the Station strips " +
         'section of CONTRIBUTING.md. Then update this fingerprint.',
-    ).toBe('e46157f632ba7cc6')
+    ).toBe('8053216e14aa349f')
   })
 
   it('puts Seattle low water above the datum a chart would quote', () => {
     // The number a reader takes to the water, not a shape. Over this window the
-    // MSL-relative curve ran -5.83 to 4.72 ft — a low almost six feet "below"
+    // MSL-relative curve runs -5.85 to 4.84 ft — a low almost six feet "below"
     // the water, which is true of mean sea level and false of any chart. On
-    // MLLW the same water reads 0.81 to 11.36.
+    // MLLW the same water reads 0.80 to 11.47, where NOAA's own predictions read
+    // 0.786 to 11.476 (react-source.test.ts links them).
     //
     // A missing offset, a doubled one, or a sign flip all survive every
     // structural assertion in this file. None of them survive this one.
     const levels = predictSeries(bundled('noaa/9447130'), new Date('2026-09-01T00:00:00Z'), 24)
       .map((p) => p.level)
-    expect(Math.min(...levels)).toBeCloseTo(0.81, 1)
-    expect(Math.max(...levels)).toBeCloseTo(11.36, 1)
+    expect(Math.min(...levels)).toBeCloseTo(0.8, 2)
+    expect(Math.max(...levels)).toBeCloseTo(11.47, 2)
   })
 
   it('leaves currents alone, whose offset is mean flow and not a datum', () => {

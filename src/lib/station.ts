@@ -61,9 +61,8 @@ interface StationIdentity {
   /** The country the station sits in, as its provider names it. */
   country?: string
   /**
-   * The continent that country sits on, as the tide database names it —
-   * "Americas", "Oceania", and "Atlantic Ocean" for the one station that is
-   * on no continent at all. Carried only to group the country list on the
+   * The continent that country sits on, as the tide database names it, such
+   * as "North America" or "Oceania". Carried only to group the country list on the
    * browse index; nothing about a station reads it.
    */
   continent?: string
