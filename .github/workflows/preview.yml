@@ -73,14 +73,6 @@ jobs:
       - run: npm test
       - run: npm run test:agents
 
-      # The artifact leaves hidden files out, so one the site needs (a
-      # .well-known file, a .assetsignore) would vanish from the deploy
-      # silently. The prerender server's local state is the only one expected.
-      - name: Check the build leaves no hidden file to lose
-        run: |
-          hidden=$(find .output -mindepth 1 -name '.*' -not -path '.output/server/.wrangler' -not -path '.output/server/.wrangler/*')
-          [ -z "$hidden" ] || { echo "::error::hidden files the artifact would drop: $hidden"; exit 1; }
-
       # The publishing wrangler, from tools/deploy, against this build, with
       # no token: a Dependabot bump of it, whose PR skips the upload, is
       # exercised here before it publishes main. The config check runs too, so
@@ -93,11 +85,18 @@ jobs:
           npx --no-install wrangler deploy --dry-run -c ../../.output/server/wrangler.json
 
       # Dependabot's runs upload nothing, so they store nothing.
+      # Hidden files included: upload-artifact counts `.output` itself as one,
+      # and a file the site needs (a .well-known file, a .assetsignore) must
+      # not vanish from the deploy. Only the prerender server's local state
+      # stays behind.
       - uses: actions/upload-artifact@v7.0.2
         if: github.actor != 'dependabot[bot]'
         with:
           name: site
-          path: .output/
+          path: |
+            .output/
+            !.output/server/.wrangler/
+          include-hidden-files: true
           retention-days: 1
           if-no-files-found: error
 

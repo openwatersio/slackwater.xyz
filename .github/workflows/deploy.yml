@@ -83,18 +83,17 @@ jobs:
         continue-on-error: true
         run: node tools/indexnow.mjs plan indexnow-urls.txt
 
-      # The artifact leaves hidden files out, so one the site needs (a
-      # .well-known file, a .assetsignore) would vanish from the deploy
-      # silently. The prerender server's local state is the only one expected.
-      - name: Check the build leaves no hidden file to lose
-        run: |
-          hidden=$(find .output -mindepth 1 -name '.*' -not -path '.output/server/.wrangler' -not -path '.output/server/.wrangler/*')
-          [ -z "$hidden" ] || { echo "::error::hidden files the artifact would drop: $hidden"; exit 1; }
-
+      # Hidden files included: upload-artifact counts `.output` itself as one,
+      # and a file the site needs (a .well-known file, a .assetsignore) must
+      # not vanish from the deploy. Only the prerender server's local state
+      # stays behind.
       - uses: actions/upload-artifact@v7.0.2
         with:
           name: site
-          path: .output/
+          path: |
+            .output/
+            !.output/server/.wrangler/
+          include-hidden-files: true
           retention-days: 1
           if-no-files-found: error
 
