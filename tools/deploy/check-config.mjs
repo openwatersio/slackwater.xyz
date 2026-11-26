@@ -15,7 +15,7 @@ if (!sourcePath || !builtPath) {
 const problems = configProblems(parseJsonc(readFileSync(sourcePath, 'utf8')), JSON.parse(readFileSync(builtPath, 'utf8')))
 if (problems.length) {
   for (const p of problems) console.error(`::error::${builtPath}: ${p}`)
-  console.error('A Nitro or wrangler upgrade that changes the generated config updates NITRO_ADDS in src/lib/deploy-config.ts, in review.')
+  console.error('A Nitro upgrade that changes the generated config updates NITRO_ADDS in src/lib/deploy-config.ts, in review.')
   process.exit(1)
 }
 console.log(`${builtPath} is wrangler.jsonc as reviewed, plus what Nitro adds`)

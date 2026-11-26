@@ -120,11 +120,11 @@ jobs:
             mise.toml
           sparse-checkout-cone-mode: false
 
+      # No npm cache: the build job, which runs every dependency, could write
+      # an entry under this key. One small tree installs fresh.
       - uses: actions/setup-node@v7.1.0
         with:
           node-version-file: mise.toml
-          cache: npm
-          cache-dependency-path: tools/deploy/package-lock.json
 
       # From tools/deploy's lockfile, with its .npmrc's age floor and script
       # allowlist, and before the token is anywhere on this runner.

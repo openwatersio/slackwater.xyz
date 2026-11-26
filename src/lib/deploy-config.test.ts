@@ -40,8 +40,11 @@ describe('configProblems', () => {
     let output: Config
     try {
       output = JSON.parse(readFileSync(outputPath, 'utf8'))
-    } catch {
-      return // no build here; CI builds before it tests
+    } catch (error) {
+      // CI builds before it tests, so a missing or unreadable config there is
+      // a build that stopped writing it: fail here, not at the deploy.
+      if (process.env.CI) throw error
+      return // no build here
     }
     expect(configProblems(source, output)).toEqual([])
   })

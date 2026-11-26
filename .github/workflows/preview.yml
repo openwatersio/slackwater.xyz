@@ -81,6 +81,17 @@ jobs:
           hidden=$(find .output -mindepth 1 -name '.*' -not -path '.output/server/.wrangler' -not -path '.output/server/.wrangler/*')
           [ -z "$hidden" ] || { echo "::error::hidden files the artifact would drop: $hidden"; exit 1; }
 
+      # The publishing wrangler, from tools/deploy, against this build, with
+      # no token: a Dependabot bump of it, whose PR skips the upload, is
+      # exercised here before it publishes main. The config check runs too, so
+      # a Nitro change shows on the PR rather than at the deploy.
+      - name: Dry-run the publishing wrangler
+        working-directory: tools/deploy
+        run: |
+          npm ci
+          node check-config.mjs ../../wrangler.jsonc ../../.output/server/wrangler.json
+          npx --no-install wrangler deploy --dry-run -c ../../.output/server/wrangler.json
+
       # Dependabot's runs upload nothing, so they store nothing.
       - uses: actions/upload-artifact@v7.0.2
         if: github.actor != 'dependabot[bot]'
@@ -116,11 +127,11 @@ jobs:
             mise.toml
           sparse-checkout-cone-mode: false
 
+      # No npm cache: the build job, which runs every dependency, could write
+      # an entry under this key. One small tree installs fresh.
       - uses: actions/setup-node@v7.1.0
         with:
           node-version-file: mise.toml
-          cache: npm
-          cache-dependency-path: tools/deploy/package-lock.json
 
       # From tools/deploy's lockfile, with its .npmrc's age floor and script
       # allowlist, and before the token is anywhere on this runner.
