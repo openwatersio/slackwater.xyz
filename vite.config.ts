@@ -10,6 +10,7 @@ import { nitro } from 'nitro/vite'
 import { loadCatalogue, stationAttribution } from './src/lib/catalogue'
 import { KING_TIDE_PATHS, KING_TIDE_REGIONS } from './src/lib/king-tide-regions'
 import { EVENTS, eventPath } from './src/lib/water-events'
+import { prerenderPath } from './src/lib/prerender'
 import { kindRoot, placeTree } from './src/lib/places'
 import { buildSitemaps, STATIC_PATHS } from './src/lib/sitemap'
 import { buildRedirects } from './src/lib/redirects'
@@ -51,7 +52,8 @@ const comparePages = COMPARE_PATHS.map((path) => ({ path }))
 const BUILD_DATE = BUILD_NOW.slice(0, 10)
 const PLACE_SOURCES = ['./src/routes/-directory.tsx', './package.json']
 const PAGE_SOURCES: Record<string, string[]> = {
-  '/': ['./src/routes/index.tsx'],
+  '/': ['./src/routes/index.tsx', './src/components/UpcomingEvents.tsx', './src/lib/water-events.ts'],
+  ...Object.fromEntries(EVENTS.map((event) => [eventPath(event), ['./src/routes/water-events.$id.tsx', './src/routes/water-events.{$id}[.]md.ts', './src/components/FindWater.tsx', './src/lib/discovery.ts', './src/lib/water-events.ts']])),
   '/pricing/': ['./src/routes/pricing.tsx', './src/content/pricing.md'],
   '/about/': ['./src/routes/about.tsx', './src/content/about.md'],
   '/contact/': ['./src/routes/contact.tsx', './src/content/contact.md'],
@@ -164,7 +166,7 @@ export default defineConfig({
         ...comparePages,
         ...placePages,
         ...KING_TIDE_PATHS.flatMap((path) => [{ path }, { path: `${path.slice(0, -1)}.md` }]),
-        ...EVENTS.map((event) => ({ path: eventPath(event) })),
+        ...EVENTS.flatMap((event) => [{ path: eventPath(event) }, { path: `${eventPath(event).slice(0, -1)}.md` }]),
         // Markdown twins: prerendered so the Worker serves files rather than
         // recomputing the slack-water guide and station hub on request.
         ...['/index.md', '/opencpn.md', '/stations.md', '/learn/tides.md', '/learn/slack-water.md'].map((path) => ({ path })),
@@ -180,7 +182,7 @@ export default defineConfig({
         // stays: discovery through one chain of pages is a single point of
         // failure for the whole corpus.
         autoStaticPathsDiscovery: true,
-        filter: ({ path }) => !path.startsWith('/preview/react'),
+        filter: ({ path }) => prerenderPath(path),
         crawlLinks: true,
         concurrency: 14,
       },

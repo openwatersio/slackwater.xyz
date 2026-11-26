@@ -9,7 +9,6 @@ export interface Event {
   timeZone: string
   value: string
   source: string
-  published: string
   expires: string
   verified: string
   editor: string
@@ -17,9 +16,9 @@ export interface Event {
 
 export function upcomingEvents(events: Event[], now: number): Event[] {
   return events.filter((event) => {
-    const time = Date.parse(event.time), start = Date.parse(event.published), end = Date.parse(event.expires)
+    const time = Date.parse(event.time), end = Date.parse(event.expires)
     return event.id && event.title && event.editor && Number.isFinite(Date.parse(event.verified)) && (event.path.startsWith('/tides/') || event.path.startsWith('/currents/')) && event.source && event.value &&
-      Number.isFinite(time) && Number.isFinite(start) && Number.isFinite(end) && start <= now && now < end && time >= now && end <= time
+      Number.isFinite(time) && Number.isFinite(end) && now < end && time >= now && end <= time
   }).sort((a, b) => Date.parse(a.time) - Date.parse(b.time))
 }
 

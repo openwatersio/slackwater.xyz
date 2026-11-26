@@ -98,7 +98,7 @@ describe('StationPage offers the CHS curve without fetching anything itself', ()
     // whose hydration failed, must not be shown a Cancel button for a request
     // that is not happening, or told in the present tense about a fetch that
     // never started.
-    expect(html).not.toMatch(/<button[^>]*>\s*(?:Cancel|Retry)/i)
+    expect(html).not.toContain('<button')
     expect(html).not.toMatch(/cancel|your browser/i)
   })
 
@@ -216,7 +216,7 @@ describe('StationPage for a derived gate', () => {
   )
 
   it('starts no request, and offers no button it cannot honour', () => {
-    expect(html).not.toMatch(/<button[^>]*>\s*(?:Cancel|Retry)/i)
+    expect(html).not.toContain('<button')
     expect(html).not.toMatch(/cancel|your browser/i)
   })
 
@@ -245,7 +245,7 @@ describe('StationPage for a CHS tide port', () => {
   })
 
   it('serves no control for a request that has not started', () => {
-    expect(html).not.toMatch(/<button[^>]*>\s*(?:Cancel|Retry)/i)
+    expect(html).not.toContain('<button')
     expect(html).not.toMatch(/cancel|your browser/i)
   })
 

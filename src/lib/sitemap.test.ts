@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { buildSitemaps } from './sitemap'
 import { loadCatalogue } from './catalogue'
+import { EVENTS, eventPath } from './water-events'
 
 describe('buildSitemaps', () => {
   const maps = buildSitemaps(loadCatalogue(), [], (path) => (path === '/support/' ? '2026-09-01' : '2026-10-14'))
@@ -19,6 +20,10 @@ describe('buildSitemaps', () => {
     expect(maps['sitemap.xml']).toContain('<loc>https://slackwater.xyz/sitemap-tides.xml</loc>')
     expect(maps['sitemap-static.xml']).toContain('<loc>https://slackwater.xyz/support/</loc>')
     expect(maps['sitemap-static.xml']).toContain('<loc>https://slackwater.xyz/learn/slack-water/</loc>')
+  })
+
+  it('lists each shareable event', () => {
+    for (const event of EVENTS) expect(maps['sitemap-static.xml']).toContain(`https://slackwater.xyz${eventPath(event)}`)
   })
 
   it('lists every station exactly once, at its canonical URL', () => {

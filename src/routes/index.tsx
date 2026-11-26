@@ -281,8 +281,6 @@ function Home() {
         </a>
       </nav>
 
-      <UpcomingEvents />
-
       <header className="mt-12 grid gap-12 sm:mt-16 lg:grid-cols-[1fr_360px] lg:items-center lg:gap-20">
         <div>
           <h1 className="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight text-sw-paper sm:text-6xl">
@@ -331,6 +329,8 @@ function Home() {
           </figure>
         </div>
       </header>
+
+      <UpcomingEvents />
 
       {/* Kept below the recording so a phone's first screen holds only the
           promise, the download button and the app itself. */}

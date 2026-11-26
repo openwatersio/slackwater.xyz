@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { findStations, upcomingEvents } from './discovery'
-import { EVENTS } from './water-events'
-import { noaaHighs, published } from './king-tides'
+import { EVENTS, eventAttribution, eventMarkdown, eventWhen } from './water-events'
+import { noaaHighs, published, eventSeason } from './king-tides'
 import { KING_TIDE_REGIONS } from './king-tide-regions'
 import { instantPath, parseInstant } from '../routes/instant-url'
 import type { IndexedStation } from './station-index'
@@ -29,22 +29,28 @@ describe('finding stations', () => {
 })
 
 describe('upcoming events', () => {
-  it('shows only published, unexpired events with a valid moment', () => {
-    const event = { id: 'test', title: 'High tide', path: '/tides/us/wa/seattle/', time: '2027-01-25T15:16:00Z', timeZone: 'America/Los_Angeles', value: '13.1 ft above MLLW', source: 'NOAA', editor: 'Open Waters', verified: '2026-11-25T00:00:00Z', published: '2026-11-01T00:00:00Z', expires: '2027-01-25T15:16:00Z' }
+  it('shows only unexpired events with a valid moment', () => {
+    const event = { id: 'test', title: 'High tide', path: '/tides/us/wa/seattle/', time: '2027-01-25T15:16:00Z', timeZone: 'America/Los_Angeles', value: '13.1 ft above MLLW', source: 'NOAA', editor: 'Open Waters', verified: '2026-11-25T00:00:00Z', expires: '2027-01-25T15:16:00Z' }
     expect(upcomingEvents([event], Date.parse('2026-12-01T00:00:00Z'))).toHaveLength(1)
     expect(upcomingEvents([event], Date.parse(event.expires))).toEqual([])
     expect(upcomingEvents([{ ...event, time: 'bad' }], Date.parse('2026-12-01'))).toEqual([])
-    expect(upcomingEvents([event], Date.parse('2026-10-01'))).toEqual([])
   })
 })
 
-it('publishes NOAA Seattle peaks at the linked instant with matching rounded heights', () => {
-  const highs = noaaHighs('/tides/us/wa/seattle/', 2026)
-  const region = KING_TIDE_REGIONS.find((item) => item.slug === 'washington')!
-  const peaks = published(region, '/tides/us/wa/seattle/', 'America/Los_Angeles').flatMap((season) => season.tides)
+it('checks each NOAA event against its station and any saved season', () => {
   for (const event of EVENTS.filter((item) => item.source === 'NOAA')) {
+    const region = KING_TIDE_REGIONS.find((item) => item.stations.some(([path]) => path === event.path))
+    expect(region, event.path).toBeDefined()
+    const season = eventSeason(region!, new Date(event.time), event.timeZone)
+    if (season === undefined) {
+      expect(Date.parse(event.time)).toBeLessThan(Date.now())
+      continue
+    }
+    const seasons = [season]
+    const highs = seasons.flatMap((season) => noaaHighs(event.path, season))
     const high = highs.find((item) => item.time === Date.parse(event.time))
     expect(high, event.time).toBeDefined()
+    const peaks = published({ ...region!, seasons }, event.path, event.timeZone).flatMap((season) => season.tides)
     expect(peaks.some((peak) => peak.time === high!.time)).toBe(true)
     expect(event.value).toBe(`${high!.level.toFixed(1)} ft above MLLW`)
     const path = instantPath(event.path, new Date(event.time), event.timeZone)
@@ -68,4 +74,46 @@ it('matches the published current event to the station prediction', async () => 
 it('uses a unique, nonempty URL for each event', () => {
   expect(new Set(EVENTS.map((event) => event.id)).size).toBe(EVENTS.length)
   expect(EVENTS.every((event) => /^[a-z0-9-]+$/.test(event.id))).toBe(true)
+})
+
+it('describes each event in its local time and Markdown twin', () => {
+  for (const event of EVENTS) {
+    const md = eventMarkdown(event)
+    expect(md).toContain(event.value)
+    expect(md).toContain(event.source)
+    expect(md).toContain(eventWhen(event))
+    expect(md).toContain('Predictions are not observations')
+    expect(md).toContain(instantPath(event.path, new Date(event.time), event.timeZone))
+    expect(md).toContain(eventAttribution(event))
+  }
+})
+
+it('identifies the exact current station in the event title', () => {
+  expect(EVENTS.find((event) => event.source === 'Slackwater')!.title).toContain('Yokeko Point')
+})
+
+it('credits NOAA predictions to NOAA and current stations to their catalogue notice', async () => {
+  const { loadCatalogue, stationAttribution } = await import('./catalogue')
+  for (const event of EVENTS) {
+    if (event.source === 'NOAA') expect(eventAttribution(event)).toContain('NOAA Center for Operational Oceanographic Products and Services')
+    else {
+      const station = loadCatalogue().find((s) => s.path === event.path)!
+      expect(eventAttribution(event)).toBe(stationAttribution(station.id))
+    }
+  }
+})
+
+it('assigns a January peak to the preceding winter, never the next season', () => {
+  const region = KING_TIDE_REGIONS.find((item) => item.slug === 'washington')!
+  const event = new Date('2027-01-25T15:16:00Z')
+  expect(eventSeason({ ...region, seasons: [2026, 2027] }, event, 'America/Los_Angeles')).toBe(2026)
+  expect(eventSeason({ ...region, seasons: [2027] }, event, 'America/Los_Angeles')).toBeUndefined()
+})
+
+it('formats event times consistently for server and browser', () => {
+  expect(eventWhen(EVENTS[0])).toBe('Friday, November 27, 2026 at 7:39 AM PST')
+})
+
+it('accepts each curated event at its verification time', () => {
+  for (const event of EVENTS) expect(upcomingEvents([event], Date.parse(event.verified)), event.id).toEqual([event])
 })

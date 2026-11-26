@@ -1,6 +1,6 @@
 # Privacy policy
 
-Effective October 19, 2026
+Effective November 26, 2026
 
 This policy covers the Slackwater iOS app and slackwater.xyz. Slackwater is operated by Open Water Software, LLC, doing business as Open Waters (“Open Waters,” “we,” or “us”).
 
@@ -39,6 +39,8 @@ Most predictions and map data are bundled with Slackwater. When online data is n
 
 ## The website
 
+When you choose “Use my location,” your browser asks for permission to find nearby stations. Your device compares its coordinates with the station index; Open Waters does not receive the coordinates. You can decline or revoke permission in your browser settings, and search by station name remains available. The station index is fetched from this website when you use the finder.
+
 slackwater.xyz counts visits using Plausible Analytics, a privacy-focused analytics service operated by Plausible Insights OÜ on servers in the European Union. Plausible acts as our processor and does not use the data for its own purposes.
 
 - **No cookies or similar storage.** Plausible stores nothing on your device and assigns you no persistent identifier, so there is no profile of you across visits, sites, or apps.
@@ -68,7 +70,7 @@ We do not sell personal information or share it for advertising. Providers proce
 
 ## Retention, deletion, and choices
 
-- Revoke location permission in iOS Settings.
+- Revoke location permission in iOS Settings or your browser settings.
 - Remove favourite stations in Slackwater or disable its iCloud access.
 - Delete the app to remove its locally stored data from your device.
 - Website request logs expire automatically within seven days.
