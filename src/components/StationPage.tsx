@@ -3,6 +3,7 @@ import { useDebouncedCallback } from '@slackwater/react'
 import { NearbyMap } from './NearbyMap'
 import { FindWater } from './FindWater'
 import { STRIP_AFTER_HOURS, STRIP_BEFORE_HOURS, StationStrip } from './StationStrip'
+import { StationTiles, useMomentStore, type MomentStore } from './StationTiles'
 import { DATUM_NOTE, datumLine, provenance, refinedCredit, refinedRowsNote, requiresBeta, seasonalNote, stationHeading, WEB_ONLY_TIDE_SLUGS } from '#/lib/copy'
 import { compass16, dayLabel, dayStart, height, hhmm } from '#/lib/format'
 import { fetchGateCurrent, fetchPortTides } from '#/lib/iwls'
@@ -109,6 +110,8 @@ export function StationPage({ station, now, selectedAt, live = false, settled = 
   const at = about ?? now
   const follow = useUrlSync(station, setAbout, live ? now.getTime() : undefined)
   const curveReadings = useMemo(() => curve && publishedReadings(curve), [curve])
+  // Where the strip reads, for the tiles under it; it opens on the shared moment.
+  const reading = useMomentStore(selectedAt?.getTime())
   // The strip's props, identical in the server render and the first client
   // render — no `now` until the clock is the reader's own, so the HTML claims
   // no present — and the moment a shared link fixed, which both open on. A
@@ -120,6 +123,7 @@ export function StationPage({ station, now, selectedAt, live = false, settled = 
       follow.onMove(time)
       more.move(time)
     },
+    onReading: reading.set,
     onNow: (time: number) => {
       // DFO's day can't reach now from a shared moment on another day. Now
       // is then the station's own page, loaded afresh: its request for
@@ -168,11 +172,14 @@ export function StationPage({ station, now, selectedAt, live = false, settled = 
             </p>
             {more.loading && <p role="status" className="mt-3 text-sm text-sw-steel">Downloading more predictions from the Canadian Hydrographic Service… <button type="button" onClick={more.cancel} className="underline">Cancel</button></p>}
             {more.error && <p role="status" className="mt-3 text-sm text-sw-steel">{more.error} <button type="button" onClick={more.retry} className="underline">Retry</button></p>}
+            <div className="print:hidden">
+              <StationTiles station={station} readings={curveReadings} moment={reading} initial={selectedAt?.getTime()} />
+            </div>
           </div>
         )
       ) : (
         <div className="mt-8 print:hidden">
-          <ComputedStrip station={station} now={now} live={live} about={about} refined={layer.refined} moment={moment} />
+          <ComputedStrip station={station} now={now} live={live} about={about} refined={layer.refined} moment={moment} reading={reading} initial={selectedAt?.getTime()} />
           {/* Only while the request is actually in flight, so the page we
               serve says nothing about a fetch that has not started. The words
               are the privacy policy's. A failure says nothing at all: the
@@ -305,6 +312,7 @@ type Moment = {
   selected?: number
   onMove: (time: number) => void
   onNow: (time: number) => void
+  onReading: (time: number) => void
 }
 
 /**
@@ -316,7 +324,7 @@ type Moment = {
  * spliced in over the window it covers, as `refineRows` splices the table,
  * and the line under the strip says whose numbers are whose.
  */
-function ComputedStrip({ station, now, live, about, refined, moment }: {
+function ComputedStrip({ station, now, live, about, refined, moment, reading, initial }: {
   station: BundledStation
   now: Date
   live: boolean
@@ -324,6 +332,9 @@ function ComputedStrip({ station, now, live, about, refined, moment }: {
   about?: Date
   refined?: Refined
   moment: Moment
+  /** Where the strip reads, and where its server render opened, for the tiles. */
+  reading: MomentStore
+  initial?: number
 }) {
   const tz = station.timezone
   const [anchor, setAnchor] = useState(() => dayStart(about ?? now, tz).getTime())
@@ -356,6 +367,7 @@ function ComputedStrip({ station, now, live, about, refined, moment }: {
           does; once it is on the strip, this says whose numbers are whose,
           for the hours and the day DFO actually covered. */}
       {credit && <p className="mt-3 text-sm text-sw-steel">{credit}</p>}
+      <StationTiles station={station} readings={readings} moment={reading} initial={initial} />
     </>
   )
 }

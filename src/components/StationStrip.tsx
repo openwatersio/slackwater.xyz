@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { CurrentScrubber, TideScrubber } from '@slackwater/react'
 import { SLACK_KNOTS } from '#/lib/predict'
 import type { Readings } from '#/lib/readings'
@@ -40,18 +40,39 @@ interface Props {
    */
   onMove?: (time: number) => void
   onNow?: (time: number) => void
+  /**
+   * Every moment the strip reads, the one it opens on included, for the tiles
+   * under it: once it has the reader's clock or a shared moment, since before
+   * that it may open clamped to a window built around the build's clock. The
+   * last moment it read before then is passed on when the clock arrives.
+   */
+  onReading?: (time: number) => void
 }
 
 /** A station's strip: `@slackwater/react`'s tide or current strip, fed the site's own numbers. */
-export function StationStrip({ station, readings, bounded, now, selected, onMove, onNow }: Props) {
+export function StationStrip({ station, readings, bounded, now, selected, onMove, onNow, onReading }: Props) {
   const opened = useRef(false)
   const move = useRef(onMove)
   move.current = onMove
+  const read = useRef(onReading)
+  read.current = onReading
+  const ours = now !== undefined || selected !== undefined
+  const known = useRef(ours)
+  known.current = ours
+  // The last moment the strip read, and whether the tiles have heard it.
+  const last = useRef<{ time: number; told: boolean } | undefined>(undefined)
   // Stable, because the package reports again whenever `onSelect` changes.
   const onSelect = useCallback((time: number) => {
+    last.current = { time, told: known.current }
+    if (known.current) read.current?.(time)
     if (opened.current) move.current?.(time)
     opened.current = true
   }, [])
+  useEffect(() => {
+    if (!ours || !last.current || last.current.told) return
+    last.current.told = true
+    read.current?.(last.current.time)
+  }, [ours])
   const common = {
     timezone: station.timezone,
     latitude: station.latitude,
