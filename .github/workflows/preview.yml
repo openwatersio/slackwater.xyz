@@ -7,10 +7,20 @@
 # force-push, so the PR comment never goes stale.
 #
 # Uses the same CLOUDFLARE_API_TOKEN secret as Deploy. Secrets aren't exposed to
-# pull_request runs from forks, so this job fails on one — outside contributions
-# aren't sought here (README.md). Dependabot runs are restricted the same way and
-# get their own secret store, so the upload is skipped for them rather than run
-# with an empty token; see the step.
+# pull_request runs from forks, so the upload fails on one — outside
+# contributions aren't sought here (README.md). Dependabot runs are restricted
+# the same way and get their own secret store, so the upload is skipped for them
+# rather than run with an empty token; see the job.
+#
+# Two jobs, as in Deploy, so the token never shares a runner with the site's
+# dependencies or anything they write: `preview` runs npm ci, the build and the
+# tests with no secret and hands the built site on as an artifact; `upload`
+# installs wrangler from tools/deploy's own lockfile, refuses a built Worker
+# config that isn't the reviewed one, and only then publishes with the token.
+#
+# The build job keeps the name `preview`: the main branch ruleset requires that
+# check. A skipped job passes a required check, so the name stays on the job
+# that runs the tests, not on the upload, which is skipped when they fail.
 name: Preview
 
 on:
@@ -24,13 +34,15 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   preview:
     runs-on: ubuntu-latest
     steps:
+      # No credentials left in .git/config for the steps after it.
       - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v7.1.0
         with:
@@ -61,42 +73,112 @@ jobs:
       - run: npm test
       - run: npm run test:agents
 
-      # Not wrangler-action: this needs the alias URL back out, and grepping the
-      # command is less indirection than parsing the action's outputs.
-      # Dependabot's runs read Dependabot's secrets, not the repository's, so
-      # CLOUDFLARE_API_TOKEN arrives empty and wrangler stops on it — a red
-      # check on a green build. The fix is not to copy the token into that
-      # store: a dependency PR is the one place where `npm ci` runs code
-      # this repo has not seen, and the cooldown in dependabot.yml exists
-      # because we would rather miss a release than install it. A bump is
-      # reviewed by its diff and its build; there is nothing to look at.
-      - name: Upload preview version
-        id: upload
-        if: github.actor != 'dependabot[bot]'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          PR: ${{ github.event.pull_request.number }}
-        # `shell: bash` for pipefail — the default `bash -e` lets tee mask a
-        # wrangler failure. Wrangler prints the URLs to stderr, hence 2>&1, and
-        # the alias host carries the account subdomain (pr-21-slackwater-xyz.
-        # <account>.workers.dev), so the character class has to allow dots.
-        shell: bash
+      # The publishing wrangler, from tools/deploy, against this build, with
+      # no token: a Dependabot bump of it, whose PR skips the upload, is
+      # exercised here before it publishes main. The config check runs too, so
+      # a Nitro change shows on the PR rather than at the deploy.
+      - name: Dry-run the publishing wrangler
+        working-directory: tools/deploy
         run: |
-          npx wrangler versions upload \
-            -c .output/server/wrangler.json \
-            --preview-alias "pr-$PR" \
-            --message "PR #$PR at ${GITHUB_SHA::7}" 2>&1 | tee upload.log
-          url=$(grep -m1 -oE "https://pr-$PR-[a-z0-9.-]+\.workers\.dev" upload.log || true)
+          npm ci
+          node check-config.mjs ../../wrangler.jsonc ../../.output/server/wrangler.json
+          npx --no-install wrangler deploy --dry-run -c ../../.output/server/wrangler.json
+
+      # Dependabot's runs upload nothing, so they store nothing.
+      # Hidden files included: upload-artifact counts `.output` itself as one,
+      # and a file the site needs (a .well-known file, a .assetsignore) must
+      # not vanish from the deploy. Only the prerender server's local state
+      # stays behind.
+      - uses: actions/upload-artifact@v7.0.2
+        if: github.actor != 'dependabot[bot]'
+        with:
+          name: site
+          path: |
+            .output/
+            !.output/server/.wrangler/
+          include-hidden-files: true
+          retention-days: 1
+          if-no-files-found: error
+
+  # Dependabot's runs read Dependabot's secrets, not the repository's, so
+  # CLOUDFLARE_API_TOKEN arrives empty and wrangler stops on it — a red
+  # check on a green build. The fix is not to copy the token into that
+  # store: a dependency PR is the one place where `npm ci` runs code
+  # this repo has not seen, and the cooldown in dependabot.yml exists
+  # because we would rather miss a release than install it. A bump is
+  # reviewed by its diff and its build; there is nothing to look at.
+  upload:
+    needs: preview
+    if: github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      # Files from this PR's commit only, never the site's dependencies.
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tools/deploy
+            src/lib/deploy-config.ts
+            wrangler.jsonc
+            mise.toml
+          sparse-checkout-cone-mode: false
+
+      # No npm cache: the build job, which runs every dependency, could write
+      # an entry under this key. One small tree installs fresh.
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version-file: mise.toml
+
+      # From tools/deploy's lockfile, with its .npmrc's age floor and script
+      # allowlist, and before the token is anywhere on this runner.
+      - run: npm ci
+        working-directory: tools/deploy
+
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: site
+          path: .output
+
+      - run: node tools/deploy/check-config.mjs wrangler.jsonc .output/server/wrangler.json
+
+      # wrangler-action finds the wrangler installed above and runs it. The
+      # build is of this PR's head merged into its base, as pull_request
+      # checks out, so the message names both.
+      - id: upload
+        uses: cloudflare/wrangler-action@v4.1.3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: tools/deploy
+          command: >-
+            versions upload -c ../../.output/server/wrangler.json
+            --preview-alias pr-${{ github.event.pull_request.number }}
+            --message "PR #${{ github.event.pull_request.number }}, head ${{ github.event.pull_request.head.sha }} merged into its base"
+
+      # Wrangler prints the URLs to stderr; both streams are read in case that
+      # moves. The alias host carries the account subdomain
+      # (pr-21-slackwater-xyz.<account>.workers.dev), so the character class
+      # has to allow dots.
+      - id: url
+        env:
+          PR: ${{ github.event.pull_request.number }}
+          OUT: ${{ steps.upload.outputs.command-output }}
+          ERR: ${{ steps.upload.outputs.command-stderr }}
+        run: |
+          url=$(printf '%s\n%s\n' "$ERR" "$OUT" | grep -m1 -oE "https://pr-$PR-[a-z0-9.-]+\.workers\.dev" || true)
           [ -n "$url" ] || { echo "::error::no preview alias URL in wrangler output"; exit 1; }
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment the preview URL
-        if: github.actor != 'dependabot[bot]'
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
-          URL: ${{ steps.upload.outputs.url }}
+          URL: ${{ steps.url.outputs.url }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          BASE: ${{ github.event.pull_request.base.ref }}
         run: |
-          gh pr comment "$PR" --edit-last --create-if-none \
-            --body "Preview: $URL — built from ${GITHUB_SHA::7}."
+          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --edit-last --create-if-none \
+            --body "Preview: $URL — built from ${HEAD::7} merged into $BASE."

@@ -1,0 +1,13 @@
+{
+  "name": "slackwater-xyz-deploy",
+  "private": true,
+  "description": "The wrangler the Deploy and Preview workflows publish with, installed from this lockfile alone, apart from the site's dependencies. See CONTRIBUTING.md, Deploying.",
+  "dependencies": {
+    "wrangler": "4.166.0"
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "workerd": true,
+    "fsevents": false
+  }
+}

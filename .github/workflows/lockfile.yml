@@ -29,3 +29,12 @@ jobs:
         run: |
           npx -y lockfile-lint@5.0.1 --path package-lock.json --allowed-hosts npm --validate-https --validate-integrity --validate-package-names \
             --allowed-package-name-aliases @resvg/resvg-wasm-legacy:@resvg/resvg-wasm h3-v2:h3
+      # The wrangler the deploy publishes with has its own lockfile
+      # (tools/deploy), held to the same two checks.
+      - name: Check the deploy lockfile regenerates and resolves from the npm registry
+        working-directory: tools/deploy
+        run: |
+          git ls-files --error-unmatch package-lock.json
+          npm install --package-lock-only --ignore-scripts
+          git diff --exit-code -- package-lock.json
+          npx -y lockfile-lint@5.0.1 --path package-lock.json --allowed-hosts npm --validate-https --validate-integrity --validate-package-names

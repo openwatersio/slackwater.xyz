@@ -179,6 +179,14 @@ no version number and no changelog: every merge deploys immediately, so the git 
 the changelog, and a separate one would just repeat it a commit behind. The only other
 environment is the per-PR preview above, which never serves the apex.
 
+The token never shares a runner with the site's dependencies or anything they write. Deploy and Preview each build and test in a job with no secret, which hands `.output/` on as a one-day artifact. The job holding the token then:
+
+- checks out only reviewed files from the same commit: `tools/deploy`, `src/lib/deploy-config.ts`, `wrangler.jsonc` and `mise.toml`;
+- installs wrangler from `tools/deploy`'s own lockfile, under the same `.npmrc` age floor and script allowlist as the site, before the token is on the runner;
+- refuses a built `.output/server/wrangler.json` that isn't `wrangler.jsonc` plus exactly what Nitro adds (`tools/deploy/check-config.mjs`). A `build` command there would run beside the token, and another name, route or binding would point the token at another Worker, hostname or store.
+
+A Nitro upgrade that changes the generated config fails `deploy-config.test.ts` after a build, and the deploy refuses it too, until `NITRO_ADDS` in `src/lib/deploy-config.ts` is updated in review. Wrangler appears twice: `package.json` for local previews and the agent checks, `tools/deploy` for publishing; Dependabot bumps both, and `lockfile.yml` checks both lockfiles. Preview's test job installs the publishing wrangler too and dry-runs a deploy of the build with it, with no token, so a bump of it is exercised on its own PR, which skips the upload. The publish jobs use no npm cache, since the build job could write one. The artifact includes hidden files, so none the site needs is dropped; only the prerender server's `.output/server/.wrangler` stays behind. The split keeps the token from being read or aimed elsewhere; a compromised build can still change the site it publishes. Re-running only the publish job after the artifact expires fails: re-run the whole workflow.
+
 That workflow exists because the manual step got skipped. `/privacy` and the Plausible script
 were both merged and neither reached the apex, which went on serving an older build; nothing
 failed and nothing said so.
