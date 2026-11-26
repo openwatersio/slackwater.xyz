@@ -37,7 +37,7 @@ describe('client bundle', () => {
     // import it marks pure, so a page that renders only its strips and tiles
     // drops the map and MapLibre with it.
     const assets = readdirSync(ASSETS).filter((f) => f.endsWith('.js') || f.endsWith('.css'))
-    expect(assets.filter((f) => f.startsWith('maplibre') || f.startsWith('NearbyMap'))).toEqual([])
+    expect(assets.filter((f) => /^(maplibre|NearbyMap|StationsMap)/.test(f))).toEqual([])
     for (const f of js()) {
       expect(readFileSync(`${ASSETS}/${f}`, 'utf8').includes('maplibregl'), f).toBe(false)
     }
