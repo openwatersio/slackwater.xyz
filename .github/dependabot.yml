@@ -43,6 +43,15 @@ updates:
           - patch
         patterns:
           - '*'
+  # The wrangler the deploy publishes with, on its own lockfile so the job
+  # holding the Cloudflare token installs nothing else (CONTRIBUTING.md,
+  # Deploying). Same cooldown as the site's.
+  - package-ecosystem: npm
+    directory: /tools/deploy
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
   - package-ecosystem: github-actions
     directory: /
     schedule:
