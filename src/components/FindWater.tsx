@@ -60,7 +60,7 @@ export function FindWater() {
         {locationError && <p role="status" className="mt-2 text-sm text-sw-foam">{locationError}</p>}
         {error && <p role="status" className="mt-2 text-sm text-sw-foam">{error}</p>}
         {results && <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {(['tide', 'current'] as const).map((kind) => <StationResults key={kind} title={kind === 'tide' ? 'Tide stations' : 'Current stations'} rows={results[kind]} attributions={index!.attributions} location={Boolean(location)} />)}
+          {(['tide', 'current'] as const).map((kind) => <StationResults key={`${kind}:${query}:${location?.latitude ?? ''}:${location?.longitude ?? ''}`} title={kind === 'tide' ? 'Tide stations' : 'Current stations'} rows={results[kind]} attributions={index!.attributions} location={Boolean(location)} />)}
           <p className="sm:col-span-2 text-sm text-sw-steel">Station pages open at the current time. The nearest current station may not describe your crossing.</p>
         </div>}
       </div>}
@@ -69,15 +69,16 @@ export function FindWater() {
 }
 
 export function StationResults({ title, rows, attributions, location }: { title: string; rows: { station: IndexedStation; distance?: number }[]; attributions: string[]; location: boolean }) {
+  const [shown, setShown] = useState(5)
   return <div>
     <h3 className="font-semibold text-sw-paper">{title}</h3>
-    {rows.length === 0 ? <p className="mt-2 text-sm text-sw-steel">{location ? 'No stations found within 100 nautical miles. Search by name to look elsewhere.' : 'No stations found.'}</p> : <><p className="mt-2 text-sm text-sw-steel">Showing up to five stations.</p><ul className="mt-2 space-y-2">
-      {rows.map(({ station, distance }) => <li key={station.path} className="text-sm text-sw-steel">
+    {rows.length === 0 ? <p className="mt-2 text-sm text-sw-steel">{location ? 'No stations found within 100 nautical miles. Search by name to look elsewhere.' : 'No stations found.'}</p> : <><p className="mt-2 text-sm text-sw-steel">Showing {Math.min(shown, rows.length)} of {rows.length} stations.</p><ul className="mt-2 space-y-2">
+      {rows.slice(0, shown).map(({ station, distance }) => <li key={station.path} className="text-sm text-sw-steel">
         <a className="text-sw-paper underline underline-offset-4" href={station.path}>{station.name}</a> <span>({station.path.split('/').slice(2, -2).join(' / ').toUpperCase()})</span>
         {distance !== undefined && <> · {distance.toFixed(1)} nm</>}
         {!station.predictions && <> · predictions may not be available</>}
         <p className="mt-1">{attributions[station.attribution]}</p>
       </li>)}
-    </ul></>}
+    </ul>{shown < rows.length && <button type="button" onClick={() => setShown(shown + 5)} className="mt-3 text-sm text-sw-paper underline underline-offset-4">Show more stations</button>}</>}
   </div>
 }

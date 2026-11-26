@@ -12,6 +12,7 @@ export interface Event {
   expires: string
   verified: string
   editor: string
+  highlight?: { peakFeet: number; averageHigherHighFeet: number; datumUrl: string }
 }
 
 export function upcomingEvents(events: Event[], now: number): Event[] {
@@ -24,10 +25,10 @@ export function upcomingEvents(events: Event[], now: number): Event[] {
 
 export function findStations(stations: IndexedStation[], location: Positioned | undefined, query: string) {
   const term = query.trim().toLocaleLowerCase()
-  const results = stations.filter((s) => !term || s.name.toLocaleLowerCase().includes(term))
+  const results = stations.filter((s) => !term || s.name.toLocaleLowerCase().includes(term) || (s.path.split('/').filter(Boolean).at(-1)?.toLocaleLowerCase().includes(term) ?? false))
     .map((station) => ({ station, distance: location ? distanceNm(location, station) : undefined }))
     .filter((result) => !location || result.distance! <= 100)
   if (location) results.sort((a, b) => a.distance! - b.distance!)
   else results.sort((a, b) => a.station.name.localeCompare(b.station.name))
-  return { tide: results.filter((r) => r.station.kind === 'tide').slice(0, 5), current: results.filter((r) => r.station.kind === 'current').slice(0, 5) }
+  return { tide: results.filter((r) => r.station.kind === 'tide'), current: results.filter((r) => r.station.kind === 'current') }
 }

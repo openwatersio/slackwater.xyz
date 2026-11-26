@@ -16,6 +16,10 @@ describe('finding stations', () => {
     expect(found.current.map(x => x.station.name)).toEqual(['CHS', 'Near current'])
     expect(found.current[0].station.predictions).toBe(false)
   })
+  it('keeps every matching station available to the finder', () => {
+    const matches = Array.from({ length: 8 }, (_, i) => station(`Port Sulphur ${i}`, 'tide', i))
+    expect(findStations(matches, undefined, 'port sulphur').tide).toHaveLength(8)
+  })
   it('does not call a station thousands of miles away nearby', () => {
     const distant = [station('Distant current', 'current', 30)]
     expect(findStations(distant, { latitude: 0, longitude: 0 }, '').current).toEqual([])
@@ -25,6 +29,8 @@ describe('finding stations', () => {
     expect(found.tide[0].station.name).toBe('Near tide')
     expect(found.current[0].station.name).toBe('Near current')
     expect(findStations(stations, undefined, 'missing').tide).toEqual([])
+    const seattle = { ...station('Seattle', 'tide', 0), path: '/tides/us/wa/seattle/' }
+    expect(findStations([seattle], undefined, 'us').tide).toEqual([])
   })
 })
 
@@ -53,22 +59,30 @@ it('checks each NOAA event against its station and any saved season', () => {
     const peaks = published({ ...region!, seasons }, event.path, event.timeZone).flatMap((season) => season.tides)
     expect(peaks.some((peak) => peak.time === high!.time)).toBe(true)
     expect(event.value).toBe(`${high!.level.toFixed(1)} ft above MLLW`)
+    if (event.highlight) {
+      expect(event.highlight.peakFeet).toBe(high!.level)
+      const datumByStation: Record<string, { feet: number; url: string }> = { '/tides/us/wa/seattle/': { feet: 11.36, url: 'https://tidesandcurrents.noaa.gov/benchmarks/9447130.html' } }
+      expect(event.highlight.averageHigherHighFeet).toBe(datumByStation[event.path]?.feet)
+      expect(event.highlight.datumUrl).toBe(datumByStation[event.path]?.url)
+    }
     const path = instantPath(event.path, new Date(event.time), event.timeZone)
     expect(+parseInstant(path.slice(event.path.length))!).toBe(high!.time)
   }
 })
 
-it('matches the published current event to the station prediction', async () => {
+it('matches each upcoming current event to its station prediction', async () => {
   const { loadCatalogue } = await import('./catalogue')
   const { findEvents } = await import('./predict')
-  const event = EVENTS.find((item) => item.source === 'Slackwater')!
-  const station = loadCatalogue().find((item) => item.path === event.path)!
-  if (station.source !== 'bundled') throw new Error('event station has no bundled prediction')
-  const peaks = findEvents(station, new Date('2026-11-27T00:00:00Z'), 48)
-  const peak = peaks.find((item) => Math.abs(+item.time - Date.parse(event.time)) < 60_000)!
-  expect(peak.kind).toBe('ebb')
-  expect(station.ebbDirection).toBe(232)
-  expect(event.value).toBe(`${Math.abs(peak.level).toFixed(1)} knots ebb toward southwest (${station.ebbDirection}°)`)
+  for (const event of EVENTS.filter((item) => item.source === 'Slackwater' && Date.parse(item.time) > Date.now())) {
+    const station = loadCatalogue().find((item) => item.path === event.path)!
+    if (station.source !== 'bundled') throw new Error('event station has no bundled prediction')
+    const peaks = findEvents(station, new Date(Date.parse(event.time) - 6 * 3600_000), 12)
+    const peak = peaks.find((item) => Math.abs(+item.time - Date.parse(event.time)) < 60_000)!
+    expect(peak).toBeDefined()
+    expect(event.value).toContain(`${Math.abs(peak.level).toFixed(1)} knots ${peak.kind}`)
+    const direction = peak.kind === 'ebb' ? station.ebbDirection : station.floodDirection
+    expect(event.value).toContain(`${direction}°`)
+  }
 })
 
 it('uses a unique, nonempty URL for each event', () => {
@@ -116,4 +130,10 @@ it('formats event times consistently for server and browser', () => {
 
 it('accepts each curated event at its verification time', () => {
   for (const event of EVENTS) expect(upcomingEvents([event], Date.parse(event.verified)), event.id).toEqual([event])
+})
+
+it('uses the station’s own time zone for every curated event', async () => {
+  const { loadCatalogue } = await import('./catalogue')
+  const catalogue = loadCatalogue()
+  for (const event of EVENTS) expect(event.timeZone).toBe(catalogue.find((station) => station.path === event.path)?.timezone)
 })

@@ -33,6 +33,7 @@ function EventPage() {
     <h1 className="mt-8 text-3xl font-semibold text-sw-paper sm:text-5xl">{event.title}</h1>
     <p className="mt-5 text-lg text-sw-foam">{event.source} predicted {event.value} at {when}.</p>
     <p className="mt-4 text-sw-steel">{eventContext(event)}</p>
+    {event.highlight && <p className="mt-4 text-sw-steel">The average daily high tide is {event.highlight.averageHigherHighFeet} ft above MLLW. This is the average of each day’s higher high tide, based on <a href={event.highlight.datumUrl} className="underline">NOAA’s tidal datum</a>.</p>}
     <p className="mt-4 text-sw-steel">Predictions are not observations or flood forecasts. Wind, waves and weather can raise the water. Check <a className="underline" href="https://www.weather.gov/alerts">National Weather Service alerts</a>.</p>
     <p className="mt-4 text-sm text-sw-steel">{eventAttribution(event)}</p>
     <p className="mt-5"><a className="text-sw-paper underline underline-offset-4" href={instantPath(event.path, new Date(event.time), event.timeZone)}>View the station at this time</a> {event.source === 'NOAA' && <> · <a className="text-sw-paper underline underline-offset-4" href="/king-tides/washington/">NOAA predictions and king tide dates</a></>}</p>

@@ -211,7 +211,7 @@ describe('agent discovery', () => {
 
   it('routes negotiated documents through the Worker before static assets', () => {
     const config = JSON.parse(readFileSync('.output/server/wrangler.json', 'utf8'))
-    for (const path of ['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/king-tides', '/king-tides/*']) {
+    for (const path of ['/', '/about/', '/contact/', '/pricing/', '/support/', '/privacy/', '/accuracy/', '/king-tides', '/king-tides/*', '/water-events/*']) {
       expect(config.assets.run_worker_first).toContain(path)
     }
   })

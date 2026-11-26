@@ -16,3 +16,10 @@ it('shows each station notice without requiring a disclosure', () => {
   expect(html).toContain('Required source notice')
   expect(html).not.toContain('<details')
 })
+
+it('offers more results when more than five stations match', () => {
+  const rows = Array.from({ length: 8 }, (_, i) => ({ station: { id: String(i), kind: 'tide' as const, name: `Station ${i}`, path: `/tides/us/wa/${i}/`, latitude: 0, longitude: 0, attribution: 0, predictions: true } }))
+  const html = renderToStaticMarkup(<StationResults title="Tide stations" rows={rows} attributions={['Source']} location={false} />)
+  expect(html).toContain('Showing 5 of 8 stations')
+  expect(html).toContain('Show more stations')
+})
