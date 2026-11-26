@@ -34,7 +34,8 @@ describe('client bundle', () => {
 
   it('ships no map renderer for a station page to never draw', () => {
     // `@slackwater/react` names its station page's MapLibre map in a lazy
-    // import; `vite.config.ts` marks `lazy` pure so nothing renders it here.
+    // import it marks pure, so a page that renders only its strips and tiles
+    // drops the map and MapLibre with it.
     const assets = readdirSync(ASSETS).filter((f) => f.endsWith('.js') || f.endsWith('.css'))
     expect(assets.filter((f) => f.startsWith('maplibre') || f.startsWith('NearbyMap'))).toEqual([])
     for (const f of js()) {

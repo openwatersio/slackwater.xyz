@@ -21,6 +21,17 @@ const strip = (html: string) => {
   return html.slice(from, html.indexOf('Predictions are not observations'))
 }
 
+/** The summary tiles' markup, under the strip. */
+const tiles = (html: string) => {
+  const from = html.indexOf('@container/sw-summary')
+  expect(from, 'the page draws the tiles').toBeGreaterThan(-1)
+  return html.slice(from, html.indexOf('Predictions are not observations'))
+}
+
+/** Each tile's text, tags stripped. */
+const cards = (html: string) =>
+  html.split(/<div class="sw-card[^"]*">/).slice(1).map((card) => card.replace(/<[^>]*>?/g, '').replace(/&#x27;/g, "'").trim())
+
 /** The strip's slider: its window, the moment it is on, and that moment spoken. */
 const slider = (html: string) => {
   const tag = html.match(/<div role="slider"[^>]*>/)![0]
@@ -165,6 +176,20 @@ describe('StationPage once a CHS-only day has arrived', () => {
 
     it('claims no computation', () => {
       expect(html).not.toMatch(/comput/i)
+    })
+
+    it("reads DFO's day in the tiles, unranked, with no week of bars, and not on paper", async () => {
+      const day = await fetchPortTides(victoria, new Date('2026-09-01T00:00:00Z'), 24, fetcher)
+      const selectedAt = new Date('2026-09-01T16:00:00Z')
+      const shared = renderToStaticMarkup(
+        <StationPage station={victoria} now={at} selectedAt={selectedAt} live settled fetched={{ kind: 'tide', ...day }} />,
+      )
+      const prev = day.turns.filter((t) => t.time <= selectedAt).at(-1)!
+      const next = day.turns.find((t) => t.time > selectedAt)!
+      const [range] = cards(tiles(shared))
+      expect(range).toMatch(new RegExp(`^Range${Math.abs(next.level - prev.level).toFixed(1)}\\sft${prev.high ? 'high to low' : 'low to high'}$`))
+      expect(tiles(shared)).not.toContain('Daily tide ranges')
+      expect(shared).toMatch(/<div class="print:hidden"><div class="@container\/sw-summary/)
     })
 
     it('prints the day, which a CHS-only page has no 7-day table to carry onto paper', () => {
@@ -532,6 +557,32 @@ describe('StationPage for a bundled tide station', () => {
     expect(shared).toContain('Sat 12 Sep 2026 through Fri 18 Sep 2026.')
   })
 
+  it('serves the tiles with no reading, since the page we serve has no moment', () => {
+    const served = tiles(html)
+    expect(cards(served)).toEqual(['Range—', 'Moon—', 'Sun—'])
+    // No phase glyph, and no week of bars, nor any week spoken, from the day
+    // the site was built: the outlook holds its place, hidden.
+    expect(served).not.toContain('--sw-moon-limb')
+    expect(served).not.toContain('Daily tide ranges')
+    expect(served).toMatch(/<div class="flex h-\[62px\][^"]*" aria-hidden="true">/)
+  })
+
+  it('reads the tiles at a shared moment, in the HTML we serve as well', () => {
+    const selectedAt = new Date('2026-09-12T22:00:00Z')
+    const shared = tiles(renderToStaticMarkup(<StationPage station={seattle} now={now} selectedAt={selectedAt} nearby={nearby} />))
+    const turns = tideExtremes(seattle, new Date(selectedAt.getTime() - 24 * 3600_000), 48)
+    const prev = turns.filter((t) => t.time <= selectedAt).at(-1)!
+    const next = turns.find((t) => t.time > selectedAt)!
+    const [range, moon, sun] = cards(shared)
+    // Unranked: the month's ranking is the browser's, after hydration.
+    // Then the bars' weekday letters, Saturday first.
+    expect(range).toMatch(new RegExp(`^Range${Math.abs(next.level - prev.level).toFixed(1)}\\sft${prev.high ? 'high to low' : 'low to high'}SSMTWTF$`))
+    expect(moon).toMatch(/^Moon(New|Full) Moon|^Moon(Waxing|Waning) (Crescent|Gibbous)|^Moon(First|Last|Third) Quarter/)
+    expect(sun).toMatch(/^Sun(Sunrise|Sunset)\d{1,2}:\d{2}\s[AP]M\d+h \d+m daylight$/)
+    // The week of bars starts on the shared moment's day.
+    expect(shared).toMatch(/Daily tide ranges: Saturday, Sep 12: \d+\.\d\sft;/)
+  })
+
   it('keeps a shared selection separate from actual now', () => {
     const shared = renderToStaticMarkup(
       <StationPage
@@ -624,6 +675,13 @@ describe('StationPage for a bundled current station', () => {
     expect(slider(html).text).toContain('Sep 11, 1:00 PM PDT')
     expect(html).toContain('aria-label="Return to now"')
     expect(html).toContain('Slack water and maximums for the next 7 days')
+  })
+
+  it("reads the next maximum at a shared moment, and nothing in the page we serve", () => {
+    const shared = cards(tiles(renderToStaticMarkup(<StationPage station={station} now={actualNow} selectedAt={selected} />)))
+    // Unranked in the served HTML, as the tide tile is.
+    expect(shared[0]).toMatch(/^Next max\d+\.\d\skn(Flood|Ebb) at \d{1,2}:\d{2}\s[AP]M$/)
+    expect(cards(tiles(renderToStaticMarkup(<StationPage station={station} now={actualNow} />)))).toEqual(['Next max—', 'Moon—', 'Sun—'])
   })
 
   it('claims nothing about now in the page we serve', () => {
