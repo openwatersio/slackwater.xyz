@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { SceneCurve, SlackFigure, TidesFigure } from '#/components/LearnFigures'
 import { Shot } from '#/components/Shot'
+import { UpcomingEvents } from '#/components/UpcomingEvents'
 import { ANDROID_TESTERS, APP_STORE, MINIMUM_IOS, REQUIREMENT } from '#/lib/links'
 import { SITE_DESCRIPTION } from '#/routes/__root'
 import { ORGANIZATION_DESCRIPTION } from '#/lib/json-ld'
@@ -279,6 +280,8 @@ function Home() {
           Slackwater
         </a>
       </nav>
+
+      <UpcomingEvents />
 
       <header className="mt-12 grid gap-12 sm:mt-16 lg:grid-cols-[1fr_360px] lg:items-center lg:gap-20">
         <div>

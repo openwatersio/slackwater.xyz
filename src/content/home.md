@@ -8,6 +8,10 @@ Available in 16 languages, including Irish (Gaeilge) and Scottish Gaelic (Gàidh
 
 An Android version is in development. Join the [Slackwater Android testers group](https://groups.google.com/g/slackwater-android-testers) with the Google account you use on your phone to get test builds through Google Play as they become available.
 
+## Water events
+
+Explore [king tide dates](https://slackwater.xyz/king-tides/) and upcoming predicted water events on the website. Station and event pages let you search station names or choose to find stations near your location. Predictions are not observations or flood forecasts.
+
 ## Where are you headed?
 
 - [Anchored, no bars](https://slackwater.xyz/boating/) (sailing and cruising): your phone roamed and every tide app is spinning. Slackwater predicts on your phone, so the week of turns at the next pass is already there.

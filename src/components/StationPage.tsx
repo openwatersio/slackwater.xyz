@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDebouncedCallback } from '@slackwater/react'
 import { NearbyMap } from './NearbyMap'
+import { FindWater } from './FindWater'
 import { STRIP_AFTER_HOURS, STRIP_BEFORE_HOURS, StationStrip } from './StationStrip'
 import { DATUM_NOTE, datumLine, provenance, refinedCredit, refinedRowsNote, requiresBeta, seasonalNote, stationHeading, WEB_ONLY_TIDE_SLUGS } from '#/lib/copy'
 import { compass16, dayLabel, dayStart, height, hhmm } from '#/lib/format'
@@ -191,6 +192,7 @@ export function StationPage({ station, now, selectedAt, live = false, settled = 
         Predictions are not observations — conditions vary with weather and river flow.{' '}
         <strong className="font-semibold text-sw-foam">Not for navigation.</strong>
       </p>
+      <FindWater />
       {guide && <Guide guide={guide} />}
       <Cta station={station} />
       {station.source === 'bundled' && <WeekTable station={station} at={at} refined={layer.refined} />}

@@ -9,6 +9,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 import { loadCatalogue, stationAttribution } from './src/lib/catalogue'
 import { KING_TIDE_PATHS, KING_TIDE_REGIONS } from './src/lib/king-tide-regions'
+import { EVENTS, eventPath } from './src/lib/water-events'
 import { kindRoot, placeTree } from './src/lib/places'
 import { buildSitemaps, STATIC_PATHS } from './src/lib/sitemap'
 import { buildRedirects } from './src/lib/redirects'
@@ -163,6 +164,7 @@ export default defineConfig({
         ...comparePages,
         ...placePages,
         ...KING_TIDE_PATHS.flatMap((path) => [{ path }, { path: `${path.slice(0, -1)}.md` }]),
+        ...EVENTS.map((event) => ({ path: eventPath(event) })),
         // Markdown twins: prerendered so the Worker serves files rather than
         // recomputing the slack-water guide and station hub on request.
         ...['/index.md', '/opencpn.md', '/stations.md', '/learn/tides.md', '/learn/slack-water.md'].map((path) => ({ path })),
