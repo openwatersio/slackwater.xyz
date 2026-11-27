@@ -81,17 +81,24 @@ for (const s of ticonFile) names.set(s.name, (names.get(s.name) ?? 0) + 1)
  * Stations in OpenCPN's 2021 US file that NOAA no longer lists among the
  * stations it publishes predictions for, by NOAA id; a current counts once
  * however many depths it has. The US file's names end with the state, which
- * is how they are grouped.
+ * is how they are grouped. `inSlackwater` is how many of them Slackwater's
+ * own file still carries.
  */
 function retired(kind, listed) {
   const gone = new Map()
+  const idOf = (s) => (kind === 'current' ? station(s.id) : s.id)
   for (const s of usFile.filter((x) => x.kind === kind)) {
-    const id = kind === 'current' ? station(s.id) : s.id
+    const id = idOf(s)
     if (!listed.has(id) && !gone.has(id)) gone.set(id, s.name.replace(/ Current.*$/, '').split(',').at(-1).trim())
   }
+  const ours = new Set(slackwater.filter((s) => s.kind === kind).map(idOf))
   const states = {}
   for (const state of gone.values()) states[state] = (states[state] ?? 0) + 1
-  return { count: gone.size, states: Object.fromEntries(Object.entries(states).sort(([a, x], [b, y]) => y - x || a.localeCompare(b))) }
+  return {
+    count: gone.size,
+    inSlackwater: [...gone.keys()].filter((id) => ours.has(id)).length,
+    states: Object.fromEntries(Object.entries(states).sort(([a, x], [b, y]) => y - x || a.localeCompare(b))),
+  }
 }
 
 /** Boxes for the Canadian current points in OpenCPN's world file. */

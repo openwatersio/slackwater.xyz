@@ -138,8 +138,8 @@ export function turnKind(turn: { high: boolean } | { kind: string }): TurnKind {
 }
 
 /*
- * The seam constants below come from one measurement, made on 19 November
- * 2026: DFO's `wlp` (at FIFTEEN_MINUTES) and `wlp-hilo` for every merged tide
+ * The seam constants below come from one measurement, last made on 26
+ * November 2026: DFO's `wlp` (at FIFTEEN_MINUTES) and `wlp-hilo` for every merged tide
  * port, each read through `fetchPortTides` and `fetchRefinement` as the site
  * reads them, for each station-local day from 20 November to 4 December
  * 2026, one spring-neap cycle: 2,955 port-days. For each port-day it took
@@ -173,7 +173,7 @@ export const SEAM_TWIN_MS = 75 * 60_000
  * How far either side of CHS's day the computed curve is eased onto it.
  *
  * In the measurement the two curves differ at an edge by a median 0.3 ft,
- * 1.5 ft at the 95th percentile and 2.7 ft at the 99th, by datum and by
+ * 1.5 ft at the 95th percentile and 2.6 ft at the 99th, by datum and by
  * model; a bare step would draw the whole difference across one sample. The
  * ease spreads it under `SEAM_FAST_MPH` (see `easeFor`), and the length is
  * how much room that leaves: over six hours about 3% of the measured

@@ -21,10 +21,10 @@ export const EVENTS: Event[] = [{
   path: '/currents/us/wa/yokeko-point/',
   time: '2026-11-28T03:27:00Z',
   timeZone: 'America/Los_Angeles',
-  value: '3.1 knots ebb toward southwest (232°)',
+  value: '3.2 knots ebb toward southwest (232°)',
   source: 'Slackwater',
   editor: 'Open Waters',
-  verified: '2026-11-26T10:58:00Z',
+  verified: '2026-11-26T21:03:00Z',
   expires: '2026-11-28T03:27:00Z',
 }, {
   id: 'seattle-2027-01-25',

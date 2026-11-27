@@ -210,7 +210,7 @@ export interface Lull {
  *
  * These are the extremes on the wrong side of zero, which `findEvents` drops.
  * A low at exactly zero counts as a flood lull, as `@slackwater/engine`
- * 1.0.0-beta.12 counts it; the station pages' beta.10 has no lulls. The station pages leave them out; the
+ * counts it. The station pages leave them out; the
  * shared components chart them and list them in the schedule. A subordinate
  * station moves and scales them with its flood or ebb offset and ratio, as the
  * engine does, and its curve must pass through them: see `predictSeries`.
