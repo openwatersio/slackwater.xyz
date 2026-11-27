@@ -209,21 +209,20 @@ describe('prerendered station pages', () => {
     expect(html).toMatch(/[A-Z][a-z]{2} \d{1,2} [A-Z][a-z]{2} \d{4}/)
   })
 
-  it('shows a tide range that could only be feet', () => {
-    // Seattle swings about 10 ft. The database ships metres; a page that
-    // labels those metres "ft" reads 3.28x shallow and entirely plausible.
+  it('shows Seattle’s seven-day tide range in feet', () => {
     const html = readFileSync(page('tide', 'seattle'), 'utf8')
-    // The table's first day: the Pacific calendar day holding the build clock.
     const table = html.match(/<table[\s\S]*?<\/table>/)?.[0] ?? ''
     const rows = [...table.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)].slice(1)
       .map(([, row]) => [...row.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map(([, c]) => c.replace(/<[^>]+>/g, '').trim()))
-    const day = rows.filter((r) => r[0] === rows[0]?.[0])
-    const heights = (what: string) => day.filter((r) => r[1] === what).map((r) => Number.parseFloat(r[3]))
+    const heights = (what: string) => rows.filter((r) => r[1] === what).map((r) => {
+      expect(r[3]).toMatch(/^-?\d+\.\d ft$/)
+      return Number.parseFloat(r[3])
+    })
     const [highs, lows] = [heights('High'), heights('Low')]
-    expect(highs.length && lows.length, 'no high and low on the first day of the 7-day table').toBeTruthy()
-    // The range follows the moon: over a full nodal cycle the real one bottoms
-    // out at 6.9 ft and peaks at 16.9. Metres mislabelled read at most 5.2,
-    // feet converted twice at least 22, and the bounds sit in those two gaps.
+    expect(highs.length && lows.length, 'no high and low in the seven-day table').toBeTruthy()
+    // A calendar day can miss the lower low when it crosses midnight. Across
+    // seven-day windows in 2026–2045 the range is 8.9–17.1 ft, at most 5.3 in
+    // metres and at least 29 if converted to feet twice.
     const range = Math.max(...highs) - Math.min(...lows)
     expect(range).toBeGreaterThan(6)
     expect(range).toBeLessThan(20)
