@@ -1,3 +1,7 @@
+import type { TidePredictionOptions } from '@slackwater/engine'
+
+export type PredictionOptions = Readonly<Pick<TidePredictionOptions, 'nodeCorrections' | 'latitude' | 'definitions'>>
+
 /** One station's identity, and — for a bundled station — everything needed to predict it. */
 export type Kind = 'tide' | 'current'
 
@@ -12,6 +16,7 @@ export interface CurrentReduction {
   referenceId: string
   referenceConstituents: Constituent[]
   referenceOffset: number
+  referencePredictionOptions?: PredictionOptions
   slackBeforeFloodOffset: number
   slackBeforeEbbOffset: number
   floodTimeOffset: number
@@ -30,6 +35,7 @@ export interface TideReduction {
   referenceId: string
   referenceConstituents: Constituent[]
   referenceOffset: number
+  referencePredictionOptions?: PredictionOptions
   highTimeOffset: number
   lowTimeOffset: number
   height: { type: 'fixed' | 'ratio'; high: number; low: number }
@@ -79,6 +85,7 @@ interface StationIdentity {
 export interface BundledStation extends StationIdentity {
   source: 'bundled'
   constituents: Constituent[]
+  predictionOptions?: PredictionOptions
   /** Datum or mean-flow offset applied to every prediction. */
   offset?: number
   /**

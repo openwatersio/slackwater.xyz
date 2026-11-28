@@ -1,3 +1,4 @@
+import { createTidePredictor } from '@slackwater/engine'
 import { describe, expect, it } from 'vitest'
 import { predictSeries, findEvents, findLulls, reduceCurrentEvents, slackWindows, tideExtremes, SLACK_KNOTS } from './predict'
 import type { BundledStation, TideReduction } from './station'
@@ -42,6 +43,26 @@ describe('predictSeries', () => {
     const shifted = { ...CURRENT, offset: 1.5 }
     const base = predictSeries(CURRENT, start, 3)[0].level
     expect(predictSeries(shifted, start, 3)[0].level).toBeCloseTo(base + 1.5, 6)
+  })
+
+  it('passes the constituent definitions and Foreman latitude to the engine', () => {
+    const start = new Date('2026-09-01T00:00:00Z')
+    const end = new Date(+start + 6 * 3600_000)
+    const station: BundledStation = {
+      ...TIDE,
+      constituents: [...TIDE.constituents, { name: 'M2_TEST', amplitude: 1, phase: 0 }],
+      predictionOptions: {
+        nodeCorrections: 'foreman', latitude: 59.9,
+        definitions: [{ name: 'M2_TEST', speed: 28.9841042, coefficients: [2, 0, 0, 0, 0, 0, 0], members: [['M2', 1]] }],
+      },
+    }
+    for (const latitude of [59.9, 10]) {
+      const predictionOptions = { ...station.predictionOptions, latitude }
+      const expected = createTidePredictor(station.constituents, predictionOptions)
+        .getTimelinePrediction({ start, end, timeFidelity: 600 })
+      expect(predictSeries({ ...station, predictionOptions }, start, 6).map((s) => s.level))
+        .toEqual(expected.map((s) => s.level))
+    }
   })
 
   it('draws a subordinate current through its reduced NOAA maxima', () => {
@@ -151,7 +172,8 @@ describe('findLulls', () => {
     const own = findLulls(station, start, 72)
     expect(own.length).toBeGreaterThan(0)
     const reference = findLulls({ ...station, id: reduction.referenceId, constituents: reduction.referenceConstituents,
-      offset: reduction.referenceOffset, reduction: undefined }, new Date(+start - 86_400_000), 120)
+      offset: reduction.referenceOffset, predictionOptions: reduction.referencePredictionOptions,
+      reduction: undefined }, new Date(+start - 86_400_000), 120)
     for (const lull of own) {
       const flood = lull.kind === 'minFlood'
       const offset = (flood ? reduction.floodTimeOffset : reduction.ebbTimeOffset) * 1000
@@ -374,6 +396,26 @@ describe('subordinate tides', () => {
     const levels = predictSeries(station, start, 48).map((s) => s.level)
     expect(Math.max(...levels)).toBeLessThanOrEqual(Math.max(...extremes.map((e) => e.level)) + 1e-3)
     expect(Math.min(...levels)).toBeGreaterThanOrEqual(Math.min(...extremes.map((e) => e.level)) - 1e-3)
+  })
+
+  it('uses the reference’s nodal options before applying the published reduction', () => {
+    const predictionOptions = { nodeCorrections: 'foreman' as const, latitude: 59.9 }
+    const station = subordinate({ type: 'ratio', high: 1, low: 1 })
+    station.predictionOptions = { nodeCorrections: 'schureman' }
+    station.tideReduction = {
+      ...station.tideReduction!,
+      referencePredictionOptions: predictionOptions,
+      highTimeOffset: 0,
+      lowTimeOffset: 0,
+    }
+    const expected = createTidePredictor(reference.constituents, { ...predictionOptions, offset: reference.offset })
+      .getExtremesPrediction({ start, end: new Date(+start + 48 * 3600_000) })
+    const actual = tideExtremes(station, start, 48)
+    expect(actual.length).toBe(expected.length)
+    actual.forEach((event, index) => {
+      expect(event.level).toBeCloseTo(expected[index].level, 6)
+      expect(Math.abs(+event.time - +expected[index].time)).toBeLessThan(1000)
+    })
   })
 
   it('does not predict the reference water under the subordinate name', () => {

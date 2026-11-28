@@ -6,7 +6,7 @@ import { loadStations } from '@slackwater/database'
 import { FEET_PER_METRE } from './format'
 import { kindRoot } from './places'
 import { chsStations, chsTwins, curatedBySlug } from './registry'
-import type { BundledStation, Constituent, CurrentReduction, Kind, Station, TideReduction } from './station'
+import type { BundledStation, Constituent, CurrentReduction, Kind, PredictionOptions, Station, TideReduction } from './station'
 
 const db = await loadStations()
 
@@ -206,6 +206,17 @@ function record(id: string): Record<string, unknown> | undefined {
   return db.byId(id) as Record<string, unknown> | undefined
 }
 
+function predictionOptions(r: Record<string, unknown>): PredictionOptions {
+  const nodeCorrections = r.node_corrections as PredictionOptions['nodeCorrections']
+  const latitude = r.node_corrections_latitude as PredictionOptions['latitude']
+  const definitions = r.constituent_definitions as PredictionOptions['definitions']
+  return {
+    ...(nodeCorrections !== undefined ? { nodeCorrections } : {}),
+    ...(latitude !== undefined ? { latitude } : {}),
+    ...(definitions?.length ? { definitions } : {}),
+  }
+}
+
 /**
  * The notice a station's licence asks anyone redistributing it to display,
  * verbatim from the database, for any station kind. `Station.attribution`
@@ -229,6 +240,7 @@ function currentReduction(r: Record<string, unknown>): CurrentReduction | undefi
     referenceId,
     referenceConstituents,
     referenceOffset: referenceCurrent.mean_flow ?? 0,
+    referencePredictionOptions: predictionOptions(reference),
     slackBeforeFloodOffset: Number(offsets.slack_before_flood) * 60,
     slackBeforeEbbOffset: Number(offsets.slack_before_ebb) * 60,
     floodTimeOffset: Number(offsets.flood_time) * 60,
@@ -281,6 +293,7 @@ function tideReduction(r: Record<string, unknown>): TideReduction | undefined {
     referenceId,
     referenceConstituents: referenceConstituents.map((c) => ({ ...c, amplitude: c.amplitude * FEET_PER_METRE })),
     referenceOffset: datumShift(reference),
+    referencePredictionOptions: predictionOptions(reference),
     highTimeOffset: Number(offsets?.time?.high) * 60,
     lowTimeOffset: Number(offsets?.time?.low) * 60,
     height,
@@ -323,6 +336,7 @@ export function loadCatalogue(): Station[] {
         out.push({
           id, kind, slug, path,
           source: 'bundled',
+          ...(!reduction && !subordinate ? { predictionOptions: predictionOptions(r) } : {}),
           // Curated identity wins. The provider row names the water whatever the
           // provider calls it; the curated record names it what a mariner calls it.
           name: curated.get(slug)?.name ?? String(r.name),

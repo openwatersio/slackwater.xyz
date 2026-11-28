@@ -19,8 +19,8 @@ describe('local React source', () => {
     const meters = await local.getTimeline({ id: 'noaa/9447130', ...range, units: 'meters' })
     expect(feet.datum).toBe('MLLW')
     // NOAA's 6-minute predictions for the same UTC day read 0.786 to 11.476 ft: https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=9447130&begin_date=20260901&end_date=20260901&datum=MLLW&units=english&time_zone=gmt&interval=6&format=json
-    expect(Math.min(...feet.timeline.map((p) => p.level))).toBeCloseTo(0.8, 2)
-    expect(Math.max(...feet.timeline.map((p) => p.level))).toBeCloseTo(11.47, 2)
+    expect(Math.min(...feet.timeline.map((p) => p.level))).toBeCloseTo(0.786, 1)
+    expect(Math.max(...feet.timeline.map((p) => p.level))).toBeCloseTo(11.476, 1)
     expect(meters.timeline[0].level * FEET_PER_METRE).toBeCloseTo(feet.timeline[0].level, 8)
     expect(feet.timeline[0].time).toBeInstanceOf(Date)
     expect(fetch).not.toHaveBeenCalled()

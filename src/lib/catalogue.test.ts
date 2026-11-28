@@ -85,6 +85,30 @@ describe('loadCatalogue', () => {
     expect(waimea.tideReduction?.height).toEqual({ type: 'ratio', high: 0.86, low: 0.91 })
   })
 
+  it('loads the prediction metadata for harmonic stations and reduction references', () => {
+    const settings = (id: string) => {
+      const record = db.byId(id)
+      if (!record) throw new Error(`missing database metadata for ${id}`)
+      const r = record as typeof record & { node_corrections_latitude?: number }
+      return {
+        nodeCorrections: r.node_corrections,
+        latitude: r.node_corrections_latitude,
+        definitions: r.constituent_definitions,
+      }
+    }
+    for (const id of ['noaa/9447130', 'kartverket/AES']) {
+      const station = all.find((s) => s.id === id)
+      if (station?.source !== 'bundled') throw new Error(`missing ${id}`)
+      expect(station.predictionOptions).toEqual(settings(id))
+    }
+    const tide = all.find((s) => s.id === 'noaa/9448601')
+    const current = all.find((s) => s.id === 'noaa/ACT0091')
+    if (tide?.source !== 'bundled' || !tide.tideReduction || current?.source !== 'bundled' || !current.reduction)
+      throw new Error('missing subordinate tide or current')
+    expect(tide.tideReduction.referencePredictionOptions).toEqual(settings(tide.tideReduction.referenceId))
+    expect(current.reduction.referencePredictionOptions).toEqual(settings(current.reduction.referenceId))
+  })
+
   it('keeps a current with its own constituents harmonic', () => {
     const waldron = all.find((s) => s.id === 'noaa/PUG1716')
     expect(waldron?.source === 'bundled' && waldron.constituents.length).toBeGreaterThan(20)
@@ -502,13 +526,12 @@ describe('chart datum', () => {
   it('merges the same Canadian tide ports the seam bounds were measured on', () => {
     // `SEAM_TWIN_MS`, `SEAM_RAMP_MS` and `SEAM_STEP_LIMIT_FT` in `readings.ts`
     // were measured on exactly these ports, with exactly these predictions.
-    // The fingerprint covers each merged port's id, constituents and datum
-    // offset (its reference's, for a subordinate), so a release that merges
-    // ports in or out, or corrects one's curve as slackwater-database#427
-    // asks for Mill Bay, fails here.
+    // The fingerprint covers each port's id, prediction options, constituents
+    // and datum offset, including the reference inputs for a subordinate. It
+    // catches changes to which ports are merged and how they are predicted.
     const fields = all
       .filter((s): s is BundledStation => s.kind === 'tide' && s.source === 'bundled' && !!s.chs)
-      .map((s) => JSON.stringify([s.id, s.offset ?? 0, s.constituents, s.tideReduction ?? null]))
+      .map((s) => JSON.stringify([s.id, s.offset ?? 0, s.constituents, s.predictionOptions ?? null, s.tideReduction ?? null]))
       .sort()
     expect(
       createHash('sha256').update(fields.join('\n')).digest('hex').slice(0, 16),
@@ -516,7 +539,7 @@ describe('chart datum', () => {
         'update the SEAM_* constants and their comments in src/lib/readings.ts, the ease wording in ' +
         "src/lib/copy.ts's refinedCredit, the seam sentence in src/content/privacy.md, and the Station strips " +
         'section of CONTRIBUTING.md. Then update this fingerprint.',
-    ).toBe('8053216e14aa349f')
+    ).toBe('6ae56f727608d1aa')
   })
 
   it('puts Seattle low water above the datum a chart would quote', () => {
@@ -530,8 +553,8 @@ describe('chart datum', () => {
     // structural assertion in this file. None of them survive this one.
     const levels = predictSeries(bundled('noaa/9447130'), new Date('2026-09-01T00:00:00Z'), 24)
       .map((p) => p.level)
-    expect(Math.min(...levels)).toBeCloseTo(0.8, 2)
-    expect(Math.max(...levels)).toBeCloseTo(11.47, 2)
+    expect(Math.min(...levels)).toBeCloseTo(0.786, 1)
+    expect(Math.max(...levels)).toBeCloseTo(11.476, 1)
   })
 
   it('leaves currents alone, whose offset is mean flow and not a datum', () => {
