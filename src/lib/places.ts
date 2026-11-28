@@ -13,7 +13,7 @@ export interface Place {
   path: string
   /** The page one level up: the kind's index for a country, the country for a subdivision. */
   up: string
-  /** The name in a link or a breadcrumb: "United States", "Pennsylvania". */
+  /** The catalogue label in a link or a breadcrumb: "United States", "Pennsylvania". */
   name: string
   /** The page heading, which names the country under a subdivision: "Georgia" alone is two places. */
   title: string
@@ -57,17 +57,24 @@ export function nearestPlace(tree: Map<string, Place>, kind: Kind, path: string)
  * a station's path is a page here, and nothing else is. A country is its ISO
  * code (`/tides/us/`), a subdivision its ISO 3166-2 code under that
  * (`/tides/us/pa/`), and a station the database places in no subdivision sits
- * on its country page.
+ * on its country page. Country titles use the catalogue label when available.
  */
 export function placeTree(stations: Station[]): Map<string, Place> {
   const tree = new Map<string, Place>()
+  const labels = new Map<string, string>()
+  for (const s of stations) {
+    const code = s.path.split('/')[2]
+    if (!code || !s.country) continue
+    const existing = labels.get(code)
+    if (!existing || s.country < existing) labels.set(code, s.country)
+  }
   for (const s of stations) {
     // `/tides/` splits into three parts; anything longer is a place under it.
     for (let path = parentPath(s.path); path.split('/').length > 3; path = parentPath(path)) {
       let place = tree.get(path)
       if (!place) {
         const [, country, sub] = path.split('/').filter(Boolean)
-        const countryName = countries.of(country.toUpperCase()) ?? country.toUpperCase()
+        const countryName = labels.get(country) ?? countries.of(country.toUpperCase()) ?? country.toUpperCase()
         const subName = sub && (subdivisionName(country, sub) ?? sub.toUpperCase())
         place = subName
           ? { path, up: parentPath(path), name: subName, title: `${subName}, ${countryName}`, count: 0 }

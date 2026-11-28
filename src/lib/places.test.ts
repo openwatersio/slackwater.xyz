@@ -44,6 +44,21 @@ describe('placeTree', () => {
     expect(tree.get('/tides/ca/bc/')?.title).toBe('British Columbia, Canada')
   })
 
+  it('uses the station catalog country label without changing the route', () => {
+    const rows = placeTree([{ path: '/tides/tr/antalya/', country: 'Turkey', continent: 'Asia' }] as Station[])
+    expect(rows.get('/tides/tr/')).toMatchObject({ name: 'Turkey', title: 'Turkey', continent: 'Asia' })
+  })
+
+  it('uses one catalogue country label across the tide and current directories', () => {
+    const labels = new Map<string, string>()
+    for (const station of loadCatalogue()) {
+      const code = station.path.split('/')[2]
+      if (!code || !station.country) continue
+      expect(labels.get(code) ?? station.country, station.path).toBe(station.country)
+      labels.set(code, station.country)
+    }
+  })
+
   it('files Bridesburg under Pennsylvania, where the database puts it', () => {
     const bridesburg = ofKind('tide').find((s) => s.slug === 'bridesburg')
     expect(bridesburg?.path).toBe('/tides/us/pa/bridesburg/')
