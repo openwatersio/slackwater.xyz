@@ -49,6 +49,18 @@ describe('placeTree', () => {
     expect(rows.get('/tides/tr/')).toMatchObject({ name: 'Turkey', title: 'Turkey', continent: 'Asia' })
   })
 
+  it('uses the ISO route label when station country labels disagree', () => {
+    const stations = [
+      { path: '/tides/us/wa/seattle/', country: 'United States' },
+      { path: '/tides/us/wa/other/', country: 'Canada' },
+    ] as Station[]
+    for (const rows of [stations, [...stations].reverse()]) {
+      const places = placeTree(rows)
+      expect(places.get('/tides/us/')?.name).toBe('United States')
+      expect(places.get('/tides/us/wa/')?.title).toBe('Washington, United States')
+    }
+  })
+
   it('uses one catalogue country label across the tide and current directories', () => {
     const labels = new Map<string, string>()
     for (const station of loadCatalogue()) {

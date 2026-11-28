@@ -57,16 +57,17 @@ export function nearestPlace(tree: Map<string, Place>, kind: Kind, path: string)
  * a station's path is a page here, and nothing else is. A country is its ISO
  * code (`/tides/us/`), a subdivision its ISO 3166-2 code under that
  * (`/tides/us/pa/`), and a station the database places in no subdivision sits
- * on its country page. Country titles use the catalogue label when available.
+ * on its country page. Country titles use the catalogue label when stations agree.
  */
 export function placeTree(stations: Station[]): Map<string, Place> {
   const tree = new Map<string, Place>()
-  const labels = new Map<string, string>()
+  const labels = new Map<string, string | null>()
   for (const s of stations) {
     const code = s.path.split('/')[2]
     if (!code || !s.country) continue
     const existing = labels.get(code)
-    if (!existing || s.country < existing) labels.set(code, s.country)
+    if (existing === undefined) labels.set(code, s.country)
+    else if (existing !== s.country) labels.set(code, null)
   }
   for (const s of stations) {
     // `/tides/` splits into three parts; anything longer is a place under it.
