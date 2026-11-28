@@ -39,8 +39,10 @@ export function reduceCurrentEvents(events: StationEvent[], reduction: CurrentRe
   }).sort((a, b) => a.time.getTime() - b.time.getTime())
 }
 
-// The same constituent array is reused when a subordinate reconstructs its reference.
-const predictors = new WeakMap<BundledStation['constituents'], {
+// Each predictor retains a model registry. Keep a small cache even when the
+// Worker holds the entire catalogue and visits many different stations.
+const PREDICTOR_CACHE_SIZE = 32
+const predictors = new Map<BundledStation['constituents'], {
   offset: number
   options: BundledStation['predictionOptions']
   predictor: ReturnType<typeof createTidePredictor>
@@ -50,8 +52,14 @@ function predictorFor(station: BundledStation) {
   const { constituents, predictionOptions: options } = station
   const offset = station.offset ?? 0
   const cached = predictors.get(constituents)
-  if (cached && cached.offset === offset && cached.options === options) return cached.predictor
+  if (cached && cached.offset === offset && cached.options === options) {
+    predictors.delete(constituents)
+    predictors.set(constituents, cached)
+    return cached.predictor
+  }
   const predictor = createTidePredictor(constituents, { ...options, offset })
+  predictors.delete(constituents)
+  if (predictors.size === PREDICTOR_CACHE_SIZE) predictors.delete(predictors.keys().next().value!)
   predictors.set(constituents, { offset, options, predictor })
   return predictor
 }

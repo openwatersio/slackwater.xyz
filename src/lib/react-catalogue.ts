@@ -6,7 +6,7 @@ import type {
   StationsSearchParams,
   StationSummary,
 } from '@slackwater/react'
-import { loadCatalogue } from './catalogue'
+import { loadCatalogue, predictionOptions } from './catalogue'
 import { distanceNm } from './nearby'
 import { hasPredictions, type Kind, type Station } from './station'
 import type { SourceStation } from './react-source'
@@ -101,6 +101,7 @@ function currentBin(id: string): Station | undefined {
     ...parent,
     id,
     constituents: record.harmonic_constituents,
+    predictionOptions: predictionOptions(record),
     offset: record.current?.mean_flow ?? 0,
     floodDirection: record.current?.flood_direction,
     ebbDirection: record.current?.ebb_direction,
