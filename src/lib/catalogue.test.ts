@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { createHash } from 'node:crypto'
 import { loadStations } from '@slackwater/database'
-import { loadCatalogue, loadMoved, loadWithheld, seasonalRatio } from './catalogue'
+import { dependencies } from '../../package.json'
+import { loadCatalogue, loadMoved, loadWithheld, predictionOptions, seasonalRatio } from './catalogue'
+import { FEET_PER_METRE } from './format'
 import { predictSeries, tideExtremes } from './predict'
 import { nearby } from './nearby'
 import type { BundledStation } from './station'
@@ -83,6 +85,83 @@ describe('loadCatalogue', () => {
     const waimea = all.find((s) => s.id === 'noaa/1611401')
     if (waimea?.source !== 'bundled') throw new Error('no Waimea Bay')
     expect(waimea.tideReduction?.height).toEqual({ type: 'ratio', high: 0.86, low: 0.91 })
+  })
+
+  it.each([
+    ['tideReduction', 'noaa/8666749', 'noaa/8667909'],
+    ['reduction', 'noaa/ACT5176', 'noaa/ACT5171'],
+  ] as const)('shares %s model inputs across subordinates of one reference', (key, firstId, secondId) => {
+    const reduction = (id: string) => {
+      const station = all.find((s) => s.id === id)
+      return station?.source === 'bundled' ? station[key] : undefined
+    }
+    const first = reduction(firstId)
+    const second = reduction(secondId)
+    if (!first || !second) throw new Error('missing subordinate pair')
+    expect(first.referenceId).toBe(second.referenceId)
+    expect(first.referenceConstituents).toBe(second.referenceConstituents)
+    expect(first.referencePredictionOptions).toBe(second.referencePredictionOptions)
+  })
+
+  it('decodes constituent definitions only when a model is used or serialized', () => {
+    const definitions = db.byId('noaa/9447130')!.constituent_definitions
+    let reads = 0
+    const options = predictionOptions({
+      node_corrections: 'foreman',
+      node_corrections_latitude: 47.6,
+      get constituent_definitions() {
+        reads++
+        return definitions
+      },
+    })
+    expect(reads).toBe(0)
+    expect(JSON.parse(JSON.stringify(options))).toEqual({ nodeCorrections: 'foreman', latitude: 47.6, definitions })
+    expect(reads).toBe(1)
+  })
+
+  it('loads the prediction metadata for harmonic stations and reduction references', () => {
+    const settings = (id: string) => {
+      const record = db.byId(id)
+      if (!record) throw new Error(`missing database metadata for ${id}`)
+      const r = record as typeof record & { node_corrections_latitude?: number }
+      return {
+        nodeCorrections: r.node_corrections,
+        latitude: r.node_corrections_latitude,
+        definitions: r.constituent_definitions,
+      }
+    }
+    for (const id of ['noaa/9447130', 'kartverket/AES']) {
+      const station = all.find((s) => s.id === id)
+      if (station?.source !== 'bundled') throw new Error(`missing ${id}`)
+      expect(station.predictionOptions).toEqual(settings(id))
+    }
+    const tide = all.find((s) => s.id === 'noaa/9448601')
+    const current = all.find((s) => s.id === 'noaa/ACT0091')
+    if (tide?.source !== 'bundled' || !tide.tideReduction || current?.source !== 'bundled' || !current.reduction)
+      throw new Error('missing subordinate tide or current')
+    expect(tide.tideReduction.referencePredictionOptions).toEqual(settings(tide.tideReduction.referenceId))
+    expect(current.reduction.referencePredictionOptions).toEqual(settings(current.reduction.referenceId))
+  })
+
+  it('matches Kartverket’s published Foreman tide for Ålesund', () => {
+    const station = all.find((s) => s.id === 'kartverket/AES')
+    if (station?.source !== 'bundled') throw new Error('missing Ålesund')
+    // Kartverket's hourly prediction for 2030-01-01 UTC, in cm above MSL.
+    // https://github.com/openwatersio/slackwater-database/blob/c2f4862e3afa6ba064171e8f318fd3d9fff3bea8/sources/kartverket/fixtures/validation/stations/AES-2030-01-01-pre.xml
+    const cm = [
+      -44.1, -52.6, -47.1, -27.6, 2.1, 33.5, 57.4, 68.9, 66.9, 51.6, 24.9, -6.2,
+      -32.7, -48.5, -50.7, -38.1, -12.3, 20.9, 51.5, 70.9, 75.6, 65.2, 41.5, 9.2,
+    ]
+    // The released database still labels this model IHO. Exercise the source's
+    // Foreman settings while the separate catalogue test checks metadata handoff.
+    const meanError = (predictionOptions: BundledStation['predictionOptions']) => {
+      const series = predictSeries({ ...station, offset: 0, predictionOptions }, new Date('2030-01-01T00:00:00Z'), 23, 3600)
+      expect(series).toHaveLength(cm.length)
+      return series.reduce((sum, sample, i) => sum + Math.abs(sample.level / FEET_PER_METRE * 100 - cm[i]), 0) / cm.length
+    }
+    const definitions = station.predictionOptions?.definitions
+    expect(meanError({ definitions, nodeCorrections: 'foreman', latitude: station.latitude })).toBeLessThan(0.5)
+    expect(meanError({ definitions, nodeCorrections: 'iho' })).toBeGreaterThan(0.5)
   })
 
   it('keeps a current with its own constituents harmonic', () => {
@@ -502,21 +581,19 @@ describe('chart datum', () => {
   it('merges the same Canadian tide ports the seam bounds were measured on', () => {
     // `SEAM_TWIN_MS`, `SEAM_RAMP_MS` and `SEAM_STEP_LIMIT_FT` in `readings.ts`
     // were measured on exactly these ports, with exactly these predictions.
-    // The fingerprint covers each merged port's id, constituents and datum
-    // offset (its reference's, for a subordinate), so a release that merges
-    // ports in or out, or corrects one's curve as slackwater-database#427
-    // asks for Mill Bay, fails here.
+    // Include the engine, each port's model inputs and the reference inputs
+    // for subordinates so an engine or station-data update prompts a replay.
     const fields = all
       .filter((s): s is BundledStation => s.kind === 'tide' && s.source === 'bundled' && !!s.chs)
-      .map((s) => JSON.stringify([s.id, s.offset ?? 0, s.constituents, s.tideReduction ?? null]))
+      .map((s) => JSON.stringify([s.id, s.offset ?? 0, s.constituents, s.predictionOptions ?? null, s.tideReduction ?? null]))
       .sort()
     expect(
-      createHash('sha256').update(fields.join('\n')).digest('hex').slice(0, 16),
+      createHash('sha256').update([dependencies['@slackwater/engine'], ...fields].join('\n')).digest('hex').slice(0, 16),
       'The merged Canadian tide ports changed: re-run `node tools/measure-chs-seam.mjs`. If the numbers moved, ' +
         'update the SEAM_* constants and their comments in src/lib/readings.ts, the ease wording in ' +
         "src/lib/copy.ts's refinedCredit, the seam sentence in src/content/privacy.md, and the Station strips " +
         'section of CONTRIBUTING.md. Then update this fingerprint.',
-    ).toBe('8053216e14aa349f')
+    ).toBe('9e7bb2dca38c2c43')
   })
 
   it('puts Seattle low water above the datum a chart would quote', () => {
@@ -530,8 +607,8 @@ describe('chart datum', () => {
     // structural assertion in this file. None of them survive this one.
     const levels = predictSeries(bundled('noaa/9447130'), new Date('2026-09-01T00:00:00Z'), 24)
       .map((p) => p.level)
-    expect(Math.min(...levels)).toBeCloseTo(0.8, 2)
-    expect(Math.max(...levels)).toBeCloseTo(11.47, 2)
+    expect(Math.abs(Math.min(...levels) - 0.786)).toBeLessThan(0.02)
+    expect(Math.abs(Math.max(...levels) - 11.476)).toBeLessThan(0.02)
   })
 
   it('leaves currents alone, whose offset is mean flow and not a datum', () => {

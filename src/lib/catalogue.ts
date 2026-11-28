@@ -2,11 +2,11 @@
 // BUILD-TIME ONLY. Never import this from a route module: it pulls the whole
 // station database, and TanStack loaders are isomorphic, so one careless import
 // ships megabytes to every visitor. Task 4 asserts that.
-import { loadStations } from '@slackwater/database'
+import { loadStations, type Station as DatabaseStation } from '@slackwater/database'
 import { FEET_PER_METRE } from './format'
 import { kindRoot } from './places'
 import { chsStations, chsTwins, curatedBySlug } from './registry'
-import type { BundledStation, Constituent, CurrentReduction, Kind, Station, TideReduction } from './station'
+import type { BundledStation, Constituent, CurrentReduction, Kind, PredictionOptions, Station, TideReduction } from './station'
 
 const db = await loadStations()
 
@@ -206,6 +206,20 @@ function record(id: string): Record<string, unknown> | undefined {
   return db.byId(id) as Record<string, unknown> | undefined
 }
 
+export function predictionOptions(r: DatabaseStation | Record<string, unknown>): PredictionOptions {
+  const nodeCorrections = r.node_corrections as PredictionOptions['nodeCorrections']
+  const latitude = 'node_corrections_latitude' in r ? r.node_corrections_latitude as PredictionOptions['latitude'] : undefined
+  return {
+    ...(nodeCorrections !== undefined ? { nodeCorrections } : {}),
+    ...(latitude !== undefined ? { latitude } : {}),
+    // Decoding every station's definitions would retain them for the whole catalogue.
+    get definitions() {
+      const definitions = r.constituent_definitions as PredictionOptions['definitions']
+      return definitions?.length ? definitions : undefined
+    },
+  }
+}
+
 /**
  * The notice a station's licence asks anyone redistributing it to display,
  * verbatim from the database, for any station kind. `Station.attribution`
@@ -215,20 +229,44 @@ export function stationAttribution(id: string): string {
   return String(record(id)?.attribution ?? '')
 }
 
-function currentReduction(r: Record<string, unknown>): CurrentReduction | undefined {
+type ReferencePrediction = Pick<
+  CurrentReduction, 'referenceId' | 'referenceConstituents' | 'referenceOffset' | 'referencePredictionOptions'
+>
+
+function referencePrediction(
+  references: Map<string, ReferencePrediction>,
+  kind: Kind,
+  referenceId: string,
+  stationId: unknown,
+): ReferencePrediction {
+  const cached = references.get(referenceId)
+  if (cached) return cached
+  const reference = record(referenceId)
+  const constituents = (reference?.harmonic_constituents ?? []) as Constituent[]
+  if (!reference || !constituents.length)
+    throw new Error(`catalogue: invalid ${kind} reference ${referenceId} on ${String(stationId)}`)
+  const current = reference.current as { mean_flow?: number } | undefined
+  const prediction = {
+    referenceId,
+    referenceConstituents: kind === 'tide'
+      ? constituents.map((c) => ({ ...c, amplitude: c.amplitude * FEET_PER_METRE }))
+      : constituents,
+    referenceOffset: kind === 'tide' ? datumShift(reference) : current?.mean_flow ?? 0,
+    referencePredictionOptions: predictionOptions(reference),
+  }
+  references.set(referenceId, prediction)
+  return prediction
+}
+
+function currentReduction(
+  r: Record<string, unknown>, references: Map<string, ReferencePrediction>,
+): CurrentReduction | undefined {
   if (((r.harmonic_constituents ?? []) as unknown[]).length) return undefined
   const offsets = (r.current as { offsets?: Record<string, unknown> } | undefined)?.offsets
   if (!offsets) return undefined
   const referenceId = String(offsets.reference ?? '')
-  const reference = record(referenceId)
-  const referenceConstituents = (reference?.harmonic_constituents ?? []) as Constituent[]
-  if (!reference || !referenceConstituents.length)
-    throw new Error(`catalogue: invalid current reference ${referenceId} on ${String(r.id)}`)
-  const referenceCurrent = (reference.current ?? {}) as Record<string, number | undefined>
   const reduction = {
-    referenceId,
-    referenceConstituents,
-    referenceOffset: referenceCurrent.mean_flow ?? 0,
+    ...referencePrediction(references, 'current', referenceId, r.id),
     slackBeforeFloodOffset: Number(offsets.slack_before_flood) * 60,
     slackBeforeEbbOffset: Number(offsets.slack_before_ebb) * 60,
     floodTimeOffset: Number(offsets.flood_time) * 60,
@@ -254,7 +292,9 @@ function currentReduction(r: Record<string, unknown>): CurrentReduction | undefi
  * `gen-tides.mjs` rounds them, so float32 noise in the database never reaches a
  * printed height and the two agree.
  */
-function tideReduction(r: Record<string, unknown>): TideReduction | undefined {
+function tideReduction(
+  r: Record<string, unknown>, references: Map<string, ReferencePrediction>,
+): TideReduction | undefined {
   if (r.type !== 'subordinate') return undefined
   const offsets = r.offsets as {
     reference?: string
@@ -262,10 +302,7 @@ function tideReduction(r: Record<string, unknown>): TideReduction | undefined {
     height?: { type?: string; high?: number; low?: number }
   } | undefined
   const referenceId = String(offsets?.reference ?? '')
-  const reference = record(referenceId)
-  const referenceConstituents = (reference?.harmonic_constituents ?? []) as Constituent[]
-  if (!reference || !referenceConstituents.length)
-    throw new Error(`catalogue: invalid tide reference ${referenceId} on ${String(r.id)}`)
+  const prediction = referencePrediction(references, 'tide', referenceId, r.id)
   const type = offsets?.height?.type
   if (type !== 'fixed' && type !== 'ratio')
     throw new Error(`catalogue: unknown tide height offset ${String(type)} on ${String(r.id)}`)
@@ -278,9 +315,7 @@ function tideReduction(r: Record<string, unknown>): TideReduction | undefined {
         low: millimetres(offsets?.height?.low) * FEET_PER_METRE,
       }
   const reduction = {
-    referenceId,
-    referenceConstituents: referenceConstituents.map((c) => ({ ...c, amplitude: c.amplitude * FEET_PER_METRE })),
-    referenceOffset: datumShift(reference),
+    ...prediction,
     highTimeOffset: Number(offsets?.time?.high) * 60,
     lowTimeOffset: Number(offsets?.time?.low) * 60,
     height,
@@ -296,6 +331,7 @@ export function loadCatalogue(): Station[] {
   for (const kind of ['tide', 'current'] as Kind[]) {
     const curated = curatedBySlug(kind)
     const twins = chsTwins(kind)
+    const references = new Map<string, ReferencePrediction>()
     // The database's route index IS the corpus: every station it gives an
     // address to, minus the ones this site may not or cannot publish. Reading
     // the addresses from the same place the pages link to them from is what
@@ -314,8 +350,8 @@ export function loadCatalogue(): Station[] {
         const state = subdivision(r)
         const area = adminArea(r)
         const current = (r.current ?? {}) as Record<string, number | undefined>
-        const reduction = kind === 'current' ? currentReduction(r) : undefined
-        const subordinate = kind === 'tide' ? tideReduction(r) : undefined
+        const reduction = kind === 'current' ? currentReduction(r, references) : undefined
+        const subordinate = kind === 'tide' ? tideReduction(r, references) : undefined
         // The CHS half of a merged pair. Its position is the curated one: the
         // place the app shows, and the one the reader's browser resolves DFO's
         // station from. The provider row sits up to half a nautical mile off.
@@ -323,6 +359,7 @@ export function loadCatalogue(): Station[] {
         out.push({
           id, kind, slug, path,
           source: 'bundled',
+          ...(!reduction && !subordinate ? { predictionOptions: predictionOptions(r) } : {}),
           // Curated identity wins. The provider row names the water whatever the
           // provider calls it; the curated record names it what a mariner calls it.
           name: curated.get(slug)?.name ?? String(r.name),

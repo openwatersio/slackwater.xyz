@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { loadStations } from '@slackwater/database'
+import { createTidePredictor } from '@slackwater/engine'
 import { createQueryClient, prefetchTideStation } from '@slackwater/react'
 import { createLocalDataSource } from './react-source'
 import { getReactStation, listReactStations } from './react-catalogue'
@@ -19,8 +21,9 @@ describe('local React source', () => {
     const meters = await local.getTimeline({ id: 'noaa/9447130', ...range, units: 'meters' })
     expect(feet.datum).toBe('MLLW')
     // NOAA's 6-minute predictions for the same UTC day read 0.786 to 11.476 ft: https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&station=9447130&begin_date=20260901&end_date=20260901&datum=MLLW&units=english&time_zone=gmt&interval=6&format=json
-    expect(Math.min(...feet.timeline.map((p) => p.level))).toBeCloseTo(0.8, 2)
-    expect(Math.max(...feet.timeline.map((p) => p.level))).toBeCloseTo(11.47, 2)
+    const levels = feet.timeline.map((p) => p.level)
+    expect(Math.abs(Math.min(...levels) - 0.786)).toBeLessThan(0.02)
+    expect(Math.abs(Math.max(...levels) - 11.476)).toBeLessThan(0.02)
     expect(meters.timeline[0].level * FEET_PER_METRE).toBeCloseTo(feet.timeline[0].level, 8)
     expect(feet.timeline[0].time).toBeInstanceOf(Date)
     expect(fetch).not.toHaveBeenCalled()
@@ -144,4 +147,21 @@ it('predicts an exact current reference bin using its own constituents', async (
   const canonical = await local.getCurrentTimeline({ id: 'noaa/EPT0003', ...range })
   expect(reference.station.id).toBe('noaa/EPT0003@11')
   expect(reference.timeline.map((p) => p.speed)).not.toEqual(canonical.timeline.map((p) => p.speed))
+})
+
+it('uses prediction settings from the exact current bin record', async () => {
+  const id = 'noaa/ACT8851@2'
+  const record = (await loadStations()).byId(id)
+  const { station } = await getReactStation({ kind: 'current', id })
+  if (station.source !== 'bundled' || !record?.harmonic_constituents?.length) throw new Error(`missing current bin ${id}`)
+  const options = {
+    nodeCorrections: record.node_corrections,
+    definitions: record.constituent_definitions,
+  }
+  expect(station.predictionOptions).toEqual(options)
+  const expected = createTidePredictor(record.harmonic_constituents, {
+    ...options, offset: record.current?.mean_flow ?? 0,
+  }).getTimelinePrediction({ start: new Date(range.start), end: new Date(range.end), timeFidelity: 600 })
+  const actual = await source().getCurrentTimeline({ id, ...range })
+  expect(actual.timeline.map(({ speed }) => speed)).toEqual(expected.map(({ level }) => level))
 })

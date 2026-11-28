@@ -70,7 +70,7 @@ export const MIDNIGHT_PORT: BundledStation = (() => {
   let best: BundledStation | undefined
   let miss = Infinity
   for (let phase = 0; phase < 360; phase++) {
-    // One id per phase: `predict.ts` caches each station's predictor by id.
+    // Each phase has its own constituent array and cached predictor.
     const station: BundledStation = {
       ...SEAM_PORT, id: `ticon/midnight-${phase}`, timezone: 'UTC', constituents: [{ name: 'M2', amplitude: 3, phase }],
     }

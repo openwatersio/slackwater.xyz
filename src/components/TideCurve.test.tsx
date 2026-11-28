@@ -188,8 +188,7 @@ describe('TideCurve near zero', () => {
     // The guard strips a sign from zero, not from a station sitting under its
     // datum — those readings are true (#34 part 3) and must survive.
     //
-    // Its own id: `predict.ts` caches predictors by station id, so a fixture
-    // reusing FLAT's id gets FLAT's curve and this asserts nothing.
+    // Give the deeper curve its own constituent array so it gets its own predictor.
     const deep: BundledStation = { ...FLAT, id: 'noaa/0000001', constituents: [{ name: 'M2', amplitude: 1.2, phase: 10.8 }] }
     const deepSvg = renderToStaticMarkup(
       <TideCurve station={deep} start={new Date('2026-09-01T00:00:00Z')} hours={24} now={new Date('2026-09-01T06:00:00Z')} />,

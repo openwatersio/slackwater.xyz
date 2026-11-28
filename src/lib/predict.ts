@@ -39,27 +39,29 @@ export function reduceCurrentEvents(events: StationEvent[], reduction: CurrentRe
   }).sort((a, b) => a.time.getTime() - b.time.getTime())
 }
 
-/**
- * Predictors are built per station and cached by id.
- *
- * The previous shape bound one predictor to one bundled station at module
- * scope, which is why every export here now takes a station: a page for 5,624
- * stations cannot share one. The cache keeps a hot station cheap without making
- * the module stateful in a way that leaks across stations - the key is the id,
- * so two stations can never collide.
- */
-const predictors = new Map<string, ReturnType<typeof createTidePredictor>>()
+// Each predictor retains a model registry. Keep a small cache even when the
+// Worker holds the entire catalogue and visits many different stations.
+const PREDICTOR_CACHE_SIZE = 32
+const predictors = new Map<BundledStation['constituents'], {
+  offset: number
+  options: BundledStation['predictionOptions']
+  predictor: ReturnType<typeof createTidePredictor>
+}>()
 
 function predictorFor(station: BundledStation) {
-  // Keyed on id + offset, not id alone: a real station's id never carries two
-  // offsets, but keying on id alone would let a stale offset survive a cache
-  // hit if one ever did.
-  const key = `${station.id}|${station.offset ?? 0}`
-  const cached = predictors.get(key)
-  if (cached) return cached
-  const made = createTidePredictor(station.constituents, { offset: station.offset ?? 0 })
-  predictors.set(key, made)
-  return made
+  const { constituents, predictionOptions: options } = station
+  const offset = station.offset ?? 0
+  const cached = predictors.get(constituents)
+  if (cached && cached.offset === offset && cached.options === options) {
+    predictors.delete(constituents)
+    predictors.set(constituents, cached)
+    return cached.predictor
+  }
+  const predictor = createTidePredictor(constituents, { ...options, offset })
+  predictors.delete(constituents)
+  if (predictors.size === PREDICTOR_CACHE_SIZE) predictors.delete(predictors.keys().next().value!)
+  predictors.set(constituents, { offset, options, predictor })
+  return predictor
 }
 
 /**
@@ -194,6 +196,7 @@ function referenceOf(station: BundledStation, reduction: CurrentReduction): Bund
     id: reduction.referenceId,
     constituents: reduction.referenceConstituents,
     offset: reduction.referenceOffset,
+    predictionOptions: reduction.referencePredictionOptions,
     reduction: undefined,
   }
 }
@@ -346,6 +349,7 @@ export function tideExtremes(station: BundledStation, start: Date, hours: number
       id: r.referenceId,
       constituents: r.referenceConstituents,
       offset: r.referenceOffset,
+      predictionOptions: r.referencePredictionOptions,
       tideReduction: undefined,
     }
     return tideExtremes(reference, new Date(start.getTime() - pad * 1000), hours + 2 * pad / 3600)
