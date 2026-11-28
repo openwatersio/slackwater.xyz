@@ -154,15 +154,14 @@ describe('loadCatalogue', () => {
     ]
     // The released database still labels this model IHO. Exercise the source's
     // Foreman settings while the separate catalogue test checks metadata handoff.
-    const series = predictSeries({
-      ...station,
-      offset: 0,
-      predictionOptions: { ...station.predictionOptions, nodeCorrections: 'foreman', latitude: 62.469414 },
-    }, new Date('2030-01-01T00:00:00Z'), 23, 3600)
-    expect(series).toHaveLength(cm.length)
-    const meanError = series.reduce((sum, sample, i) => sum + Math.abs(sample.level / FEET_PER_METRE * 100 - cm[i]), 0)
-      / cm.length
-    expect(meanError).toBeLessThan(0.5)
+    const meanError = (predictionOptions: BundledStation['predictionOptions']) => {
+      const series = predictSeries({ ...station, offset: 0, predictionOptions }, new Date('2030-01-01T00:00:00Z'), 23, 3600)
+      expect(series).toHaveLength(cm.length)
+      return series.reduce((sum, sample, i) => sum + Math.abs(sample.level / FEET_PER_METRE * 100 - cm[i]), 0) / cm.length
+    }
+    const definitions = station.predictionOptions?.definitions
+    expect(meanError({ definitions, nodeCorrections: 'foreman', latitude: station.latitude })).toBeLessThan(0.5)
+    expect(meanError({ definitions, nodeCorrections: 'iho' })).toBeGreaterThan(0.5)
   })
 
   it('keeps a current with its own constituents harmonic', () => {

@@ -1,8 +1,10 @@
 import { createTidePredictor } from '@slackwater/engine'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { predictSeries, findEvents, findLulls, reduceCurrentEvents, slackWindows, tideExtremes, SLACK_KNOTS } from './predict'
 import type { BundledStation, TideReduction } from './station'
 import { loadCatalogue } from './catalogue'
+
+vi.mock('@slackwater/engine', { spy: true })
 
 const CURRENT: BundledStation = {
   id: 'noaa/PUG1701', kind: 'current', slug: 'deception-pass', name: 'Deception Pass (Narrows)',
@@ -36,6 +38,27 @@ describe('predictSeries', () => {
   it('is deterministic for one station', () => {
     const start = new Date('2026-09-01T00:00:00Z')
     expect(predictSeries(TIDE, start, 6)).toEqual(predictSeries(TIDE, start, 6))
+  })
+
+  it('reuses predictors and evicts the least recently used one after 32 entries', () => {
+    const builds = vi.mocked(createTidePredictor).mockClear()
+    const start = new Date('2026-09-01T00:00:00Z')
+    const stations = Array.from({ length: 33 }, () => ({ ...TIDE, constituents: [...TIDE.constituents] }))
+    const predict = (station: BundledStation) => predictSeries(station, start, 1)
+
+    predict(stations[0])
+    predict(stations[0])
+    expect(builds).toHaveBeenCalledTimes(1)
+
+    stations.slice(1, 32).forEach(predict)
+    predict(stations[0])
+    expect(builds).toHaveBeenCalledTimes(32)
+
+    predict(stations[32])
+    predict(stations[0])
+    expect(builds).toHaveBeenCalledTimes(33)
+    predict(stations[1])
+    expect(builds).toHaveBeenCalledTimes(34)
   })
 
   it('honours a station offset', () => {
